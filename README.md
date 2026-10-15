@@ -25,6 +25,7 @@ So this project does the other thing: **understand each component, rewrite it by
    - `docs/INDEX.md` — one line per component, cheap to keep in context
    - `docs/components/<Name>.md` — props, defaults, anatomy, do/don't rules, accessibility contract, keywords, **plus the OCaml module and signature when a port exists**
    - `docs/PORT-STATUS.md` — what is ported, to which module, and what is not
+   - `docs/visual/<Name>.md` — the appearance each ported component actually produces, with every token resolved to a literal value, plus an image-generation prompt
    - `tokens.ocaml.json` / `assets/tokens.css` — the upstream token values, generated into OCaml and CSS
 3. **A mockup pipeline** (`tools/mockup/`) — a screen recipe renders three ways: static HTML using measured tokens, a text-to-image prompt, or an OCaml skeleton. Recipes are validated against the registry, so a mockup cannot name a component or prop that does not exist.
 4. **A DOM verification harness** (`tools/visual/verify-dom.mjs`) — compiles the library to `js_of_ocaml`, mounts the real bundle in a real DOM (jsdom), and asserts structure, class vocabulary and ARIA behaviour. `test/` is reserved for dune-level parity once the visual capture layer runs.
@@ -45,7 +46,8 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
-| Visual contract (`docs/visual/`, screenshots) | ⏳ tooling written, not yet run — needs the upstream Storybook build | `node tools/visual/capture.mjs` |
+| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 13 pages | `node tools/gen-visual-contract.mjs` |
+| Upstream screenshot capture (`tools/visual/capture.mjs`) | ⏳ needs the upstream Storybook build | `node tools/visual/capture.mjs` |
 | Upstream-vs-port pixel parity | ⏳ not yet | — |
 | Published opam package | ⏳ not yet | — |
 
@@ -67,6 +69,12 @@ node tools/mockup/render.mjs docs/mockups/login.json --format bonsai  # -> mocku
 # build the library, then run the DOM + accessibility gate
 dune build
 node tools/visual/verify-dom.mjs
+
+# regenerate the appearance contract + image prompts for the ported components
+node tools/gen-visual-contract.mjs
+
+# ask the library what it contains (same tools an agent gets over MCP)
+node tools/mcp/astryx-mcp.mjs --cli search "loading button"
 ```
 
 ## Repository layout
@@ -82,7 +90,7 @@ docs/
   INDEX.md      generated component index (start here)
   PORT-STATUS.md generated: what is ported, to which module
   components/   generated per-component contract (props, usage, a11y, OCaml signature)
-  visual/       generated visual contract (appears once the capture layer runs)
+  visual/       generated appearance contract + image prompts (ported components)
   mockups/      screen recipes (JSON) + this pipeline's documentation
   verification/ transcripts from the gates that actually ran
 tools/

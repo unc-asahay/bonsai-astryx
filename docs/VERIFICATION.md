@@ -105,11 +105,38 @@ The server cannot answer outside its files: for an unported component
 the upstream props to design against. That refusal is the point — it is what
 keeps an agent honest about what exists.
 
+## Gate 5 — appearance contract for the ported components
+
+```
+$ node tools/gen-visual-contract.mjs
+wrote docs/visual/ for 13 ported component(s)
+```
+
+`docs/visual/<Name>.md` records the appearance the port *actually produces*, derived
+from three real artifacts — the classes each component emits in the mounted DOM, the
+declarations those classes carry in `assets/*.css`, and the token values in
+`tokens.ocaml.json` — and finishes with an image-generation prompt built from those
+measured numbers. Nothing is hand-written, so it cannot drift from the code.
+
+Two details that make the output usable rather than merely present:
+
+- every token is resolved to a literal (`var(--spacing-2)` → `0.5rem`, with the
+  token named alongside), and `light-dark(a, b)` is shown as `a (light) / b (dark)`;
+- where variants set the same property, **all** values are listed with the class
+  each comes from — Button reports four background colours (primary, secondary,
+  ghost, destructive), because a component sheet that showed only one would be
+  wrong about the other three.
+
+This is an appearance contract for *the port*. It is not a screenshot diff against
+the React original — that is the next gate and it is still unrun.
+
 ## Not yet verified — do not read these as claims
 
-- **Pixel parity against the React original.** `tools/visual/capture.mjs` is
-  written but has not run: it needs the upstream Storybook build.
-- **`docs/visual/` appearance contract** — same dependency.
+- **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
+  the upstream build but has not run: it needs the Astryx Storybook build.
+- **Upstream screenshots / the upstream-side visual reference** — same dependency.
+  (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
+  missing is the upstream side to compare it against.)
 - **Anything below M2.** 13 of 103 components are ported; the other 90 have
   reference text but no implementation.
 - **Interaction testing.** The harness asserts the first render. Click, focus
