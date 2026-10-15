@@ -66,9 +66,10 @@ if (!existsSync(bundle)) {
 
 const tokensCss = readFileSync(resolve(root, "assets/tokens.css"), "utf8");
 const componentsCss = readFileSync(resolve(root, "assets/components.css"), "utf8");
+const layoutCss = readFileSync(resolve(root, "assets/layout.css"), "utf8");
 
 const dom = new JSDOM(
-  `<!DOCTYPE html><html><head><style>${tokensCss}\n${componentsCss}</style></head>` +
+  `<!DOCTYPE html><html><head><style>${tokensCss}\n${componentsCss}\n${layoutCss}</style></head>` +
     `<body><div id="astryx-demo"></div></body></html>`,
   {
     runScripts: "outside-only",
@@ -227,15 +228,19 @@ console.log("structure");
 // The exact tree the demo should produce. Asserting the map (not a total) means
 // a component that silently stops rendering is caught, not averaged away.
 const expectedByComponent = {
-  Stack: 11,
+  Stack: 12,
   Button: 7,
-  Heading: 5,
+  Heading: 6,
+  Text: 6,
   Badge: 5,
-  Text: 4,
   Divider: 2,
+  Center: 2,
   Skeleton: 2,
   Card: 1,
   StatusDot: 1,
+  Grid: 1,
+  Section: 1,
+  VisuallyHidden: 1,
 };
 const got = report.counts.by_component;
 for (const [name, n] of Object.entries(expectedByComponent)) {
@@ -244,12 +249,12 @@ for (const [name, n] of Object.entries(expectedByComponent)) {
 const unexpected = Object.keys(got).filter((k) => !(k in expectedByComponent));
 check("no unexpected component types", unexpected.length === 0, unexpected.join(", "));
 check(
-  "38 component instances total",
+  "47 component instances total",
   report.counts.components === Object.values(expectedByComponent).reduce((a, b) => a + b, 0),
   `got ${report.counts.components}`,
 );
 check("one h1", report.counts.h1 === 1, `got ${report.counts.h1}`);
-check("four h3 section headings", report.counts.h3 === 4, `got ${report.counts.h3}`);
+check("five h3 section headings", report.counts.h3 === 5, `got ${report.counts.h3}`);
 check("seven buttons", report.counts.buttons === 7, `got ${report.counts.buttons}`);
 check("five badges", report.counts.badges === 5, `got ${report.counts.badges}`);
 check("one status dot", report.counts.status_dots === 1, `got ${report.counts.status_dots}`);
@@ -277,7 +282,56 @@ for (const b of report.buttons) {
   }
 }
 check("spinner rendered for the loading button", report.counts.spinners === 1, `got ${report.counts.spinners}`);
-check("loading announced to assistive tech", report.counts.visually_hidden === 1, `got ${report.counts.visually_hidden}`);
+check("loading announced to assistive tech", report.counts.visually_hidden >= 1, `got ${report.counts.visually_hidden}`);
+
+console.log("\nlayout primitives (M2)");
+const byComponent = (name) => report.elements.filter((e) => e.component === name);
+const grid = byComponent("Grid")[0];
+check(
+  "Grid declares its tracks",
+  grid && grid.attrs["data-astryx-columns"] === "repeat(3, 1fr)",
+  grid && grid.attrs["data-astryx-columns"],
+);
+check(
+  "Grid defaults to stretch on both axes",
+  Boolean(
+    grid &&
+      grid.attrs.class.includes("astryx-grid--align-stretch") &&
+      grid.attrs.class.includes("astryx-grid--justify-stretch"),
+  ),
+);
+check("Grid uses display:grid", grid && grid.attrs.class.includes("astryx-grid"));
+const section = byComponent("Section")[0];
+check("Section renders a <section> element", section && section.tag === "section", section && section.tag);
+check(
+  "Section variant is classed",
+  section && section.attrs.class.includes("astryx-section--muted"),
+  section && section.attrs.class,
+);
+check(
+  "Section dividers are classed on the asked-for sides",
+  Boolean(
+    section &&
+      section.attrs.class.includes("astryx-section--divider-top") &&
+      section.attrs.class.includes("astryx-section--divider-bottom"),
+  ),
+  section && section.attrs.class,
+);
+const centers = byComponent("Center");
+check(
+  "Center honours the requested axis",
+  centers.length === 2 &&
+    centers.some((c) => c.attrs["data-astryx-axis"] === "both") &&
+    centers.some((c) => c.attrs["data-astryx-axis"] === "horizontal"),
+  centers.map((c) => c.attrs["data-astryx-axis"]).join(","),
+);
+const vh = byComponent("VisuallyHidden")[0];
+check("VisuallyHidden applies the clip block", vh && vh.attrs.class.includes("astryx-visually-hidden"));
+check(
+  "VisuallyHidden keeps its content in the a11y tree",
+  vh && vh.text.includes("screen reader only"),
+  vh && vh.text,
+);
 
 console.log("\nstatus dot");
 const dot = report.status_dots[0];

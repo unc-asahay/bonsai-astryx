@@ -27,16 +27,19 @@ node tools/visual/verify-dom.mjs --dump  # full structural report as JSON
 ```
 
 That mounts the same compiled bundle in jsdom and reads the resulting document —
-46 assertions covering the component tree, headings, button semantics, the
-loading/disabled contracts, the status dot's role and label, and the variant
-class vocabulary. See [`docs/VERIFICATION.md`](../../docs/VERIFICATION.md).
+59 assertions covering the component tree, headings, button semantics, the
+loading/disabled contracts, the status dot's role and label, the variant class
+vocabulary, and the layout primitives (Grid tracks, Section variants and
+dividers, Center axes, VisuallyHidden's clip block). See
+[`docs/VERIFICATION.md`](../../docs/VERIFICATION.md).
 
 ## What the demo exercises
 
 Buttons (all four variants, all three sizes, loading, disabled, icon-only),
 Card with elevation and padding, Stack in both directions with alignment, Text
 and Heading type scales, Badge variants (semantic and coloured), Divider,
-StatusDot, and Skeleton.
+StatusDot, Skeleton, Grid (fixed 3-column), Section (muted, with dividers),
+Center (both axes) and VisuallyHidden.
 
 It deliberately goes through the public `Astryx` API only — no `Astryx.Common`
 internals except the shared spacing/alignment vocabulary — so it doubles as

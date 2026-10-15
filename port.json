@@ -14,6 +14,12 @@
       "name": "layout + text slice",
       "status": "complete",
       "note": "Compiles, links to js_of_ocaml, and passes the DOM harness (tools/visual/verify-dom.mjs)."
+    },
+    {
+      "id": "M2",
+      "name": "layout primitives",
+      "status": "complete",
+      "note": "Center, Section, Grid and VisuallyHidden — all Class A (no hooks, no measurement)."
     }
   ],
   "infrastructure": [
@@ -29,6 +35,10 @@
     { "component": "Badge", "module": "Astryx.Badge", "file": "src/badge.ml", "milestone": "M1", "class": "A" },
     { "component": "Divider", "module": "Astryx.Divider", "file": "src/divider.ml", "milestone": "M1", "class": "A" },
     { "component": "StatusDot", "module": "Astryx.StatusDot", "file": "src/status_dot.ml", "milestone": "M1", "class": "A" },
-    { "component": "Skeleton", "module": "Astryx.Skeleton", "file": "src/skeleton.ml", "milestone": "M1", "class": "A" }
+    { "component": "Skeleton", "module": "Astryx.Skeleton", "file": "src/skeleton.ml", "milestone": "M1", "class": "A" },
+    { "component": "Center", "module": "Astryx.Center", "file": "src/center.ml", "milestone": "M2", "class": "A" },
+    { "component": "Section", "module": "Astryx.Section", "file": "src/section.ml", "milestone": "M2", "class": "A" },
+    { "component": "Grid", "module": "Astryx.Grid", "file": "src/grid.ml", "milestone": "M2", "class": "A" },
+    { "component": "VisuallyHidden", "module": "Astryx.VisuallyHidden", "file": "src/visually_hidden.ml", "milestone": "M2", "class": "A" }
   ]
 }

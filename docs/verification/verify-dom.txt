@@ -1,24 +1,28 @@
 # DOM verification transcript
 # command: node tools/visual/verify-dom.mjs
-# generated: 2026-10-15T23:31:25Z
+# generated: 2026-10-15T23:40:07Z
 # dune build: exit 0 (opam switch bonsai-ui, OCaml 5.2.1, dune 3.23.1)
 
-mounted: 5982 chars of DOM
+mounted: 7372 chars of DOM
 
 structure
-  ok   Stack rendered x11
+  ok   Stack rendered x12
   ok   Button rendered x7
-  ok   Heading rendered x5
+  ok   Heading rendered x6
+  ok   Text rendered x6
   ok   Badge rendered x5
-  ok   Text rendered x4
   ok   Divider rendered x2
+  ok   Center rendered x2
   ok   Skeleton rendered x2
   ok   Card rendered x1
   ok   StatusDot rendered x1
+  ok   Grid rendered x1
+  ok   Section rendered x1
+  ok   VisuallyHidden rendered x1
   ok   no unexpected component types
-  ok   38 component instances total
+  ok   47 component instances total
   ok   one h1
-  ok   four h3 section headings
+  ok   five h3 section headings
   ok   seven buttons
   ok   five badges
   ok   one status dot
@@ -48,6 +52,17 @@ button accessibility contract
   ok   "Large" has type=button
   ok   spinner rendered for the loading button
   ok   loading announced to assistive tech
+
+layout primitives (M2)
+  ok   Grid declares its tracks
+  ok   Grid defaults to stretch on both axes
+  ok   Grid uses display:grid
+  ok   Section renders a <section> element
+  ok   Section variant is classed
+  ok   Section dividers are classed on the asked-for sides
+  ok   Center honours the requested axis
+  ok   VisuallyHidden applies the clip block
+  ok   VisuallyHidden keeps its content in the a11y tree
 
 status dot
   ok   status dot exposes role=img

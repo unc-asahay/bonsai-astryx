@@ -79,6 +79,27 @@ let loading () =
     ]
 ;;
 
+let layout () =
+  Astryx.Grid.view
+    ~columns:(Astryx.Grid.Fixed 3)
+    ~gap:S.S3
+    ~align:A.Stretch
+    [ Astryx.Center.view
+        ~axis:Astryx.Center.Both
+        ~padding:S.S3
+        [ Astryx.Text.view ~type_:Astryx.Text.Supporting [ Vdom.Node.text "centered" ] ]
+    ; Astryx.Section.view
+        ~variant:Astryx.Section.Muted
+        ~dividers:[ Astryx.Section.Top; Astryx.Section.Bottom ]
+        ~padding:S.S3
+        [ Astryx.Text.view [ Vdom.Node.text "section" ] ]
+    ; Astryx.Center.view
+        ~axis:Astryx.Center.Horizontal
+        ~height:(Astryx.Common.Size_value.Px 40)
+        [ Astryx.VisuallyHidden.view [ Vdom.Node.text "screen reader only" ] ]
+    ]
+;;
+
 let page () =
   Astryx.Stack.view
     ~gap:S.S6
@@ -104,10 +125,11 @@ let page () =
             ; Astryx.Button.view ~label:"Large" ~size:Astryx.Button.Lg []
             ]
         ]
+    ; section "Layout primitives" [ layout () ]
     ; section "Skeleton" [ loading () ]
     ; Astryx.Text.view
         ~type_:Astryx.Text.Supporting
-        [ Vdom.Node.text "milestone 1: 10 components ported" ]
+        [ Vdom.Node.text "milestone 2: 13 components ported" ]
     ]
 ;;
 

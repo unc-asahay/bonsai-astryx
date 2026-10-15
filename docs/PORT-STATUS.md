@@ -4,11 +4,12 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **9 of 103** components.
+Ported: **13 of 103** components.
 
 ## Milestones
 
 - **M1 — layout + text slice**: complete. Compiles, links to js_of_ocaml, and passes the DOM harness (tools/visual/verify-dom.mjs).
+- **M2 — layout primitives**: complete. Center, Section, Grid and VisuallyHidden — all Class A (no hooks, no measurement).
 
 ## Infrastructure
 
@@ -30,9 +31,13 @@ Ported: **9 of 103** components.
 | `Divider` | `Astryx.Divider` | `src/divider.ml` | M1 | A |
 | `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
 | `Skeleton` | `Astryx.Skeleton` | `src/skeleton.ml` | M1 | A |
+| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
+| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
+| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
+| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
 
-## Not ported yet (94)
+## Not ported yet (90)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `AspectRatio`, `Avatar`, `AvatarGroup`, `Banner`, `Blockquote`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Center`, `Chat`, `CheckboxInput`, `CheckboxList`, `Citation`, `ClickableCard`, `Code`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `EmptyState`, `Field`, `FieldStatus`, `FileInput`, `FormLayout`, `Grid`, `HStack`, `HoverCard`, `Icon`, `IconButton`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NavIcon`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `Section`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`, `VStack`, `VisuallyHidden`
+`AlertDialog`, `AppShell`, `AspectRatio`, `Avatar`, `AvatarGroup`, `Banner`, `Blockquote`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `Citation`, `ClickableCard`, `Code`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `EmptyState`, `Field`, `FieldStatus`, `FileInput`, `FormLayout`, `HStack`, `HoverCard`, `Icon`, `IconButton`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NavIcon`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`, `VStack`

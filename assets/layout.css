@@ -1,0 +1,78 @@
+/* Layout primitives: Center, Section, Grid.
+
+   Same rule as components.css — the token *values* are upstream's, and the
+   variant -> token mappings were read out of each component's StyleX source
+   (Center/Center.tsx, Section/Section.tsx, Grid/Grid.tsx) rather than guessed.
+   VisuallyHidden's clip block lives in components.css next to the other
+   accessibility utilities. */
+
+/* ---------------------------------------------------------------- Center */
+
+.astryx-center {
+  display: flex;
+  min-width: 0;
+}
+
+.astryx-center--inline {
+  display: inline-flex;
+}
+
+/* axis=both */
+.astryx-center--both {
+  align-items: center;
+  justify-content: center;
+}
+
+/* axis=horizontal: the logical main/inline axis */
+.astryx-center--horizontal {
+  justify-content: center;
+}
+
+/* axis=vertical: the logical cross/block axis */
+.astryx-center--vertical {
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------- Section */
+
+.astryx-section {
+  display: block;
+  box-sizing: border-box;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+}
+
+.astryx-section--section {
+  background-color: var(--color-background-surface);
+}
+
+.astryx-section--transparent {
+  background-color: transparent;
+}
+
+.astryx-section--muted {
+  background-color: var(--color-background-muted);
+}
+
+/* Upstream draws these with a literal 1px, not --border-width. */
+.astryx-section--divider-top { border-top: 1px solid var(--color-border); }
+.astryx-section--divider-bottom { border-bottom: 1px solid var(--color-border); }
+.astryx-section--divider-start { border-inline-start: 1px solid var(--color-border); }
+.astryx-section--divider-end { border-inline-end: 1px solid var(--color-border); }
+
+/* ---------------------------------------------------------------- Grid */
+
+.astryx-grid {
+  display: grid;
+  min-width: 0;
+}
+
+.astryx-grid--align-start { align-items: start; }
+.astryx-grid--align-center { align-items: center; }
+.astryx-grid--align-end { align-items: end; }
+.astryx-grid--align-stretch { align-items: stretch; }
+
+.astryx-grid--justify-start { justify-items: start; }
+.astryx-grid--justify-center { justify-items: center; }
+.astryx-grid--justify-end { justify-items: end; }
+.astryx-grid--justify-stretch { justify-items: stretch; }

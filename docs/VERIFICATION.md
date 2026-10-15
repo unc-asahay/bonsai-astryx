@@ -29,16 +29,16 @@ linked JavaScript.
 $ node tools/visual/verify-dom.mjs
 ```
 
-**46 checks passed, 0 failed.** Full transcript: [`verify-dom.txt`](verification/verify-dom.txt).
+**59 checks passed, 0 failed.** Full transcript: [`verify-dom.txt`](verification/verify-dom.txt).
 
 The harness mounts the compiled bundle in jsdom (not a mock DOM, not a
 screenshot diff) and reads the live document. What it proves:
 
 | claim | how it is checked |
 | --- | --- |
-| the app mounts | 5,985 characters of DOM under the bind element |
-| the component tree is exactly as expected | per-component instance counts (Stack 11, Button 7, Heading 5, Badge 5, Text 4, Divider 2, Skeleton 2, Card 1, StatusDot 1 = 38), and no unexpected component types |
-| heading semantics | one `h1`, four `h3` |
+| the app mounts | 7,372 characters of DOM under the bind element |
+| the component tree is exactly as expected | per-component instance counts (Stack 12, Button 7, Heading 6, Text 6, Badge 5, Divider 2, Center 2, Skeleton 2, Card 1, StatusDot 1, Grid 1, Section 1, VisuallyHidden 1 = 47), and no unexpected component types |
+| heading semantics | one `h1`, five `h3` |
 | buttons render as buttons | 7 `<button>` elements, each `type="button"` |
 | loading state is announced | `aria-busy="true"`, `aria-disabled="true"`, spinner present, visually-hidden "Loading" node present |
 | a loading button keeps focus | **no** native `disabled` attribute (upstream keeps it focusable) |
@@ -46,6 +46,10 @@ screenshot diff) and reads the live document. What it proves:
 | the accessible name reads in the right order | text content is `SaveLoading`, i.e. label then state, not `LoadingSave` |
 | status dot is not a decorative blob | `role="img"` + `aria-label="Healthy"` |
 | variant vocabulary is emitted | `astryx-button--primary`, `--destructive`, and variant classes on every badge |
+| Grid's tracks match upstream's rule | `columns={3}` renders `data-astryx-columns="repeat(3, 1fr)"`; default alignment is `stretch` on both axes |
+| Section is a real region | rendered as `<section>`, variant classed (`--muted`), dividers classed on the asked-for sides |
+| Center honours the logical axis | `axis=both` and `axis=horizontal` produce their respective classes |
+| VisuallyHidden is hidden *and* exposed | clip-block class applied, content still present in the accessibility tree |
 
 ### Two environment facts worth writing down
 
@@ -66,7 +70,7 @@ Both cost real debugging time and are not obvious from any error message:
 ```
 $ python3 tools/gen-port-status.py
 docs updated: 100 component page(s) touched
-ported 9/103; wrote docs/PORT-STATUS.md
+ported 13/103; wrote docs/PORT-STATUS.md
 ```
 
 Every one of the 103 reference pages now states whether an OCaml port exists,
@@ -78,7 +82,7 @@ AI reads is derived from the code and cannot drift from it.
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` is
   written but has not run: it needs the upstream Storybook build.
 - **`docs/visual/` appearance contract** — same dependency.
-- **Anything below M1.** 9 of 103 components are ported; the other 94 have
+- **Anything below M2.** 13 of 103 components are ported; the other 90 have
   reference text but no implementation.
 - **Interaction testing.** The harness asserts the first render. Click, focus
   movement and keyboard behaviour are not yet asserted (they need

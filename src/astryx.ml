@@ -16,8 +16,14 @@ module Card = Card
 module Badge = Badge
 module Divider = Divider
 module Skeleton = Skeleton
+module Center = Center
+module Section = Section
+module Grid = Grid
+module Visually_hidden = Visually_hidden
 
 (* The file is status_dot.ml (OCaml module names cannot carry the upstream
    capitalisation), but the public name matches upstream: Astryx.StatusDot. *)
 module Status_dot = Status_dot
 module StatusDot = Status_dot
+module VisuallyHidden = Visually_hidden
+
