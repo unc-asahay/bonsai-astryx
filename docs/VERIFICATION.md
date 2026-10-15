@@ -77,6 +77,34 @@ Every one of the 103 reference pages now states whether an OCaml port exists,
 which module to call, and the signature lifted from the `.mli` — so the text an
 AI reads is derived from the code and cannot drift from it.
 
+## Gate 4 — the agent-facing tool layer (MCP)
+
+```
+$ pnpm ... # nothing: pure node, no dependencies beyond the repo files
+$ node tools/mcp/astryx-mcp.mjs --cli status
+upstream: facebook/astryx @ b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e (MIT)
+ported: 13 of 103
+by milestone: M1=9, M2=4
+```
+
+Protocol paths exercised by piping raw JSON-RPC frames in and checking every
+reply — transcript in [`mcp-stdio.txt`](verification/mcp-stdio.txt):
+
+| what | result |
+| --- | --- |
+| `initialize` | returns protocol version and `capabilities.tools` |
+| `notifications/initialized` | **no reply** — 6 replies for 7 frames, as the spec requires |
+| `tools/list` | the six tools |
+| `tools/call get_snippet {name: Grid}` | the compile-verified call |
+| `tools/call list_components {filter: ported}` | `13 component(s) ported — 13 of 103` |
+| unknown tool | `isError: true` with a message, not a crash |
+| unknown method | JSON-RPC `-32601` |
+
+The server cannot answer outside its files: for an unported component
+`get_snippet` returns "not ported yet … anything I emit would be invented" plus
+the upstream props to design against. That refusal is the point — it is what
+keeps an agent honest about what exists.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` is

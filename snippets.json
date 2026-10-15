@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "_comment": "Minimal, compile-verified OCaml calls for ported components. Every snippet here is copied from examples/demo/demo.ml, which is compiled by `dune build` and rendered by the DOM harness — so a snippet cannot be syntactically or semantically invented. Served to agents by tools/mcp/astryx-mcp.mjs (get_snippet).",
+  "snippets": {
+    "Stack": "Astryx.Stack.view\n  ~direction:Astryx.Stack.Horizontal\n  ~gap:Astryx.Common.Spacing.S3\n  ~align:Astryx.Common.Alignment.Center\n  [ child1; child2 ]",
+    "Text": "Astryx.Text.view ~type_:Astryx.Text.Supporting [ Vdom.Node.text \"helper text\" ]",
+    "Heading": "Astryx.Heading.view ~level:Astryx.Heading.H2 [ Vdom.Node.text \"Section title\" ]",
+    "Button": "Astryx.Button.view ~variant:Astryx.Button.Primary ~label:\"Save\" []\n(* loading: ~is_loading:true — keeps focus, sets aria-busy + aria-disabled *)\n(* disabled: ~is_disabled:true — native disabled *)",
+    "Card": "Astryx.Card.view ~padding:Astryx.Common.Spacing.S4 ~elevation:Astryx.Button.Low [ body ]",
+    "Badge": "Astryx.Badge.view ~variant:Astryx.Badge.Success \"Shipped\"",
+    "Divider": "Astryx.Divider.view ()\n(* with a label: Astryx.Divider.view ~label:(Vdom.Node.text \"or\") () *)",
+    "StatusDot": "Astryx.StatusDot.view ~variant:Astryx.StatusDot.Success ~label:\"Healthy\" ()",
+    "Skeleton": "Astryx.Skeleton.view\n  ~width:(Astryx.Common.Size_value.Px 120)\n  ~height:(Astryx.Common.Size_value.Px 12)\n  ()",
+    "Center": "Astryx.Center.view ~axis:Astryx.Center.Both ~padding:Astryx.Common.Spacing.S3 [ child ]",
+    "Section": "Astryx.Section.view\n  ~variant:Astryx.Section.Muted\n  ~dividers:[ Astryx.Section.Top; Astryx.Section.Bottom ]\n  ~padding:Astryx.Common.Spacing.S3\n  [ body ]",
+    "Grid": "Astryx.Grid.view\n  ~columns:(Astryx.Grid.Fixed 3)\n  ~gap:Astryx.Common.Spacing.S3\n  [ a; b; c ]\n(* responsive: ~columns:(Astryx.Grid.Responsive (280, Astryx.Grid.Fill)) *)",
+    "VisuallyHidden": "Astryx.VisuallyHidden.view [ Vdom.Node.text \"screen reader only\" ]"
+  }
+}
