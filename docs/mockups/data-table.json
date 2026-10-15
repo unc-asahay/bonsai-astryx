@@ -1,0 +1,66 @@
+{
+  "id": "data-table",
+  "title": "Customers list",
+  "intent": "Scan, filter and act on a list of customers",
+  "theme": "neutral",
+  "viewport": { "w": 1080, "h": 720 },
+  "root": {
+    "component": "Stack",
+    "props": { "direction": "vertical", "gap": "lg" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "direction": "horizontal", "gap": "md", "align": "center", "justify": "space-between" },
+        "children": [
+          { "component": "Heading", "props": { "level": 1, "text": "Customers" } },
+          { "component": "Button", "props": { "label": "Add customer", "variant": "primary", "icon": "plus" } }
+        ]
+      },
+      {
+        "component": "Stack",
+        "props": { "direction": "horizontal", "gap": "md", "align": "center" },
+        "children": [
+          { "component": "TextInput", "props": { "label": "Search", "placeholder": "Search customers", "isLabelHidden": true } },
+          { "component": "Selector", "props": { "label": "Plan", "value": "All plans" } },
+          { "component": "Badge", "props": { "label": "12 active", "variant": "success" } }
+        ]
+      },
+      {
+        "component": "Card",
+        "props": { "padding": "none" },
+        "children": [
+          {
+            "component": "Table",
+            "props": {
+              "columns": ["Name", "Plan", "Status", "Monthly spend"],
+              "rows": [
+                ["Acme Corp", "Enterprise", "Active", "$4,200"],
+                ["Globex", "Team", "Active", "$980"],
+                ["Initech", "Team", "Trial", "$0"],
+                ["Umbrella", "Enterprise", "Past due", "$7,150"],
+                ["Soylent", "Starter", "Active", "$120"]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "component": "Stack",
+        "props": { "direction": "horizontal", "gap": "sm", "align": "center", "justify": "space-between" },
+        "children": [
+          { "component": "Text", "props": { "text": "Showing 1-5 of 42", "variant": "subtle" } },
+          { "component": "Pagination", "props": { "page": 1, "totalPages": 9 } }
+        ]
+      }
+    ]
+  },
+  "imagePrompt": {
+    "subject": "a customers list screen for a B2B SaaS admin tool",
+    "composition": "page title and primary action on one row, filter row, then a dense table card, pagination footer",
+    "mood": "efficient, data-dense, calm"
+  },
+  "notes": [
+    "One primary action only: Add customer.",
+    "Status column uses badges, not colored text."
+  ]
+}

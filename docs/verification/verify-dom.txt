@@ -1,0 +1,62 @@
+# DOM verification transcript
+# command: node tools/visual/verify-dom.mjs
+# generated: 2026-10-15T23:31:25Z
+# dune build: exit 0 (opam switch bonsai-ui, OCaml 5.2.1, dune 3.23.1)
+
+mounted: 5982 chars of DOM
+
+structure
+  ok   Stack rendered x11
+  ok   Button rendered x7
+  ok   Heading rendered x5
+  ok   Badge rendered x5
+  ok   Text rendered x4
+  ok   Divider rendered x2
+  ok   Skeleton rendered x2
+  ok   Card rendered x1
+  ok   StatusDot rendered x1
+  ok   no unexpected component types
+  ok   38 component instances total
+  ok   one h1
+  ok   four h3 section headings
+  ok   seven buttons
+  ok   five badges
+  ok   one status dot
+  ok   two skeletons
+  ok   two dividers
+  ok   one card
+
+button accessibility contract
+  ok   button "Primary" exists
+  ok   button "Secondary" exists
+  ok   button "Ghost" exists
+  ok   button "Delete" exists
+  ok   button "Save" exists
+  ok   button "Disabled" exists
+  ok   button "Large" exists
+  ok   "Primary" has type=button
+  ok   "Secondary" has type=button
+  ok   "Ghost" has type=button
+  ok   "Delete" has type=button
+  ok   "SaveLoading" has type=button
+  ok   loading button is aria-busy
+  ok   loading button is aria-disabled
+  ok   loading button stays focusable (not native disabled)
+  ok   loading state is announced in the accessible name
+  ok   "Disabled" has type=button
+  ok   disabled button uses native disabled
+  ok   "Large" has type=button
+  ok   spinner rendered for the loading button
+  ok   loading announced to assistive tech
+
+status dot
+  ok   status dot exposes role=img
+  ok   status dot carries its label
+  ok   status dot is variant success
+
+class vocabulary
+  ok   button variants are classed
+  ok   destructive variant is classed
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED

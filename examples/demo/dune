@@ -1,0 +1,6 @@
+(executable
+ (name demo)
+ (libraries astryx bonsai bonsai_web)
+ (modes js)
+ (preprocess
+  (pps bonsai.ppx_bonsai js_of_ocaml-ppx)))

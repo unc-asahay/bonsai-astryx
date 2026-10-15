@@ -1,0 +1,43 @@
+{
+  "id": "login",
+  "title": "Sign in",
+  "intent": "Authenticate with email and password, with a recovery path",
+  "theme": "neutral",
+  "viewport": { "w": 900, "h": 640 },
+  "root": {
+    "component": "Card",
+    "props": { "padding": "lg", "width": "420px" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "direction": "vertical", "gap": "lg" },
+        "children": [
+          { "component": "Heading", "props": { "level": 1, "text": "Sign in to your account" } },
+          { "component": "TextInput", "props": { "label": "Email", "type": "email", "placeholder": "you@example.com" } },
+          { "component": "TextInput", "props": { "label": "Password", "type": "password" } },
+          {
+            "component": "Stack",
+            "props": { "direction": "horizontal", "gap": "sm", "align": "center", "justify": "space-between" },
+            "children": [
+              { "component": "CheckboxInput", "props": { "label": "Keep me signed in", "checked": true } },
+              { "component": "Link", "props": { "label": "Forgot password?", "href": "#" } }
+            ]
+          },
+          { "component": "Button", "props": { "label": "Sign in", "variant": "primary", "isFullWidth": true, "type": "submit" } },
+          { "component": "Divider", "props": {} },
+          { "component": "Text", "props": { "text": "New here? Create an account", "variant": "subtle" } }
+        ]
+      }
+    ]
+  },
+  "imagePrompt": {
+    "subject": "a sign-in screen for a developer tool",
+    "composition": "single centred card on a plain background, vertical form, generous spacing, one primary button",
+    "mood": "focused, minimal, trustworthy"
+  },
+  "notes": [
+    "Single primary action in the view: the submit button.",
+    "Labels are visible (not placeholder-only).",
+    "Error state is not shown in this recipe; render it as a separate recipe when needed."
+  ]
+}

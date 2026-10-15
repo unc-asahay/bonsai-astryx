@@ -1,0 +1,5 @@
+(library
+ (name astryx)
+ (libraries core bonsai bonsai_web)
+ (preprocess
+  (pps bonsai.ppx_bonsai)))

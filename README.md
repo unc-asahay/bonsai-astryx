@@ -1,0 +1,124 @@
+# bonsai-astryx
+
+**An unofficial port of the [Astryx](https://github.com/facebook/astryx) design system to OCaml / [Bonsai](https://github.com/janestreet/bonsai) — shipped with a machine-readable reference corpus that lets an AI write correct UI code, mockups and image prompts against it.**
+
+Not affiliated with or endorsed by Meta Platforms, Inc. or Jane Street Group, LLC. See [NOTICE](NOTICE).
+
+---
+
+## Why this exists
+
+The React ecosystem has thousands of well-designed components. OCaml's [Bonsai](https://github.com/janestreet/bonsai) has a better execution model — incremental, type-checked, no hook rules to break — but almost no component library worth designing against.
+
+A mechanical transpile from React to Bonsai is not possible, and it is worth saying why plainly:
+
+- React re-renders a virtual DOM under hooks (`useState`, `useEffect`, `useRef`, `useContext`); Bonsai is an incremental computation graph with first-class state machines. There is no behaviour-preserving rewrite rule for `useEffect`.
+- Styling does not travel with the code: Astryx compiles [StyleX](https://stylexjs.com) at build time; Tailwind is utility classes. Neither maps to `ppx_css`.
+- Portalled, measured components (dialog, popover, command palette, combobox) are imperative DOM work — focus traps, positioning, `ResizeObserver` — that must be reimplemented against `js_of_ocaml`'s DOM.
+
+So this project does the other thing: **understand each component, rewrite it by hand with LLM assistance, and prove each port with gates.** The type system does part of the work for us — a wrong port does not "mostly work", it fails to compile. But type-correct is not behaviour-correct, so every component must also pass a **parity test** against the real thing.
+
+## What you get
+
+1. **A Bonsai component library** (`src/`) — components in the Astryx design language, API-compatible where it makes sense, with documented divergences.
+2. **A reference corpus** (`docs/`, `registry.json`, `tokens.ocaml.json`) generated from the upstream contract — the part that makes an AI *correct* rather than plausible:
+   - `docs/INDEX.md` — one line per component, cheap to keep in context
+   - `docs/components/<Name>.md` — props, defaults, anatomy, do/don't rules, accessibility contract, keywords, **plus the OCaml module and signature when a port exists**
+   - `docs/PORT-STATUS.md` — what is ported, to which module, and what is not
+   - `tokens.ocaml.json` / `assets/tokens.css` — the upstream token values, generated into OCaml and CSS
+3. **A mockup pipeline** (`tools/mockup/`) — a screen recipe renders three ways: static HTML using measured tokens, a text-to-image prompt, or an OCaml skeleton. Recipes are validated against the registry, so a mockup cannot name a component or prop that does not exist.
+4. **A DOM verification harness** (`tools/visual/verify-dom.mjs`) — compiles the library to `js_of_ocaml`, mounts the real bundle in a real DOM (jsdom), and asserts structure, class vocabulary and ARIA behaviour. `test/` is reserved for dune-level parity once the visual capture layer runs.
+
+## Status
+
+Pre-alpha. This table is updated as work lands; nothing is claimed here that is not verified by a command you can run.
+
+| area | state | evidence you can run |
+| --- | --- | --- |
+| Upstream contract extraction (103 components, 1,439 props) | ✅ | `node tools/extract-docs.mjs` + `python3 tools/extract-source-contracts.py` |
+| Per-component reference text (`docs/components/*.md`) | ✅ 103 pages | `python3 tools/gen-references.py` |
+| Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
+| Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
+| Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
+| Component library (`src/`) | 🚧 9 of 103 ported (M1) | `dune build` |
+| **Compile gate** | ✅ exit 0 | `dune build` |
+| **DOM + accessibility gate** | ✅ 46 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
+| Visual contract (`docs/visual/`, screenshots) | ⏳ tooling written, not yet run — needs the upstream Storybook build | `node tools/visual/capture.mjs` |
+| Upstream-vs-port pixel parity | ⏳ not yet | — |
+| Published opam package | ⏳ not yet | — |
+
+## Quickstart
+
+Requires OCaml ≥ 5.2.1 with a switch that has the Jane Street preview packages (see [CONTRIBUTING.md](CONTRIBUTING.md) for the exact bootstrap, including the two upstream build traps we hit).
+
+```sh
+# regenerate the reference corpus from a pinned upstream checkout
+node tools/extract-docs.mjs
+node tools/extract-source-contracts.py
+python3 tools/gen-references.py
+
+# render a screen mockup three ways
+node tools/mockup/render.mjs docs/mockups/login.json --format html    # -> mockups/out/login.html
+node tools/mockup/render.mjs docs/mockups/login.json --format prompt  # -> mockups/out/login.prompt.txt
+node tools/mockup/render.mjs docs/mockups/login.json --format bonsai  # -> mockups/out/login.ml
+
+# build the library, then run the DOM + accessibility gate
+dune build
+node tools/visual/verify-dom.mjs
+```
+
+## Repository layout
+
+```
+src/            OCaml/Bonsai component implementations (the library)
+assets/
+  tokens.css         generated: upstream token values as CSS custom properties
+  components.css     the port's stylesheet (variant -> token mappings)
+examples/demo/  js_of_ocaml app that renders the ported components
+test/           dune-level parity tests (reserved; see the DOM harness below)
+docs/
+  INDEX.md      generated component index (start here)
+  PORT-STATUS.md generated: what is ported, to which module
+  components/   generated per-component contract (props, usage, a11y, OCaml signature)
+  visual/       generated visual contract (appears once the capture layer runs)
+  mockups/      screen recipes (JSON) + this pipeline's documentation
+  verification/ transcripts from the gates that actually ran
+tools/
+  extract-docs.mjs            upstream *.doc.mjs -> registry.json
+  extract-source-contracts.py TypeScript props -> registry.json (fills the gaps)
+  gen-references.py           registry.json -> docs/components/*.md
+  gen-port-status.py          port.json + .mli signatures -> port status in every page
+  gen-ocaml-tokens.py         upstream tokens -> src/tokens.ml + assets/tokens.css
+  visual/capture.mjs          screenshot + measure every component
+  gen-visual-references.py    captures -> docs/visual/*.md
+  visual/verify-dom.mjs       mount the compiled app in jsdom, assert the DOM/ARIA
+  mockup/render.mjs           recipe -> HTML | image prompt | OCaml
+registry.json   extracted upstream contract (source of truth for generators)
+port.json       per-component port status (drives gen-port-status.py)
+tokens.ocaml.json  token values in a machine-readable form
+```
+
+## The four gates every ported component passes
+
+1. **Compile** — `.mli` written first as the contract, implementation second. `dune build` must be exit 0. This is the gate OCaml gives you for free and the reason a port is slower but safer than a transpile: a wrong prop type is a compile error, not a runtime surprise.
+2. **DOM + ARIA** — the compiled app is mounted in jsdom and asserted (`tools/visual/verify-dom.mjs`): element structure, class vocabulary, roles, labels, and state attributes such as `aria-busy`/`aria-disabled`. Pixel parity against the upstream React build is the next step and needs the Storybook capture layer.
+3. **Accessibility** — the upstream contract's WCAG criteria and required states become assertions, not advice (`aria-busy` during loading, focus never dropped, `aria-disabled` instead of native `disabled` where the upstream keeps a control focusable).
+4. **Reference** — the component's `docs/components/<Name>.md` is regenerated from the code and the upstream contract (`tools/gen-port-status.py`), so the page an AI reads cannot disagree with the code that exists.
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md). Short version: foundations → presentational components → input components → overlay/measured components → shadcn as a second upstream → published opam package.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). The per-component procedure is written down there precisely so that ports stay consistent — and so an AI agent can follow it too.
+
+## About us
+
+This started as a build project by **Anupam** with **Karina** (a Hermes Agent instance) doing the mechanical work: reading upstream source, extracting contracts, generating references, writing ports, and running the verification gates. It is published so that other people building OCaml front ends do not have to start from an empty `src/`.
+
+If you use it, the useful thing to contribute back is a **parity test for a component you actually use in production** — that is the evidence that keeps the whole corpus honest.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Component documentation text is derived from Astryx's MIT-licensed `.doc.mjs` files and remains the work of the Astryx authors; attribution and provenance are recorded in [NOTICE](NOTICE) and in the footer of every generated file.

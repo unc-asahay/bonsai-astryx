@@ -1,0 +1,22 @@
+# OCaml
+_build/
+*.install
+*.merlin
+.merlin
+
+# JS / tooling
+node_modules/
+pnpm-lock.yaml.bak
+.DS_Store
+
+# upstream checkouts (cloned separately, never vendored)
+astryx/
+.js-opam/
+vd-src/
+
+# generated capture output (regenerable; screenshots are committed selectively)
+visual-captures/shots/
+mockups/out/
+
+# local build logs from the bootstrap scripts
+*.log

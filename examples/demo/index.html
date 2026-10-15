@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bonsai-astryx demo</title>
+    <!-- tokens.css is generated from the upstream token source; components.css
+         is this port's stylesheet. Order matters: tokens first. -->
+    <link rel="stylesheet" href="../../assets/tokens.css" />
+    <link rel="stylesheet" href="../../assets/components.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--color-background-body);
+        color: var(--color-text-primary);
+        font-family: var(--font-family-body);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="astryx-demo"></div>
+    <!-- Scripts are served from the repo root, so this path reaches dune's build
+         output. Run `dune build` first, then:
+           python3 -m http.server 8788     # from the repo root
+         and open http://127.0.0.1:8788/examples/demo/index.html -->
+    <script src="../../_build/default/examples/demo/demo.bc.js"></script>
+  </body>
+</html>

@@ -1,0 +1,378 @@
+/* Component styles for the Bonsai port.
+
+   Token *values* come from the upstream build (see assets/tokens.css, generated
+   from astryx packages/core/src/theme/tokens.stylex.ts). The variant -> token
+   mappings below were read out of each upstream component's StyleX source, e.g.
+   Badge/Badge.tsx and Button/Button.tsx, so a ported component paints the same
+   colours as the component it ports.
+
+   Class naming is this port's own (Astryx compiles StyleX to hashed atomic
+   classes, which are not stable across builds and so cannot be matched). The
+   structural shape — element, data attributes, ARIA — is what the parity harness
+   compares, and `data-astryx-component` marks every ported root. */
+
+/* ---------------------------------------------------------------- Stack */
+
+.astryx-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.astryx-stack--horizontal {
+  flex-direction: row;
+}
+
+.astryx-stack--wrap {
+  flex-wrap: wrap;
+}
+
+.astryx-stack--scrollable {
+  overflow: auto;
+}
+
+.astryx-align--start { align-items: flex-start; }
+.astryx-align--center { align-items: center; }
+.astryx-align--end { align-items: flex-end; }
+.astryx-align--stretch { align-items: stretch; }
+
+.astryx-justify--start { justify-content: flex-start; }
+.astryx-justify--center { justify-content: center; }
+.astryx-justify--end { justify-content: flex-end; }
+.astryx-justify--between { justify-content: space-between; }
+.astryx-justify--around { justify-content: space-around; }
+.astryx-justify--evenly { justify-content: space-evenly; }
+
+/* ---------------------------------------------------------------- Text */
+
+.astryx-text {
+  margin: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+}
+
+.astryx-text--type-body { font-size: var(--text-body-size); font-weight: var(--text-body-weight); line-height: var(--text-body-leading); }
+.astryx-text--type-large { font-size: var(--text-large-size); font-weight: var(--text-large-weight); line-height: var(--text-large-leading); }
+.astryx-text--type-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); line-height: var(--text-label-leading); }
+.astryx-text--type-supporting { font-size: var(--text-supporting-size); font-weight: var(--text-supporting-weight); line-height: var(--text-supporting-leading); }
+.astryx-text--type-code { font-family: var(--font-family-code); font-size: var(--text-code-size); font-weight: var(--text-code-weight); line-height: var(--text-code-leading); }
+.astryx-text--type-display-1 { font-size: var(--text-display-1-size); font-weight: var(--text-display-1-weight); line-height: var(--text-display-1-leading); }
+.astryx-text--type-display-2 { font-size: var(--text-display-2-size); font-weight: var(--text-display-2-weight); line-height: var(--text-display-2-leading); }
+.astryx-text--type-display-3 { font-size: var(--text-display-3-size); font-weight: var(--text-display-3-weight); line-height: var(--text-display-3-leading); }
+
+/* Size overrides. Note the upstream quirk: the size named `xsm` uses
+   --font-size-xs (see astryx theme/generateThemeRules.ts). */
+.astryx-text--size-4xs { font-size: var(--font-size-4xs); }
+.astryx-text--size-3xs { font-size: var(--font-size-3xs); }
+.astryx-text--size-2xs { font-size: var(--font-size-2xs); }
+.astryx-text--size-xsm { font-size: var(--font-size-xs); }
+.astryx-text--size-sm { font-size: var(--font-size-sm); }
+.astryx-text--size-base { font-size: var(--font-size-base); }
+.astryx-text--size-lg { font-size: var(--font-size-lg); }
+.astryx-text--size-xl { font-size: var(--font-size-xl); }
+.astryx-text--size-2xl { font-size: var(--font-size-2xl); }
+.astryx-text--size-3xl { font-size: var(--font-size-3xl); }
+.astryx-text--size-4xl { font-size: var(--font-size-4xl); }
+.astryx-text--size-5xl { font-size: var(--font-size-5xl); }
+
+.astryx-text--color-primary { color: var(--color-text-primary); }
+.astryx-text--color-secondary { color: var(--color-text-secondary); }
+.astryx-text--color-disabled { color: var(--color-text-disabled); }
+.astryx-text--color-placeholder { color: var(--color-text-secondary); }
+.astryx-text--color-accent { color: var(--color-text-accent); }
+.astryx-text--color-inherit { color: inherit; }
+
+.astryx-text--weight-normal { font-weight: var(--font-weight-normal); }
+.astryx-text--weight-medium { font-weight: var(--font-weight-medium); }
+.astryx-text--weight-semibold { font-weight: var(--font-weight-semibold); }
+.astryx-text--weight-bold { font-weight: var(--font-weight-bold); }
+
+.astryx-text--inline { display: inline; }
+.astryx-text--block { display: block; }
+
+.astryx-text--justify-start { text-align: start; }
+.astryx-text--justify-center { text-align: center; }
+.astryx-text--justify-end { text-align: end; }
+
+.astryx-text--strikethrough { text-decoration: line-through; }
+.astryx-text--tabular { font-variant-numeric: tabular-nums; }
+
+/* Line clamping: the component emits its own `max-lines` value inline. */
+.astryx-text--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: var(--max-lines);
+  line-clamp: var(--max-lines);
+}
+
+/* ---------------------------------------------------------------- Heading */
+
+.astryx-heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  color: var(--color-text-primary);
+}
+
+.astryx-heading--1 { font-size: var(--text-heading-1-size); font-weight: var(--text-heading-1-weight); line-height: var(--text-heading-1-leading); }
+.astryx-heading--2 { font-size: var(--text-heading-2-size); font-weight: var(--text-heading-2-weight); line-height: var(--text-heading-2-leading); }
+.astryx-heading--3 { font-size: var(--text-heading-3-size); font-weight: var(--text-heading-3-weight); line-height: var(--text-heading-3-leading); }
+.astryx-heading--4 { font-size: var(--text-heading-4-size); font-weight: var(--text-heading-4-weight); line-height: var(--text-heading-4-leading); }
+.astryx-heading--5 { font-size: var(--text-heading-5-size); font-weight: var(--text-heading-5-weight); line-height: var(--text-heading-5-leading); }
+.astryx-heading--6 { font-size: var(--text-heading-6-size); font-weight: var(--text-heading-6-weight); line-height: var(--text-heading-6-leading); }
+
+/* ---------------------------------------------------------------- Button */
+
+.astryx-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-3);
+  border-width: 0;
+  border-style: none;
+  border-radius: var(--radius-element);
+  font-family: inherit;
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: var(--text-label-weight);
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  cursor: pointer;
+  transition-property: background-color, color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-button--sm { height: var(--size-element-sm); }
+.astryx-button--md { height: var(--size-element-md); }
+.astryx-button--lg { height: var(--size-element-lg); }
+
+.astryx-button--primary { background-color: var(--color-accent); color: var(--color-on-accent); }
+.astryx-button--secondary { background-color: var(--color-neutral); color: var(--color-text-primary); }
+.astryx-button--ghost { background-color: transparent; color: var(--color-text-primary); }
+.astryx-button--destructive { background-color: var(--color-error); color: var(--color-on-error); }
+
+.astryx-button--elevation-low { box-shadow: var(--shadow-low); }
+.astryx-button--elevation-med { box-shadow: var(--shadow-med); }
+.astryx-button--elevation-high { box-shadow: var(--shadow-high); }
+
+.astryx-button--icon-only { aspect-ratio: 1 / 1; padding-inline: 0; }
+
+.astryx-button:hover:not(.astryx-button--disabled) { filter: brightness(0.97); }
+.astryx-button--ghost:hover { background-color: var(--color-overlay-hover); }
+
+.astryx-button:active:not(.astryx-button--disabled) { filter: brightness(0.93); }
+
+/* Focus ring: shared outline, variant-coloured. A red button carries a red ring
+   so the ring is not mistaken for another control's focus (upstream comment). */
+.astryx-button:focus-visible,
+.astryx-card:focus-visible,
+.astryx-status-dot:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--color-accent);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.astryx-button--destructive:focus-visible { outline-color: var(--color-error); }
+
+.astryx-button--disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.astryx-button[aria-disabled="true"] {
+  cursor: default;
+}
+
+/* Loading: aria-busy + aria-disabled, never native disabled, so focus is kept. */
+.astryx-button--loading { cursor: progress; }
+.astryx-button--loading .astryx-spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: astryx-spin var(--duration-slow, 800ms) linear infinite;
+}
+
+@keyframes astryx-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------------- Card */
+
+.astryx-card {
+  --_card-radius: var(--radius-container);
+  border-radius: var(--_card-radius);
+  background-color: var(--color-background-card);
+  color: var(--color-text-primary);
+  border: var(--border-width) solid var(--color-border);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+}
+
+.astryx-card--transparent { background-color: transparent; border-color: transparent; }
+.astryx-card--muted { background-color: var(--color-background-muted); }
+.astryx-card--blue { background-color: var(--color-background-blue); }
+.astryx-card--cyan { background-color: var(--color-background-cyan); }
+.astryx-card--gray { background-color: var(--color-background-gray); }
+.astryx-card--green { background-color: var(--color-background-green); }
+.astryx-card--orange { background-color: var(--color-background-orange); }
+.astryx-card--pink { background-color: var(--color-background-pink); }
+.astryx-card--purple { background-color: var(--color-background-purple); }
+.astryx-card--red { background-color: var(--color-background-red); }
+.astryx-card--teal { background-color: var(--color-background-teal); }
+.astryx-card--yellow { background-color: var(--color-background-yellow); }
+
+.astryx-card--elevation-low { box-shadow: var(--shadow-low); }
+.astryx-card--elevation-med { box-shadow: var(--shadow-med); }
+.astryx-card--elevation-high { box-shadow: var(--shadow-high); }
+
+/* ---------------------------------------------------------------- Badge */
+
+.astryx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  height: var(--spacing-5);
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+/* Semantic variants are solid; colour variants are tinted (upstream comment). */
+.astryx-badge--neutral { background-color: var(--color-neutral); color: var(--color-text-primary); }
+.astryx-badge--info { background-color: var(--color-accent); color: var(--color-on-accent); }
+.astryx-badge--success { background-color: var(--color-success); color: var(--color-on-success); }
+.astryx-badge--warning { background-color: var(--color-warning); color: var(--color-on-warning); }
+.astryx-badge--error { background-color: var(--color-error); color: var(--color-on-error); }
+.astryx-badge--blue { background-color: var(--color-background-blue); color: var(--color-text-blue); }
+.astryx-badge--cyan { background-color: var(--color-background-cyan); color: var(--color-text-cyan); }
+.astryx-badge--green { background-color: var(--color-background-green); color: var(--color-text-green); }
+.astryx-badge--orange { background-color: var(--color-background-orange); color: var(--color-text-orange); }
+.astryx-badge--pink { background-color: var(--color-background-pink); color: var(--color-text-pink); }
+.astryx-badge--purple { background-color: var(--color-background-purple); color: var(--color-text-purple); }
+.astryx-badge--red { background-color: var(--color-background-red); color: var(--color-text-red); }
+.astryx-badge--teal { background-color: var(--color-background-teal); color: var(--color-text-teal); }
+.astryx-badge--yellow { background-color: var(--color-background-yellow); color: var(--color-text-yellow); }
+
+/* ---------------------------------------------------------------- Divider */
+
+.astryx-divider {
+  width: 100%;
+  height: var(--border-width);
+  background-color: var(--color-border);
+  border: none;
+  flex-shrink: 0;
+}
+
+.astryx-divider--vertical {
+  width: var(--border-width);
+  height: 100%;
+  align-self: stretch;
+}
+
+.astryx-divider--strong { background-color: var(--color-border-emphasized); }
+.astryx-divider--full-bleed { margin-inline: calc(-1 * var(--spacing-4)); }
+
+.astryx-divider--labelled {
+  height: auto;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.astryx-divider__label {
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- StatusDot */
+
+.astryx-status-dot {
+  display: inline-block;
+  width: 8px;   /* upstream DOT_SIZE = 8 */
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.astryx-status-dot--success { background-color: var(--color-success); }
+.astryx-status-dot--warning { background-color: var(--color-warning); }
+.astryx-status-dot--error { background-color: var(--color-error); }
+.astryx-status-dot--accent { background-color: var(--color-accent); }
+.astryx-status-dot--neutral { background-color: var(--color-icon-secondary); }
+
+.astryx-status-dot--pulsing { animation: astryx-pulse 1.6s var(--ease-standard) infinite; }
+
+@keyframes astryx-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---------------------------------------------------------------- Skeleton */
+
+.astryx-skeleton {
+  background-color: var(--color-skeleton);
+  border-radius: var(--radius-inner);
+  animation-name: astryx-skeleton-fade;
+  animation-duration: var(--duration-slow, 900ms);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: var(--ease-standard);
+}
+
+.astryx-skeleton--radius-none { border-radius: 0; }
+.astryx-skeleton--radius-0 { border-radius: 0; }
+.astryx-skeleton--radius-1 { border-radius: var(--radius-inner); }
+.astryx-skeleton--radius-2 { border-radius: var(--radius-element); }
+.astryx-skeleton--radius-3 { border-radius: var(--radius-container); }
+.astryx-skeleton--radius-4 { border-radius: var(--radius-page); }
+.astryx-skeleton--radius-rounded { border-radius: var(--radius-full); }
+
+@keyframes astryx-skeleton-fade {
+  from { opacity: 1; }
+  to { opacity: 0.55; }
+}
+
+/* ---------------------------------------------------------------- utilities */
+
+.astryx-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Respect the user's motion preference: keep the affordance, drop the motion.
+   (Upstream does the same for pulsing and skeleton shimmer.) */
+@media (prefers-reduced-motion: reduce) {
+  .astryx-status-dot--pulsing,
+  .astryx-skeleton,
+  .astryx-button--loading .astryx-spinner {
+    animation: none;
+  }
+}

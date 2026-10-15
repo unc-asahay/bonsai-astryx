@@ -1,0 +1,5 @@
+{
+	"devDependencies": {
+		"@js-temporal/polyfill": "^0.5.1"
+	}
+}

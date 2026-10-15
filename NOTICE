@@ -1,0 +1,45 @@
+bonsai-astryx
+=============
+
+This project is an unofficial, unaffiliated port of the Astryx design system to
+OCaml / Jane Street's Bonsai. It is not endorsed by or affiliated with Meta
+Platforms, Inc. or Jane Street Group, LLC.
+
+Upstream work this project derives from
+---------------------------------------
+
+Astryx
+  Source:  https://github.com/facebook/astryx
+  License: MIT
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+
+  Portions of this repository's documentation are GENERATED from Astryx's own
+  machine-readable component documents (the `packages/core/src/<Name>/<Name>.doc.mjs`
+  files), which describe each component's intended usage, prop contract,
+  anatomy and accessibility requirements. Those extracted descriptions remain
+  the work of the Astryx authors and are redistributed here under the MIT
+  license above. Every generated file records the component it came from.
+
+  Generated artefacts derived from Astryx:
+    - registry.json                       (extracted prop/usage/a11y contract)
+    - docs/components/*.md                (per-component reference text)
+    - docs/INDEX.md                       (component index)
+    - docs/visual/*.md, tokens.json       (if present: extracted visual contract)
+
+OCaml / Bonsai
+  Source:  https://github.com/janestreet/bonsai
+  License: MIT
+  Copyright (c) Jane Street Group, LLC.
+
+  This project depends on, but does not vendor, Jane Street's Bonsai libraries.
+
+Astryx's own dependency licences (StyleX, React) apply to the upstream packages
+only; nothing from those projects is redistributed here. Where a port reuses
+compiled CSS emitted by the upstream build, the upstream MIT notice above covers
+it and the file records its origin.
+
+Third-party names and marks
+---------------------------
+
+"Astryx", "Meta", "Bonsai" and "Jane Street" are used descriptively to identify
+the upstream projects. No trademark rights are claimed or implied.

@@ -1,0 +1,56 @@
+# Build the library and run the DOM/accessibility gate.
+#
+# NOTE: this workflow has not been executed on GitHub yet. The Dune/opam half is
+# the part most likely to need adjustment, because the Jane Street preview
+# packages (`v0.18~preview.*`) require their opam repository and an OCaml version
+# that predates `effect` becoming a reserved keyword — 5.2.1, not 5.3. See
+# CONTRIBUTING.md for the two build traps this pins around.
+#
+# The node-based half (steps from "Install node" onwards) is the part that is
+# known to work locally; it is what actually asserts the DOM and ARIA contract.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install JS dev dependencies (jsdom, Temporal polyfill)
+        run: corepack enable && pnpm install --frozen-lockfile
+
+      - name: Set up OCaml 5.2.1
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.2.1"
+          # dune 3.24 breaks Jane Street's `include ./<module>__generated`
+          # expansion; 3.23.1 is the newest version that builds the preview.
+          opam-pin: false
+
+      - name: Add Jane Street's opam repository
+        run: |
+          opam repo add janestreet https://github.com/janestreet/opam-repository.git --set-default
+          opam update
+
+      - name: Install dependencies
+        run: |
+          opam install -y dune.3.23.1
+          opam install -y bonsai_web bonsai_web_components ppx_html js_of_ocaml
+
+      - name: Compile the library and the demo bundle
+        run: opam exec -- dune build
+
+      - name: DOM + accessibility gate
+        run: opam exec -- node tools/visual/verify-dom.mjs
