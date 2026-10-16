@@ -285,7 +285,7 @@ in-place positioning cannot; they belong to the pillar's later phases. Likewise 
 `SideNav`/`TopNav` (6,334/5,238, class B) and `Markdown` (7,754, class B): each is self-contained and
 each is a larger single sitting than anything above.
 
-## M14 — the overlay pillar opens (Dialog, AlertDialog) (in progress)
+## M14 — the overlay pillar opens (Dialog, AlertDialog, DialogHeader) (done)
 
 `Tooltip` proved the pillar's convention; `Dialog` is where the port starts handing the *behaviour*
 over to the platform rather than reimplementing it. Upstream builds Dialog on the native `<dialog>`
@@ -341,9 +341,24 @@ on open and given it back on close. The title association is an argument here (`
 upstream wires it from React context, because a child in this port is already built by the time the
 container sees it — the same moment that shaped `FormLayout` in M13.
 
-Still to do in this milestone: `DialogHeader` (title, description, footer) and `AlertDialog` — the rest
-of the modal group, both thin over what Dialog now provides. Then `Popover` and `BottomSheet`, and the
-`Layer` primitives underneath them.
+**`DialogHeader`** closes the milestone: the heading carries the id a dialog is told to name itself
+from (the caller makes that link, because the caller is the only thing that can see both), and the close
+button exists exactly when there is an `~on_open_change` to report to — upstream's rule, since a control
+that cannot tell anyone it was pressed does nothing, so the gate asserts the *absence* as carefully as the
+button. One accessibility behaviour is not ported and is named in `dialog_header.mli` rather than
+approximated: upstream focuses the title when a modal dialog opens, which matters because the platform's
+focus delegate skips a `tabindex="-1"` element and lands on the close button, so a screen reader would
+announce "Close" rather than the dialog's name. The mechanism exists; what is missing is the moment, and
+the honest home for it is `Dialog`, which knows when it opened.
+
+A note on the count: `DialogHeader` is an upstream module but **not** one of `registry.json`'s 103
+extracted components, so porting it does not move the coverage number. The generator said so by name
+("port.json names components absent from registry.json: DialogHeader") and it is now recorded under
+`port.json.infrastructure` with a reason — the same treatment `FieldLabel` gets. Coverage stayed honest at
+36 of 103 through a milestone that added three components.
+
+Next in the pillar: `Popover` and `BottomSheet`, then the `Layer` primitives underneath them — which is
+what `Selector`, `DateInput`'s calendar and `Combobox` wait on.
 
 ## M6 — second upstream: shadcn
 

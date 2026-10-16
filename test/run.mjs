@@ -1484,6 +1484,39 @@ section("FieldLabel");
     "no loading marker on the action");
 }
 
+// ---------------------------------------------------------------- DialogHeader (M14)
+{
+  section("DialogHeader");
+  const noClose = document.getElementById("dhdr-no-close");
+  check("the header renders a heading", !!noClose && !!noClose.querySelector("h2"),
+    noClose ? noClose.innerHTML.slice(0, 60) : "missing");
+  // The heading is what names the dialog, so it has to carry the id — and be focusable without
+  // joining the tab order, which is exactly what tabindex="-1" means.
+  const heading = noClose?.querySelector("h2");
+  check("the heading carries the id a dialog names itself from",
+    heading?.getAttribute("id") === "dhdr-no-close-title", heading?.getAttribute("id") ?? "none");
+  check("and it is focusable programmatically without being in the tab order",
+    heading?.getAttribute("tabindex") === "-1");
+  check("its text is the dialog's accessible name",
+    heading?.textContent === "Delete this project?", heading?.textContent ?? "none");
+
+  // The absence is the claim: upstream renders no close button without an onOpenChange.
+  check("no callback means NO close button",
+    !!noClose && noClose.querySelectorAll(".astryx-button, .astryx-icon-button").length === 0,
+    `${noClose?.querySelectorAll(".astryx-button, .astryx-icon-button").length} button(s)`);
+
+  const withClose = document.getElementById("dhdr-with-close");
+  const close = withClose?.querySelector(".astryx-icon-button, .astryx-button");
+  check("a callback means the button exists, and it has an accessible name",
+    !!close && (close.getAttribute("aria-label") || "").length > 0,
+    close?.getAttribute("aria-label") ?? "no button");
+  check("the subtitle sits in its own slot",
+    withClose?.querySelector(".astryx-dialog-header__subtitle")?.textContent
+      === "This cannot be undone.");
+  check("has_divider is a class on the header",
+    !!withClose && withClose.classList.contains("astryx-dialog-header--divider"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

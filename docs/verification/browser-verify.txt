@@ -71,17 +71,23 @@ AlertDialog (live)
   ok   the answers are a row on a wide screen
   ok   and a reversed column below 640px, with full-width buttons
 
+DialogHeader (live)
+  ok   the dialog opens modal, named by its header
+  ok   and what it points at is the heading carrying the title
+  ok   the heading can be focused programmatically
+  ok   the header's close button closes the dialog, and the application is told
+
 showcase sections
-  ok   37 sections
+  ok   38 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   252 examples across the page
+  ok   255 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   37 nav links
+  ok   38 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -237,7 +243,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-181/181 checks passed, 0 failure(s)
+185/185 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

@@ -1775,3 +1775,39 @@
     min-width: 0;
   }
 }
+
+/* ---------------------------------------------------------------- DialogHeader */
+
+.astryx-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-3);
+}
+
+.astryx-dialog-header--divider {
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.astryx-dialog-header__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, inherit);
+}
+
+.astryx-dialog-header__subtitle {
+  margin-block-start: var(--spacing-1);
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-text-secondary, inherit);
+}
+
+.astryx-dialog-header__start,
+.astryx-dialog-header__end {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+

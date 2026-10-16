@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-34 ported component(s). Each page records the appearance the port
+35 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -10,15 +10,16 @@ for image generation.
 | --- | --- | --- | --- | --- | --- |
 | AlertDialog | 3 | 1 | 3 | 1 | [AlertDialog.md](AlertDialog.md) |
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
-| Badge | 15 | 15 | 13 | 36 | [Badge.md](Badge.md) |
+| Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 40 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 41 | 12 | 27 | 18 | [Button.md](Button.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
 | CheckboxInput | 17 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
 | Citation | 6 | 4 | 25 | 16 | [Citation.md](Citation.md) |
 | Code | 5 | 5 | 10 | 8 | [Code.md](Code.md) |
-| Dialog | 10 | 3 | 13 | 6 | [Dialog.md](Dialog.md) |
+| Dialog | 11 | 3 | 13 | 6 | [Dialog.md](Dialog.md) |
+| DialogHeader | 3 | 3 | 5 | 4 | [DialogHeader.md](DialogHeader.md) |
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 1 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
@@ -27,8 +28,8 @@ for image generation.
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 54 | 15 | 9 | 8 | [Icon.md](Icon.md) |
-| IconButton | 5 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
+| Icon | 56 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
@@ -43,6 +44,6 @@ for image generation.
 | Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 69 components with no OCaml port. They
+Not listed: the 68 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

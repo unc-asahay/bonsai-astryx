@@ -234,7 +234,7 @@ if (mode === "showcase") {
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
-    "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog",
+    "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -550,8 +550,55 @@ if (mode === "showcase") {
       && narrow.buttonWidth >= narrow.containerWidth - 2,
     JSON.stringify(narrow));
 
+  // ---------------------------------------------------------------- DialogHeader (M14)
+  console.log("\nDialogHeader (live)");
+  await page.click("#showcase-dialog-header-open");
+  await page.waitForTimeout(150);
+  const headerFacts = await page.evaluate(() => {
+    const d = document.getElementById("showcase-dialog-header-live");
+    const named = d?.getAttribute("aria-labelledby");
+    const heading = named ? document.getElementById(named) : null;
+    const before = document.activeElement?.id ?? document.activeElement?.tagName ?? null;
+    if (heading) heading.focus();
+    const after = document.activeElement === heading;
+    return {
+      open: !!d && d.open,
+      modal: !!d && d.matches(":modal"),
+      named,
+      tag: heading?.tagName ?? null,
+      text: heading?.textContent ?? null,
+      focusBeforeId: before,
+      titleTakesFocus: after,
+      readout: document.getElementById("showcase-dialog-header-state")?.textContent ?? null,
+    };
+  });
+  check("the dialog opens modal, named by its header",
+    headerFacts.open && headerFacts.modal && headerFacts.named === "showcase-dialog-header-live-title",
+    JSON.stringify(headerFacts));
+  // The association, resolved: not "the attribute holds this string" but "the thing it points at is
+  // the heading whose text is the dialog's name".
+  check("and what it points at is the heading carrying the title",
+    headerFacts.tag === "H2" && headerFacts.text === "Delete this project?",
+    `${headerFacts.tag} ${headerFacts.text}`);
+  // The capability tabindex="-1" exists for. Who receives focus automatically on open is a named gap
+  // (see dialog_header.mli): the platform's focus delegate skips this element and lands on the close
+  // button, where upstream focuses the title. Asserting the capability keeps this check true when that
+  // is fixed, rather than writing a gate that fails on an improvement.
+  check("the heading can be focused programmatically", headerFacts.titleTakesFocus);
+  await page.click("#showcase-dialog-header-live .astryx-icon-button, #showcase-dialog-header-live .astryx-button");
+  await page.waitForTimeout(150);
+  const afterClose = await page.evaluate(() => {
+    const d = document.getElementById("showcase-dialog-header-live");
+    return {
+      open: !!d && d.open,
+      readout: document.getElementById("showcase-dialog-header-state")?.textContent ?? null,
+    };
+  });
+  check("the header's close button closes the dialog, and the application is told",
+    !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
+
   console.log("\nshowcase sections");
-  check("37 sections", sections.length === 37, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("38 sections", sections.length === 38, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -569,10 +616,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
-    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3,
+    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("252 examples across the page", totalExamples === 252, `got ${totalExamples}`);
+  check("255 examples across the page", totalExamples === 255, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -585,7 +632,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("37 nav links", nav.length === 37, `got ${nav.length}`);
+  check("38 nav links", nav.length === 38, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));

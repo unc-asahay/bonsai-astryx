@@ -1448,3 +1448,43 @@ let () =
     alert_dialog_static
   |> fun handle -> mount "alert-dialog" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------- DialogHeader (M14) *)
+
+(* The two things worth pressing: that the heading really carries the id a dialog would name itself
+   from (and is focusable without joining the tab order), and that the close button is *absent* when
+   there is no callback to report to — upstream renders no button there, and an assertion on the
+   presence of a button cannot notice a button that should not exist. *)
+let dialog_header_static (_ : Bonsai.graph) =
+  let open Astryx in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let one ?on_open_change ?subtitle ?(has_divider = false) id =
+    Dialog_header.view
+      ~title_id:(id ^ "-title")
+      ~title:(Vdom.Node.text "Delete this project?")
+      ?on_open_change
+      ?subtitle
+      ~has_divider
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      ()
+  in
+  join_all
+    [ one "dhdr-no-close"
+    ; one
+        ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.Many []))
+        ~subtitle:(Vdom.Node.text "This cannot be undone.")
+        ~has_divider:true
+        "dhdr-with-close"
+    ]
+  |> Bonsai.map ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    dialog_header_static
+  |> fun handle -> mount "dialog-header" (Bonsai_web_test.Handle.last_result handle)
+;;

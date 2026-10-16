@@ -1169,3 +1169,64 @@ and keeps the old name in a comment, because the reason the shortcut existed is 
 Transcript: `docs/verification/sweep-m14e.txt` — the run for this commit, after the re-baseline.
 The earlier `sweep-m14c.txt` recorded 378/0, before IconButton's second check existed.
 
+## Gate 26 — DialogHeader (M14), and a component the coverage denominator does not contain
+
+The component that gives a dialog its name, and the last piece M14 needed.
+
+**The association is made by the caller, and that is the point.** Upstream's header learns its parent
+from context and registers the title id with it. Context has no analogue here — a child is already built
+by the time the container sees it — so the heading carries an id and the caller passes that same string
+to `Dialog.view`'s `~labelled_by`. The caller is the only thing that can see both. The gate resolves the
+association rather than comparing strings: it reads `aria-labelledby` and then asserts that the element
+it names is the `h2` whose text is the dialog's title.
+
+**The close button is conditional, and the absence is asserted.** Upstream renders no close button when
+`onOpenChange` is absent, which is right: a control that cannot tell anyone it was pressed is a control
+that does nothing. So there are two headers on the page — one with a callback and one without — and the
+component gate asserts the *absence* as carefully as the presence. A check for "a button exists" cannot
+notice a button that should not exist.
+
+**One accessibility behaviour is not ported, and it is named rather than approximated.** Upstream focuses
+the title when a modal dialog opens. It matters because the platform does not do it for us: the focus
+delegate `showModal()` runs skips any element with `tabindex="-1"`, so the browser lands on the first
+*tabbable* thing — the close button — and a screen reader would announce "Close" rather than the
+dialog's name. The heading is consequently reachable but not focused.
+
+The mechanism exists in this port: `Menu_focus.focus_on_next_frame` focuses an element, and
+`Common.Delay_hook` established the hook shape for DOM work no event triggers. What is missing is the
+*moment* — the header cannot know the dialog opened, and upstream learns that from context. The honest
+home for it is `Dialog`, whose hook already runs on open. The browser gate therefore asserts the
+*capability* (`heading.focus()` takes effect, which is what `tabindex="-1"` exists for) rather than who
+receives focus automatically, so the check stays true when the gap is closed instead of failing on an
+improvement.
+
+**The generator caught a mistake the coverage arithmetic would have hidden.** `DialogHeader` is an
+upstream module, but it is not one of `registry.json`'s 103 extracted components — the same position
+`FieldLabel` is in. Registering it under `ported` made the coverage generator report *"port.json names
+components absent from registry.json: DialogHeader"*, which is exactly right: the denominator is the
+registry, so porting this moves nothing. It now sits in `port.json.infrastructure` with the reason
+written down, and the coverage count is unchanged at 36 of 103.
+
+| What | Evidence |
+| --- | --- |
+| The heading names the dialog | browser: `aria-labelledby` resolves to the `h2` whose text is the title |
+| It is focusable without joining the tab order | component gate: `tabindex="-1"` on the `h2` |
+| No callback, no button | component gate: zero buttons in the header without `~on_open_change` |
+| A callback, and a named button | component gate: the button exists and carries an accessible name |
+| The header closes the dialog and reports it | browser: clicking it closes the dialog and the application's readout flips |
+| Subtitle, slots and divider land where they belong | component gate |
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **387 / 0** |
+| Real-browser checks (Chromium, live showcase) | **185 / 185** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **36 of 103** ported, 67 not |
+| Showcase | 38 sections, 255 examples |
+| Appearance pages | 35 (34 of the registry's 36 ported components, plus `DialogHeader`; the two without one are `HStack` and `VStack`, which are the `Stack` module ported once) |
+
+Transcript: `docs/verification/sweep-m14f.txt`.
+

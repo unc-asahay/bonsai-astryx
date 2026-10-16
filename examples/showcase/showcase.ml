@@ -2341,6 +2341,130 @@ let alert_dialog_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- dialog header (naming the dialog) *)
+
+(* The header is the piece that gives a dialog its name, and the association is the whole point: the
+   heading carries an id, and the dialog is told to name itself from that same id. The caller makes that
+   link because the caller can see both — which is the recurring shape of this port's context-free
+   design.
+
+   The close button is the other half, and it is conditional on purpose: a header with no callback to
+   report to renders no button at all, rather than a control that does nothing. Both states are on the
+   page, and the gate asserts the absence as carefully as the presence. *)
+let dialog_header_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let body text =
+    Vdom.Node.div
+      ~attrs:(Common.Attr.class_ [ "showcase-dialog-body" ])
+      [ Vdom.Node.text text ]
+  in
+  let header ?on_open_change ?subtitle ?start_content ?end_content ?edge ?(divider = false) id =
+    Dialog_header.view
+      ~title_id:(id ^ "-title")
+      ~title:(Vdom.Node.text "Delete this project?")
+      ?subtitle
+      ?on_open_change
+      ?start_content
+      ?end_content
+      ?end_content_edge_compensation:edge
+      ~has_divider:divider
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      ()
+  in
+  let inline ~id ?on_open_change ?subtitle ?start_content ?end_content ?edge ?divider label =
+    ex_tree
+      label
+      (header ?on_open_change ?subtitle ?start_content ?end_content ?edge ?divider id)
+  in
+  let live =
+    let is_open, set_is_open = Bonsai.state false graph in
+    let title_id = "showcase-dialog-header-live-title" in
+    let open_button =
+      Bonsai.map set_is_open ~f:(fun set_is_open ->
+        Button.view
+          ~variant:Button.Secondary
+          ~label:"Open (with a header)"
+          ~attrs:[ Vdom.Attr.create "id" "showcase-dialog-header-open" ]
+          ~on_click:(fun _ -> set_is_open true)
+          [])
+    in
+    let readout =
+      Bonsai.map is_open ~f:(fun is_open ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-dialog-header-state" ]
+          [ Vdom.Node.text
+              (if is_open then "the application says: open" else "the application says: closed")
+          ])
+    in
+    (* The header reports through the same callback the dialog does, and the dialog is told to name
+       itself from the heading's id — the two halves of the association, made by the caller. *)
+    let header =
+      header
+        ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
+        ~subtitle:(Vdom.Node.text "This cannot be undone.")
+        ~divider:true
+        "showcase-dialog-header-live"
+    in
+    let dialog =
+      Dialog.view
+        ~labelled_by:title_id
+        ~is_open
+        ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
+        ~id:"showcase-dialog-header-live"
+        ~children:(Bonsai.map header ~f:(fun header -> [ header; body "Body content." ]))
+        ()
+    in
+    ex_tree
+      "a live dialog named by its header, and closed by it"
+      (Bonsai.map2
+         (Bonsai.map2 open_button readout ~f:(fun a b -> a, b))
+         dialog
+         ~f:(fun (open_button, readout) dialog -> Vdom.Node.div [ open_button; dialog; readout ]))
+  in
+  let examples =
+    [ inline
+        ~id:"showcase-dialog-header-no-close"
+        "no callback, so no close button"
+        ~subtitle:(Vdom.Node.text "No button is drawn at all.")
+    ; inline
+        ~id:"showcase-dialog-header-with-slots"
+        "with a callback, so the button exists"
+        ~subtitle:(Vdom.Node.text "And the subtitle sits under the title.")
+        ~start_content:(Icon.view ~name:"chevron-left" ())
+        ~end_content:(Badge.view "Draft")
+        ~edge:Dialog_header.All
+        ~divider:true
+    ; live
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"dialog-header"
+      ~title:"DialogHeader"
+      ~note:
+        "What names a dialog, and what closes it. Upstream wires the title to its parent Dialog through \
+         context; here the heading carries an id and the caller passes that same string to the dialog's \
+         ~labelled_by, because the caller is the only thing that can see both — the same reason \
+         AlertDialog owns its own body outright. The close button is present exactly when there is an \
+         ~on_open_change to report to, which is upstream's rule: a control that cannot tell anyone it \
+         was pressed is a control that does nothing, so the first example renders no button and the \
+         gate asserts that absence as carefully as it asserts the button in the second. The heading is \
+         a real h2 with tabindex=-1: focusable programmatically without joining the tab order. One \
+         accessibility behaviour is NOT ported, and it is named rather than approximated: upstream \
+         focuses the title when a modal dialog opens, which matters because the platform's own focus \
+         delegate skips a tabindex=-1 element and would land on the close button — a screen reader \
+         would announce Close rather than the dialog's name. The mechanism exists here \
+         (Menu_focus.focus_on_next_frame, plus the hook shape Delay_hook established); what is missing \
+         is the moment, since the header cannot know the dialog opened and upstream learns that from \
+         context. Dialog knows — its hook already runs on open — so that is where it belongs."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2389,6 +2513,7 @@ let nav_items =
   ; "tooltip", "Tooltip"
   ; "dialog", "Dialog"
   ; "alert-dialog", "AlertDialog"
+  ; "dialog-header", "DialogHeader"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2427,6 +2552,7 @@ let page (graph : Bonsai.graph) =
   let tooltip_section = tooltip_demo graph in
   let dialog_section = dialog_demo graph in
   let alert_dialog_section = alert_dialog_demo graph in
+  let dialog_header_section = dialog_header_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2442,14 +2568,16 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful tooltip_section in
   let stateful = pair stateful dialog_section in
   let stateful = pair stateful alert_dialog_section in
+  let stateful = pair stateful dialog_header_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
-                   , form_layout )
-                 , tooltip )
-               , dialog )
-             , alert_dialog )
+    ~f:(fun ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+                     , form_layout )
+                   , tooltip )
+                 , dialog )
+               , alert_dialog )
+             , dialog_header )
           text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -2457,7 +2585,7 @@ let page (graph : Bonsai.graph) =
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; dropdown; interactive ])
       ])
 ;;
 
