@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   23 sections
+  ok   24 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   149 examples across the page
+  ok   155 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Interactive:1
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 Interactive:1
 
 navigation
-  ok   23 nav links
+  ok   24 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -60,15 +60,23 @@ accessibility (read from the live tree)
   ok   loading Button does NOT use native disabled
   ok   icon-only Button has an aria-label
 
+icon rendering (measured, not asserted from the markup)
+  ok   the gallery rendered every icon
+  ok   only the deliberate unknown name is unrendered
+  ok   glyphs are SVG-namespaced in a real browser too
+  ok   every size measures the documented pixel value (and its glyph fills it)
+  ok   the size class sets font-size too (the 1em trap)
+  ok   a colour class resolves to a real colour, not an inherited one
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 22 ported / 81 not / 103 total
-  ok   unported list rendered 81 entries
+  ok   coverage stats are 23 ported / 80 not / 103 total
+  ok   unported list rendered 80 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-42/42 checks passed, 0 failure(s)
+48/48 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

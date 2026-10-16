@@ -72,6 +72,30 @@ expected and must be documented per component.
 - [ ] Published docs site built from `docs/INDEX.md` + per-component files
 - [ ] Release with a pinned upstream Astryx revision recorded in `NOTICE`
 
+## Next milestone — DropdownMenu, and why it is not a trio
+
+Only seven Class A components remained when this was written, and the two most valuable are
+gated on things the port does not have yet:
+
+- **`MoreMenu` is a wrapper, not a component.** Its 183 lines mostly forward props to
+  `DropdownMenu` (it supplies the `moreHorizontal` icon, an i18n label, `variant: 'ghost'`).
+  Porting it alone would mean shipping a stub, so it follows `DropdownMenu`.
+- **`DropdownMenu` is 1,765 lines** across `DropdownMenu.tsx` plus submodules
+  (`DropdownMenuSubMenu` alone is 910), with a 4,177-line test file. It brings typeahead,
+  a roving highlight with focus held on the container, drill-in submenus, modal regions
+  (header/footer make it a dialog), a bottom-sheet presentation, and a native
+  `popover="auto"` layer whose dismissal is the browser's own light dismiss.
+- **Phase 1 scope**: the APG menu-button core — trigger (`aria-haspopup` / `aria-expanded` /
+  `aria-controls`), a `role="menu"` popup, `role="menuitem"` rows, arrow / Home / End /
+  Escape / Enter / Space, typeahead, click-outside dismissal, and focus returning to the
+  trigger. Deferred: submenus, regions, bottom sheet, checkbox and radio items.
+- That phase is also what makes the keyboard claims assertable at last: Tab order, Escape,
+  focus return and `:focus-visible` currently have no ported component with those semantics.
+
+Porting `Icon` unblocked the other direction: **`FieldStatus`** (needs `Icon` plus an entry
+animation) and **`Pagination`** (needs `Icon`) are now tractable, and both are closer to a
+single-session port than `DropdownMenu` is.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

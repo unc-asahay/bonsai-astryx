@@ -233,11 +233,11 @@ if (mode === "showcase") {
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
-    "NavIcon", "EmptyState", "Citation", "Interactive",
+    "NavIcon", "EmptyState", "Citation", "Icon", "Interactive",
   ];
 
   console.log("\nshowcase sections");
-  check("23 sections", sections.length === 23, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("24 sections", sections.length === 24, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -252,11 +252,11 @@ if (mode === "showcase") {
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
-    NavIcon: 2, EmptyState: 4, Citation: 6,
+    NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     Interactive: 1,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("149 examples across the page", totalExamples === 149, `got ${totalExamples}`);
+  check("155 examples across the page", totalExamples === 155, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -269,7 +269,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("23 nav links", nav.length === 23, `got ${nav.length}`);
+  check("24 nav links", nav.length === 24, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -371,6 +371,63 @@ if (mode === "showcase") {
   check("loading Button does NOT use native disabled", aria.loadingHasNativeDisabled === false, String(aria.loadingHasNativeDisabled));
   check("icon-only Button has an aria-label", !!aria.iconOnlyLabel, String(aria.iconOnlyLabel));
 
+  // --- Icon: the sizes only work if the size class also sets font-size ----------
+  // The glyph carries width="1em" height="1em" (upstream's attribute). A size class that
+  // sets width/height in rem but leaves font-size inherited renders every size at the
+  // inherited size — which looks plausible in a screenshot and is wrong. Measure it.
+  console.log("\nicon rendering (measured, not asserted from the markup)");
+  const icons = await page.evaluate(() => {
+    const expected = { xsm: 12, sm: 16, md: 20, lg: 24 };
+    const out = { sizes: {}, glyphs: 0, icons: 0, missing: 0, colored: null, svgNs: null, glyphNs: null };
+    for (const el of document.querySelectorAll("#icon .astryx-icon")) {
+      out.icons += 1;
+      if (el.hasAttribute("data-astryx-icon-missing")) {
+        out.missing += 1;
+        continue;
+      }
+      const svg = el.querySelector("svg");
+      if (svg) {
+        out.svgNs = svg.namespaceURI;
+        const first = svg.firstElementChild;
+        if (first) out.glyphNs = first.namespaceURI;
+        out.glyphs += svg.children.length;
+      }
+      const cls = [...el.classList].find((c) => c.startsWith("astryx-icon--") && expected[c.slice(13)]);
+      if (cls) {
+        const size = cls.slice(13);
+        const box = el.getBoundingClientRect();
+        const svgBox = svg ? svg.getBoundingClientRect() : { width: 0, height: 0 };
+        out.sizes[size] = out.sizes[size] || {
+          want: expected[size],
+          w: Math.round(box.width * 100) / 100,
+          h: Math.round(box.height * 100) / 100,
+          svgW: Math.round(svgBox.width * 100) / 100,
+          fontSize: getComputedStyle(el).fontSize,
+        };
+      }
+      if (el.classList.contains("astryx-icon--success")) {
+        out.colored = getComputedStyle(el).color;
+      }
+    }
+    return out;
+  });
+
+  check("the gallery rendered every icon", icons.icons >= 30, `${icons.icons}`);
+  check("only the deliberate unknown name is unrendered", icons.missing === 1, `${icons.missing}`);
+  check("glyphs are SVG-namespaced in a real browser too",
+    icons.svgNs === "http://www.w3.org/2000/svg" && icons.glyphNs === "http://www.w3.org/2000/svg",
+    `${icons.svgNs} / ${icons.glyphNs}`);
+  const wrongSizes = Object.entries(icons.sizes).filter(([, v]) =>
+    Math.abs(v.w - v.want) > 0.6 || Math.abs(v.h - v.want) > 0.6 || Math.abs(v.svgW - v.want) > 0.6);
+  check("every size measures the documented pixel value (and its glyph fills it)",
+    Object.keys(icons.sizes).length === 4 && wrongSizes.length === 0,
+    Object.entries(icons.sizes).map(([k, v]) => `${k}:${v.w}x${v.h} svg=${v.svgW} want=${v.want}`).join(" "));
+  const wrongFont = Object.entries(icons.sizes).filter(([, v]) => Math.abs(parseFloat(v.fontSize) - v.want) > 0.6);
+  check("the size class sets font-size too (the 1em trap)", wrongFont.length === 0,
+    Object.entries(icons.sizes).map(([k, v]) => `${k}:${v.fontSize}`).join(" "));
+  check("a colour class resolves to a real colour, not an inherited one",
+    !!icons.colored && icons.colored !== "rgb(0, 0, 0)", String(icons.colored));
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -383,11 +440,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 22 ported / 81 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["22", "81", "103"]),
+    "coverage stats are 23 ported / 80 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["23", "80", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 81 entries", cov.unported === 81, `got ${cov.unported}`);
+  check("unported list rendered 80 entries", cov.unported === 80, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

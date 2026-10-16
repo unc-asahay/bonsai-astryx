@@ -41,4 +41,5 @@ module AspectRatio = Aspect_ratio
 module HStack = Hstack
 module VStack = Vstack
 module IconButton = Icon_button
+module Icon = Icon
 

@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 22,
-    "unported": 81,
+    "ported": 23,
+    "unported": 80,
     "total": 103,
     "documented": 103
   },
@@ -88,6 +88,12 @@
       "module": "Astryx.HStack",
       "file": "src/hstack.ml",
       "milestone": "M5"
+    },
+    {
+      "name": "Icon",
+      "module": "Astryx.Icon",
+      "file": "src/icon.ml",
+      "milestone": "M8"
     },
     {
       "name": "IconButton",
@@ -174,7 +180,6 @@
     "FileInput",
     "FormLayout",
     "HoverCard",
-    "Icon",
     "Indicator",
     "InputGroup",
     "Item",

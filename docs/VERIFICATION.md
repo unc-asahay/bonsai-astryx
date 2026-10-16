@@ -340,6 +340,64 @@ matching. Baselines were regenerated with `--update-baseline` (8 page/viewport p
 **verified on a separate run**: 66 checks, 0 failures, 0.00% differ on all eight. Re-baselining is
 a deliberate act recorded here, not a gate that was silenced.
 
+## Gate 10 — the icon set, generated rather than typed
+
+Icon (23 of 103). Its glyph table is **generated** from upstream by
+`tools/extract-icons.mjs`: 30 glyphs (29 `IconName` values plus the namespaced
+`numberInput:stepperDown`), 41 SVG child elements, from `defaultIcons.tsx` and the `IconName`
+union in `globalIconRegistry.tsx`. The component-test gate is now **164 checks** and the
+browser gate **48**; the counters moved deliberately to 24 sections, 155 examples,
+coverage 23 / 80 / 103, 21 appearance pages.
+
+### Why generated, and what the generator refuses to do
+
+Thirty path strings are data, and hand-typing them is how you ship a subtly wrong glyph that
+nothing notices. The extractor is written to **fail rather than write a partial table**. It
+refused twice during this milestone, both times correctly:
+
+- **`menu` overrides its wrapper.** That entry is `<svg {...svgProps} strokeWidth={2}>`, so the
+  icon's own prop wins over the shared spread — as it does in React. The first version of the
+  parser only understood the spread and stopped with
+  `no default icon for: menu`. It now applies per-icon overrides, and the test asserts that
+  glyph's `stroke-width` is `2` while the others are `1.5`.
+- **React's attribute naming is not "lowercase everything".** React kebab-cases a camelCase
+  JSX prop for SVG (`strokeWidth` → `stroke-width`) but keeps a fixed list in camelCase, of
+  which `viewBox` is the one this file uses. The first version also mangled `aria-hidden` into
+  **`aria--hidden`** — a name the DOM silently ignores, which would have left all thirty icons
+  exposed to screen readers while looking perfectly fine in a screenshot. That produced an
+  explicit allow-list of attribute names; a name outside it fails the extraction. The check was
+  then verified by removing the guard and watching it fire
+  (`attribute "aria--hidden" is not in the allowed set`), not by trusting it.
+
+### The rendering trap: `createElement` versus `createElementNS`
+
+Inside `<svg>`, every element must be created with `Vdom.Node.create_svg`. `create` builds an
+HTML element, and an HTML `<path>` is a no-op — an icon set that compiles, carries the right
+attributes, and paints nothing. The tests therefore assert
+`namespaceURI === "http://www.w3.org/2000/svg"` on the `<svg>` **and** on its glyph children,
+in jsdom and again in a real browser.
+
+### The size trap: a `1em` glyph in a `rem` box
+
+The glyphs carry `width="1em" height="1em"` — upstream's own attributes. A size class that sets
+width and height in rem but leaves `font-size` inherited therefore renders **every size at the
+inherited size**: 12/16/24px all measure 16px, which is invisible in a screenshot and wrong.
+Each size class here sets `font-size` alongside width and height, and the browser gate measures
+rather than assumes: each size is asserted against its documented pixel value (12/16/20/24) and
+its *glyph* is asserted to fill the box.
+
+### What the icon port does not cover
+
+- **The registry is static.** Upstream allows runtime registration and namespaced extension
+  (`registerIcons`, `getExtendedIcon`); this port has the built-in set only. Only one namespaced
+  glyph is defined upstream anyway (`numberInput:stepperDown`).
+- **`IconDefaultSizeContext` is not modelled.** Upstream lets an ancestor set a default size for
+  descendant icons; here the size is an argument with `md` as the default. Bonsai has no React
+  context, and a tree-scoped implicit default would need `Bonsai.Scope_model` plumbing for one
+  component.
+- **An unknown name renders a marked empty span** (`data-astryx-icon-missing`) where upstream
+  warns on the console. Assertable in tests, and documented in `src/icon.mli`.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -347,7 +405,7 @@ a deliberate act recorded here, not a gate that was silenced.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M7.** 22 of 103 components are ported; the other 81 have
+- **Anything below M8.** 23 of 103 components are ported; the other 80 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — partially verified.** What is now asserted: `Enter` on a
   focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;

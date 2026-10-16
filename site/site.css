@@ -360,3 +360,33 @@ code {
   color: var(--color-text-primary);
   font-size: 13px;
 }
+
+/* --- the icon gallery -------------------------------------------------------
+   auto-fill so it reflows on a phone instead of overflowing: the responsive gate
+   asserts the tracks change across a >=2x width gap. */
+.icon-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.icon-gallery__cell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-background-surface);
+  min-width: 0;
+}
+
+.icon-gallery__name {
+  font-family: var(--font-family-code);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

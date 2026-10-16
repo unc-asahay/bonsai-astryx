@@ -137,6 +137,32 @@ the ported components render in isolation
   ok   is_safe_url agrees with upstream on every case
   ok   a NUL spliced into the scheme is refused
   ok   a newline spliced into the scheme is refused
+  ok   twelve icons render
+  ok   every icon wraps an <svg> in the SVG namespace
+  ok   glyph children are in the SVG namespace too
+  ok   the path data matches upstream byte for byte
+  ok   viewBox is upstream's 24x24
+  ok   the stroke wrapper's attributes are reproduced
+  ok   strokeWidth became stroke-width, not strokeWidth
+  ok   a solid glyph fills with currentColor and drops stroke
+  ok   its path keeps fill-rule / clip-rule
+  ok   'menu' keeps its own stroke-width override
+  ok   moreHorizontal renders three circles at the upstream coordinates
+  ok   calendar renders a rect plus a path
+  ok   the default size is md
+  ok   xsm/sm/md/lg all appear
+  ok   an explicit size is honoured
+  ok   a colour class is applied
+  ok   no colour class when colour is omitted
+  ok   a decorative icon is aria-hidden
+  ok   a decorative icon has no role and no label
+  ok   a labelled icon becomes a named image
+  ok   a labelled icon is NOT aria-hidden
+  ok   an empty label is treated as no label
+  ok   the inner <svg> is aria-hidden either way (upstream's own attribute)
+  ok   the caller's accessibility attributes win
+  ok   an unknown icon name is marked in the DOM
+  ok   an unknown icon renders no svg
 
 interaction (OCaml dispatched the event)
   ok   the click target is a ported Button
@@ -144,5 +170,5 @@ interaction (OCaml dispatched the event)
   ok   one dispatched click moves the count to 1
   ok   a second click moves it to 2
 
-138 checks, 0 failure(s)
+164 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

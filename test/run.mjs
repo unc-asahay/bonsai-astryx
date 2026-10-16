@@ -513,6 +513,97 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     nl !== undefined && nl.textContent.trim() === "unsafe");
 }
 
+// --- Icon (and, through it, the generated glyph table)
+{
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const ic = inCaseOf("icon-all", "Icon");
+  check("twelve icons render", ic.length === 12, `${ic.length}`);
+
+  const svgs = ic.map((e) => e.querySelector("svg"));
+  // The renderer must build SVG with createElementNS. With plain createElement these
+  // elements are HTMLUnknownElement and paint nothing — a blank-icon bug that still
+  // compiles, still has the right attributes, and is invisible to a text assertion.
+  check(
+    "every icon wraps an <svg> in the SVG namespace",
+    svgs.every((s, i) => (i === 8 ? s === null : s !== null && s.namespaceURI === SVG_NS)),
+    svgs.map((s) => (s ? s.namespaceURI : "missing")).join(","),
+  );
+  check(
+    "glyph children are in the SVG namespace too",
+    ic.every((e, i) => i === 8 || [...(svgs[i]?.children || [])].every((c) => c.namespaceURI === SVG_NS)),
+  );
+
+  const closeSvg = svgs[0];
+  check(
+    "the path data matches upstream byte for byte",
+    attr(closeSvg.querySelector("path"), "d") === "M6 6l12 12M6 18L18 6",
+    attr(closeSvg.querySelector("path"), "d"),
+  );
+  check("viewBox is upstream's 24x24", attr(closeSvg, "viewBox") === "0 0 24 24", attr(closeSvg, "viewBox"));
+  check("the stroke wrapper's attributes are reproduced", [
+    attr(closeSvg, "fill") === "none",
+    attr(closeSvg, "stroke") === "currentColor",
+    attr(closeSvg, "stroke-width") === "1.5",
+    attr(closeSvg, "stroke-linecap") === "round",
+    attr(closeSvg, "stroke-linejoin") === "round",
+    attr(closeSvg, "width") === "1em" && attr(closeSvg, "height") === "1em",
+    attr(closeSvg, "xmlns") === SVG_NS,
+  ].every(Boolean), `fill=${attr(closeSvg, "fill")} stroke=${attr(closeSvg, "stroke")} sw=${attr(closeSvg, "stroke-width")}`);
+  check("strokeWidth became stroke-width, not strokeWidth",
+    !closeSvg.hasAttribute("strokeWidth") && !closeSvg.hasAttribute("strokewidth"));
+
+  // The three per-icon deviations from the shared wrapper.
+  const successSvg = svgs[1];
+  check("a solid glyph fills with currentColor and drops stroke",
+    attr(successSvg, "fill") === "currentColor" && !successSvg.hasAttribute("stroke"));
+  check("its path keeps fill-rule / clip-rule",
+    attr(successSvg.querySelector("path"), "fill-rule") === "evenodd"
+      && attr(successSvg.querySelector("path"), "clip-rule") === "evenodd");
+  check("'menu' keeps its own stroke-width override",
+    attr(svgs[2], "stroke-width") === "2", attr(svgs[2], "stroke-width"));
+
+  const dots = [...svgs[3].querySelectorAll("circle")];
+  check("moreHorizontal renders three circles at the upstream coordinates",
+    dots.length === 3
+      && dots.map((c) => attr(c, "cx")).join(",") === "5,12,19"
+      && dots.every((c) => attr(c, "cy") === "12" && attr(c, "r") === "1.5"),
+    dots.map((c) => `${attr(c, "cx")}/${attr(c, "cy")}/${attr(c, "r")}`).join(" "));
+
+  const cal = svgs[4];
+  check("calendar renders a rect plus a path",
+    attr(cal.querySelector("rect"), "width") === "18"
+      && attr(cal.querySelector("rect"), "rx") === "2"
+      && attr(cal.querySelector("path"), "d") === "M16 2v4M8 2v4M3 10h18",
+    cal.innerHTML.slice(0, 90));
+
+  // sizes and colour
+  check("the default size is md", hasClass(ic[0], /astryx-icon--md/));
+  check("xsm/sm/md/lg all appear", ["xsm", "sm", "md", "lg"].every((s) =>
+    ic.some((e) => hasClass(e, new RegExp(`astryx-icon--${s}`)))));
+  check("an explicit size is honoured", hasClass(ic[5], /astryx-icon--lg/) && !hasClass(ic[5], /astryx-icon--md/));
+  check("a colour class is applied", hasClass(ic[5], /astryx-icon--red/));
+  check("no colour class when colour is omitted", !hasClass(ic[0], /astryx-icon--(primary|red|blue)/));
+
+  // the a11y contract
+  check("a decorative icon is aria-hidden", attr(ic[0], "aria-hidden") === "true");
+  check("a decorative icon has no role and no label",
+    !ic[0].hasAttribute("role") && !ic[0].hasAttribute("aria-label"));
+  check("a labelled icon becomes a named image",
+    attr(ic[6], "role") === "img" && attr(ic[6], "aria-label") === "Delete row");
+  check("a labelled icon is NOT aria-hidden", !ic[6].hasAttribute("aria-hidden"));
+  check("an empty label is treated as no label",
+    attr(ic[7], "aria-hidden") === "true" && !ic[7].hasAttribute("role"));
+  check("the inner <svg> is aria-hidden either way (upstream's own attribute)",
+    attr(svgs[0], "aria-hidden") === "true" && attr(svgs[6], "aria-hidden") === "true");
+  check("the caller's accessibility attributes win",
+    attr(ic[9], "aria-hidden") === "false" && attr(ic[9], "role") === "presentation");
+
+  // an unknown name fails loudly instead of silently
+  check("an unknown icon name is marked in the DOM",
+    attr(ic[8], "data-astryx-icon-missing") === "noSuchIcon");
+  check("an unknown icon renders no svg", svgs[8] === null);
+}
+
 // --- the interaction: a real event dispatched into the Bonsai graph
 section("interaction (OCaml dispatched the event)");
 {

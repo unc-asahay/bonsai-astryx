@@ -19,13 +19,13 @@
       "id": "M2",
       "name": "layout primitives",
       "status": "complete",
-      "note": "Center, Section, Grid and VisuallyHidden \u2014 all Class A (no hooks, no measurement)."
+      "note": "Center, Section, Grid and VisuallyHidden — all Class A (no hooks, no measurement)."
     },
     {
       "id": "M3",
       "name": "appearance contract",
       "status": "complete",
-      "note": "docs/visual/ \u2014 every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs)."
+      "note": "docs/visual/ — every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs)."
     },
     {
       "id": "M4",
@@ -49,7 +49,13 @@
       "id": "M7",
       "name": "wayfinding + empty states",
       "status": "complete",
-      "note": "NavIcon, EmptyState and Citation \u2014 all Class A. NavIcon is a single styled span; EmptyState renders role=status with a real heading and a <div> description (a <p> cannot hold block children); Citation is the first port that carries a security control, porting upstream's safeUrl check literally (control characters stripped before inspection, javascript:/vbscript:/data:text/html refused) and rendering inert text rather than a link when a URL is refused."
+      "note": "NavIcon, EmptyState and Citation — all Class A. NavIcon is a single styled span; EmptyState renders role=status with a real heading and a <div> description (a <p> cannot hold block children); Citation is the first port that carries a security control, porting upstream's safeUrl check literally (control characters stripped before inspection, javascript:/vbscript:/data:text/html refused) and rendering inert text rather than a link when a URL is refused."
+    },
+    {
+      "id": "M8",
+      "name": "the icon set (generated)",
+      "status": "complete",
+      "note": "Icon, with its glyph table generated from upstream's defaultIcons.tsx and globalIconRegistry.tsx by tools/extract-icons.mjs. 30 glyphs, 29 of them IconName. The generator refuses to write a partial table and refuses attributes outside an explicit allow-list, because a renamed attribute is silently ignored by the DOM rather than reported."
     }
   ],
   "infrastructure": [
@@ -219,6 +225,13 @@
       "module": "Astryx.Citation",
       "file": "src/citation.ml",
       "milestone": "M7",
+      "class": "A"
+    },
+    {
+      "component": "Icon",
+      "module": "Astryx.Icon",
+      "file": "src/icon.ml",
+      "milestone": "M8",
       "class": "A"
     }
   ]

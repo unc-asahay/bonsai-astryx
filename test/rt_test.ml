@@ -415,7 +415,47 @@ let () =
             [ Vdom.Node.text (if Astryx.Citation.is_safe_url url then "safe" else "unsafe") ])))
 ;;
 
-(* -------------------------------------------------------------- interaction *)
+(* Icon — the generated glyph table, driven through the renderer. The point of these
+   cases is the generator: a wrong path, a lost attribute or a namespace mistake shows
+   up here rather than as a blank space in a screenshot. *)
+let () =
+  mount
+    "icon-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ (* index 0: defaults — decorative, md, stroke wrapper *)
+         Astryx.Icon.view ~name:"close" ()
+       ; (* 1: the solid wrapper (fill, no stroke) *)
+         Astryx.Icon.view ~name:"success" ()
+       ; (* 2: an icon that overrides the wrapper's stroke-width *)
+         Astryx.Icon.view ~name:"menu" ()
+       ; (* 3: circle-only glyph *)
+         Astryx.Icon.view ~name:"moreHorizontal" ()
+       ; (* 4: rect + path glyph *)
+         Astryx.Icon.view ~name:"calendar" ()
+       ; (* 5: explicit size and colour *)
+         Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Red ~name:"warning" ()
+       ; (* 6: a real label makes it a meaningful image *)
+         Astryx.Icon.view ~label:"Delete row" ~name:"close" ()
+       ; (* 7: an empty label is the same as no label *)
+         Astryx.Icon.view ~label:"" ~name:"close" ()
+       ; (* 8: an unknown name is visible, not silent *)
+         Astryx.Icon.view ~name:"noSuchIcon" ()
+       ; (* 9: the caller's own accessibility attributes win *)
+         Astryx.Icon.view
+           ~name:"close"
+           ~attrs:
+             [ Vdom.Attr.create "aria-hidden" "false"
+             ; Vdom.Attr.create "role" "presentation"
+             ]
+           ()
+       ; (* 10, 11: the remaining sizes, so every size class is exercised *)
+         Astryx.Icon.view ~size:Astryx.Icon.Xsm ~name:"check" ()
+       ; Astryx.Icon.view ~size:Astryx.Icon.Sm ~name:"check" ()
+       ])
+;;
+
+
 
 (* The part that has to be OCaml: a real event dispatched into the Bonsai graph.
    The rendered count goes into the DOM so run.mjs can assert on the component's

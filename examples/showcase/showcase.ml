@@ -678,12 +678,65 @@ let s_citation () =
     ]
 ;;
 
+(* --------------------------------------------------------------------- Icon *)
+
+let icon_gallery () =
+  Vdom.Node.div
+    ~attrs:(Astryx.Common.Attr.class_ [ "icon-gallery" ])
+    (List.map Astryx.Icon.names ~f:(fun name ->
+       Vdom.Node.div
+         ~attrs:(Astryx.Common.Attr.class_ [ "icon-gallery__cell" ])
+         [ Astryx.Icon.view ~name ()
+         ; Vdom.Node.span
+             ~attrs:(Astryx.Common.Attr.class_ [ "icon-gallery__name" ])
+             [ Vdom.Node.text name ]
+         ]))
+;;
+
+let s_icon () =
+  section
+    ~id:"icon"
+    ~title:"Icon"
+    ~note:
+      "Every glyph here is generated from upstream's defaultIcons.tsx by \
+       tools/extract-icons.mjs: the path data is copied byte for byte rather than retyped, \
+       and the generator refuses to write a partial table. Sizes are 12/16/20/24px \
+       (xsm/sm/md/lg) and the default is md. Colour flows through currentColor, so an \
+       icon takes its parent's colour unless given one of the token colours."
+    [ ex "all 30 icons in the registry" (icon_gallery ())
+    ; ex "sizes: xsm, sm, md (default), lg"
+        (Vdom.Node.div
+           ~attrs:(Astryx.Common.Attr.class_ [ "row" ])
+           [ Astryx.Icon.view ~size:Astryx.Icon.Xsm ~name:"search" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Sm ~name:"search" ()
+           ; Astryx.Icon.view ~name:"search" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~name:"search" ()
+           ])
+    ; ex "token colours"
+        (Vdom.Node.div
+           ~attrs:(Astryx.Common.Attr.class_ [ "row" ])
+           [ Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Primary ~name:"info" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Success ~name:"success" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Error ~name:"error" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Warning ~name:"warning" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Accent ~name:"calendar" ()
+           ; Astryx.Icon.view ~size:Astryx.Icon.Lg ~color:Astryx.Icon.Gray ~name:"clock" ()
+           ])
+    ; ex "solid status glyphs (fill, no stroke)" (Astryx.Icon.view ~name:"stop" ())
+    ; ex "labelled: role=img plus aria-label"
+        (Astryx.Icon.view ~label:"Delete row" ~name:"close" ())
+    ; ex "an unknown name is visible, not silent"
+        (Astryx.Icon.view ~name:"noSuchIcon" ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ; s_icon_button (); s_code (); s_blockquote ()
   ; s_nav_icon (); s_empty_state (); s_citation ()
+  ; s_icon ()
   ]
 ;;
 
@@ -714,6 +767,7 @@ let nav_items =
   ; "navicon", "NavIcon"
   ; "emptystate", "EmptyState"
   ; "citation", "Citation"
+  ; "icon", "Icon"
   ; "interactive", "Interactive"
   ]
 ;;
