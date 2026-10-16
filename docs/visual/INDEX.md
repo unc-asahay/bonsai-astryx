@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-38 ported component(s). Each page records the appearance the port
+39 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -23,14 +23,15 @@ for image generation.
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 1 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 43 | 2 | 5 | 1 | [Field.md](Field.md) |
-| FieldStatus | 12 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
+| Field | 46 | 2 | 5 | 1 | [Field.md](Field.md) |
+| FieldStatus | 13 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 56 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| Icon | 57 | 15 | 9 | 8 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
+| InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
 | Kbd | 15 | 1 | 4 | 1 | [Kbd.md](Kbd.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | Popover | 2 | 6 | 15 | 10 | [Popover.md](Popover.md) |
@@ -47,6 +48,6 @@ for image generation.
 | Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 65 components with no OCaml port. They
+Not listed: the 64 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.
