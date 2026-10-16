@@ -70,7 +70,14 @@ console.log(`url:      ${url}`);
 
 const { chromium } = playwright();
 const browser = await chromium.launch({ executablePath: exe, args: ["--no-sandbox"] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+// reducedMotion + animations:"disabled" on the screenshot below: the skeleton's fade is an
+// infinite alternate animation, so an untouched capture lands on an arbitrary phase and the
+// committed PNG drifts a few bytes every run. Freezing it also exercises the
+// prefers-reduced-motion rules in assets/components.css.
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 1000 },
+  reducedMotion: "reduce",
+});
 
 const consoleErrors = [];
 const pageErrors = [];
@@ -388,7 +395,7 @@ if (mode === "showcase") {
 const outDir = resolve(root, "docs/verification");
 mkdirSync(outDir, { recursive: true });
 const shot = resolve(outDir, mode === "showcase" ? "localhost-showcase.png" : "localhost-demo.png");
-await page.screenshot({ path: shot, fullPage: true });
+await page.screenshot({ path: shot, fullPage: true, animations: "disabled" });
 console.log(`\nscreenshot: ${shot}`);
 
 console.log(`\n${checks - failures}/${checks} checks passed, ${failures} failure(s)`);
