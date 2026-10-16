@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Switch` (`src/switch.ml`, M12)
-- rendered instances in the demo: 12
+- rendered instances in the demo: 14
 - classes: `astryx-switch`
 
 ## layout

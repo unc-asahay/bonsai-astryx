@@ -918,12 +918,13 @@ difference.
 
 1. The message is positioned **in place**, so an ancestor with `overflow: hidden` clips it and no
    stacking context is escaped. Upstream positions through its `Layer`.
-2. **The hover delay is not ported.** Opening after a pause needs a timer whose callback can reach
-   the component's state setter, and this release has no primitive for that: `Bonsai_web.Effect` has
-   no timer, `Effect.after_display` is not exposed, and the `setTimeout`-plus-`requestAnimationFrame`
-   trick that the entry animation uses works only for a value that is *read* later, never for writing
-   state back into the graph. The port opens immediately, which is the difference between a tooltip
-   shown when a pointer crosses a row of icons and one shown when it stops on one.
+2. ~~**The hover delay is not ported.**~~ **Wrong, and retired in Gate 23.** This item claimed that
+   opening after a pause needs a timer whose callback can reach the component's state setter and that
+   this release offers no such primitive. It does: `Vdom.Attr.create_hook` builds a vdom hook and a
+   hook's input can carry a `unit Effect.t` that `Effect.Expert` runs. The delay is ported and the
+   gate presses it. The sentence above is kept rather than deleted because it is what was believed at
+   the time and *why* — the reasoning was sound and the premise was unverified, which is the more
+   useful thing to record.
 
 **What the gates press rather than read.** The component gate asserts the two lifecycle halves: a
 closed tooltip renders **no message element at all** (upstream does not mount its layer either, so the

@@ -164,3 +164,88 @@ module Attr = struct
      every ported component states its own name and the props it received. *)
   let data name value = [ Vdom.Attr.create (sprintf "data-astryx-%s" name) value ]
 end
+
+(* A vdom hook is the only way to do DOM work that is not triggered by an event. Two things had
+   been blamed on their absence — "there is no timer that can write back into the graph", and the
+   overlay pillar's need to call showModal()/close() when a *value* changes — and both are wrong:
+   Vdom.Attr.create_hook exists, Hooks.Make builds one, and a hook's input can carry a
+   [unit Ui_effect.t] that Effect.Expert runs. The focus hooks in virtual_dom's own attr.ml are the
+   worked example this follows. *)
+
+let timeout (f : unit -> unit) (delay_ms : float) : Js.Unsafe.any =
+  Js.Unsafe.meth_call
+    Dom_html.window
+    "setTimeout"
+    (* Order matters: setTimeout takes (callback, delay). Passing the delay first is silently a
+       no-op — the browser coerces it and never calls anything, which is exactly how this looked
+       for one debugging round. *)
+    [| Js.Unsafe.inject (Js.wrap_callback f); Js.Unsafe.inject (Js.number_of_float delay_ms) |]
+;;
+
+let clear_timeout (id : Js.Unsafe.any) : unit =
+  ignore (Js.Unsafe.meth_call Dom_html.window "clearTimeout" [| Js.Unsafe.inject id |])
+;;
+
+(* Fires its effect once, [delay_ms] after the node it is attached to appears. Cancelled if the node
+   is destroyed first, and restarted if the input changes — which is what a hover delay needs: the
+   pointer leaving before the delay elapses must cancel the timer, not race it. *)
+module Delay_hook = struct
+  module T = struct
+    module State = struct
+      type t = { mutable id : Js.Unsafe.any option }
+
+      let create () = { id = None }
+    end
+
+    module Input = struct
+      type t =
+        { (* [None] cancels: an input change is how a caller says "never mind", which is what a
+             pointer leaving before the delay elapses has to say. *)
+          delay_ms : float option
+        ; on_elapsed : (unit Effect.t[@sexp.opaque])
+        }
+
+      (* Written by hand: this project's ppx list has no sexp deriver, and the interface wants one
+         (an effect cannot be printed, so only the delay is worth showing). *)
+      let sexp_of_t { delay_ms; _ } =
+        Sexp.Atom (Option.value_map delay_ms ~default:"cancelled" ~f:Float.to_string)
+      ;;
+
+      let combine left right =
+        { left with on_elapsed = Effect.Many [ left.on_elapsed; right.on_elapsed ] }
+      ;;
+    end
+
+    let init _ _ = State.create ()
+    let cancel state = Option.iter state.State.id ~f:clear_timeout
+
+    let start state (input : Input.t) =
+      cancel state;
+      match input.delay_ms with
+      | None -> ()
+      | Some delay_ms ->
+        state.id
+          <- Some
+               (timeout
+                  (fun () ->
+                    state.id <- None;
+                    Effect.Expert.handle_non_dom_event_exn input.on_elapsed)
+                  delay_ms)
+    ;;
+
+    let on_mount input state _ = start state input
+    let on_mount = `Schedule_immediately_after_this_dom_patch_completes on_mount
+    let update ~old_input:_ ~new_input state _ = start state new_input
+    let destroy _ state _ = cancel state
+  end
+
+  (* The hook API is re-exported under Vdom.Attr; bonsai_web_components' own element-size hooks
+     build theirs the same way. *)
+  module Hook = Vdom.Attr.Hooks.Make (T)
+
+  let attr ~delay_ms ~on_elapsed =
+    Vdom.Attr.create_hook "astryx-delay" (Hook.create { T.Input.delay_ms; on_elapsed })
+  ;;
+
+  let cancel = attr ~delay_ms:None ~on_elapsed:Effect.Ignore
+end

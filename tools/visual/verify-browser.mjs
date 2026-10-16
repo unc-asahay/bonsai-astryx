@@ -342,7 +342,12 @@ if (mode === "showcase") {
   check("the hovered tooltip starts closed",
     (await tipBox("showcase-tip-below-message")) === null);
   await page.hover(`#${hoverTarget}`);
-  await page.waitForTimeout(150);
+  // The delay is the claim: a tooltip that appears the instant the pointer crosses an icon is a
+  // different (and worse) component than one that appears when the pointer stops on it.
+  await page.waitForTimeout(60);
+  check("hovering does NOT open it straight away — there is a delay",
+    (await tipBox("showcase-tip-below-message")) === null);
+  await page.waitForTimeout(300);
   const opened = await tipBox("showcase-tip-below-message");
   check("hovering the trigger opens the message", !!opened && opened.w > 0, JSON.stringify(opened));
   // "below" is a geometric claim: the message sits under the trigger, not over it.
@@ -354,6 +359,14 @@ if (mode === "showcase") {
   await page.waitForTimeout(150);
   check("moving away closes it, and the element leaves the DOM",
     (await tipBox("showcase-tip-below-message")) === null);
+
+  // Leaving before the delay elapses cancels the timer rather than racing it.
+  await page.hover("#showcase-tip-start-trigger");
+  await page.waitForTimeout(60);
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(400);
+  check("leaving before the delay elapses never opens it at all",
+    (await tipBox("showcase-tip-start-message")) === null);
 
   await page.focus("#showcase-tip-above-trigger button");
   await page.waitForTimeout(150);

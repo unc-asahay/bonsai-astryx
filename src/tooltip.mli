@@ -12,15 +12,22 @@
     mutate a node its caller built — so the attribute goes on the wrapper the port owns, which is
     the element that {i is} the anchor in this tree. The DOM the caller sees is otherwise the same.
 
+    {2 The hover delay, and how it stopped being a divergence}
+
+    [delay_ms] is upstream's [delay], defaulting to the same 200 ms: hovering opens after the pause,
+    focusing opens at once, and leaving closes at once and cancels a timer that has not fired.
+
+    This was written down here as *not ported*, on the grounds that a timer's callback cannot reach a
+    component's state setter. That was wrong. [Vdom.Attr.create_hook] exists, [Vdom.Attr.Hooks.Make]
+    builds one, and a hook's input can carry a [unit Effect.t] that [Effect.Expert] runs — the focus
+    hooks inside virtual_dom's own [attr.ml] are the worked example. {!Common.Delay_hook} is the
+    port's version: its input says [Some delay] while the pointer is present and [None] the moment it
+    leaves, so a changed input cancels rather than races. The lesson generalizes further than this
+    component — it is also what lets {!Dialog} call [showModal] when a *value* changes rather than
+    only when an event fires.
+
     {2 Not ported, with reasons}
 
-    - {b The hover delay} ([delay], 200 ms upstream). Opening the tooltip after a pause needs a timer
-      whose callback can reach the component's state setter, and this release offers no such
-      primitive: [Bonsai_web.Effect] has no timer, [Effect.after_display] is not exposed, and the
-      [setTimeout]-plus-module-ref trick that the entry animation uses works only for a value that
-      is *read* later, never for writing state back into the graph. So the port opens immediately on
-      enter, which is the difference between a tooltip shown when a pointer crosses a row of icons
-      and one shown when it stops on one. Worth a phase 2 with a real clock.
     - {b TVision} ([touch] mode: whether a tap opens the tooltip). This port has no touch handling
       anywhere yet; a mode that is never exercised is a mode that is not ported.
     - {b The Layer}. Upstream positions through its [Layer] subsystem — a portal into the top layer,
@@ -49,6 +56,7 @@ val view
   :  ?attrs:Vdom.Attr.t list
   -> ?placement:placement
   -> ?alignment:alignment
+  -> ?delay_ms:float
   -> ?is_open:bool
   -> id:string
   -> content:string
@@ -63,6 +71,7 @@ val view
     [position: relative] so the message can be placed against it, and that wrapper is where
     [aria-describedby] appears for as long as the message is open.
 
-    Hover and focus both open it, and either leaving closes it, as upstream does. [is_open] makes the
-    state the caller's: passing it disables the open/close events entirely, which is how a caller
-    renders a tooltip that is open for a reason of its own. *)
+    Hovering opens it after [delay_ms] (200 ms, as upstream); focusing opens it immediately, because
+    a keyboard user has already committed to the control; leaving closes it and cancels a pending
+    timer. [is_open] makes the state the caller's: passing it disables the open/close events
+    entirely, which is how a caller renders a tooltip that is open for a reason of its own. *)

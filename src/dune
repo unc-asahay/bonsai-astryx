@@ -1,5 +1,5 @@
 (library
  (name astryx)
- (libraries core bonsai bonsai_web js_of_ocaml)
+ (libraries core bonsai bonsai_web virtual_dom js_of_ocaml)
  (preprocess
   (pps bonsai.ppx_bonsai)))

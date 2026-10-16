@@ -258,6 +258,14 @@ pillars below.
   message as a visually-hidden live region (`field.ml`'s `announcement_node`), so assistive technology
   gets the message today and only the *visible* bubble is missing.
 
+**One thing this milestone got wrong and then fixed.** It recorded Tooltip's 200 ms hover delay as
+unportable, on the grounds that a timer's callback cannot write back into a component's state. It can:
+`Vdom.Attr.create_hook` builds a vdom hook and a hook's input may carry a `unit Effect.t` that
+`Effect.Expert` runs. `Common.Delay_hook` is that, the delay is ported, and the browser gate presses it
+— and the same mechanism is what will let a *controlled* overlay call `showModal` when a value changes
+rather than only when an event fires, which is what the pillar below was waiting for. Gate 23 has the
+full account; the short version is that the reason was sound and the premise was never checked.
+
 Next: the overlay pillar (`Tooltip`, `Dialog`/`AlertDialog`, `Popover`, `BottomSheet`, then the
 `Layer` primitives underneath them) — class C, portal-driven, 2.4k–6.6k lines each, and much more
 than a way to close this one. It is the largest unblock in the registry: the field-side deferrals

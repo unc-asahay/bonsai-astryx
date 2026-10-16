@@ -33,9 +33,11 @@ FormLayout (live)
 Tooltip (live)
   ok   a caller-opened tooltip is laid out, not merely present
   ok   the hovered tooltip starts closed
+  ok   hovering does NOT open it straight away — there is a delay
   ok   hovering the trigger opens the message
   ok   and 'below' puts it below the trigger, measured
   ok   moving away closes it, and the element leaves the DOM
+  ok   leaving before the delay elapses never opens it at all
   ok   focusing the trigger opens it too
   ok   Escape closes it
 
@@ -212,7 +214,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-160/160 checks passed, 0 failure(s)
+162/162 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

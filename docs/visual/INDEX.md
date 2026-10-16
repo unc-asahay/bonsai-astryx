@@ -14,7 +14,7 @@ for image generation.
 | Button | 32 | 12 | 27 | 18 | [Button.md](Button.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
-| CheckboxInput | 16 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
+| CheckboxInput | 17 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
 | Citation | 6 | 4 | 25 | 16 | [Citation.md](Citation.md) |
 | Code | 5 | 5 | 10 | 8 | [Code.md](Code.md) |
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
@@ -26,14 +26,14 @@ for image generation.
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 6 | 7 | 6 | 20 | [Heading.md](Heading.md) |
 | Icon | 54 | 15 | 9 | 8 | [Icon.md](Icon.md) |
-| Indicator | 54 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
+| Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
 | Section | 7 | 8 | 9 | 5 | [Section.md](Section.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
 | Stack | 43 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
-| Switch | 12 | 1 | 3 | 0 | [Switch.md](Switch.md) |
+| Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
 | Text | 46 | 15 | 8 | 26 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |

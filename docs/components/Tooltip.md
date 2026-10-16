@@ -46,6 +46,7 @@ val view
   :  ?attrs:Vdom.Attr.t list
   -> ?placement:placement
   -> ?alignment:alignment
+  -> ?delay_ms:float
   -> ?is_open:bool
   -> id:string
   -> content:string
