@@ -1,16 +1,20 @@
 # Build the library and run the DOM/accessibility gate.
 #
-# NOTE: the branch trigger lists both `main` and `master`: this repository's default
-# branch is `master`, and a trigger naming only `main` means a push runs nothing at all.
+# What this workflow actually needed, learned from its first two runs:
 #
-# NOTE: this workflow had never been executed on GitHub when it was first pushed. The Dune/opam half is
-# the part most likely to need adjustment, because the Jane Street preview
-# packages (`v0.18~preview.*`) require their opam repository and an OCaml version
-# that predates `effect` becoming a reserved keyword — 5.2.1, not 5.3. See
-# CONTRIBUTING.md for the two build traps this pins around.
-#
-# The node-based half (steps from "Install node" onwards) is the part that is
-# known to work locally; it is what actually asserts the DOM and ARIA contract.
+#   * The branch trigger must name the default branch. It listed only `main` while the
+#     repository's default branch is `master`, so the first push started nothing at all.
+#   * The Jane Street preview packages (`v0.18~preview.*`) are not in opam.ocaml.org, and
+#     `opam repo add` alone does not fetch them: the first run initialised the repository,
+#     reported only `[default]` in `opam update`, and then failed with "No package named
+#     bonsai_web found". The fetch is explicit here (`opam update janestreet`) and asserted
+#     immediately (`opam show`), so a repository problem fails where it happens instead of
+#     three steps later.
+#   * `bonsai_web_test` is needed even though this job only runs `dune build`, because
+#     `test/dune` links it.
+#   * dune 3.24 breaks Jane Street's `include ./<module>__generated` expansion, hence the
+#     pinned 3.23.1; OCaml 5.3 makes `effect` a reserved keyword and virtual_dom uses it as
+#     an identifier, hence the pinned 5.2.1. See CONTRIBUTING.md.
 
 name: ci
 
@@ -38,22 +42,34 @@ jobs:
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: "5.2.1"
-          # dune 3.24 breaks Jane Street's `include ./<module>__generated`
-          # expansion; 3.23.1 is the newest version that builds the preview.
           opam-pin: false
+
+      # The switch is ~200 preview packages and takes a long time to build from scratch;
+      # without this every run pays for it again.
+      - name: Cache the opam switch and repositories
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam
+          key: opam-${{ runner.os }}-ocaml-5.2.1-dune-3.23.1
+          restore-keys: opam-${{ runner.os }}-ocaml-5.2.1-
 
       - name: Add Jane Street's opam repository
         run: |
-          opam repo add janestreet https://github.com/janestreet/opam-repository.git --set-default
-          opam update
+          opam repo add janestreet https://github.com/janestreet/opam-repository.git --rank=1 --all-switches
+          opam update janestreet
+          # Fail here, at the repository, rather than later at "No package named bonsai_web".
+          opam show bonsai_web --field=version
 
       - name: Install dependencies
         run: |
           opam install -y dune.3.23.1
-          opam install -y bonsai_web bonsai_web_components ppx_html js_of_ocaml
+          opam install -y bonsai_web bonsai_web_components bonsai_web_test ppx_html js_of_ocaml
 
-      - name: Compile the library and the demo bundle
+      - name: Compile the library and the bundles
         run: opam exec -- dune build
+
+      - name: Component gate (OCaml builds each component, node asserts on the DOM)
+        run: opam exec -- node test/run.mjs
 
       - name: DOM + accessibility gate
         run: opam exec -- node tools/visual/verify-dom.mjs
