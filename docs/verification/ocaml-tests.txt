@@ -1,0 +1,80 @@
+# Component tests (OCaml -> jsdom)
+# generated: 2026-10-16T03:55:51Z
+# command: dune build && node test/run.mjs
+# what runs: test/rt_test.ml builds every ported component in isolation and
+# dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM.
+
+
+the ported components render in isolation
+  ok   every case mounted something
+  ok   button-default is a single Button
+  ok   button-default renders a real <button>
+  ok   button-default carries the component marker
+  ok   button-default is type=button
+  ok   button-default carries the secondary variant class
+  ok   button-default carries its size class
+  ok   button-default shows its label
+  ok   four button variants render
+  ok   secondary variant class present
+  ok   ghost variant class present
+  ok   destructive variant class present
+  ok   three button sizes render
+  ok   sm/md/lg size classes all present
+  ok   four elevations render with distinct classes
+  ok   loading button reports aria-busy
+  ok   loading button reports aria-disabled
+  ok   loading button stays focusable (no native disabled)
+  ok   loading button announces Loading to screen readers
+  ok   disabled button uses the native disabled attribute
+  ok   loading+disabled: native disabled wins
+  ok   icon-only button is named by aria-label
+  ok   icon-only button renders its icon
+  ok   button with icon renders icon and label
+  ok   href renders an <a>
+  ok   link keeps its href
+  ok   link keeps target and rel
+  ok   button types are button/submit/reset
+  ok   six status dots render
+  ok   every dot is an image with a name
+  ok   dot labels are carried through
+  ok   only the pulsing dot has a pulsing class
+  ok   fourteen badge variants render
+  ok   every badge variant is distinguishable
+  ok   five dividers render
+  ok   dividers are separators
+  ok   the labelled divider shows its label
+  ok   the vertical divider is marked
+  ok   seven skeletons render
+  ok   skeletons are hidden from screen readers
+  ok   seven text blocks render
+  ok   code text carries the code type class
+  ok   tabular numbers are marked
+  ok   text content is carried through
+  ok   six headings render
+  ok   headings are h1..h6 in order
+  ok   three stacks render
+  ok   horizontal stack is marked horizontal
+  ok   a given gap is written as an inline style from the spacing token
+  ok   a stack given no gap emits no gap property
+  ok   four centers render
+  ok   the inline center is marked inline
+  ok   three sections render
+  ok   the muted section is marked
+  ok   three grids render
+  ok   fixed tracks expand to repeat(n, 1fr)
+  ok   responsive tracks use auto-fill with the min width
+  ok   responsive tracks honour fit vs fill
+  ok   two cards render
+  ok   the muted card is marked
+  ok   three visually-hidden blocks render
+  ok   visually-hidden elements keep their element type
+  ok   visually-hidden is styled as such
+
+interaction (OCaml dispatched the event)
+  ok   the click target is a ported Button
+  ok   count starts at 0
+  ok   one dispatched click moves the count to 1
+  ok   a second click moves it to 2
+
+67 checks, 0 failure(s)
+COMPONENT CHECKS PASSED

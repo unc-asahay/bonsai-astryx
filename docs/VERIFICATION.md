@@ -183,6 +183,31 @@ The port for the static server is **8791**: 8788 was already held by the Hermes
 gateway's proxy on this machine, which answers `200` with its own JSON — a previous
 attempt "verified" a page that was never being served at all.
 
+## Gate 7 — the components' own tests, in OCaml
+
+```
+$ dune build && node test/run.mjs
+67 checks, 0 failure(s)
+COMPONENT CHECKS PASSED
+```
+
+`test/rt_test.ml` builds every ported component **in isolation** — not through the
+demo page — and `test/run.mjs` asserts on the DOM that comes out: 67 checks over 14
+components, covering variants, sizes, elevations, every `Button` state, link
+rendering, each heading level, `StatusDot`'s image role, `Badge`'s 14
+distinguishable variants, `Divider` orientation, `Skeleton`'s aria-hidden,
+`Text`'s type/colour/weight classes, `Stack`'s optional gap, `Center`'s inline
+axis, `Section`'s variants, `Grid`'s three track forms and `VisuallyHidden`'s
+element choice.
+
+The interaction check is the one that could not be done any other way: a real
+event is dispatched **into the Bonsai graph** with `Bonsai_web_test.Handle.click_on`,
+the view is re-stabilised with `recompute_view_until_stable`, and the component's own
+rendered output is asserted to move 0 → 1 → 2. A click that silently stopped firing
+would fail here in-process, in milliseconds, with no browser involved.
+
+Transcript: [`verification/ocaml-tests.txt`](verification/ocaml-tests.txt).
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -192,11 +217,12 @@ attempt "verified" a page that was never being served at all.
   missing is the upstream side to compare it against.)
 - **Anything below M2.** 13 of 103 components are ported; the other 90 have
   reference text but no implementation.
-- **Keyboard and focus behaviour.** One click path is now verified in a real browser
-  (the showcase counter), but `Tab`/`Enter`/`Escape`, focus order, focus trapping and
-  `:focus-visible` are not asserted anywhere yet. The keyboard surface needs
-  `bonsai_web_test`'s event dispatch for the dune-level tests and more Playwright
-  `keydown` cases for the browser gate.
+- **Keyboard and focus behaviour.** One click path is verified in a real browser (the
+  showcase counter) and one in-process (Gate 7), but `Tab`/`Enter`/`Escape`, focus
+  order, focus trapping and `:focus-visible` are not asserted anywhere. The harness
+  needed for it now exists — `test/rt_test.ml` dispatches events through
+  `Bonsai_web_test.Handle`, which also has `keydown`, `focus` and `blur` — so this is
+  a matter of writing the assertions, not building infrastructure.
 - **The showcase covers the ported components only.** The 90 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

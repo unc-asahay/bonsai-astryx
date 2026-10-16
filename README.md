@@ -46,6 +46,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Component library (`src/`) | 🚧 13 of 103 ported (M1 + M2) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
+| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 67 checks, 0 failures | `node test/run.mjs` |
 | **Real-browser gate** (Chromium over HTTP, incl. a real click into Bonsai state) | ✅ 38 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
 | Showcase site (`site/`, all 13 ported components, 111 examples) | ✅ live | serve the repo root, open `/site/index.html` |
 | Coverage panel (ported vs not, from `port.json`) | ✅ 13 / 90 / 103 | `node tools/site/gen-coverage.mjs` |
@@ -73,6 +74,9 @@ node tools/mockup/render.mjs docs/mockups/login.json --format bonsai  # -> mocku
 # build the library, then run the DOM + accessibility gate
 dune build
 node tools/visual/verify-dom.mjs
+
+# each component's own test, in isolation (incl. a real event into the Bonsai graph)
+node test/run.mjs
 
 # regenerate the appearance contract + image prompts for the ported components
 node tools/gen-visual-contract.mjs
@@ -127,13 +131,14 @@ snippets.json   compile-verified OCaml calls, served to agents by the MCP server
 tokens.ocaml.json  token values in a machine-readable form
 ```
 
-## The five gates every ported component passes
+## The six gates every ported component passes
 
 1. **Compile** — `.mli` written first as the contract, implementation second. `dune build` must be exit 0. This is the gate OCaml gives you for free and the reason a port is slower but safer than a transpile: a wrong prop type is a compile error, not a runtime surprise.
-2. **DOM + ARIA** — the compiled app is mounted in jsdom and asserted (`tools/visual/verify-dom.mjs`): element structure, class vocabulary, roles, labels, and state attributes such as `aria-busy`/`aria-disabled`.
-3. **A real browser** — `tools/visual/verify-browser.mjs` loads the page from a local HTTP server in Chromium, which jsdom cannot substitute for: real CSS cascade (so a computed colour can be asserted), real layout, and real events. This is the gate that clicks the ported Button and asserts Bonsai state advanced 0→1→2.
-4. **Accessibility** — the upstream contract's WCAG criteria and required states become assertions, not advice (`aria-busy` during loading, focus never dropped, `aria-disabled` instead of native `disabled` where the upstream keeps a control focusable).
-5. **Reference** — the component's `docs/components/<Name>.md` is regenerated from the code and the upstream contract (`tools/gen-port-status.py`), so the page an AI reads cannot disagree with the code that exists.
+2. **The component's own test** — `test/rt_test.ml` builds each component in isolation and `test/run.mjs` asserts on the resulting DOM, including a real event dispatched into the Bonsai graph (`Bonsai_web_test.Handle`) asserted to move state 0→1→2. In-process, no browser, milliseconds.
+3. **DOM + ARIA** — the compiled app is mounted in jsdom and asserted (`tools/visual/verify-dom.mjs`): element structure, class vocabulary, roles, labels, and state attributes such as `aria-busy`/`aria-disabled`.
+4. **A real browser** — `tools/visual/verify-browser.mjs` loads the page from a local HTTP server in Chromium, which jsdom cannot substitute for: real CSS cascade (so a computed colour can be asserted), real layout, and real events. This is the gate that clicks the ported Button and asserts Bonsai state advanced 0→1→2.
+5. **Accessibility** — the upstream contract's WCAG criteria and required states become assertions, not advice (`aria-busy` during loading, focus never dropped, `aria-disabled` instead of native `disabled` where the upstream keeps a control focusable).
+6. **Reference** — the component's `docs/components/<Name>.md` is regenerated from the code and the upstream contract (`tools/gen-port-status.py`), so the page an AI reads cannot disagree with the code that exists.
 
 Pixel parity against the upstream React build is the remaining gate; it needs the Storybook capture layer, which is not available here yet. See [docs/VERIFICATION.md](docs/VERIFICATION.md) for what is verified and what is explicitly not.
 

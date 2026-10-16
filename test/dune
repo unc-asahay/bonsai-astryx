@@ -1,0 +1,17 @@
+; Component-level tests. Two parts, because each side is good at a different thing:
+;
+;   rt_test.ml  OCaml: builds each component in isolation and materialises it with
+;               Vdom.Node.to_dom, and (the part that must be OCaml) drives real
+;               events into the Bonsai graph with Bonsai_web_test's Handle.
+;   run.mjs     node: sets up jsdom, runs the bundle, then asserts on the resulting
+;               DOM — where the API is plain and already proven.
+;
+; Not inline_tests: those need dune's js backend, which looks for a library named
+; "js" that does not exist in this switch. And a native link is impossible because
+; virtual_dom pulls in js_of_ocaml's runtime (Ojs).
+(executable
+ (name rt_test)
+ (modes js)
+ (libraries astryx bonsai bonsai_web bonsai_web_test)
+ (preprocess
+  (pps bonsai.ppx_bonsai js_of_ocaml-ppx)))
