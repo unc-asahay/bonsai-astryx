@@ -1562,3 +1562,27 @@ let () =
   Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) layer_static
   |> fun handle -> mount "layer" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* --------------------------------------------------------------------------------- ButtonGroup (M17) *)
+(* What belongs in this gate is the structure, not the behaviour: the roving tab stop is written by a
+   mount effect, and this harness does not pump those (see Gate 30). The browser gate asserts that the
+   group really is one tab stop and that the arrows move within it. *)
+let button_group_static (_ : Bonsai.graph) =
+  let member label ?(is_disabled = false) () = Astryx.Button.view ~label ~is_disabled [] in
+  Bonsai.return
+   @@ Astryx.Button_group.view
+    ~label:"Actions"
+    ~children:
+      [ member "Copy" ()
+      ; member "Cut" ()
+      ; member "Paste" ~is_disabled:true ()
+      ]
+      ()
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    button_group_static
+  |> fun handle -> mount "button-group" (Bonsai_web_test.Handle.last_result handle)
+;;

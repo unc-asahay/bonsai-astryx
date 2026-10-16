@@ -2466,6 +2466,68 @@ let dialog_header_demo (graph : Bonsai.graph) =
 
 (* ---------------------------------------------------------------- Kbd *)
 
+(* ------------------------------------------------------------------------------- ButtonGroup *)
+let s_button_group () =
+  let member ?(is_disabled = false) id label =
+    Astryx.Button.view ~label ~is_disabled ~attrs:[ Vdom.Attr.create "id" id ] []
+  in
+  let group
+    ?(orientation = Astryx.Button_group.Horizontal)
+    ?(elevation = Astryx.Button_group.None_)
+    ~id
+    label
+    members
+    =
+    Astryx.Button_group.view
+      ~label
+      ~orientation
+      ~elevation
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      ~children:members
+      ()
+  in
+  section
+    ~id:"button-group"
+    ~title:"ButtonGroup"
+    ~note:
+      "Buttons joined into one surface: shared edges, and a single tab stop with the arrows moving \
+       within it. Two things here are worth knowing. The connected look is drawn by CSS from the group \
+       rather than by a context the children read, because a child in this port is built before its \
+       container sees it - and the rule has to target the button *inside* each child, since a member \
+       that renders its own layer wraps its button. Upstream hit the same wall and moved the end-cap \
+       rules into Button.tsx. The single tab stop is behaviour, and unlike a radio group the platform \
+       does not provide it for buttons, so the group implements the APG roving tabindex itself: one \
+       member is reachable by Tab, arrows move along the orientation, Home and End jump to the ends, \
+       the ends wrap, and disabled members are skipped. Arrow keys pressed inside a member's own layer \
+       - a tooltip, a menu - stay with that layer, because the nearest boundary above the key event has \
+       to be the group's own root. One thing is not ported and is named rather than approximated: size \
+       does not propagate from the group to its members, so each member states its own."
+    [ ex
+        "a horizontal group: one tab stop, the arrows move within it, and the disabled member is skipped"
+        (group
+           "Actions"
+           ~id:"showcase-button-group"
+           [ member "showcase-bg-copy" "Copy"
+           ; member "showcase-bg-cut" "Cut"
+           ; member "showcase-bg-delete" ~is_disabled:true "Delete"
+           ])
+    ; ex
+        "floating: the shadow sits on the group, so the connected members lift as one surface"
+        (group
+           "Floating actions"
+           ~id:"showcase-button-group-elevated"
+           ~elevation:Astryx.Button_group.Low
+           [ member "showcase-bg-approve" "Approve"; member "showcase-bg-reject" "Reject" ])
+    ; ex
+        "vertical: the same component on the other axis"
+        (group
+           "Zoom"
+           ~id:"showcase-button-group-vertical"
+           ~orientation:Astryx.Button_group.Vertical
+           [ member "showcase-bg-in" "Zoom in"; member "showcase-bg-out" "Zoom out" ])
+    ]
+;;
+
 let s_kbd () =
   let kbd keys = Astryx.Kbd.view ~keys () in
   let row name keys =
@@ -2661,6 +2723,7 @@ let specs =
   ; s_nav_icon (); s_empty_state (); s_citation ()
   ; s_icon (); s_field_status (); s_field_label (); s_indicator ()
   ; s_kbd ()
+  ; s_button_group ()
   ]
 ;;
 
@@ -2704,6 +2767,7 @@ let nav_items =
   ; "alert-dialog", "AlertDialog"
   ; "dialog-header", "DialogHeader"
   ; "kbd", "Kbd"
+  ; "button-group", "ButtonGroup"
   ; "layer", "Layer"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"

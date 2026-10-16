@@ -460,6 +460,24 @@ itself is the labelled surface (`role="dialog"`, `aria-modal`, `aria-label`), th
 and the `width`/`padding` seam — plus the two things upstream has that this port will *name as missing*
 rather than approximate: the modal focus trap and the overflow-measurement machinery.
 
+### M17 — ButtonGroup: buttons joined into one surface (done, 37 → 38 of 103)
+
+Two parts, and only one of them was expected. The connected look is CSS drawn by the group, because a
+child here is built before its container sees it and there is no context to put a style into; and the rule
+has to target the button *inside* each child, since a member that renders its own layer wraps its button —
+upstream's own `IS_LAST_ITEM` comment explains why it moved the same rules into `Button.tsx`.
+
+The part that was not expected: a single tab stop with the arrows moving within it is *behaviour*, and
+unlike a radio group the platform does not provide it for buttons. So the group implements the APG roving
+tabindex itself, and every arrow movement rewrites `tabindex` on the members — the focused one becomes
+`0` and the rest `-1`, which is what makes the next Tab leave the group. Upstream's three `useListFocus`
+settings all turned out to be load-bearing and are copied verbatim (see Gate 31).
+
+**The responsive gate earned its place here**, by failing on this milestone's own section rather than on
+the component: the demo put two groups side by side in a flex row, and the page overflowed at 320px and
+375px. The fix was the layout, not the assertion.
+
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

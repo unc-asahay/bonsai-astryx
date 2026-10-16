@@ -1838,3 +1838,50 @@
   line-height: var(--text-supporting-leading);
   user-select: none;
 }
+
+/* ------------------------------------------------------------------------------------ ButtonGroup */
+/* Connected edges. The rule targets the button *inside* each child rather than the child itself: a
+   member that renders its own layer (a Button with a tooltip, a DropdownMenu) wraps its button, so
+   `> .astryx-button` would miss it and the group would lose its end caps. Upstream hit the same wall
+   and moved these rules out of the group and into Button.tsx; this arrives at the same place from the
+   other side, since a child here is built before its container ever sees it. */
+.astryx-button-group {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.astryx-button-group--vertical { flex-direction: column; }
+
+/* Horizontal: the inner vertical edges lose their radius and the shared border collapses to one.
+   Written after `.astryx-button` on purpose - the longhands have to beat its shorthand. */
+.astryx-button-group--horizontal > *:not(:first-child) .astryx-button,
+.astryx-button-group--horizontal > .astryx-button:not(:first-child) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  margin-inline-start: -1px;
+}
+
+.astryx-button-group--horizontal > *:not(:last-child) .astryx-button,
+.astryx-button-group--horizontal > .astryx-button:not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* Vertical: the same idea on the horizontal edges. */
+.astryx-button-group--vertical > *:not(:first-child) .astryx-button,
+.astryx-button-group--vertical > .astryx-button:not(:first-child) {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  margin-block-start: -1px;
+}
+
+.astryx-button-group--vertical > *:not(:last-child) .astryx-button,
+.astryx-button-group--vertical > .astryx-button:not(:last-child) {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* The group's resting shadow sits on the wrapper, so the connected members lift as one surface. */
+.astryx-button-group--elevation-low { box-shadow: var(--shadow-low); border-radius: var(--radius-element); }
+.astryx-button-group--elevation-med { box-shadow: var(--shadow-med); border-radius: var(--radius-element); }
+.astryx-button-group--elevation-high { box-shadow: var(--shadow-high); border-radius: var(--radius-element); }

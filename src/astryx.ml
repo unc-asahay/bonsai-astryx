@@ -12,6 +12,7 @@ module Stack = Stack
 module Text = Text
 module Heading = Heading
 module Button = Button
+module Button_group = Button_group
 module Card = Card
 module Badge = Badge
 module Divider = Divider

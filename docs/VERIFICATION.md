@@ -1475,3 +1475,96 @@ purpose, and the disagreement is documented rather than smoothed over.
 
 Transcript: `docs/verification/sweep-m16b.txt`.
 
+## Gate 31 — ButtonGroup (M17): buttons joined into one surface
+
+Coverage moves **37 → 38 of 103**. Two parts, and only one of them was expected.
+
+### The connected look is CSS, because there is no context here
+
+Upstream's children read a `ButtonGroupContext` and style themselves, which is how a member that renders
+its own layer still gets the right edges. A child in this port is built *before* its container sees it, so
+there is nothing to put in a context: the edges are drawn by CSS from the group instead.
+
+The rule has to target the button **inside** each child rather than the child itself. A member which
+renders a layer — a Button with a tooltip, a DropdownMenu — wraps its button, so `> .astryx-button` misses
+it and the group loses its end caps. Upstream hit exactly this and answered it by moving those rules out of
+the group and into `Button.tsx` (see `IS_LAST_ITEM` in its own comment); this arrives at the same place
+from the other side. The longhands are deliberately written after `.astryx-button`'s shorthand, so they win.
+
+### The part that was not expected: one tab stop is behaviour
+
+A group is a single tab stop — Tab reaches the group, arrows move *within* it along the orientation, Home
+and End jump to the ends, the ends wrap, disabled members are skipped. That is the APG roving-tabindex
+technique, and **unlike a radio group the platform does not provide it for buttons**: there is no native
+element whose members share a name. So the component implements it, and every arrow movement rewrites
+`tabindex` on the members — the focused one becomes `0`, the rest `-1`, which is what makes the next Tab
+leave the group instead of walking through it.
+
+Upstream's three `useListFocus` settings are copied verbatim because all three are load-bearing:
+
+- **the item selector must not key off a tabindex *value*.** `[tabindex="0"]` would drop each member the
+  moment the roving stamps it `-1`; `button, a[href], [tabindex]` is the selector upstream uses, and the
+  underscore in that reasoning is upstream's own comment.
+- **the ends wrap**, and Home/End are absolute rather than relative.
+- **the nearest boundary above a key event has to be the group's own root** (`[role="group"], [popover]`).
+  A member's layer renders inline inside the group — the layer mechanism does not portal it — so a key
+  pressed in an open menu bubbles here; and naming the group's own root is what keeps a group rendered
+  *inside* a Popover working, since bailing on any `[popover]` ancestor would swallow every arrow key the
+  group owns.
+
+### What the browser measured
+
+| Check | Evidence (real key presses, real CSS) |
+| --- | --- |
+| Exactly one member is a tab stop | one `tabindex="0"`, the rest `-1` |
+| ArrowRight moves along the orientation | focus lands on the next member |
+| And the tab stop follows the focus | the new member holds the `0`, so Tab leaves the group |
+| A disabled member is skipped | one step from Paste lands on Copy, not on Delete |
+| End is the last **enabled** member, not the last member | Paste, with Delete after it |
+| A vertical group moves on the vertical axis | ArrowDown from Zoom in → Zoom out |
+| The end caps are drawn | outer radii 8px, inner radii `0px` |
+| The shared edge is one border | the middle member's inline margin is `-1px` |
+
+As in Gate 30, the jsdom gate asserts the *structure* (a named region, its members inside it, one of them
+genuinely `disabled` rather than styled that way) and the browser asserts the behaviour, because the tab
+stop is written by a mount effect and the jsdom harness does not pump those.
+
+### Two mistakes, both caught by the thing that caught them
+
+1. **My end-cap check was wrong, and it failed correctly.** It measured `Paste` as the "last" member and
+   demanded a trailing radius of 8px. Paste is the *third* of four — Delete is last. The check was at
+   fault, not the CSS, and the fix was to measure `Delete`, which incidentally shows the more interesting
+   fact: a *disabled* last member still keeps the group's trailing cap.
+2. **The section rendered perfectly and counted as zero examples.** The gate counts examples the showcase
+   *marks*, and the new section's two Stacks were not wrapped in `ex`. Nothing was visibly broken — four
+   frozen counters and an "empty section" assertion were the only evidence, which is exactly what those
+   counters are for.
+
+### Not ported, and named rather than approximated
+
+**`size` does not propagate from the group to its members.** Upstream's group provides a size through its
+context and members inherit it unless they override it; with no context, every member states its own. A
+group whose buttons disagree will look like it, and that is the honest version of this seam.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **414 / 0** |
+| Real-browser checks (Chromium, live showcase) | **214 / 214** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **38 of 103** ported, 65 not |
+| Showcase | 41 sections, 263 examples |
+| Visual contract pages (`tools/gen-visual-contract.mjs`) | 38 |
+| MCP layer | every ported component truthfully reachable — ButtonGroup included |
+
+Two notes on the generated corpora, because both are places where a number can drift silently. The
+*visual contract* corpus is regenerated here and now has a page for every ported component (38). The
+*capture-based* reference generator (`tools/gen-visual-references.py`) still needs
+`visual-captures/captures.json`, which comes from the upstream Storybook build — a gap the README already
+declares rather than hides. And the MCP layer currently reports ButtonGroup as "ported, no snippet", which
+is the weak-but-true position, not a false one.
+
+Transcript: `docs/verification/sweep-m17a.txt`.
+

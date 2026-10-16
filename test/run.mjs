@@ -1592,6 +1592,23 @@ section("FieldLabel");
     layerRoot ? layerRoot.innerHTML.slice(0, 80) : "no root");
 }
 
+/* ------------------------------------------------------------------- ButtonGroup (M17) */
+/* The tab stop and the arrow keys are written by a mount effect, and this harness does not pump those -
+   so, as with the layer trigger (Gate 30), the behaviour is asserted in the browser gate and this one
+   asserts the structure: a named region whose members are inside it, one of them genuinely disabled
+   rather than merely styled that way. */
+{
+  const group = document.querySelector('[data-astryx-component="ButtonGroup"]');
+  check("the group is one named region",
+    group?.getAttribute("role") === "group" && group?.getAttribute("aria-label") === "Actions",
+    `role=${group?.getAttribute("role")} label=${group?.getAttribute("aria-label")}`);
+  const members = group ? [...group.querySelectorAll("button")] : [];
+  check("with every member inside it", members.length === 3, String(members.length));
+  check("including one that is disabled, not just styled that way",
+    members.some((b) => b.disabled === true),
+    members.map((b) => `${b.textContent}:${b.disabled}`).join(" "));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   40 sections
+  ok   41 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   260 examples across the page
+  ok   263 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   40 nav links
+  ok   41 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -255,20 +255,28 @@ Layer (the native popover API)
   ok   Enter on the trigger opens it, exactly once — no second handler fighting the first
   ok   and the trigger now reports it as expanded
   ok   Enter again closes it
+  ok   exactly one member of the group is a tab stop, the rest are reachable only by arrow
+  ok   ArrowRight moves the focus to the next member
+  ok   and the tab stop follows the focus, so the next Tab leaves the group
+  ok   a disabled member is skipped rather than focused
+  ok   End jumps to the last enabled member, which is not the last member
+  ok   a vertical group moves on the vertical axis
+  ok   the end caps are drawn: outer corners keep their radius, inner ones lose it
+  ok   and the shared edge is one border, not two stacked
   ok   a manual layer opens
   ok   Escape does not touch it — the platform was never asked to dismiss this one
   ok   nor does a real click outside
   ok   only the application closes it, and the value follows
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 37 ported / 66 not / 103 total
-  ok   unported list rendered 66 entries
+  ok   coverage stats are 38 ported / 65 not / 103 total
+  ok   unported list rendered 65 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-206/206 checks passed, 0 failure(s)
+214/214 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

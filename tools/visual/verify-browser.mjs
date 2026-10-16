@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("40 sections", sections.length === 40, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("41 sections", sections.length === 41, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,10 +616,11 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
+    ButtonGroup: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("260 examples across the page", totalExamples === 260, `got ${totalExamples}`);
+  check("263 examples across the page", totalExamples === 263, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -632,7 +633,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("40 nav links", nav.length === 40, `got ${nav.length}`);
+  check("41 nav links", nav.length === 41, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1531,7 +1532,87 @@ if (mode === "showcase") {
     check("Enter again closes it",
       (await layerState("showcase-layer-auto")).open === false);
 
-    /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
+    /* ------------------------------------------------------------------ ButtonGroup (M17) */
+/* One tab stop with the arrows moving within it is behaviour the platform provides for radios and not
+   for buttons, so this port implements it - which means it has to be measured, not assumed. Everything
+   below is a real key press against a real group. */
+{
+  const membersOf = (groupId) => page.evaluate((id) => {
+    const group = document.getElementById(id);
+    return [...group.querySelectorAll("button, a[href], [tabindex]")].map((m) => ({
+      id: m.id,
+      tabindex: m.getAttribute("tabindex"),
+      disabled: m.disabled === true,
+      focused: m === document.activeElement,
+    }));
+  }, groupId);
+  const stopsOf = (members) => members.filter((m) => m.tabindex === "0").map((m) => m.id);
+  const focusedOf = (members) => members.find((m) => m.focused)?.id ?? null;
+
+  await page.focus("#showcase-bg-copy");
+  await page.waitForTimeout(120);
+  let members = await membersOf("showcase-button-group");
+  check("exactly one member of the group is a tab stop, the rest are reachable only by arrow",
+    stopsOf(members).length === 1,
+    JSON.stringify(members.map((m) => `${m.id}:${m.tabindex}`)));
+
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(120);
+  members = await membersOf("showcase-button-group");
+  check("ArrowRight moves the focus to the next member", focusedOf(members) === "showcase-bg-cut", String(focusedOf(members)));
+  check("and the tab stop follows the focus, so the next Tab leaves the group",
+    stopsOf(members).join() === "showcase-bg-cut",
+    stopsOf(members).join());
+
+  /* The disabled member is the one that matters: it must be skipped, so one step from Cut lands on
+     Copy rather than on the disabled button sitting at the end. */
+  await page.focus("#showcase-bg-cut");
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(120);
+  members = await membersOf("showcase-button-group");
+  check("a disabled member is skipped rather than focused",
+    focusedOf(members) === "showcase-bg-copy",
+    JSON.stringify({ focused: focusedOf(members), disabled: members.find((m) => m.disabled)?.id }));
+
+  await page.keyboard.press("End");
+  await page.waitForTimeout(120);
+  check("End jumps to the last enabled member, which is not the last member",
+    focusedOf(await membersOf("showcase-button-group")) === "showcase-bg-cut",
+    String(focusedOf(await membersOf("showcase-button-group"))));
+
+  /* Vertical is the same component on the other axis. */
+  await page.focus("#showcase-bg-in");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(120);
+  check("a vertical group moves on the vertical axis",
+    focusedOf(await membersOf("showcase-button-group-vertical")) === "showcase-bg-out",
+    String(focusedOf(await membersOf("showcase-button-group-vertical"))));
+
+  /* The connected edges are CSS, so a browser is the only place they can be measured: the outer
+     corners keep their radius, the inner ones lose it, and the shared edge is one border not two. */
+  const edges = await page.evaluate(() => {
+    const first = document.getElementById("showcase-bg-copy");
+    const middle = document.getElementById("showcase-bg-cut");
+    const last = document.getElementById("showcase-bg-delete");
+    const f = getComputedStyle(first);
+    const l = getComputedStyle(last);
+    return {
+      firstOuter: f.borderStartStartRadius,
+      firstInner: f.borderStartEndRadius,
+      lastInner: l.borderStartStartRadius,
+      lastOuter: l.borderStartEndRadius,
+      overlap: getComputedStyle(middle).marginInlineStart,
+    };
+  });
+  check("the end caps are drawn: outer corners keep their radius, inner ones lose it",
+    edges.firstInner === "0px" && edges.lastInner === "0px"
+      && parseFloat(edges.firstOuter) > 0 && parseFloat(edges.lastOuter) > 0,
+    JSON.stringify(edges));
+  check("and the shared edge is one border, not two stacked",
+    parseFloat(edges.overlap) < 0, JSON.stringify(edges));
+}
+
+/* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
     await page.waitForTimeout(250);
@@ -1564,11 +1645,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 37 ported / 66 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["37", "66", "103"]),
+    "coverage stats are 38 ported / 65 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["38", "65", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 66 entries", cov.unported === 66, `got ${cov.unported}`);
+  check("unported list rendered 65 entries", cov.unported === 65, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }
