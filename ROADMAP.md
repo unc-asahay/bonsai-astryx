@@ -540,6 +540,34 @@ correcting:
   grid box. `SizeProvider` is the same named divergence as `InputGroup`'s — the caller builds the children,
   the box carries the size.
 
+### What Toolbar still needs, now that the extraction is done
+
+The mechanism's home exists (`Common.List_focus`, extracted and proven by ButtonGroup's unchanged suites), but
+it is **not yet general enough for a second consumer**, and Toolbar's own call says exactly what is missing.
+Upstream configures it with five settings; the port carries two of them, because buttons need no others:
+
+| Setting | Upstream (Toolbar) | Button_group | In the port today |
+| --- | --- | --- | --- |
+| axis | `orientation` | `orientation` | present |
+| roving tabindex | `true` | `true` | present |
+| item selector | `button, input, [tabindex]` | `button, a[href], [tabindex]` | ButtonGroup's, hard-coded |
+| boundary selector | `[role="toolbar"], [popover]` | the group's own root | the group's root, hard-coded |
+| caret guard | `true` | — | absent |
+
+So the next step is a **generalisation of the mechanism, not a new one**: the selector and the boundary
+become inputs, and the **caret guard** gets implemented — arrows must move focus out of a text input inside a
+toolbar rather than moving the caret, unless the caret is mid-text, which is the whole reason a toolbar can
+contain inputs at all. That is the substantive work; the component around it is composition.
+
+Two smaller decisions, both already taken:
+
+- **`useKeyboardHint` is named as not ported rather than approximated.** It is 337 lines of ephemeral
+  arrow-key *hint* — a teaching aid shown to sighted keyboard users, built from `Kbd` and `useLayer`, both of
+  which this port already has. The roving behaviour it explains is the substance and is ported; the hint is
+  discoverability polish, so Toolbar lands without it and the mli says so.
+- `role`, `aria-label` and `aria-orientation` are **stripped from the incoming props** and set by the
+  component (`role="toolbar"`), so `Toolbar` cannot be handed a role that contradicts the behaviour inside it.
+
 ### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
 
 One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
