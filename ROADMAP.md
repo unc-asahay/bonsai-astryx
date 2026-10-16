@@ -403,6 +403,27 @@ Two consequences worth having on the record before the milestone starts:
   if it is called mid-toggle. jsdom has no Popover API at all, so the component gate will press a
   feature-checked fallback while only Chromium exercises the native path — the same split `<dialog>` needed.
 
+### The next component is not the one its line count suggests
+
+`MoreMenu` looks like the cheap one: 183 lines, and its own comment calls it "a thin wrapper around
+DropdownMenu with icon-only button defaults". It is — but a wrapper's cost is its delegate's API, not its
+own size. It forwards a *button config object* (`label`, `icon`, `variant`, `size`, `isIconOnly`,
+`tooltip`), `placement`, `alignment`, `presentation`, and a **controlled** `isMenuOpen`/`onOpenChange`,
+and passes `hasChevron={false}`.
+
+The port's `DropdownMenu` takes `~trigger_label : string` and builds its own button, owns its own open
+state, and has no placement, alignment or presentation — its own `.mli` records that the top-layer
+mechanics are phase 2. So MoreMenu means extending DropdownMenu first, and that extension is the *same*
+Layer work `Popover` needs. The dependency graph, read rather than assumed:
+
+    Layer / native popover mechanism
+      |- DropdownMenu phase 2 (controlled open, button config, placement)  ->  MoreMenu
+      |- Popover  ->  Selector, Combobox, DateInput's calendar
+      |- BottomSheet  ->  the adaptive presentation
+
+Which is why the next milestone is the mechanism, not the cheapest-looking wrapper: three components and
+the whole overlay family are waiting on one thing, and the platform already implements most of it.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind
