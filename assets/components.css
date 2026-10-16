@@ -732,6 +732,9 @@
 .astryx-icon--green { color: var(--color-icon-green); }
 .astryx-icon--gray { color: var(--color-icon-gray); }
 .astryx-icon--cyan { color: var(--color-icon-cyan); }
+/* Inherits the surrounding colour, so an icon inside a label or a button matches its text
+   instead of imposing a palette colour on it (upstream's color: 'inherit'). */
+.astryx-icon--inherit { color: inherit; }
 
 /* --------------------------------------------------------- entry animations */
 /* Upstream's useEntryAnimation keyframes. The class is only applied to elements that
@@ -944,4 +947,145 @@
 .astryx-dropdown__group {
   display: flex;
   flex-direction: column;
+}
+
+/* ------------------------------------------------------------------- Field */
+/* The wrapper every input renders through: label, description, status. */
+
+.astryx-field {
+  display: flex;
+  flex-direction: column;
+  /* The field owns a local stacking boundary. An attached status paints *behind* the control's
+     bottom edge (z-index -1 inside the wrapper), and that ordering must not escape into the
+     page's stacking contexts. */
+  isolation: isolate;
+  /* A field is the flex/grid item a row actually sizes. With the automatic minimum it holds the
+     intrinsic width of a native input (~20ch), so the row overflows on a phone. */
+  min-width: 0;
+}
+
+/* The gap exists only when there is a visible label: a hidden label must not leave a phantom
+   gap above the control. */
+.astryx-field--labeled { gap: var(--spacing-1); }
+
+.astryx-field__label-group { display: block; }
+
+.astryx-field__label {
+  display: block;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+}
+
+.astryx-field__marker {
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+}
+
+.astryx-field__description {
+  display: block;
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+}
+
+.astryx-field__input-status {
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  /* How far an attached status is pulled up behind the control: half the control's height is
+     the most a corner radius can render, so that is the overlap, and it follows the size of the
+     control inside. */
+  --_field-status-overlap: calc(var(--size-element-md) / 2);
+}
+
+.astryx-field__input-status:has(> [data-astryx-size="sm"]) {
+  --_field-status-overlap: calc(var(--size-element-sm) / 2);
+}
+
+.astryx-field__input-status:has(> [data-astryx-size="lg"]) {
+  --_field-status-overlap: calc(var(--size-element-lg) / 2);
+}
+
+/* --------------------------------------------------------------- TextInput */
+
+.astryx-text-input {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-text-input { transition-duration: 0s; }
+}
+
+.astryx-text-input:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent-muted);
+}
+
+@media (hover: hover) {
+  .astryx-text-input:hover:not(:focus-within):not(.astryx-text-input--disabled) {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-border-emphasized) 30%, transparent);
+  }
+}
+
+/* A disabled control must not react to hover, and the cursor is the default one. */
+.astryx-text-input--disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.astryx-text-input--warning { border-color: var(--color-warning); }
+.astryx-text-input--error { border-color: var(--color-error); }
+.astryx-text-input--success { border-color: var(--color-success); }
+
+.astryx-text-input[data-astryx-size="sm"] { height: var(--size-element-sm); }
+.astryx-text-input[data-astryx-size="md"] { height: var(--size-element-md); }
+.astryx-text-input[data-astryx-size="lg"] { height: var(--size-element-lg); }
+
+.astryx-text-input__input {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  padding: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: transparent;
+  outline: none;
+}
+
+.astryx-text-input__input::placeholder { color: var(--color-text-secondary); }
+
+/* iOS Safari zooms the page when a focused control sits under 16px, and only iOS WebKit
+   implements the callout property that keys a coarse-pointer floor to it — so this is scoped to
+   the one engine that needs it rather than applied to every touch device. */
+@media (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    .astryx-text-input__input { font-size: max(1rem, var(--text-body-size)); }
+  }
+}
+
+.astryx-text-input__start-icon {
+  display: inline-flex;
+  flex: none;
 }

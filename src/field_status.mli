@@ -35,6 +35,20 @@ type variant =
   | Attached
   | Detached
 
+(** Where a status message is placed — upstream's [FieldStatusVariant], which has three cases even
+    though this component renders only two strips.
+
+    - [Attached]: the message is part of the field's own surface, tucked behind the control.
+    - [Detached]: the message sits below the field with its own spacing.
+    - [Tooltip]: {b no message box at all} — the component that owns the control announces the
+      message instead. {!view} does not take this case, because a strip is not what gets rendered
+      for it; {!Field} does, because placing the status is its job. Keeping the three cases in one
+      type is what stops [Field] and [Text_input] from each declaring a slightly different pair. *)
+type placement =
+  | Attached
+  | Detached
+  | Tooltip
+
 val view
   :  ?variant:variant
   -> ?attrs:Vdom.Attr.t list

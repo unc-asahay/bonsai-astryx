@@ -50,4 +50,35 @@ let dropdown_menu (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   Bonsai.map2 selected menu ~f:(fun _selected menu -> menu)
 ;;
 
-let () = ignore (dropdown_menu : Bonsai.graph -> Vdom.Node.t Bonsai.t)
+(* --- snippets.json / Field --- *)
+let field () : Vdom.Node.t =
+  (* Field is the wrapper: the control goes in as children. *)
+  Astryx.Field.view
+    ~label:"Full name"
+    ~input_id:"name"
+    ~description:"As it should appear on an invoice."
+    ~is_required:true
+    ~children:[ Vdom.Node.input ~attrs:[ Vdom.Attr.id "name" ] () ]
+    ()
+;;
+
+(* --- snippets.json / TextInput --- *)
+let text_input (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
+  (* value and on_change are values in the graph, so a state setter goes straight in *)
+  let name, set_name = Bonsai.state "" graph in
+  Astryx.TextInput.view
+    ~label:"Full name"
+    ~id:"name"
+    ~description:"As it should appear on an invoice."
+    ~is_required:true
+    ~status:(Astryx.Field_status.Error, "That name is taken.")
+    ~value:name
+    ~on_change:(Bonsai.map set_name ~f:(fun set value -> set value))
+    ()
+;;
+
+let () =
+  ignore (dropdown_menu : Bonsai.graph -> Vdom.Node.t Bonsai.t);
+  ignore (field : unit -> Vdom.Node.t);
+  ignore (text_input : Bonsai.graph -> Vdom.Node.t Bonsai.t)
+;;

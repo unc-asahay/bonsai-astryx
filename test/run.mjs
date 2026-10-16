@@ -787,6 +787,114 @@ section("DropdownMenu (the APG menu-button core)");
   check("closing empties the surface again", rows(selected).length === 0, `${rows(selected).length}`);
 }
 
+
+// --- Field + TextInput (M11)
+//
+// The point of these two components is the wiring, so that is what is asserted: how the control
+// is named, which text it points at, and which of the three placements the message took.
+
+section("Field + TextInput");
+
+{
+  const textOf = (el) => (el ? el.textContent || "" : "");
+  const input = (id) => document.querySelector(`#${id}`);
+  const label = (id) => document.querySelector(`label[for="${id}"]`);
+  const wrapper = (id) => input(id)?.closest(".astryx-text-input");
+  const fields = inCaseOf("field-static", "TextInput");
+  const inputs = inCaseMatching("field-static", "input");
+
+  check("seven fields mount in the static case", fields.length === 7, `${fields.length}`);
+  check("every field renders a control", inputs.length === 7, `${inputs.length}`);
+
+  // A control named twice is announced twice: the label is the only name.
+  check(
+    "no control also names itself with aria-labelledby",
+    inputs.every((i) => !i.hasAttribute("aria-labelledby")),
+    inputs.map((i) => attr(i, "aria-labelledby")).filter(Boolean).join(","));
+
+  // --- the label, the description and the marker
+  check("the label is a real <label for>", !!label("rt-field-required"),
+    label("rt-field-required")?.outerHTML?.slice(0, 100));
+  check("the label carries the label text",
+    textOf(label("rt-field-required")).includes("Full name"),
+    textOf(label("rt-field-required")));
+  check("a required field shows and announces Required",
+    textOf(label("rt-field-required")).includes("Required")
+      && attr(input("rt-field-required"), "aria-required") === "true",
+    `aria-required=${attr(input("rt-field-required"), "aria-required")}`);
+  check("the marker's separator is decoration only",
+    label("rt-field-required").querySelector('[aria-hidden="true"]') !== null);
+  check("an optional field shows Optional and is not aria-required",
+    textOf(label("rt-field-optional")).includes("Optional")
+      && !input("rt-field-optional").hasAttribute("aria-required"));
+  check("the description is described by, not part of the name",
+    attr(input("rt-field-required"), "aria-describedby") === "rt-field-required-desc"
+      && textOf(document.querySelector("#rt-field-required-desc")).includes("On the invoice."),
+    `aria-describedby=${attr(input("rt-field-required"), "aria-describedby")}`);
+  check("the description is a sibling of the <label>, not inside it",
+    label("rt-field-required").querySelector("#rt-field-required-desc") === null);
+
+  // --- the three placements
+  const errorField = input("rt-field-error").closest(".astryx-field");
+  check("an error sets aria-invalid",
+    attr(input("rt-field-error"), "aria-invalid") === "true");
+  check("the error message is described by the control",
+    attr(input("rt-field-error"), "aria-describedby") === "rt-field-error-status");
+  check("the attached status sits inside the control's wrapper",
+    errorField.querySelector(".astryx-field__input-status .astryx-field-status--error") !== null,
+    errorField.querySelector(".astryx-field__input-status")?.outerHTML?.slice(0, 120));
+  check("an error is announced assertively",
+    errorField.querySelector('.astryx-field-status[role="alert"]') !== null);
+
+  const detachedField = input("rt-field-detached").closest(".astryx-field");
+  check("the detached status is not in the control's wrapper",
+    detachedField.querySelector(".astryx-field__input-status") === null);
+  check("the detached status is a direct child of the field",
+    [...detachedField.children].some((c) => hasClass(c, /astryx-field-status--success/)),
+    [...detachedField.children].map((c) => attr(c, "class")).join(" | "));
+
+  const tooltipField = input("rt-field-tooltip").closest(".astryx-field");
+  check("the tooltip placement renders no message box",
+    tooltipField.querySelector(".astryx-field-status") === null);
+  const announcement = tooltipField.querySelector(`#rt-field-tooltip-status`);
+  check("the tooltip placement still announces the message",
+    !!announcement && textOf(announcement).includes("Read only.")
+      && hasClass(announcement, /astryx-visually-hidden/),
+    announcement?.outerHTML?.slice(0, 120));
+  check("the input points at the announcement it must read",
+    attr(input("rt-field-tooltip"), "aria-describedby") === "rt-field-tooltip-status");
+
+  // --- hidden label, disabled, read-only
+  const hiddenField = input("rt-field-hidden").closest(".astryx-field");
+  check("a hidden label is hidden from sight, not from assistive tech",
+    hasClass(label("rt-field-hidden"), /astryx-visually-hidden/)
+      && !hiddenField.classList.contains("astryx-field--labeled"));
+  check("a disabled field carries the attribute and the class",
+    input("rt-field-hidden").hasAttribute("disabled")
+      && hasClass(wrapper("rt-field-hidden"), /astryx-text-input--disabled/));
+  check("a read-only field is read-only, not disabled",
+    input("rt-field-readonly").hasAttribute("readonly")
+      && !input("rt-field-readonly").hasAttribute("disabled"));
+
+  // --- sizes and the controlled value
+  check("every wrapper states its size",
+    fields.every((f) => attr(f, "data-astryx-size") === "md"),
+    fields.map((f) => attr(f, "data-astryx-size")).join(","));
+
+  const before = document.querySelector('[data-case="field-before"]');
+  const after = document.querySelector('[data-case="field-after"]');
+  check("the control starts empty and the application agrees",
+    before.querySelector("#rt-field-live").value === ""
+      && before.querySelector("[data-rt-value]").getAttribute("data-rt-value") === "",
+    `value=${before.querySelector("#rt-field-live").value}`);
+  check("typing reaches the control and the application",
+    after.querySelector("#rt-field-live").value === "Ada Lovelace"
+      && after.querySelector("[data-rt-value]").getAttribute("data-rt-value") === "Ada Lovelace",
+    `value=${after.querySelector("#rt-field-live").value}, state=${after
+      .querySelector("[data-rt-value]")
+      .getAttribute("data-rt-value")}`);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

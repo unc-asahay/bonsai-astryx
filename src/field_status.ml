@@ -10,13 +10,22 @@ type variant =
   | Attached
   | Detached
 
+type placement =
+  | Attached
+  | Detached
+  | Tooltip
+
 let type_class = function
   | Warning -> "astryx-field-status--warning"
   | Error -> "astryx-field-status--error"
   | Success -> "astryx-field-status--success"
 ;;
 
-let variant_class = function
+(* Annotated: Field_status now declares two variants that share constructor names ([variant] for
+   the two strips this component renders, [placement] for all three places a message can go), so
+   an unannotated match would let the compiler disambiguate to the wrong one. *)
+let variant_class (variant : variant) =
+  match variant with
   | Attached -> "astryx-field-status--attached"
   | Detached -> "astryx-field-status--detached"
 ;;
@@ -33,14 +42,14 @@ let announcement_role = function
   | Warning | Success -> "status"
 ;;
 
-let view ?(variant = Attached) ?(attrs = []) ~type_ ~message () =
+let view ?(variant = (Attached : variant)) ?(attrs = []) ~type_ ~message () =
   let classes =
     [ "astryx-field-status"; type_class type_; variant_class variant ]
     @ (if Entry_animation.animate () then [ Entry_animation.class_ Entry_animation.Slide_down ]
        else [])
   in
   let content =
-    match variant with
+    match (variant : variant) with
     | Attached ->
       (* Bare text: upstream renders the message directly, with no icon and no wrapper. *)
       [ Vdom.Node.text message ]

@@ -651,3 +651,118 @@ let () =
   Bonsai_web_test.Handle.recompute_view_until_stable handle;
   snapshot "dropdown-menu-selected"
 ;;
+
+(* ---------------------------------------------------- Field + TextInput (M11) *)
+
+(* One component, seven fields: one per thing the wiring has to get right. Static on purpose —
+   what is under test here is the markup the field emits for a given set of props. *)
+let field_static_component (_ : Bonsai.graph) =
+  let value = Bonsai.return "acme" in
+  let noop = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let field
+        ?status
+        ?status_variant
+        ?is_disabled
+        ?is_read_only
+        ?is_label_hidden
+        ?is_optional
+        ?is_required
+        ?description
+        ~label
+        ~id
+        ()
+    =
+    Astryx.Text_input.view
+      ~label
+      ~id
+      ?status
+      ?status_variant
+      ?is_disabled
+      ?is_read_only
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?description
+      ~value
+      ~on_change:noop
+      ()
+  in
+  (* Every field is a value in the graph; a page can only take unwrapped nodes, and this Bonsai
+     offers both/map2 rather than a list combinator. *)
+  let unwrap_all nodes =
+    List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    (unwrap_all
+       [ field ~label:"Full name" ~id:"rt-field-required" ~description:"On the invoice."
+           ~is_required:true ()
+       ; field ~label:"Email" ~id:"rt-field-optional" ~is_optional:true ()
+       ; field
+           ~label:"Workspace"
+           ~id:"rt-field-error"
+           ~status:(Astryx.Field_status.Error, "That name is taken.") ()
+       ; field
+           ~label:"API key"
+           ~id:"rt-field-detached"
+           ~status:(Astryx.Field_status.Success, "Verified.")
+           ~status_variant:Astryx.Field_status.Detached ()
+       ; field
+           ~label:"Database"
+           ~id:"rt-field-tooltip"
+           ~status:(Astryx.Field_status.Warning, "Read only.")
+           ~status_variant:Astryx.Field_status.Tooltip ()
+       ; field ~label:"Account id" ~id:"rt-field-hidden" ~is_label_hidden:true ~is_disabled:true ()
+       ; field ~label:"Password" ~id:"rt-field-readonly" ~is_read_only:true ()
+       ])
+    ~f:(fun nodes -> Vdom.Node.div nodes)
+;;
+
+(* The interactive case: the harness types into the real input and the graph answers. jsdom has
+   no keyboard of its own — the harness gives synthetic key events an empty key — so what can be
+   checked here is that the control is genuinely controlled. Enter's behaviour belongs to the
+   browser gate, where a real key event exists. *)
+let field_interactive_component (graph : Bonsai.graph) =
+  let name, set_name = Bonsai.state "" graph in
+  let on_change = Bonsai.map set_name ~f:(fun set value -> set value) in
+  let input =
+    Astryx.Text_input.view
+      ~label:"Name"
+      ~id:"rt-field-live"
+      ~is_required:true
+      ~value:name
+      ~on_change
+      ()
+  in
+  let echo =
+    Bonsai.map name ~f:(fun name ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.create "data-rt-value" name ]
+        [ Vdom.Node.text name ])
+  in
+  Bonsai.map2 input echo ~f:(fun input echo -> Vdom.Node.div [ input; echo ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) field_static_component
+  in
+  mount "field-static" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      field_interactive_component
+  in
+  mount "field-before" (Bonsai_web_test.Handle.last_result handle);
+  Bonsai_web_test.Handle.input_text
+    handle
+    ~get_vdom:Fn.id
+    ~selector:"#rt-field-live"
+    ~text:"Ada Lovelace";
+  Bonsai_web_test.Handle.recompute_view_until_stable handle;
+  mount "field-after" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -21,6 +21,7 @@ type color =
   | Green
   | Gray
   | Cyan
+  | Inherit
 
 let names : string list = Icon_data.names
 
@@ -45,6 +46,7 @@ let color_class = function
   | Green -> "astryx-icon--green"
   | Gray -> "astryx-icon--gray"
   | Cyan -> "astryx-icon--cyan"
+  | Inherit -> "astryx-icon--inherit"
 ;;
 
 let attrs_of (pairs : (string * string) list) =

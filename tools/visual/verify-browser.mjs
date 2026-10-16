@@ -233,10 +233,11 @@ if (mode === "showcase") {
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
+    "Field + TextInput",
   ];
 
   console.log("\nshowcase sections");
-  check("26 sections", sections.length === 26, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("27 sections", sections.length === 27, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -253,9 +254,10 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
+    "Field + TextInput": 10,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("162 examples across the page", totalExamples === 162, `got ${totalExamples}`);
+  check("172 examples across the page", totalExamples === 172, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -268,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("26 nav links", nav.length === 26, `got ${nav.length}`);
+  check("27 nav links", nav.length === 27, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -611,6 +613,103 @@ if (mode === "showcase") {
   check("the animation is neutralised under prefers-reduced-motion",
     !!late && late.animationName === "none", late ? late.animationName : "n/a");
 
+  // --- Field + TextInput: what only a real browser can decide ------------------
+  // jsdom has no keyboard of its own and does not implement label activation, so the parts
+  // below are exactly the parts the component gate cannot speak to.
+  console.log("\ntext input (real keys, real focus, native label activation)");
+  {
+    const fieldState = () =>
+      page.evaluate(() => {
+        const el = document.querySelector("#showcase-field-name");
+        if (!el) return null;
+        const wrapper = el.closest(".astryx-text-input");
+        const cs = getComputedStyle(wrapper);
+        return {
+          value: el.value,
+          labels: el.labels ? el.labels.length : -1,
+          labelText: el.labels && el.labels[0] ? el.labels[0].textContent.trim() : "",
+          focused: document.activeElement === el,
+          shadow: cs.boxShadow,
+          border: cs.borderTopColor,
+        };
+      });
+
+    const initial = await fieldState();
+    check("the field is wired to its label in a real engine",
+      initial && initial.labels === 1 && initial.labelText.includes("Full name"),
+      JSON.stringify(initial && { labels: initial.labels, text: initial.labelText }));
+
+    // Native activation: clicking the label is supposed to focus the control. jsdom does not
+    // implement that, and a <div> pretending to be a label would silently pass every DOM test.
+    await page.click('label[for="showcase-field-name"]');
+    const afterLabelClick = await fieldState();
+    check("clicking the label focuses the control", afterLabelClick && afterLabelClick.focused,
+      JSON.stringify(afterLabelClick && { focused: afterLabelClick.focused }));
+
+    await page.keyboard.type("Ada Lovelace");
+    await page.waitForTimeout(120);
+    const typed = await fieldState();
+    const echo = (await page.textContent("[data-showcase-typed]")) || "";
+    check("real keystrokes reach the control", typed && typed.value === "Ada Lovelace",
+      typed && typed.value);
+    check("real keystrokes reach the application", /name="Ada Lovelace"/.test(echo), echo);
+
+    const focusRing = await fieldState();
+    check("focusing the field changes how it is drawn",
+      initial && focusRing && (initial.shadow !== focusRing.shadow || initial.border !== focusRing.border),
+      JSON.stringify(initial && { before: initial.shadow, after: focusRing.shadow }));
+
+    const startIcon = await page.evaluate(() => {
+      const slot = document
+        .querySelector("#showcase-field-email")
+        ?.closest(".astryx-text-input")
+        ?.querySelector(".astryx-text-input__start-icon svg");
+      return slot ? { color: getComputedStyle(slot).color, size: Math.round(slot.getBoundingClientRect().width) } : null;
+    });
+    check("the start icon renders inside the control, in its slot",
+      !!startIcon && startIcon.size > 0, JSON.stringify(startIcon));
+
+    // The tooltip placement renders no box, so the message must still be readable to assistive
+    // technology — clipped out of sight rather than absent.
+    const tooltipPlacement = await page.evaluate(() => {
+      const field = document.querySelector("#showcase-field-tooltip")?.closest(".astryx-field");
+      if (!field) return null;
+      const announced = field.querySelector("[data-astryx-field-status-announcement]");
+      const rect = announced ? announced.getBoundingClientRect() : null;
+      return {
+        hasBox: Boolean(field.querySelector(".astryx-field-status")),
+        text: announced ? announced.textContent.trim() : "",
+        width: rect ? Math.round(rect.width) : null,
+        height: rect ? Math.round(rect.height) : null,
+      };
+    });
+    check("the tooltip placement renders no message box",
+      tooltipPlacement && !tooltipPlacement.hasBox, JSON.stringify(tooltipPlacement));
+    check("its message is still in the DOM, clipped rather than dropped",
+      tooltipPlacement
+        && tooltipPlacement.text.includes("read-only")
+        && tooltipPlacement.width <= 2
+        && tooltipPlacement.height <= 2,
+      JSON.stringify(tooltipPlacement));
+
+    // Enter: the one thing a synthetic key event cannot test, because the harness gives its
+    // events an empty key.
+    const submitted = () =>
+      page.evaluate(() =>
+        (document.querySelector("[data-showcase-submitted]") || {}).getAttribute
+          ? document.querySelector("[data-showcase-submitted]").getAttribute("data-showcase-submitted")
+          : null);
+    check("nothing is submitted before Enter", (await submitted()) === "false", String(await submitted()));
+    await page.click("#showcase-field-enter");
+    await page.keyboard.type("hello");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(120);
+    check("a real Enter reaches the application", (await submitted()) === "true", String(await submitted()));
+    check("the field that was submitted still holds what was typed",
+      (await page.inputValue("#showcase-field-enter")) === "hello",
+      await page.inputValue("#showcase-field-enter"));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -623,11 +722,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 25 ported / 78 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["25", "78", "103"]),
+    "coverage stats are 27 ported / 76 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["27", "76", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 78 entries", cov.unported === 78, `got ${cov.unported}`);
+  check("unported list rendered 76 entries", cov.unported === 76, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

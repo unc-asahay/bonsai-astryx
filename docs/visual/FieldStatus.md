@@ -16,8 +16,18 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Field_status` (`src/field_status.ml`, M9)
-- rendered instances in the demo: 6
-- classes: `astryx-field-status`, `astryx-field-status--attached`, `astryx-field-status--detached`, `astryx-field-status--error`, `astryx-field-status--success`, `astryx-field-status--warning`
+- rendered instances in the demo: 8
+- classes: `astryx-enter--slide-down`, `astryx-field-status`, `astryx-field-status--attached`, `astryx-field-status--detached`, `astryx-field-status--error`, `astryx-field-status--success`, `astryx-field-status--warning`
+
+## other
+
+| property | value | source class |
+| --- | --- | --- |
+| `animation-duration` | `230ms` _(from `var(--duration-fast-max)`)_ | `.astryx-enter--slide-down` |
+| `animation-fill-mode` | `backwards` | `.astryx-enter--slide-down` |
+| `animation-name` | `astryx-enter-slide-down` | `.astryx-enter--slide-down` |
+| `animation-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-enter--slide-down` |
+| `pointer-events` | `none` | `.astryx-field-status--attached` |
 
 ## type
 
@@ -45,12 +55,6 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `border-end-start-radius` | `8px` _(from `var(--radius-element)`)_ | `.astryx-field-status--attached` |
 | `border-radius` | `8px` _(from `var(--radius-element)`)_ | `.astryx-field-status--detached` |
 
-## other
-
-| property | value | source class |
-| --- | --- | --- |
-| `pointer-events` | `none` | `.astryx-field-status--attached` |
-
 ## background
 
 | property | value | source class |
@@ -73,6 +77,8 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-text-red` | `light-dark(#7B0210, #FFB2B8)` |
 | `--color-text-yellow` | `light-dark(#753F07, #FBCE03)` |
 | `--color-warning-muted` | `light-dark(#E2A40033, #E2A4003F)` |
+| `--duration-fast-max` | `230ms` |
+| `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
 | `--radius-element` | `8px` |
 | `--spacing-1` | `0.25rem` |

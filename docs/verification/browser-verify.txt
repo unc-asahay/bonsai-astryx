@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   26 sections
+  ok   27 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   162 examples across the page
+  ok   172 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Field + TextInput:10 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   26 nav links
+  ok   27 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -107,15 +107,28 @@ field status (measured styles + the first-paint animation rule)
   ok   ..and it is announced assertively, being an error
   ok   the animation is neutralised under prefers-reduced-motion
 
+text input (real keys, real focus, native label activation)
+  ok   the field is wired to its label in a real engine
+  ok   clicking the label focuses the control
+  ok   real keystrokes reach the control
+  ok   real keystrokes reach the application
+  ok   focusing the field changes how it is drawn
+  ok   the start icon renders inside the control, in its slot
+  ok   the tooltip placement renders no message box
+  ok   its message is still in the DOM, clipped rather than dropped
+  ok   nothing is submitted before Enter
+  ok   a real Enter reaches the application
+  ok   the field that was submitted still holds what was typed
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 25 ported / 78 not / 103 total
-  ok   unported list rendered 78 entries
+  ok   coverage stats are 27 ported / 76 not / 103 total
+  ok   unported list rendered 76 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-83/83 checks passed, 0 failure(s)
+94/94 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

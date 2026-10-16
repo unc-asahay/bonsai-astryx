@@ -217,5 +217,32 @@ DropdownMenu (the APG menu-button core)
   ok   selecting a row closes the menu
   ok   closing empties the surface again
 
-209 checks, 0 failure(s)
+Field + TextInput
+  ok   seven fields mount in the static case
+  ok   every field renders a control
+  ok   no control also names itself with aria-labelledby
+  ok   the label is a real <label for>
+  ok   the label carries the label text
+  ok   a required field shows and announces Required
+  ok   the marker's separator is decoration only
+  ok   an optional field shows Optional and is not aria-required
+  ok   the description is described by, not part of the name
+  ok   the description is a sibling of the <label>, not inside it
+  ok   an error sets aria-invalid
+  ok   the error message is described by the control
+  ok   the attached status sits inside the control's wrapper
+  ok   an error is announced assertively
+  ok   the detached status is not in the control's wrapper
+  ok   the detached status is a direct child of the field
+  ok   the tooltip placement renders no message box
+  ok   the tooltip placement still announces the message
+  ok   the input points at the announcement it must read
+  ok   a hidden label is hidden from sight, not from assistive tech
+  ok   a disabled field carries the attribute and the class
+  ok   a read-only field is read-only, not disabled
+  ok   every wrapper states its size
+  ok   the control starts empty and the application agrees
+  ok   typing reaches the control and the application
+
+234 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -48,6 +48,7 @@ type color =
   | Green
   | Gray
   | Cyan
+  | Inherit  (** takes the surrounding text colour — upstream's [color: 'inherit'] *)
 
 val names : string list
 (** Every icon name in the generated registry, in upstream's registry order. *)

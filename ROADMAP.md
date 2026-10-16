@@ -96,6 +96,34 @@ Three things worth carrying forward:
 Phase 2 — the inline-flyout system, the bottom sheet and the native `popover="auto"` press model
 — remains open, as does `MoreMenu`, which wraps this.
 
+## M11 — the form-control core (Field + TextInput, phase 1) (done)
+
+Landed `Field` — the wrapper every input renders through — and `TextInput`, the first control that
+uses it: label, description, status, three status placements, and the ARIA wiring that is the
+whole reason these two exist in a port.
+
+Three things worth carrying forward:
+
+1. **A callback has to be a value in the graph, not a plain function.** `on_change` and `on_enter`
+   are `Bonsai.t`s. With a plain function the caller has to wrap the view in a `Bonsai.map` over
+   its state setter to get one — and because the view already returns a `Bonsai.t`, that wrap
+   produces a *tree of a tree* (`Node.t Bonsai.t Bonsai.t`) that then needs unwrapping before it
+   can render. `DropdownMenu.on_select` already had the right shape; now the rule is uniform.
+2. **`Field` is a name Core already uses.** After `open! Core`, `Field` means Core's first-class
+   fields, so a module of ours with that name cannot be referred to from inside the library. The
+   fix was not a rename but better placement: the shared types went to their faithful homes —
+   `Field_status.placement` (upstream's `FieldStatusVariant`), `Common.Size_value` (upstream's
+   `SizeValue`) — leaving one reference, bound before the opens with a comment.
+3. **Two types with the same constructor names need annotations.** `Field_status` now declares
+   `variant` (the two strips it renders) and `placement` (all three places a message can go), and
+   OCaml disambiguates an unannotated match towards the most recently declared type. Both matches
+   carry `(variant : variant)` for that reason.
+
+Also in this milestone: `Icon` gained an `inherit` colour (upstream's label icon inherits the
+label's colour instead of imposing a palette one). Deferred with reasons: the loading spinner, the
+`disabledMessage` tooltip, `InputGroup`, the async `changeAction`, `FormLayout`'s
+default-optionality context, and horizontal-labels mode.
+
 ## M9 — FieldStatus and entry animations (done)
 
 Landed `FieldStatus` (attached/detached × warning/error/success) and `Entry_animation`, the

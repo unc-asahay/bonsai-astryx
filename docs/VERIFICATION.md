@@ -503,8 +503,63 @@ and only the *incoming* attribute can silence it — so the override site marks 
 `Attr.suppress_merge_warnings`. The dropdown itself was clean: a true positive about a
 deliberate duplicate, in a case whose whole point is the duplicate.
 
-**Totals at this gate:** 209 component checks, 83 real-browser checks, 25/25 demo checks,
-66 responsive checks at 0.00% drift across 320/375/768/1440, 23 appearance pages.
+## Gate 13 — the form-control core, and a control that names itself once
+
+**What it covers:** `Field` and `TextInput` (M11) — the first form controls in the port, and the
+two components everything else that takes input will be built on. `Field` is the wrapper: the
+label, the description and the status around a control. `TextInput` is the control.
+
+**What the component gate asserts** (25 of its 234 checks, all in jsdom): that the label is a
+real `<label for>`; that the control is named *once* and never also with `aria-labelledby`;
+that `aria-describedby` lists the description and the status message in that order and nothing
+else; that the description is a sibling of the `<label>` rather than inside it (inside, it would
+be folded into the control's name); that `aria-required` and the visible Required/Optional marker
+agree, and that the marker's separator is `aria-hidden` decoration; that an error sets
+`aria-invalid` and is announced assertively while a warning does not; that the three status
+placements really differ — attached inside the control's wrapper, detached as a child of the
+field with no wrapper, tooltip with **no message box at all**; that a hidden label is hidden from
+sight and not from assistive technology; that a disabled field carries the attribute and the
+class while a read-only one carries only `readonly`; and that typing into the control through
+`Bonsai_web_test.Handle` reaches the application's state — a controlled input, checked as one.
+
+**What the browser gate adds** (11 of its 94 checks, in Chromium): that the browser's own
+`element.labels` collection resolves — the association is real, not just an attribute — and that
+clicking the label focuses the control, which is native activation jsdom does not implement;
+that real keystrokes typed into the field reach both the control and the application's state;
+that focusing the field changes how it is drawn; that the start icon renders inside the control;
+that the tooltip placement's announcement is in the DOM and clipped, not dropped; and that a real
+`Enter` key press reaches the application while typing alone does not.
+
+**One real defect, caught by the assertion rather than by reading.** In the tooltip placement the
+message is announced by an element the control points at with `aria-describedby` — and that
+element had no `id`. The markup looked correct: the region rendered, the text was in it, and the
+attribute held the right value; it pointed at an id that did not exist. The jsdom check looks the
+id up instead of reading the attribute, and failed.
+
+**Two build-level traps, both about naming.** `Field` is a module name Core already uses
+(first-class fields), and after `open! Core` the unqualified name referred to Core's — so a
+module in this library named `Field` silently fails to compile against itself. The shared types
+moved to their faithful homes instead of being re-exported across that boundary: the placement
+type to `Field_status` (upstream defines `FieldStatusVariant` there), the width to
+`Common.Size_value` (upstream shares `SizeValue`), and the one remaining reference is bound before
+the opens with a comment saying why. Separately, taking a callback as a *plain function* forces
+the caller to wrap the whole view in a `Bonsai.map` over its state setter — and since the view
+already returns a `Bonsai.t`, that produces a tree **of a tree** (`Node.t Bonsai.t Bonsai.t`),
+which then has to be unwrapped before anything can render it. Both `on_change` and `on_enter` are
+values in the graph for that reason, which is also what `DropdownMenu`'s `on_select` already did.
+
+**Also changed for this milestone:** `Icon` gained an `inherit` colour, because upstream's label
+icon takes the label's colour rather than imposing one of the palette's; and `Field_status`
+gained the three-case placement type, so `Field` and `TextInput` cannot drift into two slightly
+different pairs of the same thing.
+
+**Deferred, with the reason recorded:** the loading spinner, the `disabledMessage` tooltip,
+`InputGroup` membership, the async `changeAction` (which exists upstream to keep a slow action
+from fighting the browser's echo of a keystroke — a Bonsai state setter has no such race),
+`FormLayout`'s default-optionality context, and horizontal-labels mode.
+
+**Totals at this gate:** 234 component checks, 94 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440, 25 appearance pages.
 
 ## Not yet verified — do not read these as claims
 
@@ -513,7 +568,7 @@ deliberate duplicate, in a case whose whole point is the duplicate.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M10.** 25 of 103 components are ported; the other 78 have
+- **Anything below M11.** 27 of 103 components are ported; the other 76 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
   a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
@@ -521,12 +576,15 @@ deliberate duplicate, in a case whose whole point is the duplicate.
   `tabindex="-1"`, so Tab reaches it; and since M10 the whole menu path — ArrowDown/ArrowUp open
   and move focus in, arrows/Home/End move with wrap, typeahead cycles, both the arrow keys and
   typeahead skip the disabled row, Enter selects, Escape closes, and Escape, a selection and the
-  trigger all hand focus back (Gate 12). What is still **not** asserted: Tab-*order* traversal
+  trigger all hand focus back (Gate 12); and since M11, `Enter` in a text field reaches the
+  application while typing alone does not, and clicking a field's label focuses its control
+  (Gate 13). What is still **not** asserted: Tab-*order* traversal
   between controls, focus *trapping* (nothing ported traps focus yet — a menu does not, a dialog
-  would), `Space` on a menu row, and `:focus-visible` styling.
+  would), `Space` on a menu row, and the `:focus-visible` pseudo-class specifically (what Gate 13
+  measures is that focusing a field changes how it is drawn, not which selector did it).
   `test/rt_test.ml` can dispatch `keydown`, `focus` and `blur` through `Bonsai_web_test.Handle`,
   but a synthetic key event there carries no `key`, which is why keyboard claims live in the
   real-browser gate instead.
-- **The showcase covers the ported components only.** The 78 unported ones appear as
+- **The showcase covers the ported components only.** The 76 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

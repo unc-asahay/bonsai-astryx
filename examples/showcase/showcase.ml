@@ -907,6 +907,177 @@ let dropdown_menu_demo (graph : Bonsai.graph) =
       ])
 ;;
 
+(* Field + TextInput are demonstrated together because that is how they are used: TextInput
+   renders the control, and Field owns the label, the description and the status around it. *)
+let field_demo (graph : Bonsai.graph) =
+  let name, set_name = Bonsai.state "" graph in
+  let email, set_email = Bonsai.state "" graph in
+  let on_change setter = Bonsai.map setter ~f:(fun set value -> set value) in
+  (* The setter is a value in the graph and TextInput takes it as one, so each input stays a
+     single expression — no wrapping map, and therefore no tree of a tree. *)
+  let name_input =
+    Astryx.TextInput.view
+      ~label:"Full name"
+      ~id:"showcase-field-name"
+      ~description:"Exactly as it should appear on an invoice."
+      ~is_required:true
+      ~placeholder:"Ada Lovelace"
+      ~value:name
+      ~on_change:(on_change set_name)
+      ()
+  in
+  let email_input =
+    Astryx.TextInput.view
+      ~label:"Email"
+      ~id:"showcase-field-email"
+      ~type_:Astryx.TextInput.Email
+      ~start_icon:"search"
+      ~is_optional:true
+      ~placeholder:"ada@example.com"
+      ~value:email
+      ~on_change:(on_change set_email)
+      ()
+  in
+  (* What the application holds, on screen: the browser gate types into the input above and
+     asserts this line changed, which is the only way to tell a controlled input from one that
+     merely looks right at first paint. *)
+  let typed =
+    Bonsai.map2 name email ~f:(fun name email ->
+      Vdom.Node.p
+        ~attrs:[ Vdom.Attr.create "data-showcase-typed" "true" ]
+        [ Vdom.Node.text (sprintf "name=%S email=%S" name email) ])
+  in
+  let static ?status ?status_variant ?is_disabled ?is_label_hidden ?type_ ?start_icon ~label ~id
+        value
+    =
+    Astryx.TextInput.view
+      ~label
+      ~id
+      ?status
+      ?status_variant
+      ?is_disabled
+      ?is_label_hidden
+      ?type_
+      ?start_icon
+      ~value:(Bonsai.return value)
+      ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
+      ()
+  in
+  (* Everything this section renders is a value in the graph, and the section can only render
+     unwrapped nodes. This Bonsai offers map2/both rather than a list combinator, so the trees are
+     combined pairwise and read back by position — the names below make the order checkable at a
+     glance, and List.nth_exn fails loudly rather than quietly rendering the wrong example. *)
+  let unwrap_all nodes =
+    List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  (* Enter is the one thing jsdom cannot test — its synthetic key events carry an empty key — so
+     the showcase exposes a field whose only job is to be submitted with a real key press. *)
+  let submitted, set_submitted = Bonsai.state false graph in
+  let enter_input =
+    Astryx.Text_input.view
+      ~label:"Submit with Enter"
+      ~id:"showcase-field-enter"
+      ~description:"The application only hears about Enter, not about the keystrokes."
+      ~placeholder:"then press Enter"
+      ~value:(Bonsai.return "")
+      ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
+      ~on_enter:(Bonsai.map set_submitted ~f:(fun set -> set true))
+      ()
+  in
+  let submitted_echo =
+    Bonsai.map submitted ~f:(fun submitted ->
+      Vdom.Node.p
+        ~attrs:
+          [ Vdom.Attr.create
+              "data-showcase-submitted"
+              (if submitted then "true" else "false")
+          ]
+        [ Vdom.Node.text
+            (if submitted then "enter: received" else "enter: nothing yet")
+        ])
+  in
+  let nodes =
+    unwrap_all
+      [ typed
+      ; static
+          ~label:"Workspace"
+          ~id:"showcase-field-attached"
+          ~status:(Astryx.Field_status.Error, "That name is taken.")
+          "acme"
+      ; static
+          ~label:"API key"
+          ~id:"showcase-field-detached"
+          ~status:(Astryx.Field_status.Success, "Verified.")
+          ~status_variant:Astryx.Field_status.Detached
+          "sk-live-1234"
+      ; static
+          ~label:"Database"
+          ~id:"showcase-field-tooltip"
+          ~status:(Astryx.Field_status.Warning, "This one is read-only.")
+          ~status_variant:Astryx.Field_status.Tooltip
+          "primary"
+      ; static
+          ~label:"Account id"
+          ~id:"showcase-field-disabled"
+          ~is_label_hidden:true
+          ~is_disabled:true
+          "acct_9f21"
+      ; static
+          ~label:"Password"
+          ~id:"showcase-field-readonly"
+          ~type_:Astryx.TextInput.Password
+          "correct-horse-battery-staple"
+      ; enter_input
+      ; submitted_echo
+      ]
+  in
+  let inputs = Bonsai.both name_input email_input in
+  Bonsai.map2 inputs nodes ~f:(fun (name_node, email_node) nodes ->
+    (* Read back by position: the names are the labels of the list above, so the order is visible
+       next to them, and a missing example fails loudly instead of rendering the wrong node. *)
+    let nth i =
+      match List.nth nodes i with
+      | Some node -> node
+      | None -> failwith (sprintf "field_demo: no example at index %d" i)
+    in
+    let typed = nth 0 in
+    let attached = nth 1 in
+    let detached = nth 2 in
+    let tooltip = nth 3 in
+    let disabled = nth 4 in
+    let readonly = nth 5 in
+    let enter_node = nth 6 in
+    let submitted_node = nth 7 in
+    section
+      ~id:"field"
+      ~title:"Field + TextInput"
+      ~note:
+        "A text input is two components, not one. Field owns the label, the description and the \
+         status; TextInput renders the control that points at them. The wiring is the point: \
+         the label is a real <label for>, the control is named once and never also with \
+         aria-labelledby, aria-describedby lists only the text that is really rendered, and \
+         Required/Optional is shown and announced as the same thing. A status can be attached \
+         (behind the control's bottom edge — the default), detached (below the field, for a \
+         control with no border of its own) or a tooltip, which renders no message box at all \
+         and announces the message instead. Typing in the first two fields reaches the \
+         application: the line under them is what the port's state actually holds. The last field \
+         is submitted with Enter, which the browser gate presses for real — jsdom's synthetic \
+         key events carry an empty key, so a keyboard assertion there would be worthless."
+      [ ex "a required field, with a description" name_node
+      ; ex "an optional field, with a start icon" email_node
+      ; ex "the value the application holds" typed
+      ; ex "an attached error (the default placement)" attached
+      ; ex "a detached success" detached
+      ; ex "the tooltip placement renders no message box" tooltip
+      ; ex "a disabled field, with its label hidden" disabled
+      ; ex "a read-only password field" readonly
+      ; ex "Enter reaches the application, and nothing else does" enter_node
+      ; ex "what the application heard" submitted_node
+      ])
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -946,6 +1117,7 @@ let nav_items =
   ; "citation", "Citation"
   ; "icon", "Icon"
   ; "fieldstatus", "FieldStatus"
+  ; "field", "Field + TextInput"
   ; "dropdownmenu", "DropdownMenu"
   ; "interactive", "Interactive"
   ]
@@ -976,13 +1148,18 @@ let nav () =
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let dropdown_section = dropdown_menu_demo graph in
-  Bonsai.map2 interactive_section dropdown_section ~f:(fun interactive_section dropdown_section ->
+  let field_section = field_demo graph in
+  let sections = Bonsai.map2 interactive_section dropdown_section ~f:(fun a b -> a, b) in
+  Bonsai.map2
+    sections
+    field_section
+    ~f:(fun (interactive_section, dropdown_section) field_section ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ dropdown_section; interactive_section ])
+          (specs @ [ field_section; dropdown_section; interactive_section ])
       ])
 ;;
 
