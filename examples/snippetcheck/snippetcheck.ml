@@ -77,8 +77,25 @@ let text_input (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ()
 ;;
 
+(* --- snippets.json / TextArea --- *)
+let text_area (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
+  (* rows is the height; there is no value attribute to set - the text goes in as the child *)
+  let draft, set_draft = Bonsai.state "" graph in
+  Astryx.TextArea.view
+    ~label:"Release notes"
+    ~id:"release-notes"
+    ~description:"Markdown is fine; the review step renders it."
+    ~is_required:true
+    ~rows:4
+    ~placeholder:"What changed?"
+    ~value:draft
+    ~on_change:(Bonsai.map set_draft ~f:(fun set value -> set value))
+    ()
+;;
+
 let () =
   ignore (dropdown_menu : Bonsai.graph -> Vdom.Node.t Bonsai.t);
   ignore (field : unit -> Vdom.Node.t);
-  ignore (text_input : Bonsai.graph -> Vdom.Node.t Bonsai.t)
+  ignore (text_input : Bonsai.graph -> Vdom.Node.t Bonsai.t);
+  ignore (text_area : Bonsai.graph -> Vdom.Node.t Bonsai.t)
 ;;
