@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 30,
-    "unported": 73,
+    "ported": 31,
+    "unported": 72,
     "total": 103,
     "documented": 103
   },
@@ -162,6 +162,12 @@
       "milestone": "M1"
     },
     {
+      "name": "Switch",
+      "module": "Astryx.Switch",
+      "file": "src/switch.ml",
+      "milestone": "M12"
+    },
+    {
       "name": "Text",
       "module": "Astryx.Text",
       "file": "src/text.ml",
@@ -250,7 +256,6 @@
     "Slider",
     "Spinner",
     "Stepper",
-    "Switch",
     "TabList",
     "Table",
     "Thumbnail",

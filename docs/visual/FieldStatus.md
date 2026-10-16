@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Field_status` (`src/field_status.ml`, M9)
-- rendered instances in the demo: 10
+- rendered instances in the demo: 11
 - classes: `astryx-enter--slide-down`, `astryx-field-status`, `astryx-field-status--attached`, `astryx-field-status--detached`, `astryx-field-status--error`, `astryx-field-status--success`, `astryx-field-status--warning`
 
 ## other

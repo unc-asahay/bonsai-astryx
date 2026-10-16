@@ -1610,6 +1610,116 @@ let checkbox_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- switch (state) *)
+
+(* The same shape as the checkbox section, and for the same reason: a switch is only correct if the
+   click reaches the application and the property follows the value back. The readout is derived
+   from the state, so it cannot agree with the box by accident. *)
+let switch_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-switch-row" ]) nodes in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let no_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
+  let is_on, set_is_on = Bonsai.state false graph in
+  let live =
+    let control =
+      Switch.view
+        ~label:"Dark mode"
+        ~id:"showcase-switch-live"
+        ~description:"Follows the system setting until you touch it."
+        ~description_id:"showcase-switch-live-desc"
+        ~value:is_on
+        ~on_change:(Bonsai.map set_is_on ~f:(fun set value -> set value))
+        ()
+    in
+    let readout =
+      Bonsai.map is_on ~f:(fun on ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-switch-live-state" ]
+          [ Vdom.Node.text ("this switch: " ^ if on then "on" else "off") ])
+    in
+    Bonsai.map (join_all [ control; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let plain ?is_disabled ?is_label_hidden ?is_optional ?is_required ?size ~label ~id value =
+    Switch.view
+      ?is_disabled
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?size
+      ~label
+      ~id
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let examples =
+    [ ex_tree "a live switch: click it, and the property follows the value" live
+    ; ex_tree "on and off"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"On" ~id:"showcase-switch-on" true
+              ; plain ~label:"Off" ~id:"showcase-switch-off" false
+              ])
+           ~f:row)
+    ; ex_tree "clicking the label works too" (plain ~label:"Notifications" ~id:"showcase-switch-label" false)
+    ; ex_tree "disabled"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"Frozen on" ~id:"showcase-switch-disabled-on" ~is_disabled:true true
+              ; plain ~label:"Frozen off" ~id:"showcase-switch-disabled-off" ~is_disabled:true false
+              ])
+           ~f:row)
+    ; ex_tree "sm and md"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"Small" ~id:"showcase-switch-sm" ~size:Indicator.Sm true
+              ; plain ~label:"Medium" ~id:"showcase-switch-md" ~size:Indicator.Md true
+              ])
+           ~f:row)
+    ; ex_tree "required, and optional"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"Use the beta channel" ~id:"showcase-switch-required" ~is_required:true false
+              ; plain ~label:"Share anonymous usage" ~id:"showcase-switch-optional" ~is_optional:true false
+              ])
+           ~f:row)
+    ; ex_tree "a description, and an error status below the row"
+        (Switch.view
+           ~label:"Two-factor authentication"
+           ~id:"showcase-switch-status"
+           ~description:"Required for administrators."
+           ~description_id:"showcase-switch-status-desc"
+           ~status:
+             { Input_types.type_ = Input_types.Error
+             ; message = Some "Administrators cannot turn this off."
+             }
+           ~value:(Bonsai.return true)
+           ~on_change:no_change
+           ())
+    ; ex_tree "a hidden label still names the control"
+        (plain ~label:"Telemetry" ~id:"showcase-switch-hidden" ~is_label_hidden:true true)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"switch"
+      ~title:"Switch"
+      ~note:
+        "The control is a native checkbox with role=\"switch\", which is what makes a screen \
+         reader announce \"switch, on\" rather than \"checkbox, checked\"; the track is \
+         aria-hidden paint over it, and the thumb grows when it is on. Note what it does *not* have: \
+         an aria-checked. The input's own checkedness is the state, and a second declaration can \
+         disagree with it — the same judgment as the checkbox's missing aria-checked=\"mixed\". \
+         The first example is live, and the readout is derived from the same state the control gets, \
+         so it cannot agree by accident."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1652,6 +1762,7 @@ let nav_items =
   ; "fieldlabel", "FieldLabel"
   ; "indicator", "Indicator"
   ; "checkbox", "CheckboxInput"
+  ; "switch", "Switch"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -1684,6 +1795,7 @@ let nav () =
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
+  let switch_section = switch_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -1693,13 +1805,18 @@ let page (graph : Bonsai.graph) =
       (pair interactive_section checkbox_section)
       (pair dropdown_section field_section)
   in
-  Bonsai.map2 stateful text_area_section ~f:(fun ((interactive, checkbox), (dropdown, field)) text_area ->
+  let stateful = pair stateful switch_section in
+  Bonsai.map2
+    stateful
+    text_area_section
+    ~f:(fun (((interactive, checkbox), (dropdown, field)), switch) text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; dropdown; interactive ])
+          (specs
+           @ [ field; text_area; checkbox; switch; dropdown; interactive ])
       ])
 ;;
 

@@ -124,7 +124,7 @@ label's colour instead of imposing a palette one). Deferred with reasons: the lo
 `disabledMessage` tooltip, `InputGroup`, the async `changeAction`, `FormLayout`'s
 default-optionality context, and horizontal-labels mode.
 
-## M12 — the rest of the basic controls (TextArea, phase 1) (in progress)
+## M12 — the rest of the basic controls (TextArea, then the rest) (done)
 
 The input family shares one contract, and the first thing this milestone did was make the port
 share it too. Upstream keeps those types in `Field/types.ts` under the `Input*` names — one status
@@ -171,12 +171,33 @@ to be *canceled*, not ignored — React restores a controlled input after every 
 not, so the read-only example visibly flipped while the application still said unchecked. The
 real-browser gate caught that one, and only it could have: jsdom never clicks.
 
-Still open here: `Switch` (the last of the two components that exercise Field's detached
-placement, and the reason that case exists at all) — and, deferred with reasons, upstream TextArea's
-loading spinner, clear button and auto-focus; FieldLabel's `labelTooltip` and its clickable
-description; `FormLayout`'s `defaultOptionality`, which decides whether a marker shows at all; and
-Indicator's theme-override seam, its children slot for a custom mark, and the focus-ring /
-press-feedback hooks that belong to whichever control composes it.
+`Switch` closes the pair. It looks like a checkbox with different paint and is not one: the control is
+a native checkbox carrying `role="switch"`, which is the pattern that makes a screen reader announce
+"switch, on" rather than "checkbox, checked", and the track is `aria-hidden` paint over it with a
+thumb that grows when it is on. It has no third value — everything a third state would say is said
+better by a checkbox — and, like the checkbox, deliberately no `aria-checked`, asserted as an absence
+in both gates. Upstream gives a switch no read-only prop at all, so neither does the port. One thing
+it does *not* yet need is the canceled click the checkbox needed: a disabled switch is natively
+disabled, so the browser refuses the click and there is nothing to undo. When the focusable-disabled
+path arrives (the `disabledMessage` tooltip, which keeps a disabled control reachable so its reason
+can be read), that same cancel will be required here — the seam is commented where it goes.
+
+**M12 is done.** The basic form controls are ported: a text field and a textarea, a checkbox with its
+three-valued box, and a switch — on top of `Field`, `FieldLabel`, `FieldStatus`, `Input_types` and
+`Indicator`, which is the layer they are all built from. What remains from upstream's forms work is
+not another control but its surroundings, and each piece is listed where it belongs rather than left
+to be discovered: `FormLayout`'s `defaultOptionality` (which decides whether a marker shows at all),
+TextArea's loading spinner, clear button and auto-focus, the busy state and `disabledMessage` tooltip
+for the two controls that have them upstream, and Indicator's theme-override seam.
+
+What M12 leaves undone is not another control but its surroundings: `FormLayout` (upstream's 603-line
+layout component, which owns `defaultOptionality` and horizontal labels), plus, deferred with reasons,
+TextArea's loading spinner, clear button and auto-focus; FieldLabel's `labelTooltip` and its clickable
+description; Indicator's theme-override seam, its children slot for a custom mark, and the focus-ring /
+press-feedback hooks that belong to whichever control composes it; and the `isBusy` spinner and
+`disabledMessage` tooltip for `CheckboxInput` and `Switch`.
+
+Next: the next slice of the 72 unported components, chosen against `docs/PORT-STATUS.md`.
 
 ## M9 — FieldStatus and entry animations (done)
 

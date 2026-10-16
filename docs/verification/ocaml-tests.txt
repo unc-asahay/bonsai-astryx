@@ -318,5 +318,23 @@ CheckboxInput
   ok   the indicator draws a bar for the mixed state, not a tick
   ok   and a tick for the checked one
 
-300 checks, 0 failure(s)
+Switch
+  ok   the control is a native checkbox with role=switch
+  ok   an on switch has the checked property
+  ok   an off switch does not
+  ok   the checked property is not the checked attribute
+  ok   and there is no aria-checked, deliberately
+  ok   the label is a real <label for> the input
+  ok   the track is paint, not control
+  ok   the track's state matches the value
+  ok   and the thumb is the on/off one to match
+  ok   the root reports the state for the gates
+  ok   the size is on the element
+  ok   a disabled switch is disabled
+  ok   a description is linked, not nested
+  ok   an error status is linked and the input is invalid
+  ok   a hidden label is clipped rather than removed
+  ok   required is said once
+
+316 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

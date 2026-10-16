@@ -1057,3 +1057,62 @@ let () =
   in
   mount "checkbox-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Switch (M12) *)
+
+let switch_static_component (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let sw ?is_disabled ?is_label_hidden ?is_optional ?is_required ?description ?description_id
+        ?status ?size ~label ~id value
+    =
+    Switch.view
+      ?is_disabled
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?description
+      ?description_id
+      ?status
+      ?size
+      ~label
+      ~id
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let switches =
+    [ sw ~label:"On" ~id:"rt-sw-on" true
+    ; sw ~label:"Off" ~id:"rt-sw-off" false
+    ; sw
+        ~label:"With a description"
+        ~id:"rt-sw-described"
+        ~description:"Follows the system setting."
+        ~description_id:"rt-sw-described-desc"
+        false
+    ; sw
+        ~label:"In error"
+        ~id:"rt-sw-error"
+        ~status:{ Input_types.type_ = Input_types.Error; message = Some "Cannot be turned off." }
+        true
+    ; sw ~label:"Disabled" ~id:"rt-sw-disabled" ~is_disabled:true true
+    ; sw ~label:"Hidden label" ~id:"rt-sw-hidden" ~is_label_hidden:true true
+    ; sw ~label:"Required" ~id:"rt-sw-required" ~is_required:true false
+    ; sw ~label:"Small" ~id:"rt-sw-sm" ~size:Indicator.Sm true
+    ]
+  in
+  Bonsai.map (join_all switches) ~f:(fun switches -> Vdom.Node.div switches)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      switch_static_component
+  in
+  mount "switch-static" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -48,6 +48,7 @@ module Input_types = Input_types
 module Indicator = Indicator
 module Checkbox_input = Checkbox_input
 module CheckboxInput = Checkbox_input
+module Switch = Switch
 module Field_label = Field_label
 module Dropdown_menu = Dropdown_menu
 module Field = Field

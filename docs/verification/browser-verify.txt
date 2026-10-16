@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   31 sections
+  ok   32 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   210 examples across the page
+  ok   218 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 Switch:8 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   31 nav links
+  ok   32 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -162,15 +162,27 @@ checkbox (real engine)
   ok   a read-only box refuses the click
   ok   a disabled box is disabled and does not move
 
+switch (real engine)
+  ok   the live switch starts off
+  ok   a real click turns it on
+  ok   and the track and thumb repaint to match
+  ok   and the derived readout agrees
+  ok   clicking again turns it off
+  ok   Space toggles it, because the input is a native checkbox
+  ok   clicking the label toggles it too
+  ok   the control announces itself as a switch
+  ok   with no aria-checked shadowing its own checkedness
+  ok   a disabled switch does not move
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 30 ported / 73 not / 103 total
-  ok   unported list rendered 73 entries
+  ok   coverage stats are 31 ported / 72 not / 103 total
+  ok   unported list rendered 72 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-128/128 checks passed, 0 failure(s)
+138/138 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

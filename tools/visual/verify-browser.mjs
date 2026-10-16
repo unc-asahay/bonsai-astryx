@@ -237,7 +237,7 @@ if (mode === "showcase") {
   ];
 
   console.log("\nshowcase sections");
-  check("31 sections", sections.length === 31, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("32 sections", sections.length === 32, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -253,11 +253,11 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10,
+    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10, Switch: 8,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("210 examples across the page", totalExamples === 210, `got ${totalExamples}`);
+  check("218 examples across the page", totalExamples === 218, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("31 nav links", nav.length === 31, `got ${nav.length}`);
+  check("32 nav links", nav.length === 32, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -982,6 +982,59 @@ if (mode === "showcase") {
       disabled.disabled === true && disabled.checked === true, JSON.stringify(disabled));
   }
 
+  console.log("\nswitch (real engine)");
+  {
+    const isOn = (id) => page.evaluate((id) => document.getElementById(id).checked, id);
+    const trackState = (id) =>
+      page.evaluate((id) => {
+        const root = document.getElementById(id).closest(".astryx-switch");
+        return {
+          on: !!root.querySelector(".astryx-switch__track--on"),
+          thumbOn: !!root.querySelector(".astryx-switch__thumb--on"),
+        };
+      }, id);
+
+    check("the live switch starts off", (await isOn("showcase-switch-live")) === false);
+    await page.click("#showcase-switch-live");
+    await page.waitForTimeout(200);
+    const onState = await trackState("showcase-switch-live");
+    check("a real click turns it on", (await isOn("showcase-switch-live")) === true);
+    check("and the track and thumb repaint to match",
+      onState.on === true && onState.thumbOn === true, JSON.stringify(onState));
+    const readout = ((await page.textContent("#showcase-switch-live-state")) || "").trim();
+    check("and the derived readout agrees", readout === "this switch: on", readout);
+    await page.click("#showcase-switch-live");
+    await page.waitForTimeout(200);
+    check("clicking again turns it off", (await isOn("showcase-switch-live")) === false);
+
+    await page.evaluate(() => document.getElementById("showcase-switch-live").focus());
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(200);
+    check("Space toggles it, because the input is a native checkbox",
+      (await isOn("showcase-switch-live")) === true);
+
+    await page.click('label[for="showcase-switch-live"]');
+    await page.waitForTimeout(200);
+    check("clicking the label toggles it too",
+      (await isOn("showcase-switch-live")) === false);
+
+    // role="switch" is exposed, and the second declaration is deliberately absent.
+    const semantics = await page.evaluate(() => {
+      const el = document.getElementById("showcase-switch-on");
+      return {role: el.getAttribute("role"), ariaChecked: el.getAttribute("aria-checked")};
+    });
+    check("the control announces itself as a switch", semantics.role === "switch", JSON.stringify(semantics));
+    check("with no aria-checked shadowing its own checkedness", semantics.ariaChecked === null);
+
+    const frozen = await page.evaluate(() => {
+      const el = document.getElementById("showcase-switch-disabled-off");
+      el.click();
+      return {disabled: el.disabled, checked: el.checked};
+    });
+    check("a disabled switch does not move", frozen.disabled === true && frozen.checked === false,
+      JSON.stringify(frozen));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -994,11 +1047,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 30 ported / 73 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["30", "73", "103"]),
+    "coverage stats are 31 ported / 72 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["31", "72", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 73 entries", cov.unported === 73, `got ${cov.unported}`);
+  check("unported list rendered 72 entries", cov.unported === 72, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

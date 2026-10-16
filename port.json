@@ -319,6 +319,13 @@
       "file": "src/checkbox_input.ml",
       "milestone": "M12",
       "class": "B"
+    },
+    {
+      "component": "Switch",
+      "module": "Astryx.Switch",
+      "file": "src/switch.ml",
+      "milestone": "M12",
+      "class": "B"
     }
   ]
 }

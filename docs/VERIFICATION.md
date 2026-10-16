@@ -735,6 +735,47 @@ renders.
 `changeAction` (a React form action), and the `disabledMessage` tooltip — the one upstream path where
 a disabled control stays focusable so that its reason can be reached.
 
+
+## Gate 18 — Switch (M12, phase 2d)
+
+**What it covers.** `Switch` — the last control in M12, and the one that looks most like a repaint of
+another and is least like one. It composes `FieldLabel` + `FieldStatus` like `CheckboxInput`, but its
+control is a **native checkbox carrying `role="switch"`**: that is the pattern which makes a screen
+reader announce "switch, on" rather than "checkbox, checked", and it is why the keyboard, the
+click-to-toggle and the focus order all come for free rather than being reimplemented. The track is
+`aria-hidden` paint over the input, with a thumb that grows when it is on (14→16px at sm, 16→20px at
+md, on a 32×20 or 40×24 track).
+
+**What it deliberately does not have.** No `aria-checked` — the input's own checkedness is the state,
+and a second declaration can disagree with it, the same judgment that keeps `aria-checked="mixed"` off
+the checkbox. No third value: a switch is on or off, and everything a third state would say is said
+better by a checkbox. No read-only — upstream gives a switch no such prop, so neither does the port,
+rather than inventing one for symmetry.
+
+**One thing it needs that the checkbox needed, and one it does not.** It does *not* need the canceled
+click: a disabled switch is natively disabled, so the browser refuses the click and there is nothing to
+undo — which is exactly why `CheckboxInput` needed it, since a read-only input still fires clicks. It
+*will* need it, and has the seam commented where it goes, when upstream's focusable-disabled path
+(arrived at through the `disabledMessage` tooltip, which keeps a disabled control reachable so its
+reason can be read) is ported.
+
+**What the live examples prove.** A real click turns it on and the track and thumb repaint to match;
+the derived readout agrees; a second click turns it off; Space toggles it (because the input is a
+native checkbox, not because a keydown handler was written); clicking the *label* toggles it; and a
+disabled switch does not move.
+
+**Coverage.** **31 / 72 / 103**, with an appearance page.
+
+**Totals at this gate:** 316 component checks, 138 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440, 28 appearance pages.
+
+**Deferred, deliberately:** `isBusy` and the spinner it puts in the thumb (no `Spinner` yet),
+`changeAction` (a React form action), and the `disabledMessage` tooltip.
+
+**This closes M12.** The basic controls are ported — `TextInput`, `TextArea`, `CheckboxInput`,
+`Switch` — over the layer they share: `Field`, `FieldLabel`, `FieldStatus`, `Input_types` and
+`Indicator`.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -742,7 +783,7 @@ a disabled control stays focusable so that its reason can be reached.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M12.** 30 of 103 components are ported; the other 73 have
+- **Anything below M12.** 31 of 103 components are ported; the other 72 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
   a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;

@@ -1155,6 +1155,53 @@ section("FieldLabel");
     !!box("rt-cb-on").querySelector(".astryx-indicator__check"));
 }
 
+// ---------------------------------------------------------------- Switch (M12)
+{
+  const input = (id) => document.querySelector(`#${id}`);
+  const root = (id) => input(id).closest(".astryx-switch");
+  section("Switch");
+
+  // role="switch" is what makes a screen reader say "switch, on" rather than "checkbox, checked".
+  // It is a native checkbox underneath, which is the pattern that gets the keyboard for free.
+  const on = input("rt-sw-on");
+  const off = input("rt-sw-off");
+  check("the control is a native checkbox with role=switch",
+    on.getAttribute("type") === "checkbox" && on.getAttribute("role") === "switch");
+  check("an on switch has the checked property", on.checked === true);
+  check("an off switch does not", off.checked === false);
+  check("the checked property is not the checked attribute",
+    on.hasAttribute("checked") === false && on.checked === true);
+  // The deliberate omission, same judgment as the checkbox's missing aria-checked="mixed".
+  check("and there is no aria-checked, deliberately", on.getAttribute("aria-checked") === null);
+
+  check("the label is a real <label for> the input",
+    document.querySelector('label[for="rt-sw-on"]') !== null && on.labels.length === 1);
+  check("the track is paint, not control", root("rt-sw-on")
+    .querySelector(".astryx-switch__track").getAttribute("aria-hidden") === "true");
+  check("the track's state matches the value",
+    root("rt-sw-on").querySelector(".astryx-switch__track--on") !== null
+      && root("rt-sw-off").querySelector(".astryx-switch__track--off") !== null);
+  check("and the thumb is the on/off one to match",
+    root("rt-sw-on").querySelector(".astryx-switch__thumb--on") !== null
+      && root("rt-sw-off").querySelector(".astryx-switch__thumb--off") !== null);
+  check("the root reports the state for the gates",
+    root("rt-sw-on").dataset.astryxState === "on" && root("rt-sw-off").dataset.astryxState === "off");
+  check("the size is on the element", root("rt-sw-sm").dataset.astryxSize === "sm");
+  check("a disabled switch is disabled", input("rt-sw-disabled").disabled === true);
+
+  const described = input("rt-sw-described");
+  check("a description is linked, not nested",
+    (described.getAttribute("aria-describedby") || "").includes("rt-sw-described-desc"),
+    described.getAttribute("aria-describedby"));
+  const errored = input("rt-sw-error");
+  check("an error status is linked and the input is invalid",
+    (errored.getAttribute("aria-describedby") || "").includes("rt-sw-error-status")
+      && errored.getAttribute("aria-invalid") === "true");
+  check("a hidden label is clipped rather than removed",
+    document.querySelector('label[for="rt-sw-hidden"]').classList.contains("astryx-visually-hidden"));
+  check("required is said once", /Required/.test(root("rt-sw-required").textContent));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);
