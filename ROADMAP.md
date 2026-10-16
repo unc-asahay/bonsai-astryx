@@ -251,10 +251,19 @@ pillars below.
   `CheckboxInput` and `Switch`. That path is also where `Switch` will need the canceled click
   `CheckboxInput` already has — the seam is commented where it goes.
 
-Next: the overlay pillar (`Layer`, then `Tooltip`, `Dialog`, `Popover`, `BottomSheet`) — class C,
-portal-driven, 2.4k–6.6k lines each, and much more than a way to close this one. It is the largest
-unblock in the registry: `Tooltip` waits on it, so do the field-side deferrals above, and so do
-`Selector`, `DateInput`'s calendar and `Combobox`. Likewise `Table` (5,007, class B),
+Next: the overlay pillar (`Tooltip`, `Dialog`/`AlertDialog`, `Popover`, `BottomSheet`, then the
+`Layer` primitives underneath them) — class C, portal-driven, 2.4k–6.6k lines each, and much more
+than a way to close this one. It is the largest unblock in the registry: the field-side deferrals
+above wait on `Tooltip`, and so do `Selector`, `DateInput`'s calendar and `Combobox`.
+
+The pillar's *first* build is `Tooltip` rather than `Layer`, and the port's own precedent is why:
+`DropdownMenu` already renders its surface as an explicit positioned element rather than in a
+top-layer portal, with the divergence written in its interface ("the top-layer mechanics and the
+press model are phase 2"), and it is the only overlay the port has that works. Follow that, and the
+true portal — stacking contexts, `overflow: hidden` ancestors, a real focus trap, `ResizeObserver`
+repositioning — stays a named open item rather than a hidden difference. `layerViewportInset`,
+`modalOutlet` and the depth context exist upstream precisely because portals solve problems that
+in-place positioning cannot; they belong to the pillar's later phases. Likewise `Table` (5,007, class B),
 `SideNav`/`TopNav` (6,334/5,238, class B) and `Markdown` (7,754, class B): each is self-contained and
 each is a larger single sitting than anything above.
 
