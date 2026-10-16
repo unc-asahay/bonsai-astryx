@@ -1,0 +1,205 @@
+# Browser verification transcripts
+# generated: 2026-10-16T03:25:54Z
+# server: python3 -m http.server 8791 --bind 127.0.0.1 (served from the repo root)
+# chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+
+================================================================
+## jsdom gate — tools/visual/verify-dom.mjs
+================================================================
+[page log] Logging prints action info to the console. It is disabled by default. To start logging, type one of the following:
+startLoggingAll([app_id]) - log all actions
+startLogging(filter_name [, app_id]) - filter actions using a pre-defined named filter [filter_name]
+startLogging(filter_name_blang [, app_id]) - filter actions using a blang of named filters [filter_name_blang]
+startLoggingCustom(filter [, app_id]) - filter actions using a custom function [filter] from a string (the action sexp) to a bool
+To stop logging, type: stopLogging([app_id])
+[page log] Profiling is disabled by default.
+To start profiling, type: startProfiling([app_id])
+To stop profiling, type: stopProfiling([app_id])
+[page log] Debugging prints timing info to the console. It is disabled by default unless otherwise specified by the app.
+To start debugging, type: startDebugging([app_id])
+To stop debugging, type: stopDebugging([app_id])
+
+[app_id] is equal to the id of the element that the incr-dom app is bound to. If the page only has one app or you want to apply the action to all apps, you can pass in [null] (or for single-argument functions, omit it altogether).
+[page log] Available logging filters for "astryx-demo":
+        all
+  none
+mounted: 7372 chars of DOM
+
+structure
+  ok   Stack rendered x12
+  ok   Button rendered x7
+  ok   Heading rendered x6
+  ok   Text rendered x6
+  ok   Badge rendered x5
+  ok   Divider rendered x2
+  ok   Center rendered x2
+  ok   Skeleton rendered x2
+  ok   Card rendered x1
+  ok   StatusDot rendered x1
+  ok   Grid rendered x1
+  ok   Section rendered x1
+  ok   VisuallyHidden rendered x1
+  ok   no unexpected component types
+  ok   47 component instances total
+  ok   one h1
+  ok   five h3 section headings
+  ok   seven buttons
+  ok   five badges
+  ok   one status dot
+  ok   two skeletons
+  ok   two dividers
+  ok   one card
+
+button accessibility contract
+  ok   button "Primary" exists
+  ok   button "Secondary" exists
+  ok   button "Ghost" exists
+  ok   button "Delete" exists
+  ok   button "Save" exists
+  ok   button "Disabled" exists
+  ok   button "Large" exists
+  ok   "Primary" has type=button
+  ok   "Secondary" has type=button
+  ok   "Ghost" has type=button
+  ok   "Delete" has type=button
+  ok   "SaveLoading" has type=button
+  ok   loading button is aria-busy
+  ok   loading button is aria-disabled
+  ok   loading button stays focusable (not native disabled)
+  ok   loading state is announced in the accessible name
+  ok   "Disabled" has type=button
+  ok   disabled button uses native disabled
+  ok   "Large" has type=button
+  ok   spinner rendered for the loading button
+  ok   loading announced to assistive tech
+
+layout primitives (M2)
+  ok   Grid declares its tracks
+  ok   Grid defaults to stretch on both axes
+  ok   Grid uses display:grid
+  ok   Section renders a <section> element
+  ok   Section variant is classed
+  ok   Section dividers are classed on the asked-for sides
+  ok   Center honours the requested axis
+  ok   VisuallyHidden applies the clip block
+  ok   VisuallyHidden keeps its content in the a11y tree
+
+status dot
+  ok   status dot exposes role=img
+  ok   status dot carries its label
+  ok   status dot is variant success
+
+class vocabulary
+  ok   button variants are classed
+  ok   destructive variant is classed
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED
+
+================================================================
+## real browser — demo page (examples/demo/index.html)
+================================================================
+mode:     demo
+chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+url:      http://127.0.0.1:8791/examples/demo/index.html
+
+page
+  ok   HTTP 200 from the local server
+  ok   no failed requests
+  ok   no 4xx/5xx responses
+  ok   no uncaught page errors
+  ok   no console errors
+  ok   the app mounted in Chromium
+  ok   every stylesheet parsed
+
+mount
+  ok   title is the demo's
+  ok   47 component instances
+  ok   Stack x12
+  ok   Button x7
+  ok   Heading x6
+  ok   Text x6
+  ok   Badge x5
+  ok   one h1
+  ok   five h3
+
+stylesheet applied (what jsdom cannot check)
+  ok   button has the primary fill from the token
+  ok   button text is white-on-accent
+  ok   button radius is 8px
+  ok   button type size is 14px (0.875rem)
+  ok   button padding-inline is --spacing-3 (12px)
+  ok   button gap is --spacing-2 (8px)
+  ok   button aligns its content to the centre
+  ok   button display is blockified to flex (it is a flex item)
+  ok   body picks up the body-background token
+
+screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
+
+25/25 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+
+================================================================
+## real browser — showcase site (site/index.html)
+================================================================
+mode:     showcase
+chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+url:      http://127.0.0.1:8791/site/index.html
+
+page
+  ok   HTTP 200 from the local server
+  ok   no failed requests
+  ok   no 4xx/5xx responses
+  ok   no uncaught page errors
+  ok   no console errors
+  ok   the app mounted in Chromium
+  ok   every stylesheet parsed
+
+showcase sections
+  ok   14 sections
+  ok   every expected component has a section
+  ok   no empty section
+  ok   every section rendered its own component
+  ok   111 examples across the page
+  ok   every section's example count is the expected one
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 Interactive:1
+
+navigation
+  ok   14 nav links
+  ok   no dangling nav link
+  ok   no section missing from the nav
+
+variant coverage
+  ok   Button variant primary present
+  ok   Button variant secondary present
+  ok   Button variant ghost present
+  ok   Button variant destructive present
+  ok   all 14 Badge variants present
+  ok   Grid emitted repeat(n, 1fr) tracks
+  ok   Grid emitted an auto-fill track
+  ok   Grid emitted an auto-fit track
+  ok   Heading rendered all six levels as real elements
+
+interaction (a real click — impossible in jsdom here)
+  ok   the counter button is present
+  ok   counter starts at 0 (read "count: 0")
+  ok   counter incremented on click (now "count: 1")
+  ok   counter incremented again (now "count: 2")
+
+accessibility (read from the live tree)
+  ok   StatusDot exposes role=img
+  ok   StatusDot carries its label
+  ok   loading Button sets aria-busy
+  ok   loading Button does NOT use native disabled
+  ok   icon-only Button has an aria-label
+
+coverage panel (fetched from coverage.json at runtime)
+  ok   coverage stats are 13 ported / 90 not / 103 total
+  ok   unported list rendered 90 entries
+  ok   upstream commit shown
+  ok   coverage.json reported no inconsistency
+
+screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
+
+38/38 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED

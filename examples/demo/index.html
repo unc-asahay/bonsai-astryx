@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bonsai-astryx demo</title>
+    <!-- An inline empty favicon: without it the browser requests /favicon.ico, the
+         static server answers 404, and the browser logs a console error that the
+         verification gates (rightly) treat as a failure. -->
+    <link rel="icon" href="data:," />
     <!-- tokens.css is generated from the upstream token source; components.css
          is this port's stylesheet. Order matters: tokens first. -->
     <link rel="stylesheet" href="../../assets/tokens.css" />

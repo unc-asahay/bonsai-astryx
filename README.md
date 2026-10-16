@@ -30,6 +30,7 @@ So this project does the other thing: **understand each component, rewrite it by
 3. **A mockup pipeline** (`tools/mockup/`) — a screen recipe renders three ways: static HTML using measured tokens, a text-to-image prompt, or an OCaml skeleton. Recipes are validated against the registry, so a mockup cannot name a component or prop that does not exist.
 4. **A DOM verification harness** (`tools/visual/verify-dom.mjs`) — compiles the library to `js_of_ocaml`, mounts the real bundle in a real DOM (jsdom), and asserts structure, class vocabulary and ARIA behaviour. `test/` is reserved for dune-level parity once the visual capture layer runs.
 5. **An agent-facing tool layer** (`tools/mcp/astryx-mcp.mjs`) — an MCP server (stdio) and CLI that answer `list / search / get / snippet / tokens / status` from the files above, so an agent can *ask* rather than guess. It returns a compile-verified call for ported components and explicitly refuses to invent one for the rest. See [docs/MCP.md](docs/MCP.md).
+6. **A showcase site** (`site/`) — every ported component in every variant and state, rendered by the compiled OCaml bundle, with a coverage panel that reports what is *not* ported yet. It is also the subject of the real-browser gate, so the page people look at is the page that is tested.
 
 ## Status
 
@@ -45,6 +46,9 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Component library (`src/`) | 🚧 13 of 103 ported (M1 + M2) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
+| **Real-browser gate** (Chromium over HTTP, incl. a real click into Bonsai state) | ✅ 38 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
+| Showcase site (`site/`, all 13 ported components, 111 examples) | ✅ live | serve the repo root, open `/site/index.html` |
+| Coverage panel (ported vs not, from `port.json`) | ✅ 13 / 90 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
 | Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 13 pages | `node tools/gen-visual-contract.mjs` |
 | Upstream screenshot capture (`tools/visual/capture.mjs`) | ⏳ needs the upstream Storybook build | `node tools/visual/capture.mjs` |
@@ -75,7 +79,15 @@ node tools/gen-visual-contract.mjs
 
 # ask the library what it contains (same tools an agent gets over MCP)
 node tools/mcp/astryx-mcp.mjs --cli search "loading button"
+
+# look at the showcase, and test it in a real browser
+node tools/site/gen-coverage.mjs
+python3 -m http.server 8791 --bind 127.0.0.1     # from the repo root, leave running
+#   then open http://127.0.0.1:8791/site/index.html
+node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html
 ```
+
+Port 8791 because 8788 may already be in use on a machine running the Hermes gateway.
 
 ## Repository layout
 
@@ -85,6 +97,8 @@ assets/
   tokens.css         generated: upstream token values as CSS custom properties
   components.css     the port's stylesheet (variant -> token mappings)
 examples/demo/  js_of_ocaml app that renders the ported components
+examples/showcase/  the showcase bundle: every ported component, every variant
+site/           the showcase site (shell + stylesheet + generated coverage.json)
 test/           dune-level parity tests (reserved; see the DOM harness below)
 docs/
   INDEX.md      generated component index (start here)
@@ -102,6 +116,9 @@ tools/
   visual/capture.mjs          screenshot + measure every component
   gen-visual-references.py    captures -> docs/visual/*.md
   visual/verify-dom.mjs       mount the compiled app in jsdom, assert the DOM/ARIA
+  visual/verify-browser.mjs   the same, in real Chromium over HTTP, with clicks
+  visual/mount.mjs            the canonical jsdom mount (Temporal/TZ traps live here)
+  site/gen-coverage.mjs       port.json + registry.json -> site/coverage.json
   mockup/render.mjs           recipe -> HTML | image prompt | OCaml
   mcp/astryx-mcp.mjs          MCP server + CLI: list/search/get/snippet/tokens/status
 registry.json   extracted upstream contract (source of truth for generators)
@@ -110,12 +127,15 @@ snippets.json   compile-verified OCaml calls, served to agents by the MCP server
 tokens.ocaml.json  token values in a machine-readable form
 ```
 
-## The four gates every ported component passes
+## The five gates every ported component passes
 
 1. **Compile** — `.mli` written first as the contract, implementation second. `dune build` must be exit 0. This is the gate OCaml gives you for free and the reason a port is slower but safer than a transpile: a wrong prop type is a compile error, not a runtime surprise.
-2. **DOM + ARIA** — the compiled app is mounted in jsdom and asserted (`tools/visual/verify-dom.mjs`): element structure, class vocabulary, roles, labels, and state attributes such as `aria-busy`/`aria-disabled`. Pixel parity against the upstream React build is the next step and needs the Storybook capture layer.
-3. **Accessibility** — the upstream contract's WCAG criteria and required states become assertions, not advice (`aria-busy` during loading, focus never dropped, `aria-disabled` instead of native `disabled` where the upstream keeps a control focusable).
-4. **Reference** — the component's `docs/components/<Name>.md` is regenerated from the code and the upstream contract (`tools/gen-port-status.py`), so the page an AI reads cannot disagree with the code that exists.
+2. **DOM + ARIA** — the compiled app is mounted in jsdom and asserted (`tools/visual/verify-dom.mjs`): element structure, class vocabulary, roles, labels, and state attributes such as `aria-busy`/`aria-disabled`.
+3. **A real browser** — `tools/visual/verify-browser.mjs` loads the page from a local HTTP server in Chromium, which jsdom cannot substitute for: real CSS cascade (so a computed colour can be asserted), real layout, and real events. This is the gate that clicks the ported Button and asserts Bonsai state advanced 0→1→2.
+4. **Accessibility** — the upstream contract's WCAG criteria and required states become assertions, not advice (`aria-busy` during loading, focus never dropped, `aria-disabled` instead of native `disabled` where the upstream keeps a control focusable).
+5. **Reference** — the component's `docs/components/<Name>.md` is regenerated from the code and the upstream contract (`tools/gen-port-status.py`), so the page an AI reads cannot disagree with the code that exists.
+
+Pixel parity against the upstream React build is the remaining gate; it needs the Storybook capture layer, which is not available here yet. See [docs/VERIFICATION.md](docs/VERIFICATION.md) for what is verified and what is explicitly not.
 
 ## Roadmap
 

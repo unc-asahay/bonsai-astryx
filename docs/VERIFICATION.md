@@ -130,6 +130,47 @@ Two details that make the output usable rather than merely present:
 This is an appearance contract for *the port*. It is not a screenshot diff against
 the React original — that is the next gate and it is still unrun.
 
+## Gate 6 — the showcase site, in a real browser over HTTP
+
+```
+$ python3 -m http.server 8791 --bind 127.0.0.1     # repo root, so _build/ is reachable
+$ node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html
+38/38 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+$ node tools/visual/verify-browser.mjs http://127.0.0.1:8791/examples/demo/index.html
+25/25 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+```
+
+Chromium (from the playwright cache) loads the page the way a person would: the
+CSS and the 44 MB `js_of_ocaml` bundle are fetched over HTTP, parsed and executed
+for real. This is the only gate that can check the things jsdom cannot:
+
+- **the CSS cascade actually resolves** — `rgb(0, 100, 224)`, `8px` radius,
+  `14px` type are read from `getComputedStyle`, not from what the stylesheet says;
+- **a real click reaches the component** — the showcase's counter is a ported
+  `Button` whose `on_click` increments `Bonsai.state`; the gate clicks it and reads
+  the rendered text back, asserting `count: 0` → `count: 1` → `count: 2`;
+- **4xx responses are caught** — this found a real bug: neither page declared a
+  favicon, so the browser requested `/favicon.ico`, the static server answered 404,
+  and the console logged an error. Fixed with an inline `data:` icon on both pages.
+
+Three failures had to be *fixed as wrong assertions* rather than wrong code, and
+they are worth recording because they are the kind of thing that makes a gate look
+like it works:
+
+- **`display: inline-flex` is never reported for a flex item.** `.astryx-button`
+  declares `inline-flex`; the computed value is `flex`, because CSS *blockifies* an
+  inline-level display when the element becomes a flex item. The port was right, the
+  assertion was wrong.
+- **12px, not 8px.** `--spacing-3` is `0.75rem`; 8px (`--spacing-2`) is the button's
+  `gap`. The assertion had been written from a guess about which token was used.
+- **A word-boundary regex cannot read concatenated `textContent`.** The coverage
+  panel rendered "13ported90not yet103…"; the check now reads the stat elements.
+
+Both pages' runs are in [`verification/browser-verify.txt`](verification/browser-verify.txt),
+with screenshots at `verification/localhost-{demo,showcase}.png`.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -139,7 +180,11 @@ the React original — that is the next gate and it is still unrun.
   missing is the upstream side to compare it against.)
 - **Anything below M2.** 13 of 103 components are ported; the other 90 have
   reference text but no implementation.
-- **Interaction testing.** The harness asserts the first render. Click, focus
-  movement and keyboard behaviour are not yet asserted (they need
-  `bonsai_web_test`'s event dispatch or Playwright).
+- **Keyboard and focus behaviour.** One click path is now verified in a real browser
+  (the showcase counter), but `Tab`/`Enter`/`Escape`, focus order, focus trapping and
+  `:focus-visible` are not asserted anywhere yet. The keyboard surface needs
+  `bonsai_web_test`'s event dispatch for the dune-level tests and more Playwright
+  `keydown` cases for the browser gate.
+- **The showcase covers the ported components only.** The 90 unported ones appear as
+  names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

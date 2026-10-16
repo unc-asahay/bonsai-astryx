@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bonsai-astryx — component showcase</title>
+    <!-- An inline empty favicon: without it the browser requests /favicon.ico,
+         the static server answers 404, and the browser logs a console error that
+         the verification gate (rightly) treats as a failure. -->
+    <link rel="icon" href="data:," />
+    <meta
+      name="description"
+      content="Live showcase of Astryx components hand-ported to OCaml/Bonsai."
+    />
+    <!-- tokens.css and components.css are generated/ported stylesheets; site.css
+         styles this page's chrome only. Order matters: tokens first. -->
+    <link rel="stylesheet" href="../assets/tokens.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="./site.css" />
+  </head>
+  <body>
+    <header class="site-head">
+      <div class="site-head-inner">
+        <div>
+          <h1 class="site-title">bonsai-astryx</h1>
+          <p class="site-sub">
+            Astryx components hand-ported to OCaml / Bonsai. Everything on this page is
+            rendered by the compiled OCaml bundle — no React, no JavaScript component code.
+          </p>
+        </div>
+        <div class="site-meta">
+          <div>
+            <span class="site-meta-k">upstream</span>
+            <span class="site-meta-v" id="meta-upstream">…</span>
+          </div>
+          <div>
+            <span class="site-meta-k">ported</span>
+            <span class="site-meta-v" id="meta-ported">…</span>
+          </div>
+          <div>
+            <span class="site-meta-k">gate</span>
+            <span class="site-meta-v"
+              ><a href="../docs/PORT-STATUS.md">PORT-STATUS.md</a> ·
+              <a href="../docs/verification/verify-dom.txt">DOM transcript</a></span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- The OCaml bundle mounts here; it renders the nav and every section. -->
+    <div id="astryx-showcase" class="mount"></div>
+
+    <section class="coverage" aria-labelledby="coverage-title">
+      <h2 id="coverage-title">Coverage</h2>
+      <p class="coverage-note">
+        The showcase above renders every component that has been ported. The list below is
+        what remains — served from <code>site/coverage.json</code>, which is generated from
+        <code>port.json</code> and <code>registry.json</code>, so it cannot drift from the
+        actual state of the port.
+      </p>
+      <div id="coverage-summary" class="coverage-summary">loading…</div>
+      <details class="coverage-details">
+        <summary id="unported-summary">not yet ported</summary>
+        <ul id="unported-list" class="coverage-list"></ul>
+      </details>
+    </section>
+
+    <footer class="site-foot">
+      <p>
+        Port of <a href="https://github.com/facebook/astryx">facebook/astryx</a> (MIT).
+        Not affiliated with or endorsed by Meta. See <code>NOTICE</code> and
+        <code>LICENSE</code>.
+      </p>
+      <p class="site-foot-dim" id="build-line">…</p>
+    </footer>
+
+    <script>
+      // Fill the coverage panel. Small and dependency-free on purpose: this page
+      // must keep working when opened straight from disk over any static server.
+      (async function () {
+        try {
+          const res = await fetch("./coverage.json", { cache: "no-store" });
+          if (!res.ok) throw new Error(`coverage.json → ${res.status}`);
+          const c = await res.json();
+          const { ported = [], unported = [], counts = {}, upstream = {} } = c;
+
+          document.getElementById("meta-upstream").textContent = upstream.commit
+            ? `${upstream.repo}@${upstream.commit.slice(0, 10)}`
+            : upstream.repo || "unknown";
+          document.getElementById("meta-ported").textContent =
+            `${counts.ported} / ${counts.total}`;
+
+          const mods = ported
+            .map((p) => `<li><code>Astryx.${p.module}</code> <span class="dim">${p.name}</span></li>`)
+            .join("");
+          document.getElementById("coverage-summary").innerHTML =
+            `<div class="cov-stat"><b>${counts.ported}</b><span>ported</span></div>` +
+            `<div class="cov-stat"><b>${counts.unported}</b><span>not yet</span></div>` +
+            `<div class="cov-stat"><b>${counts.total}</b><span>upstream components</span></div>` +
+            `<ul class="coverage-list coverage-mods">${mods}</ul>`;
+
+          document.getElementById("unported-summary").textContent =
+            `not yet ported (${unported.length})`;
+          document.getElementById("unported-list").innerHTML = unported
+            .map((n) => `<li>${n}</li>`)
+            .join("");
+
+          if (c.inconsistency && c.inconsistency.length) {
+            document.getElementById("build-line").textContent =
+              `WARNING: port.json names components absent from registry.json: ${c.inconsistency.join(", ")}`;
+          } else {
+            document.getElementById("build-line").textContent =
+              `coverage.json generated by ${c.generated_by}`;
+          }
+        } catch (e) {
+          document.getElementById("coverage-summary").textContent =
+            `could not load coverage.json — ${e.message}`;
+        }
+      })();
+    </script>
+
+    <!-- dune owns _build/, so this path reaches the compiled bundle. Run
+         `dune build` first, then serve the repo root and open /site/index.html. -->
+    <script src="../_build/default/examples/showcase/showcase.bc.js"></script>
+  </body>
+</html>
