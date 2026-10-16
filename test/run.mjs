@@ -1520,6 +1520,43 @@ section("FieldLabel");
     !!withClose && withClose.classList.contains("astryx-dialog-header--divider"));
 }
 
+// ---------------------------------------------------------------------------- Kbd (M15)
+{
+  const live = document.getElementById("kbd-live");
+  check("the wrapper is an image with a spoken name, not a pile of glyphs",
+    live?.getAttribute("role") === "img", live?.getAttribute("role") ?? "none");
+  // The runner is Linux, so `mod` is Ctrl here. The Mac answer is asserted through the rules below.
+  check("and that name is words: 'Control + K'",
+    live?.getAttribute("aria-label") === "Control + K", live?.getAttribute("aria-label") ?? "none");
+  check("every key gets its own cap",
+    live?.querySelectorAll("kbd").length === 2, `${live?.querySelectorAll("kbd").length} cap(s)`);
+  const caps = [...(live?.querySelectorAll("kbd") ?? [])];
+  check("the caps themselves are hidden from assistive technology",
+    caps.length === 2 && caps.every(c => c.getAttribute("aria-hidden") === "true"));
+  check("and they render the keys as text",
+    caps.map(c => c.textContent).join(",") === "Ctrl,K",
+    caps.map(c => c.textContent).join(","));
+  const multi = document.getElementById("kbd-live-multi");
+  check("a three-key shortcut names all three",
+    multi?.getAttribute("aria-label") === "Control + Shift + P",
+    multi?.getAttribute("aria-label") ?? "none");
+
+  const rule = id => document.getElementById(id)?.textContent ?? null;
+  check("mod is Command on a Mac", rule("kbd-rule-mod-mac-display") === "\u2318", rule("kbd-rule-mod-mac-display") ?? "none");
+  check("and is spoken as Command, not as the glyph", rule("kbd-rule-mod-mac-label") === "Command");
+  check("mod is Ctrl elsewhere", rule("kbd-rule-mod-other-display") === "Ctrl");
+  check("and is spoken as Control", rule("kbd-rule-mod-other-label") === "Control");
+  check("the alias esc displays as Esc, not ESC", rule("kbd-rule-esc-display") === "Esc", rule("kbd-rule-esc-display") ?? "none");
+  check("and is spoken in full", rule("kbd-rule-esc-label") === "Escape");
+  check("the alias return is Enter", rule("kbd-rule-return-display") === "\u21b5", rule("kbd-rule-return-display") ?? "none");
+  check("shift+plus is two keys, not three", rule("kbd-rule-plus-display") === "\u21e7+\u002b", rule("kbd-rule-plus-display") ?? "none");
+  check("a key upstream never heard of renders as itself",
+    rule("kbd-rule-unknown-display") === "PAGEUP", rule("kbd-rule-unknown-display") ?? "none");
+  check("and is spoken as itself", rule("kbd-rule-unknown-label") === "PAGEUP");
+  check("keys are trimmed and lowercased before lookup",
+    rule("kbd-rule-split") === "mod,shift,p", rule("kbd-rule-split") ?? "none");
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

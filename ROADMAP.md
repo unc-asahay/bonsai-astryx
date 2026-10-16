@@ -357,8 +357,30 @@ extracted components, so porting it does not move the coverage number. The gener
 `port.json.infrastructure` with a reason — the same treatment `FieldLabel` gets. Coverage stayed honest at
 36 of 103 through a milestone that added three components.
 
+## M15 — the two halves of a shortcut (Kbd) (done)
+
+`Kbd` is small and entirely static, which is why it was worth doing while the overlay pillar is still
+open: it needed nothing from `Layer`, and it is the first component since M1 whose interesting part is
+not visual at all.
+
+Rendering a shortcut is a `role="img"` wrapper with an `aria-label` built from *spoken* words and a set of
+`aria-hidden` caps inside it. Glyphs are announced meaninglessly, so a shortcut can look perfect and be
+unusable, and the port keeps the two halves as separate functions — `key_display` and `key_label` — which
+is also what makes the Mac branch testable from a Linux runner. `mod` is the one platform-dependent key,
+and this port answers that question directly instead of deferring it through `useSyncExternalStore` (a
+workaround for a hydration mismatch it cannot have); the detection rules themselves are upstream's
+verbatim, including the detail that an empty or `Unknown` client-hints platform is *no answer* rather
+than a negative one.
+
+A CSS block is only provable in a browser, so the gate measures the cap's height against the very token
+the stylesheet names — a block naming a token that does not exist would render a plain glyph and pass
+every DOM assertion.
+
 Next in the pillar: `Popover` and `BottomSheet`, then the `Layer` primitives underneath them — which is
-what `Selector`, `DateInput`'s calendar and `Combobox` wait on.
+what `Selector`, `DateInput`'s calendar and `Combobox` wait on. `Popover`'s recon is done and its cost is
+recorded in the porting skill: upstream applies the trigger's ARIA by querying its children for a
+`button, [role="button"]`, and positions with CSS anchor positioning through `useLayer`, so a faithful
+port needs imperative DOM work at mount and on state change rather than a new trigger API.
 
 ## M6 — second upstream: shadcn
 

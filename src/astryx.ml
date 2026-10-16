@@ -55,6 +55,7 @@ module FormLayout = Form_layout
 module Tooltip = Tooltip
 module Dialog = Dialog
 module Alert_dialog = Alert_dialog
+module Kbd = Kbd
 module Dialog_header = Dialog_header
 module AlertDialog = Alert_dialog
 module RadioList = Radio_list

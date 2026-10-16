@@ -2454,15 +2454,71 @@ let dialog_header_demo (graph : Bonsai.graph) =
          ~on_open_change to report to, which is upstream's rule: a control that cannot tell anyone it \
          was pressed is a control that does nothing, so the first example renders no button and the \
          gate asserts that absence as carefully as it asserts the button in the second. The heading is \
-         a real h2 with tabindex=-1: focusable programmatically without joining the tab order. One \
-         accessibility behaviour is NOT ported, and it is named rather than approximated: upstream \
-         focuses the title when a modal dialog opens, which matters because the platform's own focus \
-         delegate skips a tabindex=-1 element and would land on the close button — a screen reader \
-         would announce Close rather than the dialog's name. The mechanism exists here \
-         (Menu_focus.focus_on_next_frame, plus the hook shape Delay_hook established); what is missing \
-         is the moment, since the header cannot know the dialog opened and upstream learns that from \
-         context. Dialog knows — its hook already runs on open — so that is where it belongs."
+         a real h2 with tabindex=-1: focusable programmatically without joining the tab order. It also \
+         marks itself as what the dialog should focus on open, and Dialog's hook does the focusing — \
+         because the platform's own focus delegate skips a tabindex=-1 element and would land on the \
+         close button, where a screen reader would announce Close rather than the dialog's name. The \
+         hook is the right owner for the same reason the id is an argument: the header cannot know the \
+         dialog opened, since upstream learns that from context, and Dialog is the only thing that \
+         does."
       examples)
+;;
+
+(* ---------------------------------------------------------------- Kbd *)
+
+let s_kbd () =
+  let kbd keys = Astryx.Kbd.view ~keys () in
+  let row name keys =
+    Astryx.Stack.view
+      ~direction:Astryx.Stack.Horizontal
+      ~gap:S.S3
+      ~align:A.Center
+      [ label name; kbd keys ]
+  in
+  section
+    ~id:"kbd"
+    ~title:"Kbd"
+    ~note:
+      "A shortcut, drawn as keycaps. The part worth noticing is not the glyphs but the split between \
+       them: the wrapper is role=img with an aria-label built from spoken words — Control + K, Command \
+       + Shift + P — and every cap inside is aria-hidden. Glyphs are announced meaninglessly, so a \
+       shortcut can look perfect and still be unusable, and this component takes that seriously. mod is \
+       the one key whose name depends on the platform: a command symbol on an Apple platform, Ctrl \
+       elsewhere — so this page renders whatever the machine reading it actually uses. Upstream defers \
+       that answer through useSyncExternalStore so a server render and the first client render cannot \
+       disagree; this port has no server render, so it asks directly, a divergence recorded rather than \
+       a workaround copied. The detection is upstream's, including the detail that an empty or Unknown \
+       client-hints platform is no answer rather than a negative one, so it falls through to \
+       navigator.platform instead of concluding not-Apple. Keys split on +, are trimmed, lowercased, \
+       and resolved through the aliases esc and return; a key it has never heard of falls back to its \
+       own uppercase self rather than vanishing."
+    [ ex
+        "in the middle of a sentence, where a shortcut usually lives"
+        (Vdom.Node.p
+           [ Vdom.Node.text "Press "
+           ; kbd "mod+k"
+           ; Vdom.Node.text " to open the palette, or "
+           ; kbd "mod+shift+p"
+           ; Vdom.Node.text " to run a command by name."
+           ])
+    ; ex
+        "every key it knows a glyph for"
+        (Vdom.Node.div
+           [ row "mod" "mod"
+           ; row "ctrl" "ctrl"
+           ; row "alt" "alt"
+           ; row "shift" "shift"
+           ; row "enter" "enter"
+           ; row "backspace" "backspace"
+           ; row "escape" "escape"
+           ; row "tab" "tab"
+           ; row "arrows" "up+down+left+right"
+           ; row "a literal plus key" "shift+plus"
+           ])
+    ; ex
+        "a key nobody taught it about renders as itself"
+        (Vdom.Node.div [ row "unknown" "pageup"; row "in a combination" "mod+shift+f5"; row "aliases resolve" "esc+return" ])
+    ]
 ;;
 
 let specs =
@@ -2472,6 +2528,7 @@ let specs =
   ; s_icon_button (); s_code (); s_blockquote ()
   ; s_nav_icon (); s_empty_state (); s_citation ()
   ; s_icon (); s_field_status (); s_field_label (); s_indicator ()
+  ; s_kbd ()
   ]
 ;;
 
@@ -2514,6 +2571,7 @@ let nav_items =
   ; "dialog", "Dialog"
   ; "alert-dialog", "AlertDialog"
   ; "dialog-header", "DialogHeader"
+  ; "kbd", "Kbd"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"

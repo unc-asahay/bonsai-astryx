@@ -113,32 +113,24 @@
     },
     {
       "id": "M14",
-      "name": "the overlay pillar opens (Dialog)",
+      "name": "the overlay pillar opens (Dialog, AlertDialog, DialogHeader)",
       "note": "Dialog is built on the platform's own <dialog>, opened with showModal(), so the top layer, the inert page behind it, the focus trap and the ::backdrop are the browser's rather than the port's \u2014 the same judgment as porting a native radio group with no keydown handler. The opening is driven by the hook Gate 23 unlocked: is_open is a value and showModal/close have to follow it, and no event fires when a caller changes their own state, so the DOM side cannot live in a handler. The dismissal matrix is what the port owns and what the browser gate presses: info closes on Escape and on a backdrop click, form closes on Escape but not on a backdrop click, and required refuses both and carries role=alertdialog. Closing from inside closes through <form method=\"dialog\"> \u2014 the platform's own mechanism \u2014 and the component reports it through on_open_change, which is why the children stay plain nodes. Deferred with reasons: upstream's Layer depth stack, page scroll lock, modal outlet and directional open animation; AlertDialog is ported too, and it is the one that made Dialog's children a tree: it composes Dialog and wires a callback into its own content, which a plain list cannot do. It also overrode the role, which is why Dialog.view takes ~role \u2014 the modal form is an alertdialog and the non-modal inline preview says group, because an alertdialog role would promise an interruption and a focus trap the preview does not have. One divergence of mechanism is recorded: upstream reads the viewport in JavaScript (useMediaQuery, 640px) and swaps the two answers, where the port uses one CSS rule (column-reverse) that does the same with no re-render. useImperativeAlertDialog is not ported and the reason is in alert_dialog.mli: it needs a handle concept \u2014 code that is not a view asking a mounted component a question \u2014 which this port does not have. DialogHeader completes the milestone: the heading carries the id a dialog names itself from (the caller passes the same string to Dialog ~labelled_by, because the caller is the only thing that can see both), and the close button is rendered exactly when there is an ~on_open_change to report to \u2014 upstream's rule, since a control that cannot tell anyone it was pressed does nothing. One accessibility behaviour is NOT ported and is named rather than approximated: upstream focuses the title when a modal dialog opens, which matters because the platform's own focus delegate skips a tabindex=-1 element and lands on the close button, so a screen reader would announce Close rather than the dialog's name. The mechanism exists (Menu_focus.focus_on_next_frame, and the hook shape Delay_hook established) but the header does not know the dialog opened \u2014 upstream learns it from context \u2014 so the fix belongs in Dialog, which does know.",
+      "status": "complete"
+    },
+    {
+      "id": "M15",
+      "name": "the two halves of a shortcut",
+      "note": "Kbd. The interesting part is not the glyphs but the split between them: the wrapper is role=img with an aria-label built from spoken words and every cap inside is aria-hidden, because glyphs are announced meaninglessly and a shortcut can look perfect while being unusable. mod is platform-dependent, which is the one place this port deliberately diverges: upstream defers the answer through useSyncExternalStore to keep a server render and the first client render from disagreeing, and this port has no server render, so it asks directly and records that. The detection rules are upstream's verbatim, including the part that is easy to get wrong: an empty or Unknown client-hints platform is no answer rather than a negative one. The three pure functions are exposed on purpose \u2014 the gate runs on Linux, so the Mac branch has to be pressable without a Mac.",
       "status": "complete"
     }
   ],
   "ported": [
     {
       "class": "A",
-      "component": "Stack",
-      "file": "src/stack.ml",
+      "component": "Badge",
+      "file": "src/badge.ml",
       "milestone": "M1",
-      "module": "Astryx.Stack"
-    },
-    {
-      "class": "A",
-      "component": "Text",
-      "file": "src/text.ml",
-      "milestone": "M1",
-      "module": "Astryx.Text"
-    },
-    {
-      "class": "A",
-      "component": "Heading",
-      "file": "src/heading.ml",
-      "milestone": "M1",
-      "module": "Astryx.Heading"
+      "module": "Astryx.Badge"
     },
     {
       "class": "B",
@@ -156,13 +148,6 @@
     },
     {
       "class": "A",
-      "component": "Badge",
-      "file": "src/badge.ml",
-      "milestone": "M1",
-      "module": "Astryx.Badge"
-    },
-    {
-      "class": "A",
       "component": "Divider",
       "file": "src/divider.ml",
       "milestone": "M1",
@@ -170,10 +155,10 @@
     },
     {
       "class": "A",
-      "component": "StatusDot",
-      "file": "src/status_dot.ml",
+      "component": "Heading",
+      "file": "src/heading.ml",
       "milestone": "M1",
-      "module": "Astryx.StatusDot"
+      "module": "Astryx.Heading"
     },
     {
       "class": "A",
@@ -184,108 +169,24 @@
     },
     {
       "class": "A",
-      "component": "Center",
-      "file": "src/center.ml",
-      "milestone": "M2",
-      "module": "Astryx.Center"
+      "component": "Stack",
+      "file": "src/stack.ml",
+      "milestone": "M1",
+      "module": "Astryx.Stack"
     },
     {
       "class": "A",
-      "component": "Section",
-      "file": "src/section.ml",
-      "milestone": "M2",
-      "module": "Astryx.Section"
+      "component": "StatusDot",
+      "file": "src/status_dot.ml",
+      "milestone": "M1",
+      "module": "Astryx.StatusDot"
     },
     {
       "class": "A",
-      "component": "Grid",
-      "file": "src/grid.ml",
-      "milestone": "M2",
-      "module": "Astryx.Grid"
-    },
-    {
-      "class": "A",
-      "component": "VisuallyHidden",
-      "file": "src/visually_hidden.ml",
-      "milestone": "M2",
-      "module": "Astryx.VisuallyHidden"
-    },
-    {
-      "class": "A",
-      "component": "HStack",
-      "file": "src/hstack.ml",
-      "milestone": "M5",
-      "module": "Astryx.HStack"
-    },
-    {
-      "class": "A",
-      "component": "VStack",
-      "file": "src/vstack.ml",
-      "milestone": "M5",
-      "module": "Astryx.VStack"
-    },
-    {
-      "class": "A",
-      "component": "AspectRatio",
-      "file": "src/aspect_ratio.ml",
-      "milestone": "M5",
-      "module": "Astryx.AspectRatio"
-    },
-    {
-      "class": "A",
-      "component": "IconButton",
-      "file": "src/icon_button.ml",
-      "milestone": "M6",
-      "module": "Astryx.IconButton"
-    },
-    {
-      "class": "A",
-      "component": "Code",
-      "file": "src/code.ml",
-      "milestone": "M6",
-      "module": "Astryx.Code"
-    },
-    {
-      "class": "A",
-      "component": "Blockquote",
-      "file": "src/blockquote.ml",
-      "milestone": "M6",
-      "module": "Astryx.Blockquote"
-    },
-    {
-      "class": "A",
-      "component": "NavIcon",
-      "file": "src/nav_icon.ml",
-      "milestone": "M7",
-      "module": "Astryx.NavIcon"
-    },
-    {
-      "class": "A",
-      "component": "EmptyState",
-      "file": "src/empty_state.ml",
-      "milestone": "M7",
-      "module": "Astryx.EmptyState"
-    },
-    {
-      "class": "A",
-      "component": "Citation",
-      "file": "src/citation.ml",
-      "milestone": "M7",
-      "module": "Astryx.Citation"
-    },
-    {
-      "class": "A",
-      "component": "Icon",
-      "file": "src/icon.ml",
-      "milestone": "M8",
-      "module": "Astryx.Icon"
-    },
-    {
-      "class": "A",
-      "component": "FieldStatus",
-      "file": "src/field_status.ml",
-      "milestone": "M9",
-      "module": "Astryx.Field_status"
+      "component": "Text",
+      "file": "src/text.ml",
+      "milestone": "M1",
+      "module": "Astryx.Text"
     },
     {
       "class": "C",
@@ -310,10 +211,10 @@
     },
     {
       "class": "B",
-      "component": "TextArea",
-      "file": "src/text_area.ml",
+      "component": "CheckboxInput",
+      "file": "src/checkbox_input.ml",
       "milestone": "M12",
-      "module": "Astryx.Text_area"
+      "module": "Astryx.Checkbox_input"
     },
     {
       "class": "A",
@@ -325,13 +226,6 @@
     },
     {
       "class": "B",
-      "component": "CheckboxInput",
-      "file": "src/checkbox_input.ml",
-      "milestone": "M12",
-      "module": "Astryx.Checkbox_input"
-    },
-    {
-      "class": "B",
       "component": "Switch",
       "file": "src/switch.ml",
       "milestone": "M12",
@@ -339,10 +233,10 @@
     },
     {
       "class": "B",
-      "component": "RadioList",
-      "file": "src/radio_list.ml",
-      "milestone": "M13",
-      "module": "Astryx.Radio_list"
+      "component": "TextArea",
+      "file": "src/text_area.ml",
+      "milestone": "M12",
+      "module": "Astryx.Text_area"
     },
     {
       "class": "B",
@@ -353,10 +247,24 @@
     },
     {
       "class": "B",
+      "component": "RadioList",
+      "file": "src/radio_list.ml",
+      "milestone": "M13",
+      "module": "Astryx.Radio_list"
+    },
+    {
+      "class": "B",
       "component": "Tooltip",
       "file": "src/tooltip.ml",
       "milestone": "M13",
       "module": "Astryx.Tooltip"
+    },
+    {
+      "class": "C",
+      "component": "AlertDialog",
+      "file": "src/alert_dialog.ml",
+      "milestone": "M14",
+      "module": "Astryx.Alert_dialog"
     },
     {
       "class": "C",
@@ -366,11 +274,116 @@
       "module": "Astryx.Dialog"
     },
     {
-      "class": "C",
-      "component": "AlertDialog",
-      "file": "src/alert_dialog.ml",
-      "milestone": "M14",
-      "module": "Astryx.Alert_dialog"
+      "class": "A",
+      "component": "Kbd",
+      "file": "src/kbd.ml",
+      "milestone": "M15",
+      "module": "Astryx.Kbd"
+    },
+    {
+      "class": "A",
+      "component": "Center",
+      "file": "src/center.ml",
+      "milestone": "M2",
+      "module": "Astryx.Center"
+    },
+    {
+      "class": "A",
+      "component": "Grid",
+      "file": "src/grid.ml",
+      "milestone": "M2",
+      "module": "Astryx.Grid"
+    },
+    {
+      "class": "A",
+      "component": "Section",
+      "file": "src/section.ml",
+      "milestone": "M2",
+      "module": "Astryx.Section"
+    },
+    {
+      "class": "A",
+      "component": "VisuallyHidden",
+      "file": "src/visually_hidden.ml",
+      "milestone": "M2",
+      "module": "Astryx.VisuallyHidden"
+    },
+    {
+      "class": "A",
+      "component": "AspectRatio",
+      "file": "src/aspect_ratio.ml",
+      "milestone": "M5",
+      "module": "Astryx.AspectRatio"
+    },
+    {
+      "class": "A",
+      "component": "HStack",
+      "file": "src/hstack.ml",
+      "milestone": "M5",
+      "module": "Astryx.HStack"
+    },
+    {
+      "class": "A",
+      "component": "VStack",
+      "file": "src/vstack.ml",
+      "milestone": "M5",
+      "module": "Astryx.VStack"
+    },
+    {
+      "class": "A",
+      "component": "Blockquote",
+      "file": "src/blockquote.ml",
+      "milestone": "M6",
+      "module": "Astryx.Blockquote"
+    },
+    {
+      "class": "A",
+      "component": "Code",
+      "file": "src/code.ml",
+      "milestone": "M6",
+      "module": "Astryx.Code"
+    },
+    {
+      "class": "A",
+      "component": "IconButton",
+      "file": "src/icon_button.ml",
+      "milestone": "M6",
+      "module": "Astryx.IconButton"
+    },
+    {
+      "class": "A",
+      "component": "Citation",
+      "file": "src/citation.ml",
+      "milestone": "M7",
+      "module": "Astryx.Citation"
+    },
+    {
+      "class": "A",
+      "component": "EmptyState",
+      "file": "src/empty_state.ml",
+      "milestone": "M7",
+      "module": "Astryx.EmptyState"
+    },
+    {
+      "class": "A",
+      "component": "NavIcon",
+      "file": "src/nav_icon.ml",
+      "milestone": "M7",
+      "module": "Astryx.NavIcon"
+    },
+    {
+      "class": "A",
+      "component": "Icon",
+      "file": "src/icon.ml",
+      "milestone": "M8",
+      "module": "Astryx.Icon"
+    },
+    {
+      "class": "A",
+      "component": "FieldStatus",
+      "file": "src/field_status.ml",
+      "milestone": "M9",
+      "module": "Astryx.Field_status"
     }
   ],
   "schema": 1,

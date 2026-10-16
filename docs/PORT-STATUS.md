@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **36 of 103** components.
+Ported: **37 of 103** components.
 
 ## Milestones
 
@@ -21,7 +21,8 @@ Ported: **36 of 103** components.
 - **M11 — the form-control core (Field + TextInput, phase 1)**: complete. Field is the wrapper every input renders through — label, description and status — and TextInput is the first control that uses it. The wiring is the work: a real <label for>, one name and never two (no aria-labelledby alongside it), aria-describedby listing only the text that is actually rendered, aria-required that agrees with the visible marker, aria-invalid for an error but not a warning, and three placements for a status message (attached behind the control's bottom edge, detached below the field, and tooltip, which renders no message box and announces the message instead). FieldStatus gained the third placement as a type, Icon gained the inherit colour the label icon needs, and every callback is a value in the graph so a state setter can be passed straight in. Deferred with reasons: the loading spinner, the disabled-message tooltip, InputGroup membership and the async changeAction.
 - **M12 — the rest of the basic controls (TextArea, phase 1)**: complete. The rest of the basic controls, and M13 folded the last two into one milestone: CheckboxInput (a controlled checkbox whose checked and indeterminate states are DOM *properties*, and which cancels a refused click because React restores a controlled input after every event and Vdom does not), Switch (a native checkbox wearing role=switch, with no aria-checked shadowing its own checkedness) and Indicator (one module with three kinds — check, checkbox and radio — the same judgment as HStack/VStack becoming Stack). TextArea opened the milestone by moving the family contract into Input_types; upstream's InputStatus.message being optional was a real gap the move corrected.
 - **M13 — the forms layer's edges**: complete. RadioList (the first real consumer of the group-label path M12 built, and the milestone where to ask what the platform already does paid off: three radios sharing a name are already one tab stop whose arrows move *and* select, so the port writes no keydown handler at all), FormLayout (upstream's defaultOptionality arrives through React context, which has no analogue here because a child is already built before the container is applied — so it becomes ?optionality per field, and the resolved rule is aria-required = !is_optional && (is_required || default = required), with the layout default moving only aria-required and never the native attribute so it cannot switch on browser validation), and Tooltip — which the plan first put here and which turned out to depend on Layer, so it opened the overlay pillar instead and followed DropdownMenu's convention of a positioned element rather than a top-layer portal. Two divergences are named in tooltip.mli: the message is positioned in place, and the 200 ms hover delay is NOT a divergence — it was recorded as one on the false premise that no timer's callback can write back into the graph, and Gate 23 retired that: Vdom.Attr.create_hook plus a unit Effect.t in a hook's input is exactly that mechanism, and the delay is ported and pressed by the browser gate (it must not open straight away, it must open after the pause, and leaving early must cancel). The milestone also retires the disabledMessage deferral, which turned out not to be a Tooltip at all: the reason must be described for as long as the control is disabled rather than only while hovered, so the controls trade the native disabled attribute for aria-disabled plus form="" and the visual half is one CSS rule — which keeps their stateless signatures.
-- **M14 — the overlay pillar opens (Dialog)**: complete. Dialog is built on the platform's own <dialog>, opened with showModal(), so the top layer, the inert page behind it, the focus trap and the ::backdrop are the browser's rather than the port's — the same judgment as porting a native radio group with no keydown handler. The opening is driven by the hook Gate 23 unlocked: is_open is a value and showModal/close have to follow it, and no event fires when a caller changes their own state, so the DOM side cannot live in a handler. The dismissal matrix is what the port owns and what the browser gate presses: info closes on Escape and on a backdrop click, form closes on Escape but not on a backdrop click, and required refuses both and carries role=alertdialog. Closing from inside closes through <form method="dialog"> — the platform's own mechanism — and the component reports it through on_open_change, which is why the children stay plain nodes. Deferred with reasons: upstream's Layer depth stack, page scroll lock, modal outlet and directional open animation; AlertDialog is ported too, and it is the one that made Dialog's children a tree: it composes Dialog and wires a callback into its own content, which a plain list cannot do. It also overrode the role, which is why Dialog.view takes ~role — the modal form is an alertdialog and the non-modal inline preview says group, because an alertdialog role would promise an interruption and a focus trap the preview does not have. One divergence of mechanism is recorded: upstream reads the viewport in JavaScript (useMediaQuery, 640px) and swaps the two answers, where the port uses one CSS rule (column-reverse) that does the same with no re-render. useImperativeAlertDialog is not ported and the reason is in alert_dialog.mli: it needs a handle concept — code that is not a view asking a mounted component a question — which this port does not have. DialogHeader completes the milestone: the heading carries the id a dialog names itself from (the caller passes the same string to Dialog ~labelled_by, because the caller is the only thing that can see both), and the close button is rendered exactly when there is an ~on_open_change to report to — upstream's rule, since a control that cannot tell anyone it was pressed does nothing. One accessibility behaviour is NOT ported and is named rather than approximated: upstream focuses the title when a modal dialog opens, which matters because the platform's own focus delegate skips a tabindex=-1 element and lands on the close button, so a screen reader would announce Close rather than the dialog's name. The mechanism exists (Menu_focus.focus_on_next_frame, and the hook shape Delay_hook established) but the header does not know the dialog opened — upstream learns it from context — so the fix belongs in Dialog, which does know.
+- **M14 — the overlay pillar opens (Dialog, AlertDialog, DialogHeader)**: complete. Dialog is built on the platform's own <dialog>, opened with showModal(), so the top layer, the inert page behind it, the focus trap and the ::backdrop are the browser's rather than the port's — the same judgment as porting a native radio group with no keydown handler. The opening is driven by the hook Gate 23 unlocked: is_open is a value and showModal/close have to follow it, and no event fires when a caller changes their own state, so the DOM side cannot live in a handler. The dismissal matrix is what the port owns and what the browser gate presses: info closes on Escape and on a backdrop click, form closes on Escape but not on a backdrop click, and required refuses both and carries role=alertdialog. Closing from inside closes through <form method="dialog"> — the platform's own mechanism — and the component reports it through on_open_change, which is why the children stay plain nodes. Deferred with reasons: upstream's Layer depth stack, page scroll lock, modal outlet and directional open animation; AlertDialog is ported too, and it is the one that made Dialog's children a tree: it composes Dialog and wires a callback into its own content, which a plain list cannot do. It also overrode the role, which is why Dialog.view takes ~role — the modal form is an alertdialog and the non-modal inline preview says group, because an alertdialog role would promise an interruption and a focus trap the preview does not have. One divergence of mechanism is recorded: upstream reads the viewport in JavaScript (useMediaQuery, 640px) and swaps the two answers, where the port uses one CSS rule (column-reverse) that does the same with no re-render. useImperativeAlertDialog is not ported and the reason is in alert_dialog.mli: it needs a handle concept — code that is not a view asking a mounted component a question — which this port does not have. DialogHeader completes the milestone: the heading carries the id a dialog names itself from (the caller passes the same string to Dialog ~labelled_by, because the caller is the only thing that can see both), and the close button is rendered exactly when there is an ~on_open_change to report to — upstream's rule, since a control that cannot tell anyone it was pressed does nothing. One accessibility behaviour is NOT ported and is named rather than approximated: upstream focuses the title when a modal dialog opens, which matters because the platform's own focus delegate skips a tabindex=-1 element and lands on the close button, so a screen reader would announce Close rather than the dialog's name. The mechanism exists (Menu_focus.focus_on_next_frame, and the hook shape Delay_hook established) but the header does not know the dialog opened — upstream learns it from context — so the fix belongs in Dialog, which does know.
+- **M15 — the two halves of a shortcut**: complete. Kbd. The interesting part is not the glyphs but the split between them: the wrapper is role=img with an aria-label built from spoken words and every cap inside is aria-hidden, because glyphs are announced meaninglessly and a shortcut can look perfect while being unusable. mod is platform-dependent, which is the one place this port deliberately diverges: upstream defers the answer through useSyncExternalStore to keep a server render and the first client render from disagreeing, and this port has no server render, so it asks directly and records that. The detection rules are upstream's verbatim, including the part that is easy to get wrong: an empty or Unknown client-hints platform is no answer rather than a negative one. The three pure functions are exposed on purpose — the gate runs on Linux, so the Mac branch has to be pressable without a Mac.
 
 ## Infrastructure
 
@@ -37,45 +38,46 @@ Ported: **36 of 103** components.
 
 | Component | Module | File | Milestone | Upstream class |
 | --- | --- | --- | --- | --- |
-| `Stack` | `Astryx.Stack` | `src/stack.ml` | M1 | A |
-| `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
-| `Heading` | `Astryx.Heading` | `src/heading.ml` | M1 | A |
+| `Badge` | `Astryx.Badge` | `src/badge.ml` | M1 | A |
 | `Button` | `Astryx.Button` | `src/button.ml` | M1 | B |
 | `Card` | `Astryx.Card` | `src/card.ml` | M1 | A |
-| `Badge` | `Astryx.Badge` | `src/badge.ml` | M1 | A |
 | `Divider` | `Astryx.Divider` | `src/divider.ml` | M1 | A |
-| `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
+| `Heading` | `Astryx.Heading` | `src/heading.ml` | M1 | A |
 | `Skeleton` | `Astryx.Skeleton` | `src/skeleton.ml` | M1 | A |
-| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
-| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
-| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
-| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
-| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
-| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
-| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
-| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
-| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
-| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
-| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
-| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
-| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
-| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
-| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
+| `Stack` | `Astryx.Stack` | `src/stack.ml` | M1 | A |
+| `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
+| `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
 | `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
 | `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
 | `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
-| `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
-| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
 | `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
+| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
 | `Switch` | `Astryx.Switch` | `src/switch.ml` | M12 | B |
-| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
+| `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
 | `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
+| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
 | `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
-| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
 | `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
+| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
+| `Kbd` | `Astryx.Kbd` | `src/kbd.ml` | M15 | A |
+| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
+| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
+| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
+| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
+| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
+| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
+| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
+| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
+| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
+| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
+| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
+| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
+| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
+| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
+| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
 
-## Not ported yet (67)
+## Not ported yet (66)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `InputGroup`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `TopNav`, `TreeList`, `Typeahead`

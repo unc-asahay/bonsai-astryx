@@ -1280,3 +1280,63 @@ suppresses this on previews too, arrived at rather than special-cased.
 | Showcase | 38 sections, 255 examples |
 
 Transcript: `docs/verification/sweep-m14g.txt`.
+
+## Gate 28 — Kbd (M15), and a shortcut's two halves
+
+A small, self-contained component, and the first one ported since M1 that needed nothing from the
+overlay or form work. It is also the first where the interesting part is entirely *not* visual.
+
+**Glyphs are for eyes; assistive technology gets words.** Upstream renders ⌘ ⇧ ↵ ⌫ and then does
+something easy to miss: the wrapper is `role="img"` with an `aria-label` built from spoken labels
+("Command + Shift + P"), and every cap inside is `aria-hidden`. A screen reader announcing "⌘" announces
+nothing. So the port keeps the two halves as separate functions — `key_display` and `key_label` — and the
+browser gate asserts the *shape* of the answer rather than one platform's spelling: the name is words,
+and contains no glyph. A check that hardcoded "Control" would be testing the runner; one that hardcoded
+"Command" would fail on it.
+
+**`mod` is the one key whose name depends on the platform, and this port deliberately answers
+differently.** Upstream defers the answer through `useSyncExternalStore` so that a server render and the
+first client render cannot disagree — a hydration mismatch would flip every shortcut on the page. This
+port has no server render, so it asks directly. That is a divergence, recorded rather than a workaround
+copied for a problem the port does not have.
+
+**The detection rules are upstream's verbatim, including the subtle one.** Client hints when they name a
+platform, `navigator.platform` otherwise — and a client-hints platform of `""` or `"Unknown"` is treated
+as *no answer*, not as a negative one, so it falls through instead of concluding "not Apple" (builds that
+rewrite their client-hints identity ship exactly that). The client-hints branch tests for "mac"
+case-insensitively; the legacy branch tests `Mac`/`iPhone`/`iPad`/`iPod` as written.
+
+**Three pure functions are exposed on purpose.** The gate runs on Linux, so the Mac branch has to be
+pressable without a Mac: the fixture renders `key_display ~is_mac:true "mod"` and the labels directly,
+next to the live component exercising the Linux branch. That verifies the *rules*; the *detection* is
+verified only as far as "this Linux runner is correctly read as not-Apple", which is stated here rather
+than dressed up.
+
+**The stylesheet is only provable in a browser.** jsdom has no cascade, so the cap's height is measured
+in Chromium against the very token the CSS names (`--spacing-5` × the root font size), along with its
+fill, its 2px bottom edge and `user-select: none`. A CSS block that named a token that does not exist
+would render a plain glyph and pass every DOM assertion.
+
+| What | Evidence |
+| --- | --- |
+| The name is spoken words, not glyphs | browser: `aria-label` matches Command/Control and contains no glyph |
+| The caps are hidden but painted | browser + component gate |
+| `mod` resolves both ways | fixture: `⌘`/`Command` for Mac, `Ctrl`/`Control` otherwise |
+| Aliases and fallbacks | component gate: `esc` → Esc/Escape, `shift+plus` → two keys, `pageup` → PAGEUP |
+| Keys are trimmed, lowercased, split on `+` | component gate: `mod+shift+P` → `mod,shift,p` |
+| The cap is sized by the token the CSS names | browser: measured height vs `--spacing-5` |
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **405 / 0** |
+| Real-browser checks (Chromium, live showcase) | **191 / 191** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **37 of 103** ported, 66 not |
+| Showcase | 39 sections, 258 examples |
+| Appearance pages | 36 |
+
+Transcript: `docs/verification/sweep-m15a.txt`.
+

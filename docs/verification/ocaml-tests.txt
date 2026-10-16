@@ -426,6 +426,23 @@ DialogHeader
   ok   a callback means the button exists, and it has an accessible name
   ok   the subtitle sits in its own slot
   ok   has_divider is a class on the header
+  ok   the wrapper is an image with a spoken name, not a pile of glyphs
+  ok   and that name is words: 'Control + K'
+  ok   every key gets its own cap
+  ok   the caps themselves are hidden from assistive technology
+  ok   and they render the keys as text
+  ok   a three-key shortcut names all three
+  ok   mod is Command on a Mac
+  ok   and is spoken as Command, not as the glyph
+  ok   mod is Ctrl elsewhere
+  ok   and is spoken as Control
+  ok   the alias esc displays as Esc, not ESC
+  ok   and is spoken in full
+  ok   the alias return is Enter
+  ok   shift+plus is two keys, not three
+  ok   a key upstream never heard of renders as itself
+  ok   and is spoken as itself
+  ok   keys are trimmed and lowercased before lookup
 
-388 checks, 0 failure(s)
+405 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -1811,3 +1811,30 @@
   flex: 0 0 auto;
 }
 
+/* ------------------------------------------------------------------ Kbd ------------------------------------------------ */
+/* A shortcut's keycaps. Nothing here is platform-specific: `mod` resolves to the right glyph at render
+   time, so the same markup is correct on a Mac and off one. */
+.astryx-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.astryx-kbd__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-5);
+  height: var(--spacing-5);
+  padding-inline: var(--spacing-1);
+  border-radius: var(--radius-inner);
+  background-color: var(--color-neutral);
+  border-bottom: 2px solid var(--color-border-emphasized);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-supporting-leading);
+  user-select: none;
+}

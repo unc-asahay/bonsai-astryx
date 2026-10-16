@@ -232,7 +232,7 @@ if (mode === "showcase") {
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
-    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
+    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "Kbd", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
   ];
@@ -597,7 +597,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("38 sections", sections.length === 38, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("39 sections", sections.length === 39, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -614,11 +614,11 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
-    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
+    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("255 examples across the page", totalExamples === 255, `got ${totalExamples}`);
+  check("258 examples across the page", totalExamples === 258, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -631,7 +631,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("38 nav links", nav.length === 38, `got ${nav.length}`);
+  check("39 nav links", nav.length === 39, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1396,6 +1396,60 @@ if (mode === "showcase") {
       JSON.stringify(frozen));
   }
 
+  // ---------------------------------------------------------------- Kbd (M15)
+  console.log("\nKbd (measured in a real engine)");
+  {
+    // The claim that matters is not the glyph, it is the split: words for assistive technology, glyphs
+    // for eyes. So this asserts the accessible name is *words* rather than comparing it to one
+    // platform's answer — the machine running this gate decides whether that is Command or Control,
+    // and a check that hardcoded either would be testing the runner instead of the component.
+    const kbd = await page.evaluate(() => {
+      const el = document.getElementById("kbd")?.querySelector(".astryx-kbd");
+      if (!el) return null;
+      const cap = el.querySelector(".astryx-kbd__key");
+      const cs = cap ? getComputedStyle(cap) : null;
+      const root = getComputedStyle(document.documentElement);
+      return {
+        role: el.getAttribute("role"),
+        label: el.getAttribute("aria-label"),
+        caps: el.querySelectorAll(".astryx-kbd__key").length,
+        allHidden: [...el.querySelectorAll(".astryx-kbd__key")].every(
+          (c) => c.getAttribute("aria-hidden") === "true",
+        ),
+        capText: cap ? cap.textContent : null,
+        height: cap ? Math.round(cap.getBoundingClientRect().height * 100) / 100 : null,
+        tokenHeight: root.getPropertyValue("--spacing-5").trim(),
+        rootFontSize: root.fontSize,
+        radius: cs ? cs.borderTopLeftRadius : null,
+        borderBottom: cs ? cs.borderBottomWidth : null,
+        background: cs ? cs.backgroundColor : null,
+        userSelect: cs ? cs.userSelect : null,
+      };
+    });
+    check("the wrapper is one image with one name", !!kbd && kbd.role === "img" && !!kbd.label,
+      JSON.stringify(kbd && { role: kbd.role, label: kbd.label }));
+    check("and the name is words, not glyphs to be read out",
+      !!kbd && /(Command|Control)/.test(kbd.label) && !/[\u2318\u2303\u21e7]/.test(kbd.label),
+      String(kbd && kbd.label));
+    check("each cap is hidden from assistive technology but painted for eyes",
+      !!kbd && kbd.caps >= 1 && kbd.allHidden && (kbd.capText || "").length > 0,
+      JSON.stringify(kbd && { caps: kbd.caps, hidden: kbd.allHidden, text: kbd.capText }));
+    // The stylesheet, which jsdom cannot speak to at all: the cap's height has to come from the same
+    // spacing token the CSS names, and the cap has to paint something rather than be a bare glyph.
+    // Everything has to be read inside the page: getComputedStyle does not exist in Node, and a
+    // reference to it here throws before a single check runs.
+    const tokenPx = kbd && kbd.tokenHeight && kbd.rootFontSize
+      ? Math.round(parseFloat(kbd.tokenHeight) * parseFloat(kbd.rootFontSize) * 100) / 100
+      : null;
+    check("the cap is sized by --spacing-5, measured against the token",
+      !!kbd && tokenPx !== null && Math.abs(kbd.height - tokenPx) <= 1,
+      `cap=${kbd?.height} token=${tokenPx} raw=${kbd?.tokenHeight}`);
+    check("and it paints: a background, a bottom edge and a radius",
+      !!kbd && kbd.background !== "rgba(0, 0, 0, 0)" && kbd.borderBottom === "2px" && !!kbd.radius,
+      JSON.stringify(kbd && { bg: kbd.background, border: kbd.borderBottom, radius: kbd.radius }));
+    check("the caps are not selectable text", !!kbd && kbd.userSelect === "none", String(kbd?.userSelect));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -1408,11 +1462,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 36 ported / 67 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["36", "67", "103"]),
+    "coverage stats are 37 ported / 66 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["37", "66", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 67 entries", cov.unported === 67, `got ${cov.unported}`);
+  check("unported list rendered 66 entries", cov.unported === 66, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

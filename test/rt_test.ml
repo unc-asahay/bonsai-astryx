@@ -1488,3 +1488,38 @@ let () =
     dialog_header_static
   |> fun handle -> mount "dialog-header" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------------ Kbd (M15)
+
+   The rules are rendered as text next to the live component on purpose. The runner is Linux, so the
+   live component can only ever exercise the non-Apple branch; rendering the pure functions for both
+   answers is what makes the Mac branch pressable here instead of requiring a Mac to test. *)
+let kbd_static (_ : Bonsai.graph) =
+  let open Astryx in
+  let rule id text = Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text text ] in
+  (* The component's own pipeline, spelled out: split (which resolves aliases), then display or label. *)
+  let renders keys ~is_mac label_of =
+    List.map (Kbd.split_keys keys) ~f:(label_of ~is_mac) |> String.concat ~sep:"+"
+  in
+  Bonsai.return
+    (Vdom.Node.div
+    [ Kbd.view ~keys:"mod+k" ~attrs:[ Vdom.Attr.create "id" "kbd-live" ] ()
+    ; Kbd.view ~keys:"mod+shift+p" ~attrs:[ Vdom.Attr.create "id" "kbd-live-multi" ] ()
+    ; rule "kbd-rule-mod-mac-display" (Kbd.key_display ~is_mac:true "mod")
+    ; rule "kbd-rule-mod-mac-label" (Kbd.key_label ~is_mac:true "mod")
+    ; rule "kbd-rule-mod-other-display" (Kbd.key_display ~is_mac:false "mod")
+    ; rule "kbd-rule-mod-other-label" (Kbd.key_label ~is_mac:false "mod")
+    ; rule "kbd-rule-esc-display" (renders "esc" ~is_mac:false Kbd.key_display)
+    ; rule "kbd-rule-esc-label" (renders "esc" ~is_mac:false Kbd.key_label)
+    ; rule "kbd-rule-return-display" (renders "return" ~is_mac:false Kbd.key_display)
+    ; rule "kbd-rule-plus-display" (renders "shift+plus" ~is_mac:false Kbd.key_display)
+    ; rule "kbd-rule-unknown-display" (renders "pageup" ~is_mac:false Kbd.key_display)
+    ; rule "kbd-rule-unknown-label" (renders "pageup" ~is_mac:false Kbd.key_label)
+    ; rule "kbd-rule-split" (String.concat ~sep:"," (Kbd.split_keys "mod+shift+P"))
+    ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) kbd_static
+  |> fun handle -> mount "kbd" (Bonsai_web_test.Handle.last_result handle)
+;;
