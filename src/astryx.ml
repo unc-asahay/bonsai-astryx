@@ -23,6 +23,9 @@ module Visually_hidden = Visually_hidden
 module Aspect_ratio = Aspect_ratio
 module Hstack = Hstack
 module Vstack = Vstack
+module Icon_button = Icon_button
+module Code = Code
+module Blockquote = Blockquote
 
 (* The file is status_dot.ml (OCaml module names cannot carry the upstream
    capitalisation), but the public name matches upstream: Astryx.StatusDot. *)
@@ -32,4 +35,5 @@ module VisuallyHidden = Visually_hidden
 module AspectRatio = Aspect_ratio
 module HStack = Hstack
 module VStack = Vstack
+module IconButton = Icon_button
 

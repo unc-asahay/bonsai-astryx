@@ -179,6 +179,19 @@ code {
   min-height: 34px;
 }
 
+/* A flex row is not a container that offers a width, and two kinds of ported
+   component need one: a vertical Stack holding percentage-width children (the
+   percentage resolves against the Stack, which has no intrinsic width of its own,
+   so it collapses to 0), and a Grid with auto-fill/auto-fit tracks (its column
+   count is a function of the width it is given). Both are correct as components —
+   in a real page they sit in a block container. So give them the row's width here
+   instead of letting the showcase's own layout lie about how they behave. */
+.ex-render > .astryx-stack[data-astryx-direction="vertical"],
+.ex-render > .astryx-grid {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
 .ex-name {
   margin-top: var(--spacing-2);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

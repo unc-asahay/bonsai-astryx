@@ -1,33 +1,113 @@
-# Browser verification transcripts
-# generated: 2026-10-16T04:13:04Z
-# server: python3 -m http.server 8791 --bind 127.0.0.1 (repo root)
+# Real-browser gate — transcript
+# command: node tools/visual/verify-browser.mjs <url>
+# pages served over HTTP on 127.0.0.1:8791 from the repo root
 
-## jsdom gate (tools/visual/verify-dom.mjs)
-  ok   destructive variant is classed
-  ok   badges carry variant classes
+## showcase (site/index.html)
+mode:     showcase
+chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+url:      http://127.0.0.1:8791/site/index.html
 
-ALL CHECKS PASSED
+page
+  ok   HTTP 200 from the local server
+  ok   no failed requests
+  ok   no 4xx/5xx responses
+  ok   no uncaught page errors
+  ok   no console errors
+  ok   the app mounted in Chromium
+  ok   every stylesheet parsed
 
-## component tests (dune build && node test/run.mjs)
-  ok   a second click moves it to 2
+showcase sections
+  ok   20 sections
+  ok   every expected component has a section
+  ok   no empty section
+  ok   every section rendered its own component
+  ok   137 examples across the page
+  ok   every section's example count is the expected one
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 Interactive:1
 
-81 checks, 0 failure(s)
-COMPONENT CHECKS PASSED
+navigation
+  ok   20 nav links
+  ok   no dangling nav link
+  ok   no section missing from the nav
 
-## real browser — demo page
-  ok   body picks up the body-background token
+variant coverage
+  ok   Button variant primary present
+  ok   Button variant secondary present
+  ok   Button variant ghost present
+  ok   Button variant destructive present
+  ok   all 14 Badge variants present
+  ok   Grid emitted repeat(n, 1fr) tracks
+  ok   Grid emitted an auto-fill track
+  ok   Grid emitted an auto-fit track
+  ok   Heading rendered all six levels as real elements
 
-screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
+interaction (a real click — impossible in jsdom here)
+  ok   the counter button is present
+  ok   counter starts at 0 (read "count: 0")
+  ok   counter incremented on click (now "count: 1")
+  ok   counter incremented again (now "count: 2")
 
-25/25 checks passed, 0 failure(s)
-BROWSER CHECKS PASSED
+keyboard
+  ok   the ported button takes focus programmatically
+  ok   focus lands on the button itself, not a wrapper
+  ok   no negative tabindex (so Tab reaches it)
+  ok   Enter on the focused button activates it (count: 2 -> count: 3)
 
-## real browser — showcase site
-  ok   unported list rendered 87 entries
+accessibility (read from the live tree)
+  ok   StatusDot exposes role=img
+  ok   StatusDot carries its label
+  ok   loading Button sets aria-busy
+  ok   loading Button does NOT use native disabled
+  ok   icon-only Button has an aria-label
+
+coverage panel (fetched from coverage.json at runtime)
+  ok   coverage stats are 19 ported / 84 not / 103 total
+  ok   unported list rendered 84 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-38/38 checks passed, 0 failure(s)
+42/42 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+
+## demo (examples/demo/index.html)
+mode:     demo
+chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
+url:      http://127.0.0.1:8791/examples/demo/index.html
+
+page
+  ok   HTTP 200 from the local server
+  ok   no failed requests
+  ok   no 4xx/5xx responses
+  ok   no uncaught page errors
+  ok   no console errors
+  ok   the app mounted in Chromium
+  ok   every stylesheet parsed
+
+mount
+  ok   title is the demo's
+  ok   47 component instances
+  ok   Stack x12
+  ok   Button x7
+  ok   Heading x6
+  ok   Text x6
+  ok   Badge x5
+  ok   one h1
+  ok   five h3
+
+stylesheet applied (what jsdom cannot check)
+  ok   button has the primary fill from the token
+  ok   button text is white-on-accent
+  ok   button radius is 8px
+  ok   button type size is 14px (0.875rem)
+  ok   button padding-inline is --spacing-3 (12px)
+  ok   button gap is --spacing-2 (8px)
+  ok   button aligns its content to the centre
+  ok   button display is blockified to flex (it is a flex item)
+  ok   body picks up the body-background token
+
+screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
+
+25/25 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED

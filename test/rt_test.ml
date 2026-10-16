@@ -269,6 +269,40 @@ let () =
        ])
 ;;
 
+(* IconButton: a Button preset, so it inherits Button's marker AND its
+   accessible-name contract — the label is now the only thing naming the control. *)
+let () =
+  mount
+    "icon-button-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.IconButton.view ~label:"Add item" ~icon:(icon ()) ()
+       ; Astryx.IconButton.view ~label:"Delete" ~is_disabled:true ~icon:(icon ()) ()
+       ; Astryx.IconButton.view ~label:"Saving" ~is_loading:true ~icon:(icon ()) ()
+       ])
+;;
+
+(* Code and Blockquote: both are the element they claim to be, which is the part
+   worth asserting (a <code> that renders a span is a different contract). *)
+let () =
+  mount
+    "code-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.Code.view [ Vdom.Node.text "primary" ]
+       ; Astryx.Code.view ~color:Astryx.Code.Secondary [ Vdom.Node.text "secondary" ]
+       ; Astryx.Code.view ~color:Astryx.Code.Inherit [ Vdom.Node.text "inherit" ]
+       ; Astryx.Code.view ~size:Astryx.Code.Inherit [ Vdom.Node.text "sized" ]
+       ]);
+  mount
+    "blockquote-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.Blockquote.view [ Vdom.Node.text "plain quote" ]
+       ; Astryx.Blockquote.view ~cite:(Vdom.Node.text "someone") [ Vdom.Node.text "cited" ]
+       ])
+;;
+
 (* -------------------------------------------------------------- interaction *)
 
 (* The part that has to be OCaml: a real event dispatched into the Bonsai graph.

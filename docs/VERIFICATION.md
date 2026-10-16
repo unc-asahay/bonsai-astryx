@@ -135,7 +135,7 @@ the React original — that is the next gate and it is still unrun.
 ```
 $ python3 -m http.server 8791 --bind 127.0.0.1     # repo root, so _build/ is reachable
 $ node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html
-38/38 checks passed, 0 failure(s)
+42/42 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 $ node tools/visual/verify-browser.mjs http://127.0.0.1:8791/examples/demo/index.html
 25/25 checks passed, 0 failure(s)
@@ -208,6 +208,70 @@ would fail here in-process, in milliseconds, with no browser involved.
 
 Transcript: [`verification/ocaml-tests.txt`](verification/ocaml-tests.txt).
 
+## Gate 8 — responsive behaviour, with a visual regression baseline
+
+`node tools/visual/verify-responsive.mjs` · transcript: `docs/verification/responsive.txt` ·
+screenshots: `docs/verification/responsive/`, baselines in `.../baseline/`
+
+Gates 6 and 7 both run at one viewport. This one asks whether the components survive being
+looked at from a phone, a tablet and a desktop, and whether the pixels moved since last time.
+It covers both pages (demo and showcase) at **375x667, 768x1024 and 1440x900** — 50 checks.
+
+Per viewport: the page does not overflow horizontally, no component box escapes the viewport,
+no component has collapsed to zero width or height, the AspectRatio examples keep h/w = 0.5625,
+and — the end-to-end part — the counter button is *hit-tested at its centre* with
+`elementFromPoint` and then clicked with a real `mouse.click`, so a component that is present
+but covered or off-screen fails here instead of passing on a synthetic `.click()`. The showcase
+also checks that the nav does not overflow.
+
+Across viewports: the auto-fill grid must fit more tracks as the viewport widens.
+
+### Result: 50 checks, 0 failures
+
+```
+375x667:  1 track in 293px    768x1024: 3 tracks in 686px    1440x900: 4 tracks in 876px
+```
+
+### Two bugs this gate found, both in the showcase's own CSS
+
+Worth recording, because neither was visible at 1440 and both would have been read as
+"the components are fine" from any other gate:
+
+1. **Percentage-width children collapsed to zero.** The `.ex-render` wrapper is a flex row, and
+   a flex row does not offer its children a width. A vertical Stack containing
+   `width: 60%` skeletons therefore had no intrinsic width to give them, and all three rendered
+   0px wide. The Stack is correct; the showcase simply was not a container that has a width.
+2. **The auto-fill grid could not reflow.** For the same reason, `repeat(auto-fill, minmax(180px, 1fr))`
+   computed to a single 180px track: the grid was being sized by its own minimum track rather than
+   by the box around it. This is why the reflow check exists — a grid that reports "1 column" at
+   every width is the shrink-to-fit failure, not a responsive layout.
+
+Fix (`site/site.css`): children that size from their container — a vertical Stack, a Grid — take
+the full row width inside `.ex-render`.
+
+### The baseline, and proof the diff is not vacuous
+
+Each viewport's screenshot is compared to its baseline with a real pixel diff (pngjs, 24/255
+per-channel tolerance so antialiasing on a text edge is not a regression; a dimension change
+fails outright). Contexts run with `reducedMotion: "reduce"` and screenshots with
+`animations: "disabled"`: the skeleton's fade is an infinite alternate animation, so an
+arbitrary capture would measure the animation phase rather than the layout — and forcing
+reduced motion also exercises the `prefers-reduced-motion` rules in `assets/components.css`.
+
+Steady state is **0.00% differ on all six page/viewport pairs**. A baseline that has never
+rejected anything proves nothing, so the detector was deliberately made to fire:
+
+| perturbation | result |
+| --- | --- |
+| `.showcase` padding `spacing-6` → `spacing-7` (layout shift) | FAIL — dimensions differ: `375x22284` vs `375x22277` |
+| `body` background colour changed (no layout shift) | FAIL — 35.49% differ (2,965,677 / 8,356,500 pixels) |
+| reverted | 0.00% differ, 50/50 checks pass |
+
+A second note on honesty: a baseline written on a run **cannot** detect a regression on that
+same run. The tool says so explicitly ("a baseline created on this run cannot yet detect a
+regression") rather than printing a pass, and the baselines here were created from the fixed
+layout and then re-verified on a second, independent run.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -215,14 +279,18 @@ Transcript: [`verification/ocaml-tests.txt`](verification/ocaml-tests.txt).
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M2.** 16 of 103 components are ported; the other 87 have
+- **Anything below M6.** 19 of 103 components are ported; the other 84 have
   reference text but no implementation.
-- **Keyboard and focus behaviour.** One click path is verified in a real browser (the
-  showcase counter) and one in-process (Gate 7), but `Tab`/`Enter`/`Escape`, focus
-  order, focus trapping and `:focus-visible` are not asserted anywhere. The harness
-  needed for it now exists — `test/rt_test.ml` dispatches events through
-  `Bonsai_web_test.Handle`, which also has `keydown`, `focus` and `blur` — so this is
-  a matter of writing the assertions, not building infrastructure.
+- **Keyboard and focus behaviour — partially verified.** What is now asserted: `Enter` on a
+  focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
+  Gate 6 runs it at desktop), and every interactive port is a native `<button>` element with no
+  `tabindex="-1"`, so Tab reaches it. What is still **not** asserted: Tab-*order* traversal,
+  `Escape`, `Space`, focus trapping, and `:focus-visible` styling. The harness exists —
+  `test/rt_test.ml` dispatches events through `Bonsai_web_test.Handle`, which also has `keydown`,
+  `focus` and `blur` — but a synthetic key event would prove little for a native button, whose
+  activation is the browser's job; the meaningful keyboard assertions belong in the real-browser
+  gate, and the components with real key semantics (menus, dialogs, comboboxes) are not ported
+  yet.
 - **The showcase covers the ported components only.** The 87 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

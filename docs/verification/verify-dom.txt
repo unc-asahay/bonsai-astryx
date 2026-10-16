@@ -1,9 +1,24 @@
-# DOM verification transcript
+# jsdom gate — transcript
 # command: node tools/visual/verify-dom.mjs
-# generated: 2026-10-15T23:40:07Z
-# dune build: exit 0 (opam switch bonsai-ui, OCaml 5.2.1, dune 3.23.1)
 
-mounted: 7372 chars of DOM
+[page log] Logging prints action info to the console. It is disabled by default. To start logging, type one of the following:
+startLoggingAll([app_id]) - log all actions
+startLogging(filter_name [, app_id]) - filter actions using a pre-defined named filter [filter_name]
+startLogging(filter_name_blang [, app_id]) - filter actions using a blang of named filters [filter_name_blang]
+startLoggingCustom(filter [, app_id]) - filter actions using a custom function [filter] from a string (the action sexp) to a bool
+To stop logging, type: stopLogging([app_id])
+[page log] Profiling is disabled by default.
+To start profiling, type: startProfiling([app_id])
+To stop profiling, type: stopProfiling([app_id])
+[page log] Debugging prints timing info to the console. It is disabled by default unless otherwise specified by the app.
+To start debugging, type: startDebugging([app_id])
+To stop debugging, type: stopDebugging([app_id])
+
+[app_id] is equal to the id of the element that the incr-dom app is bound to. If the page only has one app or you want to apply the action to all apps, you can pass in [null] (or for single-argument functions, omit it altogether).
+[page log] Available logging filters for "astryx-demo":
+        all
+  none
+mounted: 8397 chars of DOM
 
 structure
   ok   Stack rendered x12

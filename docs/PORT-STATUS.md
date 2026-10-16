@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **16 of 103** components.
+Ported: **19 of 103** components.
 
 ## Milestones
 
@@ -12,6 +12,7 @@ Ported: **16 of 103** components.
 - **M2 — layout primitives**: complete. Center, Section, Grid and VisuallyHidden — all Class A (no hooks, no measurement).
 - **M3 — appearance contract**: complete. docs/visual/ — every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs).
 - **M4 — showcase site + real-browser gate**: complete. site/ renders every ported component; tools/visual/verify-browser.mjs loads it in Chromium over HTTP and clicks a ported Button into Bonsai state. Cross-checked through opencli.
+- **M6 — inline + quote content**: complete. IconButton (a Button preset, so it keeps Button's marker and its accessible-name contract), Code (a real <code> element) and Blockquote (a bare <cite>, never a <footer>).
 - **M5 — component tests in OCaml**: complete. test/rt_test.ml builds each component in isolation and dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM. Also the milestone for the HStack/VStack/AspectRatio trio.
 
 ## Infrastructure
@@ -41,9 +42,12 @@ Ported: **16 of 103** components.
 | `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
 | `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
 | `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
+| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
+| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
+| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
 
-## Not ported yet (87)
+## Not ported yet (84)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `Blockquote`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `Citation`, `ClickableCard`, `Code`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `EmptyState`, `Field`, `FieldStatus`, `FileInput`, `FormLayout`, `HoverCard`, `Icon`, `IconButton`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NavIcon`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`
+`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `Citation`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `EmptyState`, `Field`, `FieldStatus`, `FileInput`, `FormLayout`, `HoverCard`, `Icon`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NavIcon`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`

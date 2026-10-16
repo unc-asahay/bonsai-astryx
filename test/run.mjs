@@ -130,8 +130,18 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("loading button reports aria-busy", attr(b, "aria-busy") === "true", attr(b, "aria-busy"));
   check("loading button reports aria-disabled", attr(b, "aria-disabled") === "true", attr(b, "aria-disabled"));
   check("loading button stays focusable (no native disabled)", !b.hasAttribute("disabled"));
-  check("loading button announces Loading to screen readers",
-    /Loading/.test(b.textContent || "") && b.querySelector('[aria-hidden="true"]') !== null);
+  check("loading button announces Loading through its live region",
+    /Loading/.test(b.textContent || "") &&
+      b.querySelector('.astryx-visually-hidden[role="status"]') !== null);
+  // The reason the content wrapper exists: while loading, the visible content is
+  // replaced by the spinner, so assistive tech must not still read the label.
+  check("loading button hides its content from assistive tech",
+    b.querySelector('.astryx-button__content[aria-hidden="true"]') !== null,
+    b.querySelector(".astryx-button__content")?.outerHTML?.slice(0, 120));
+  check("an idle button still renders the live region (empty) so the change can be announced",
+    inCase("button-default").every(
+      (x) => x.querySelector('.astryx-visually-hidden[role="status"]') !== null,
+    ));
 }
 {
   const [b] = inCase("button-disabled");
@@ -318,6 +328,62 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     overrides.join(",") === "none,cover,center", overrides.join(","));
   check("fit=center centres from the wrapper class",
     ars.some((e) => e.querySelector(".astryx-aspect-ratio__child--center")));
+}
+
+// --- IconButton (a Button preset: keeps Button's marker and naming contract)
+{
+  const bs = inCase("icon-button-all");
+  check("three icon buttons render", bs.length === 3, `${bs.length}`);
+  check("IconButton carries Button's marker, not its own",
+    bs.length > 0 && bs.every((e) => attr(e, "data-astryx-component") === "Button"),
+    bs.map((e) => attr(e, "data-astryx-component")).join(","));
+  check("every icon button has an accessible name",
+    bs.every((e) => (attr(e, "aria-label") || "").length > 0),
+    bs.map((e) => attr(e, "aria-label")).join(" | "));
+  check("the icon is not hidden by the component (upstream leaves that to the caller)",
+    bs.every((e) => e.querySelector(".astryx-button__content") !== null));
+  // Keyboard operability is asserted through the element's semantics rather than by
+  // firing a synthetic Enter: activation of a native <button> is the browser's job,
+  // so a dispatch here would pass whether or not the port is keyboard-usable. What
+  // matters is that it IS a native button, that it is reachable by Tab, and that it
+  // is named. The real keypress is asserted in Chromium (see verify-browser.mjs).
+  check("icon buttons are native <button> elements",
+    bs.every((e) => e.tagName.toLowerCase() === "button"));
+  check("icon buttons are reachable by Tab (no tabindex=-1)",
+    bs.every((e) => attr(e, "tabindex") !== "-1"));
+  check("the loading icon button stays focusable while busy",
+    bs.some((e) => attr(e, "aria-busy") === "true" && !e.hasAttribute("disabled")));
+  check("the disabled icon button uses the native disabled attribute",
+    bs.some((e) => e.hasAttribute("disabled")));
+}
+
+// --- Code
+{
+  const cs = inCase("code-all");
+  check("four code elements render", cs.length === 4, `${cs.length}`);
+  check("Code renders a real <code> element",
+    cs.every((e) => e.tagName.toLowerCase() === "code"),
+    cs.map((e) => e.tagName.toLowerCase()).join(","));
+  check("the colour variants are carried through",
+    JSON.stringify(cs.slice(0, 3).map((e) => attr(e, "data-astryx-color"))) ===
+      JSON.stringify(["primary", "secondary", "inherit"]),
+    cs.map((e) => attr(e, "data-astryx-color")).join(","));
+  check("only the size variant takes the inherit-size class",
+    cs.filter((e) => hasClass(e, /size-inherit/)).length === 1);
+}
+
+// --- Blockquote
+{
+  const qs = inCase("blockquote-all");
+  check("two blockquotes render", qs.length === 2, `${qs.length}`);
+  check("Blockquote renders a real <blockquote>",
+    qs.every((e) => e.tagName.toLowerCase() === "blockquote"));
+  check("exactly one carries a cite", qs.filter((e) => e.querySelector("cite")).length === 1);
+  // Upstream's reason for a bare <cite>: <blockquote> is a sectioning root, so a
+  // <footer> inside it would become a contentinfo landmark.
+  check("the cite is a bare <cite>, never wrapped in a <footer>",
+    qs.every((e) => e.querySelector("footer") === null) &&
+      qs.some((e) => e.querySelector("cite.astryx-blockquote__cite")));
 }
 
 // --- the interaction: a real event dispatched into the Bonsai graph

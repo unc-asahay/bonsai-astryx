@@ -34,6 +34,12 @@
       "note": "site/ renders every ported component; tools/visual/verify-browser.mjs loads it in Chromium over HTTP and clicks a ported Button into Bonsai state. Cross-checked through opencli."
     },
     {
+      "id": "M6",
+      "name": "inline + quote content",
+      "status": "complete",
+      "note": "IconButton (a Button preset, so it keeps Button's marker and its accessible-name contract), Code (a real <code> element) and Blockquote (a bare <cite>, never a <footer>)."
+    },
+    {
       "id": "M5",
       "name": "component tests in OCaml",
       "status": "complete",
@@ -60,6 +66,9 @@
     { "component": "VisuallyHidden", "module": "Astryx.VisuallyHidden", "file": "src/visually_hidden.ml", "milestone": "M2", "class": "A" },
     { "component": "HStack", "module": "Astryx.HStack", "file": "src/hstack.ml", "milestone": "M5", "class": "A" },
     { "component": "VStack", "module": "Astryx.VStack", "file": "src/vstack.ml", "milestone": "M5", "class": "A" },
-    { "component": "AspectRatio", "module": "Astryx.AspectRatio", "file": "src/aspect_ratio.ml", "milestone": "M5", "class": "A" }
+    { "component": "AspectRatio", "module": "Astryx.AspectRatio", "file": "src/aspect_ratio.ml", "milestone": "M5", "class": "A" },
+    { "component": "IconButton", "module": "Astryx.IconButton", "file": "src/icon_button.ml", "milestone": "M6", "class": "A" },
+    { "component": "Code", "module": "Astryx.Code", "file": "src/code.ml", "milestone": "M6", "class": "A" },
+    { "component": "Blockquote", "module": "Astryx.Blockquote", "file": "src/blockquote.ml", "milestone": "M6", "class": "A" }
   ]
 }

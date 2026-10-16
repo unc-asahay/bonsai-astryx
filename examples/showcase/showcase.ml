@@ -510,12 +510,80 @@ let s_aspect_ratio () =
     ]
 ;;
 
+(* ------------------------------------------- IconButton / Code / Blockquote *)
+
+let s_icon_button () =
+  section
+    ~id:"iconbutton"
+    ~title:"IconButton"
+    ~note:
+      "A Button preset with isIconOnly set — upstream is literally \
+       <Button {...props} icon={icon} isIconOnly />, so it keeps Button's marker. The \
+       required label becomes the accessible name, which is why an icon-only control \
+       in this library can never be nameless."
+    [ ex "variant: Secondary" (Astryx.IconButton.view ~label:"Add item" ~icon:button_icon ())
+    ; ex
+        "variant: Primary"
+        (Astryx.IconButton.view ~variant:Astryx.Button.Primary ~label:"Add item" ~icon:button_icon ())
+    ; ex "size: Lg" (Astryx.IconButton.view ~size:Astryx.Button.Lg ~label:"Add item" ~icon:button_icon ())
+    ; ex "is_loading" (Astryx.IconButton.view ~label:"Add item" ~is_loading:true ~icon:button_icon ())
+    ; ex "is_disabled" (Astryx.IconButton.view ~label:"Add item" ~is_disabled:true ~icon:button_icon ())
+    ]
+;;
+
+let s_code () =
+  section
+    ~id:"code"
+    ~title:"Code"
+    ~note:
+      "A real <code> element. Text's 'code' type is a span carrying code styling — \
+       upstream keeps those two separate and so does this port."
+    [ ex "color: Primary" (Astryx.Code.view [ Vdom.Node.text "const answer = 42;" ])
+    ; ex
+        "color: Secondary"
+        (Astryx.Code.view ~color:Astryx.Code.Secondary [ Vdom.Node.text "npm run gates" ])
+    ; ex "color: Inherit" (Astryx.Code.view ~color:Astryx.Code.Inherit [ Vdom.Node.text "inherit" ])
+    ; ex "size: Inherit" (Astryx.Code.view ~size:Astryx.Code.Inherit [ Vdom.Node.text "inherit" ])
+    ; ex
+        "inside larger text"
+        (Astryx.Text.view
+           ~type_:Text.Large
+           [ Vdom.Node.text "run "
+           ; Astryx.Code.view ~size:Astryx.Code.Inherit [ Vdom.Node.text "dune build" ]
+           ; Vdom.Node.text " before pushing"
+           ])
+    ]
+;;
+
+let s_blockquote () =
+  section
+    ~id:"blockquote"
+    ~title:"Blockquote"
+    ~note:
+      "The optional cite renders as a bare <cite>. Never a <footer>: blockquote is a \
+       sectioning root, so a footer inside it would map to a contentinfo landmark and \
+       hand a quote an accessibility landmark it should not have."
+    [ ex
+        "plain"
+        (Astryx.Blockquote.view
+           [ Vdom.Node.text "Programs must be written for people to read, and only \
+                              incidentally for machines to execute." ])
+    ; ex
+        "with cite"
+        (Astryx.Blockquote.view
+           ~cite:(Vdom.Node.text "Abelson & Sussman, SICP")
+           [ Vdom.Node.text "A port is a rewrite with the same contract, not a \
+                              translation of the syntax." ])
+    ]
+;;
+
 (* ---------------------------------------------------------------- assembly *)
 
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
+  ; s_icon_button (); s_code (); s_blockquote ()
   ]
 ;;
 
@@ -540,6 +608,9 @@ let nav_items =
   ; "hstack", "HStack"
   ; "vstack", "VStack"
   ; "aspectratio", "AspectRatio"
+  ; "iconbutton", "IconButton"
+  ; "code", "Code"
+  ; "blockquote", "Blockquote"
   ; "interactive", "Interactive"
   ]
 ;;

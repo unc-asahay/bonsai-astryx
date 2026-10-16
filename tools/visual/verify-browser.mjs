@@ -225,11 +225,11 @@ if (mode === "showcase") {
   const EXPECTED = [
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
-    "HStack", "VStack", "AspectRatio", "Interactive",
+    "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote", "Interactive",
   ];
 
   console.log("\nshowcase sections");
-  check("17 sections", sections.length === 17, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("20 sections", sections.length === 20, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -243,10 +243,11 @@ if (mode === "showcase") {
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
+    IconButton: 5, Code: 5, Blockquote: 2,
     Interactive: 1,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("125 examples across the page", totalExamples === 125, `got ${totalExamples}`);
+  check("137 examples across the page", totalExamples === 137, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -259,7 +260,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("17 nav links", nav.length === 17, `got ${nav.length}`);
+  check("20 nav links", nav.length === 20, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -311,6 +312,36 @@ if (mode === "showcase") {
   const after2 = await page.textContent("#click-count");
   check(`counter incremented again (now "${after2}")`, (after2 || "").trim() === "count: 2", after2 || "");
 
+  // Keyboard operability, the part that cannot be faked in jsdom: focus the ported
+  // button the way a keyboard user reaches it, then press Enter. Chromium turns that
+  // into a click for a native <button>, so an increment here proves the control is
+  // actually keyboard-activatable — not merely that it has the right attributes.
+  console.log("\nkeyboard");
+  const focused = await page.evaluate(() => {
+    const btn = document.querySelector("#interactive button");
+    if (!btn) return null;
+    btn.focus();
+    const active = document.activeElement;
+    return {
+      isButton: active && active.tagName.toLowerCase() === "button",
+      hasFocus: active === btn,
+      tabindex: btn.getAttribute("tabindex"),
+    };
+  });
+  check("the ported button takes focus programmatically", focused?.hasFocus === true, JSON.stringify(focused));
+  check("focus lands on the button itself, not a wrapper", focused?.isButton === true);
+  check("no negative tabindex (so Tab reaches it)", focused?.tabindex !== "-1");
+  const beforeKey = await page.textContent("#click-count");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  const afterKey = await page.textContent("#click-count");
+  const num = (s) => Number(String(s || "").replace(/\D/g, ""));
+  check(
+    `Enter on the focused button activates it (${(beforeKey || "").trim()} -> ${(afterKey || "").trim()})`,
+    num(afterKey) === num(beforeKey) + 1,
+    `${beforeKey} -> ${afterKey}`,
+  );
+
   console.log("\naccessibility (read from the live tree)");
   const aria = await page.evaluate(() => {
     const dot = document.querySelector(".astryx-status-dot");
@@ -343,11 +374,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 16 ported / 87 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["16", "87", "103"]),
+    "coverage stats are 19 ported / 84 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["19", "84", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 87 entries", cov.unported === 87, `got ${cov.unported}`);
+  check("unported list rendered 84 entries", cov.unported === 84, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

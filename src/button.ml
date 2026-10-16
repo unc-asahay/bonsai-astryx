@@ -99,25 +99,35 @@ let view
       ]
     else []
   in
-  (* Announced once for assistive tech. It sits *after* the visible label so the
-     accessible name reads "Save Loading" rather than "Loading Save" — the order
-     a screen reader says it, and the order the user reads it. *)
-  let loading_announcement =
-    if is_loading
-    then
-      [ Vdom.Node.span
-          ~attrs:(Common.Attr.class_ [ "astryx-visually-hidden" ])
-          [ Vdom.Node.text "Loading" ]
-      ]
-    else []
-  in
+  (* Content is wrapped, and the wrapper is hidden from assistive tech while loading.
+     Upstream does exactly this: during load the visible content is replaced by the
+     spinner, so a screen reader must not still read the label — the live region below
+     carries the state instead. Without the aria-hidden, a busy "Save" button is
+     announced as "Save" while its label is not on screen. *)
   let content =
     spinner
     @ (match icon with Some i -> [ i ] | None -> [])
-    @ (if is_icon_only then [] else [ Vdom.Node.span ~attrs:[] [ Vdom.Node.text label ] ])
-    @ loading_announcement
+    @ (if is_icon_only then [] else [ Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "astryx-button__label" ] [ Vdom.Node.text label ] ])
     @ children
   in
+  let content_attrs =
+    Common.Attr.class_ [ "astryx-button__content" ]
+    @ (if is_loading then Common.Attr.aria "hidden" "true" else [])
+  in
+  let content_wrapper = Vdom.Node.span ~attrs:content_attrs content in
+  (* The live region is always in the DOM (upstream renders it unconditionally with an
+     empty string when idle): a live region has to exist before its content changes for
+     the change to be announced at all. It sits after the visible label so the reading
+     order is "Save Loading" rather than "Loading Save". *)
+  let live_region =
+    Vdom.Node.span
+      ~attrs:
+        (Common.Attr.class_ [ "astryx-visually-hidden" ]
+         @ Common.Attr.role "status"
+         @ Common.Attr.aria "live" "polite")
+      [ Vdom.Node.text (if is_loading then "Loading" else "") ]
+  in
+  let content = [ content_wrapper; live_region ] in
   let attrs =
     Common.Attr.class_ classes
     @ Common.Attr.data "component" "Button"

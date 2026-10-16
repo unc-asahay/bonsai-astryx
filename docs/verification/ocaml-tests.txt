@@ -1,8 +1,5 @@
-# Component tests (OCaml -> jsdom)
-# generated: 2026-10-16T03:55:51Z
-# command: dune build && node test/run.mjs
-# what runs: test/rt_test.ml builds every ported component in isolation and
-# dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM.
+# Component test gate — transcript
+# command: node test/run.mjs  (after: dune build)
 
 
 the ported components render in isolation
@@ -24,7 +21,9 @@ the ported components render in isolation
   ok   loading button reports aria-busy
   ok   loading button reports aria-disabled
   ok   loading button stays focusable (no native disabled)
-  ok   loading button announces Loading to screen readers
+  ok   loading button announces Loading through its live region
+  ok   loading button hides its content from assistive tech
+  ok   an idle button still renders the live region (empty) so the change can be announced
   ok   disabled button uses the native disabled attribute
   ok   loading+disabled: native disabled wins
   ok   icon-only button is named by aria-label
@@ -69,6 +68,36 @@ the ported components render in isolation
   ok   three visually-hidden blocks render
   ok   visually-hidden elements keep their element type
   ok   visually-hidden is styled as such
+  ok   HStack renders two stacks
+  ok   HStack carries Stack's marker, not one of its own
+  ok   HStack is horizontal
+  ok   VStack renders two stacks
+  ok   VStack is vertical (nothing marks it horizontal)
+  ok   three aspect-ratio boxes render
+  ok   the ratio travels as a custom property
+  ok   no inline aspect-ratio declaration is emitted
+  ok   the ratios are the ones asked for (16/9, 1, 4/3)
+  ok   shape is declared on the component
+  ok   the ellipse clips to a radius
+  ok   every box has its inner child
+  ok   fit is carried on the child as the override attribute (and omitted when unset)
+  ok   fit=center centres from the wrapper class
+  ok   three icon buttons render
+  ok   IconButton carries Button's marker, not its own
+  ok   every icon button has an accessible name
+  ok   the icon is not hidden by the component (upstream leaves that to the caller)
+  ok   icon buttons are native <button> elements
+  ok   icon buttons are reachable by Tab (no tabindex=-1)
+  ok   the loading icon button stays focusable while busy
+  ok   the disabled icon button uses the native disabled attribute
+  ok   four code elements render
+  ok   Code renders a real <code> element
+  ok   the colour variants are carried through
+  ok   only the size variant takes the inherit-size class
+  ok   two blockquotes render
+  ok   Blockquote renders a real <blockquote>
+  ok   exactly one carries a cite
+  ok   the cite is a bare <cite>, never wrapped in a <footer>
 
 interaction (OCaml dispatched the event)
   ok   the click target is a ported Button
@@ -76,5 +105,5 @@ interaction (OCaml dispatched the event)
   ok   one dispatched click moves the count to 1
   ok   a second click moves it to 2
 
-67 checks, 0 failure(s)
+99 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -207,6 +207,19 @@
   to { transform: rotate(360deg); }
 }
 
+/* The content wrapper exists so it can be hidden from assistive tech as a unit while
+   the button is loading (see src/button.ml): the visible content is replaced by the
+   spinner then, so a screen reader must not keep reading the label. */
+.astryx-button__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.astryx-button__label {
+  display: inline-block;
+}
+
 /* ---------------------------------------------------------------- Card */
 
 .astryx-card {
@@ -431,4 +444,58 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* -------------------------------------------------------------------- Code
+
+   A real <code> element. Text's 'code' *type* is a span with code styling; upstream
+   keeps the two separate, and so does this port. */
+
+.astryx-code {
+  font-family: var(--font-family-code);
+  font-size: var(--text-code-size);
+  line-height: inherit;
+  background-color: var(--color-background-muted);
+  padding-inline: var(--spacing-1);
+  padding-block: var(--spacing-0);
+  border-radius: var(--radius-inner);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.astryx-code--primary {
+  color: var(--color-text-primary);
+}
+
+.astryx-code--secondary {
+  color: var(--color-text-secondary);
+}
+
+.astryx-code--inherit {
+  color: inherit;
+}
+
+/* The one size upstream offers: for a code span sitting inside larger text, where
+   the code font must not impose its own size. */
+.astryx-code--size-inherit {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* -------------------------------------------------------------- Blockquote */
+
+.astryx-blockquote {
+  border-inline-start: var(--spacing-0-5) solid var(--color-border-emphasized);
+  padding-inline-start: var(--spacing-4);
+  color: var(--color-text-secondary);
+  overflow-wrap: break-word;
+  margin: 0;
+}
+
+.astryx-blockquote__cite {
+  display: block;
+  margin-block-start: var(--spacing-2);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-style: normal;
 }
