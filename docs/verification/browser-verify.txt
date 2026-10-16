@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   43 sections
+  ok   44 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   267 examples across the page
+  ok   270 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   43 nav links
+  ok   44 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -280,20 +280,26 @@ Layer (the native popover API)
   ok   the clock format at the same instant reads hours, minutes and seconds
   ok   and its duration is the true elapsed time rather than a rounded one
   ok   tabular figures are actually applied — the numbers cannot shift as they change
+  ok   the group renders as one box with its members
+  ok   the shared edge is single — the members overlap by one border width
+  ok   only the group's outer corners are rounded: the adornment keeps the start, the input gives it up
+  ok   the child fills the box’s height rather than choosing its own — which is how the size reaches it
+  ok   an adornment does not stretch: it is sized by its text, not by the box
+  ok   a disabled group dims as a whole — one opacity on the box, not one per member
   ok   a manual layer opens
   ok   Escape does not touch it — the platform was never asked to dismiss this one
   ok   nor does a real click outside
   ok   only the application closes it, and the value follows
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 40 ported / 63 not / 103 total
-  ok   unported list rendered 63 entries
+  ok   coverage stats are 41 ported / 62 not / 103 total
+  ok   unported list rendered 62 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-231/231 checks passed, 0 failure(s)
+237/237 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

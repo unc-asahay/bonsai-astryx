@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 40,
-    "unported": 63,
+    "ported": 41,
+    "unported": 62,
     "total": 103,
     "documented": 103
   },
@@ -156,6 +156,12 @@
       "milestone": "M12"
     },
     {
+      "name": "InputGroup",
+      "module": "Astryx.Input_group",
+      "file": "src/input_group.ml",
+      "milestone": "M20"
+    },
+    {
       "name": "Kbd",
       "module": "Astryx.Kbd",
       "file": "src/kbd.ml",
@@ -274,7 +280,6 @@
     "DateTimeInput",
     "FileInput",
     "HoverCard",
-    "InputGroup",
     "Item",
     "Layer",
     "Layout",

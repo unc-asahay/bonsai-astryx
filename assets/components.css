@@ -1960,3 +1960,61 @@
   border-radius: var(--radius-element);
   background-color: var(--color-background-muted);
 }
+
+/* ------------------------------------------------------------------ InputGroup
+   The group is a box: inline-flex so its children share one baseline row, stretched to a step of the shared
+   size scale. A member inherits its height from the box rather than being told it, which is what lets the
+   size reach the children without a context to send it through. */
+.astryx-input-group {
+  display: inline-flex;
+  align-items: stretch;
+  background-color: transparent;
+}
+.astryx-input-group--sm { height: var(--size-element-sm); }
+.astryx-input-group--md { height: var(--size-element-md); }
+.astryx-input-group--lg { height: var(--size-element-lg); }
+.astryx-input-group--disabled { cursor: default; opacity: 0.5; }
+
+/* Every direct child is a member of the group. Each one takes the height from the box, gives up its inner
+   corners, and pulls left by one border-width so the shared edge is a single border rather than two
+   touching ones. `:has(~ …)` rather than `:last-child` for the trailing corner, because a popover,
+   template or dialog child is not a visual member and must not end the group. */
+.astryx-input-group > * {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin-inline-start: calc(-1 * var(--border-width));
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.astryx-input-group > :first-child {
+  margin-inline-start: 0;
+  border-start-start-radius: var(--radius-element);
+  border-end-start-radius: var(--radius-element);
+}
+.astryx-input-group > *:has(~ *:not([popover]):not(template):not(dialog)) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.astryx-input-group > *:not(:has(~ *:not([popover]):not(template):not(dialog))) {
+  border-start-end-radius: var(--radius-element);
+  border-end-end-radius: var(--radius-element);
+}
+/* A focused member paints above its neighbours, so its focus ring is not covered by the next member's
+   overlapping border. */
+.astryx-input-group > *:focus-visible { z-index: 2; }
+
+/* A text adornment is part of the group's surface, not a control inside it: it carries the group's border
+   colour and a muted background. Its geometry — the overlap and the corners — is the member rule above. */
+.astryx-input-group-text {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--spacing-2);
+  background-color: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-grow: 0;
+  border: var(--border-width) solid var(--color-border-emphasized);
+}

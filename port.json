@@ -30,6 +30,13 @@
       "module": "Astryx.Dialog_header",
       "name": "DialogHeader",
       "note": "the component that names a dialog: a focusable h2 carrying the id the dialog is told to name itself from, an optional subtitle, start/end slots, an optional divider and a close button rendered only when there is an on_open_change to report to. Not one of registry.json's 103 extracted components, so it does not move the coverage count — it is counted here, with a reason, exactly as registry.json requires."
+    },
+    {
+      "name": "InputGroupText",
+      "file": "src/input_group_text.ml",
+      "milestone": "M20",
+      "note": "Not one of the 103: a text adornment for InputGroup, registered like DialogHeader because it is a rendered component the appearance contract should account for but the coverage denominator should not.",
+      "module": "Astryx.Input_group_text"
     }
   ],
   "milestones": [
@@ -139,6 +146,12 @@
       "id": "M19",
       "name": "a duration that stays readable without re-rendering",
       "note": "Timer. Two numbers come out of one reading and they are deliberately not always the same number: a real <time> element carries an ISO 8601 duration in datetime and the human reading as its text, and past an hour the elapsed text stops showing seconds - at which point the duration follows the *text* rather than the raw elapsed time, because a duration that disagrees with its own visible reading is worse than none. The showcase renders two timers from the same start time to make that visible: the elapsed one reports a whole number of minutes while the clock one reports the true seconds. Nothing re-renders to keep the reading current - the hook owns the <time> node and writes only what changed, which the browser gate proves the only way it can be proven: it holds the node across a second and checks it is still the same node, since a re-render would have replaced it. The wait until the next change is computed against the precision the reading actually has, so past an hour this does not ask the clock every second to discover nothing moved. The discovery of this milestone is a platform one and it took the whole showcase page down: under js_of_ocaml an int is 32 bits, so milliseconds since 1970 do not fit in one and converting raises Invalid_argument. A JS number is a double and an OCaml float is a double, so start_time and the internal clock are floats - which is the faithful type on both sides, not a workaround. Core's Time_ns is unusable on this target for the same reason. The browser gate's 'the app mounted in Chromium' check is what caught it, from a page that had gone blank. Not ported: the theme seam, upstream's themeProps('timer') target - a theme can style the component's classes but cannot retarget its props.",
+      "status": "complete"
+    },
+    {
+      "id": "M20",
+      "name": "a group of controls that reads as one field",
+      "note": "InputGroup + InputGroupText. A labelled group: the label names the group rather than a control, so the port's Field omits the label's `for` (is_group_label, a parameter that existed before this milestone because FieldLabel was built with the group case in mind), and the status message is Detached, below the group, since there is no single control's edge for it to sit against. The size needs no plumbing: the group is inline-flex stretched to a step of the shared size scale, so its children fill the height. The two things upstream threads through React context are named divergences here rather than reproduced. InputGroupContext tells a nested input to render without its own label; this port's TextInput *requires* a label, so a control inside a group carries a visually hidden empty one - the caller's substitute, not an equivalent. SizeProvider is the same story from the other side: the caller knows the size it wants for its children, and the group's own box is CSS. React's ambient context re-enters through the DOM here - aria-* on the container and CSS on the box - and nowhere else, the same shape as ButtonGroup's connected look. Also not ported and named in the mli: labelTooltip, and the aria-describedby upstream puts on the group element (this port's Field does not hand back its description element's id, and inventing an id no element carries would be worse than its absence). Two build traps worth recording: Core defines a module named Field, so a sibling module must alias it as Field_ before the opens - text_area.ml and radio_list.ml already document this - and Vdom.Attr.class_ is variadic strings while Bonsai_web.Attr.class_ takes a list, which is the opposite of the lesson the earlier milestones recorded.",
       "status": "complete"
     }
   ],
@@ -423,6 +436,13 @@
       "file": "src/timer.ml",
       "milestone": "M19",
       "module": "Astryx.Timer"
+    },
+    {
+      "class": "A",
+      "component": "InputGroup",
+      "file": "src/input_group.ml",
+      "milestone": "M20",
+      "module": "Astryx.Input_group"
     }
   ],
   "schema": 1,

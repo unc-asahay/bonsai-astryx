@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("43 sections", sections.length === 43, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("44 sections", sections.length === 44, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,11 +616,11 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
-    ButtonGroup: 3, Popover: 1, Timer: 3,
+    ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("267 examples across the page", totalExamples === 267, `got ${totalExamples}`);
+  check("270 examples across the page", totalExamples === 270, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -633,7 +633,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("43 nav links", nav.length === 43, `got ${nav.length}`);
+  check("44 nav links", nav.length === 44, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1743,6 +1743,59 @@ if (mode === "showcase") {
     String(figures).includes("tabular-nums"), String(figures));
 }
 
+// --------------------------------------------------------------------- InputGroup (M20)
+// Every check here is a CSS outcome, so every one of them is a browser check by necessity: jsdom has no
+// cascade. What the group's structure looks like lives in the component gate.
+
+const igLayout = await page.evaluate(() => {
+  const g = document.getElementById("showcase-group-amount-group");
+  if (!g) return null;
+  const members = Array.from(g.children);
+  const adorn = g.querySelector(".astryx-input-group-text");
+  const input = g.querySelector("input");
+  const cs = (el) => getComputedStyle(el);
+  return {
+    memberCount: members.length,
+    // one shared edge: the adornment's right edge meets the input's left edge, give or take the overlap
+    edgeGap: adorn && input ? adorn.getBoundingClientRect().right - input.getBoundingClientRect().left : null,
+    adornStartRadius: adorn ? parseFloat(cs(adorn).borderStartStartRadius) : null,
+    inputStartRadius: input ? parseFloat(cs(input).borderStartStartRadius) : null,
+    inputEndRadius: input ? parseFloat(cs(input).borderStartEndRadius) : null,
+    inputHeight: input ? Math.round(input.getBoundingClientRect().height) : null,
+    groupHeight: Math.round(g.getBoundingClientRect().height),
+    flexGrow: adorn ? cs(adorn).flexGrow : null,
+  };
+});
+
+check("the group renders as one box with its members", igLayout !== null && igLayout.memberCount === 2,
+  JSON.stringify(igLayout));
+
+check("the shared edge is single — the members overlap by one border width",
+  igLayout !== null && Math.abs(igLayout.edgeGap) <= 1, String(igLayout && igLayout.edgeGap));
+
+check("only the group\'s outer corners are rounded: the adornment keeps the start, the input gives it up",
+  igLayout !== null && igLayout.adornStartRadius > 0 && igLayout.inputStartRadius === 0,
+  JSON.stringify(igLayout && {a: igLayout.adornStartRadius, i: igLayout.inputStartRadius}));
+
+// 32 is the md step of the size scale: this demo group is md, and the assertion that matters is the second
+// one — the child's height *is* the box's, not a height of its own choosing. ("the disabled group" check
+// below corroborates from the other end: an lg group's child fills 36.)
+check("the child fills the box\u2019s height rather than choosing its own — which is how the size reaches it",
+  igLayout !== null && igLayout.inputHeight === igLayout.groupHeight &&
+  igLayout.inputHeight === 32, JSON.stringify(igLayout && {i: igLayout.inputHeight, g: igLayout.groupHeight}));
+
+check("an adornment does not stretch: it is sized by its text, not by the box",
+  igLayout !== null && igLayout.flexGrow === "0", String(igLayout && igLayout.flexGrow));
+
+const igDisabled = await page.evaluate(() => {
+  const g = document.getElementById("showcase-group-locked-group");
+  return g ? {opacity: getComputedStyle(g).opacity, h: Math.round(g.getBoundingClientRect().height)} : null;
+});
+
+check("a disabled group dims as a whole — one opacity on the box, not one per member",
+  igDisabled !== null && Math.abs(parseFloat(igDisabled.opacity) - 0.5) < 0.01 &&
+  igDisabled.h === 36, JSON.stringify(igDisabled));
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -1776,11 +1829,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 40 ported / 63 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["40", "63", "103"]),
+    "coverage stats are 41 ported / 62 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["41", "62", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 63 entries", cov.unported === 63, `got ${cov.unported}`);
+  check("unported list rendered 62 entries", cov.unported === 62, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

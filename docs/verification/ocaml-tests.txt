@@ -467,10 +467,15 @@ DialogHeader
   ok   and a generated close control that is labelled for a screen reader
   ok   which sits *outside* the content wrapper — that is what keeps it out of initial focus
   ok   with the trigger inside the anchor wrapper the mechanism locates it in
+  ok   group carries role=group and is named by its label
+  ok   group label is a span, not a label — it names a group, not a control
+  ok   the adornment is inside the group
+  ok   size is a class on the box, not a message to the children
+  ok   a disabled group says so once, on the box
   ok   the reading is a real <time> element, not a span that looks like one
   ok   carrying a machine-readable duration beside the human one
   ok   and the clock format differs in exactly the way it should at zero
   ok   with the tabular-figure treatment applied, so the numbers do not jump
 
-423 checks, 0 failure(s)
+428 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

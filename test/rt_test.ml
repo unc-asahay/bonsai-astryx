@@ -1632,3 +1632,41 @@ let () =
   Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) timer_static
   |> fun handle -> mount "timer" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* The group's own surface, which is all this harness can see: which element the label names, that the
+   label carries no `for` (a group label names the group, not a control), the size class, and that the
+   adornment really is a child of the group rather than a sibling of it. The shared border and the
+   first/last-child corners are CSS, so they are the browser gate's to prove. *)
+let input_group_static (_ : Bonsai.graph) =
+  let input id =
+    Vdom.Node.input
+      ~attrs:
+        (Astryx.Common.Attr.class_ [ "astryx-text-input__input" ]
+         @ [ Vdom.Attr.create "id" id; Vdom.Attr.create "type" "text" ])
+      ()
+  in
+  Bonsai.return
+    (Vdom.Node.div
+       [ Astryx.Input_group.view
+           ~id:"ig-amount"
+           ~label:"Amount"
+           ~description:"In the account's currency."
+           ~size:Astryx.Input_group.Sm
+           ~children:
+             [ Astryx.Input_group_text.view ~children:[ Vdom.Node.text "USD" ] ()
+             ; input "ig-amount-input"
+             ]
+           ()
+       ; Astryx.Input_group.view
+           ~id:"ig-locked"
+           ~label:"Locked"
+           ~is_disabled:true
+           ~size:Astryx.Input_group.Lg
+           ~children:[ input "ig-locked-input" ] ()
+       ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) input_group_static
+  |> fun handle -> mount "input_group" (Bonsai_web_test.Handle.last_result handle)
+;;

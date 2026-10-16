@@ -1636,6 +1636,48 @@ section("FieldLabel");
     "the anchor wrapper is what the trigger ARIA is applied to");
 }
 
+/* ----------------------------------------------------------------------- InputGroup (M20) */
+
+// The group's surface: which element the label names, that the label carries no `for` (a group label names
+// the group, not a control), the size class, and that the adornment is a child of the group rather than a
+// sibling. The shared border and the corners are CSS, so they belong to the browser gate.
+
+check("group carries role=group and is named by its label", (() => {
+  const g = document.querySelector('[data-astryx-component="InputGroup"]');
+  return g !== null && g.getAttribute("role") === "group" &&
+    (() => {
+      const id = g.getAttribute("aria-labelledby");
+      const label = id && document.getElementById(id);
+      return Boolean(label) && label.textContent.trim() === "Amount";
+    })();
+})());
+
+// A group label is a span, not a label: a <label> exists to point at a control with `for` (or to wrap
+// one), and a group is not a control. The first version of this check demanded a <label> with no `for`,
+// which the port correctly refuses to emit.
+check("group label is a span, not a label — it names a group, not a control", (() => {
+  const label = document.getElementById("ig-amount-label");
+  return label !== null && label.tagName === "SPAN" && !label.hasAttribute("for");
+})());
+
+check("the adornment is inside the group", (() => {
+  const g = document.getElementById("ig-amount-group");
+  return g !== null && g.querySelector(".astryx-input-group-text") !== null;
+})());
+
+check("size is a class on the box, not a message to the children", (() => {
+  const a = document.getElementById("ig-amount-group");
+  const b = document.getElementById("ig-locked-group");
+  return a !== null && b !== null &&
+    a.classList.contains("astryx-input-group--sm") &&
+    b.classList.contains("astryx-input-group--lg");
+})());
+
+check("a disabled group says so once, on the box", (() => {
+  const g = document.getElementById("ig-locked-group");
+  return g !== null && g.classList.contains("astryx-input-group--disabled");
+})());
+
 /* ------------------------------------------------------------------------- Timer (M19) */
 {
   /* The attributes land on the <time> itself, so this is the element - asking for a <time> *inside* it

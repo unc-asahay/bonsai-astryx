@@ -498,6 +498,27 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### M20 — InputGroup: a group of controls that reads as one field (done, 40 → 41 of 103)
+
+The label names the group rather than a control — rendered as a `<span>`, since a `<label>` with no control to
+point at names nothing — and the status message is `Detached`, below the group. The size reaches the children
+through the box: a member takes its height from an `inline-flex` box stretched to a step of the shared size
+scale, rather than through a context, because the children are built by the caller before the group sees them.
+
+Two of React's contexts are therefore named divergences rather than reproduced (`InputGroupContext`,
+`SizeProvider`) — the same shape as ButtonGroup's connected look. Not ported and named in the mli: the group's
+`aria-describedby` (this port's `Field` does not hand back its description element's id, and an id no element
+carries would be worse than its absence).
+
+**A `.ts` file the planning metric missed, holding the whole reason the component exists.**
+`InputGroup/groupStyles.ts` (85 lines) is where members take `flex: 1; height: 100%`, give up their inner
+corners, pull left by one border-width so the shared edge is single, and where a focused member gets
+`z-index: 2` so the next member's overlapping border cannot cover its focus ring. The trailing corner uses
+`:has(~ *:not([popover]):not(template):not(dialog))` rather than `:last-child` — a popover child is not a
+visual member, the same insight the overlay family produced in M16.
+
+**Correction to the measurement below:** it counted `.tsx` files. Count `.ts` as well.
+
 ### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
 
 One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
@@ -569,69 +590,4 @@ Two things fall out of that table and neither was guessable from the sizes I fir
 started at the end of a session. The next milestone should be chosen as *which mechanism to build next*,
 with its first consumer as the component — the arrangement that made Popover small.
 
-### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
 
-One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
-ISO 8601 duration in `datetime` and the human reading as its text, and past an hour the elapsed text drops
-its seconds — at which point the duration follows the *text* rather than the clock. The showcase renders two
-timers from one start time to make the difference measurable rather than argued.
-
-"Nothing re-renders" turned out to be checkable: the browser gate holds the DOM node across a second and
-checks it is still the same node, because a re-render would have replaced it.
-
-**The discovery of this milestone is a platform one and it took the whole page down:** under js_of_ocaml an
-`int` is 32 bits, so milliseconds since 1970 do not fit in one and converting raises `Invalid_argument`.
-Core's `Time_ns` refuses on this target for the same reason. A JS `number` is a double and an OCaml `float`
-is a double, so `start_time` and the internal clock are floats — the faithful type on both sides rather than
-a workaround — while durations within the component stay ints. What caught it was the browser gate's *"the
-app mounted in Chromium"* check, from a page that had gone blank.
-
-**Next:** `BottomSheet` and `DropdownMenu` phase 2 — both now consumers of mechanisms that are proven, which
-is what M18 was for.
-
-
-### Recon on what is next, so it is not re-guessed from file sizes
-
-Sizes mislead, and three of them misled here:
-
-- **`ClickableCard` (401 lines) is not a card wrapper.** It composes `Card` and then adds a press-feedback
-  model — `usePressFeedback`, a touch press strength written as `data-astryx-press` states, and an
-  interaction overlay whose hover and press paint is shared infrastructure. That is a *pillar*, not a
-  component: the same machinery is what `Button`'s press states and any future ripple will stand on. Port it
-  as a pillar, deliberately, or not at all.
-- **`ScrollableArea` (260 lines) is a mechanism, not a wrapper** — and the first version of this line said
-  the opposite, because it was written from the file's size and its header comment rather than from the hook
-  underneath it. `useScrollableArea` carries a real one: axis and overscroll policy, sticky containment, an
-  *observed* content box, and a viewport that enters the tab order only when it is actually scrollable —
-  which is a tabindex that changes with the layout, plus eight padding props and full-bleed escapes from
-  inherited container padding. A deliberate milestone, not a quick win.
-- **`MoreMenu` (183 lines) is still blocked on `DropdownMenu`'s surface**, as recorded at M16: the port's
-  `DropdownMenu` takes a trigger *label* and owns its open state, while MoreMenu forwards a button config,
-  a placement and a *controlled* `isMenuOpen`. Extend that surface first.
-
-`BottomSheet` (6.6k) and `Chat` (12.9k) remain the class-C giants; both are multi-milestone jobs and should
-be planned as such rather than started at the end of a session.
-
-**The cheap wins are spent.** Every remaining candidate either needs a mechanism first (`ScrollableArea`'s
-observed viewport, `DropdownMenu`'s surface before `MoreMenu` can be thin), or is really a pillar wearing a
-component's name (`ClickableCard` and the press-feedback layer under it). The next milestone should
-therefore be chosen as *which mechanism to build next*, with the component as its first consumer — the
-arrangement that made Popover small.
-
-
-## M6 — second upstream: shadcn
-
-shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind
-utilities, so a port is two libraries' worth of behaviour. Upstream Astryx already
-ships shadcn interop material (`internal/shadcn-registry`), which we can use as a
-starting map. Deferred until M4's overlay layer exists, because that layer is what
-Radix behaviour would need anyway.
-
-## Deliberately out of scope
-
-- A React/Vue-to-Bonsai transpiler. Semantics do not survive the trip; see README.
-- Nuxt/Vue SFC components as a first-class source. Template DSL plus Vue
-  reactivity is a strictly harder translation than React, and only purely
-  presentational SFCs would be mechanical.
-- Anything requiring the upstream design system to be redistributed wholesale
-  (fonts, brand assets, icons beyond what MIT covers).

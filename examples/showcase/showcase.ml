@@ -2803,6 +2803,56 @@ let layer_demo (graph : Bonsai.graph) =
     | _ -> Vdom.Node.none)
 ;;
 
+let s_input_group () =
+  (* A raw input stands in for a real control here: the point of the section is the group's own surface —
+     the box, the label that names it, the adornment's shared edge — and a stateful TextInput would add a
+     state machine to demonstrate a layout. *)
+  let input id value =
+    Vdom.Node.input
+      ~attrs:
+        (Astryx.Common.Attr.class_ [ "astryx-text-input__input" ]
+         @ [ Vdom.Attr.create "id" id
+           ; Vdom.Attr.create "type" "text"
+           ; Vdom.Attr.create "value" value
+           ])
+      ()
+  in
+  section
+    ~id:"input-group"
+    ~title:"InputGroup"
+    ~note:("A group is one field with more than one control in it. The label names the group rather than a " ^ "control — so it carries no `for` — and the status message is detached, sitting below the " ^ "group because there is no single control's edge for it to sit against. The box is inline-flex " ^ "stretched to a step of the shared size scale, so its children fill the height without being " ^ "told the size.")
+    [ ex "an adornment belongs to the group's surface, not inside it — note the single shared border"
+        (Astryx.Input_group.view
+           ~id:"showcase-group-amount"
+           ~label:"Amount"
+           ~size:Astryx.Input_group.Md
+           ~children:
+             [ Astryx.Input_group_text.view ~children:[ Vdom.Node.text "USD" ] ()
+             ; input "showcase-group-amount-input" "1,250.00"
+             ]
+           ())
+    ; ex "a prefix, a description, and a detached status message"
+        (Astryx.Input_group.view
+           ~id:"showcase-group-site"
+           ~label:"Site"
+           ~description:"Where the export is published."
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Success; message = Some "Reachable." }
+           ~size:Astryx.Input_group.Sm
+           ~children:
+             [ Astryx.Input_group_text.view ~children:[ Vdom.Node.text "https://" ] ()
+             ; input "showcase-group-site-input" "example.com"
+             ]
+           ())
+    ; ex "disabled — the whole group dims from one attribute on one box"
+        (Astryx.Input_group.view
+           ~id:"showcase-group-locked"
+           ~label:"Locked"
+           ~is_disabled:true
+           ~size:Astryx.Input_group.Lg
+           ~children:[ input "showcase-group-locked-input" "read only" ] ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2813,6 +2863,7 @@ let specs =
   ; s_kbd ()
   ; s_button_group ()
   ; s_timer ()
+  ; s_input_group ()
   ]
 ;;
 
@@ -2857,7 +2908,7 @@ let nav_items =
   ; "dialog-header", "DialogHeader"
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
-  ; "timer", "Timer"
+  ; "timer", "Timer"; "input-group", "InputGroup"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

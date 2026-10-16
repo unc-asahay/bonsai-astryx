@@ -1711,3 +1711,86 @@ mounted"* — which exists because a page that fails to render must never be mis
 
 Transcript: `docs/verification/sweep-m19a.txt`.
 
+## Gate 34 — InputGroup (M20): a group of controls that reads as one field
+
+Coverage moves **40 → 41 of 103**.
+
+### The label names the group, and that is a different thing from naming a control
+
+A group differs from every other field in this port in one way that shows up in the markup: there is no
+single control for the label to point at. So the label's `for` is omitted — which `Field_label` was already
+built to do through `is_group_label`, a parameter that existed before this milestone because a prior one
+had put it there — and the status message is **`Detached`**, sitting below the group, because an attached
+message has a control's edge to sit against and a group has none.
+
+The assertion that carries the claim:
+
+> a group's label is a **`<span>`**, not a `<label>`, and carries no `for`.
+
+The first version of that check demanded a `<label>` with no `for` — and the port correctly refused to emit
+one, because a `<label>` whose only purpose is to point at a control names nothing when there is no such
+control. The gate was right and the check was wrong, which is the useful kind of failure.
+
+### The size reaches the children through the box, not through a message
+
+Upstream threads the group's size to its children via `SizeProvider` — a React context. Here there is no
+context to thread it through, because the children are built by the caller before the group sees them (the
+same shape as the connected look in `Button_group`). So the group is `inline-flex` stretched to a step of
+the shared size scale, and a member takes its height from the box.
+
+That is a CSS outcome, so it is a browser check, and it is measured rather than assumed:
+
+| Check | Evidence (real Chromium) |
+| --- | --- |
+| The child fills the box rather than choosing its own height | child height **32** = group height **32** (the md step) |
+| …and from the other end, at another size | the lg disabled group's child fills **36** |
+| The shared edge is single | the adornment's right edge meets the input's left edge within **1px** — they overlap by one border width |
+| Only the group's outer corners are round | adornment start radius **> 0**, the input's start radius **= 0** |
+| An adornment does not stretch | `flex-grow: 0` — it is sized by its text |
+| A disabled group dims as a whole | one `opacity: 0.5` on the box, not one per member |
+
+One of those numbers was wrong on the first run — I asserted 28 (the fixture's `sm` group) against the
+demo's `md` group. The *claim* held in both places (child height = box height); only my expected value was
+carried over from the wrong group.
+
+### What the `.ts` file I didn't count turned out to contain
+
+The measurement that chose this milestone counted `.tsx` files and found "341 lines, two files, nothing
+shared but `themeProps`". There is also an `InputGroup/groupStyles.ts` (85 lines, a `.ts`, so the metric
+missed it) and it holds the rules that make the group read as one box — which is to say, the whole reason
+the component exists:
+
+- every direct child takes `flex: 1; min-width: 0; height: 100%`, gives up its inner corners, and pulls left
+  by one `border-width` so the shared edge is one border rather than two touching ones;
+- the trailing corner uses `:has(~ *:not([popover]):not(template):not(dialog))` rather than `:last-child`;
+- and a focused member gets `z-index: 2`, so the next member's overlapping border cannot cover its focus
+  ring.
+
+That third rule is the one nobody would guess from the outside, and the middle one is the same insight the
+overlay family produced in M16: a popover child is not a visual member of the thing it is a child of.
+
+### The build traps, both recorded in the source
+
+- **Core defines a module named `Field`.** After `open! Core`, a sibling module's own `Field` refers to
+  Core's, and the file would fail to compile against it. `text_area.ml` and `radio_list.ml` already document
+  the fix — `module Field_ = Field` before the opens — and `input_group.ml` now does the same.
+- **`Vdom.Attr.class_` is variadic strings; `Bonsai_web.Attr.class_` takes a list.** This is the *opposite*
+  of the lesson an earlier milestone recorded, and both are true because they are two different functions.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **428 / 0** |
+| Real-browser checks (Chromium, live showcase) | **237 / 237** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **41 of 103** ported, 62 not |
+| Showcase | 44 sections, 270 examples |
+| MCP layer | every ported component truthfully reachable |
+
+`InputGroupText` is registered as infrastructure rather than as one of the 103 — it is a rendered component
+the appearance contract should account for, but not part of the coverage denominator. `ScrollableArea` was
+reconnoitred and deliberately not started: it is a five-module subsystem of about 1,330 lines, recorded in
+the roadmap as a planned job rather than attempted at the end of a session.
+
