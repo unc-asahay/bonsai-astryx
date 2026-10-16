@@ -251,9 +251,10 @@ pillars below.
   `CheckboxInput` and `Switch`. That path is also where `Switch` will need the canceled click
   `CheckboxInput` already has — the seam is commented where it goes.
 
-Deliberately *not* first: the overlay layer (`Layer`, `Dialog`, `Popover`, `BottomSheet` — class C,
-portal-driven, 2.4k–6.6k lines each). It is the largest unblocker left in the registry, and it is a
-pillar of its own rather than a way to close this one. Likewise `Table` (5,007, class B),
+Next: the overlay pillar (`Layer`, then `Tooltip`, `Dialog`, `Popover`, `BottomSheet`) — class C,
+portal-driven, 2.4k–6.6k lines each, and much more than a way to close this one. It is the largest
+unblock in the registry: `Tooltip` waits on it, so do the field-side deferrals above, and so do
+`Selector`, `DateInput`'s calendar and `Combobox`. Likewise `Table` (5,007, class B),
 `SideNav`/`TopNav` (6,334/5,238, class B) and `Markdown` (7,754, class B): each is self-contained and
 each is a larger single sitting than anything above.
 
