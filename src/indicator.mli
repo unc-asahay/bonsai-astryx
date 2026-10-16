@@ -27,6 +27,14 @@ type size =
   | Sm
   | Md
 
+val state_string : state -> string
+(** The state as it appears in [data-astryx-state]. Exported because a control that composes an
+    indicator reports the same state on its own element, and two spellings of "indeterminate" would
+    be one too many. *)
+
+val size_string : size -> string
+(** The size as it appears in [data-astryx-size], for the same reason. *)
+
 val view
   :  kind:kind
   -> state:state

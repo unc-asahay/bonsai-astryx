@@ -162,7 +162,16 @@ indeterminate box draws a bar rather than a tick. The gate's first run caught a 
 (an `Icon` that already sets `aria-hidden` being handed a second one); it was a Vdom warning, not a
 failed assertion, and that is exactly why the console-error check exists.
 
-Still open here: `CheckboxInput` and `Switch` (the two components that exercise Field's detached
+`CheckboxInput` followed — the first control whose label is a row partner rather than a heading,
+which is what `FieldLabel` was extracted for, and the first with a state that is not a value. Three
+things had to be right at once: `checked` and `indeterminate` are DOM *properties* (an attribute
+looks correct on the first paint and never moves again); there is deliberately no
+`aria-checked="mixed"`, asserted as an absence in both gates; and a click the application refuses has
+to be *canceled*, not ignored — React restores a controlled input after every event and Vdom does
+not, so the read-only example visibly flipped while the application still said unchecked. The
+real-browser gate caught that one, and only it could have: jsdom never clicks.
+
+Still open here: `Switch` (the last of the two components that exercise Field's detached
 placement, and the reason that case exists at all) — and, deferred with reasons, upstream TextArea's
 loading spinner, clear button and auto-focus; FieldLabel's `labelTooltip` and its clickable
 description; `FormLayout`'s `defaultOptionality`, which decides whether a marker shows at all; and

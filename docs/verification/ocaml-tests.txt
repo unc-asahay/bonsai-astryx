@@ -295,5 +295,28 @@ Indicator
   ok   an unchecked bare check mark renders nothing at all
   ok   a checked bare check mark is the port's own icon, marked decorative
 
-279 checks, 0 failure(s)
+CheckboxInput
+  ok   a checked box has the checked property
+  ok   an unchecked box does not
+  ok   the checked property is not the checked attribute
+  ok   an indeterminate box has the indeterminate property
+  ok   and it is not checked at the same time
+  ok   an indeterminate box carries no indeterminate attribute
+  ok   and no aria-checked, deliberately — the native property is authoritative
+  ok   the label is a real <label for> the input
+  ok   the label names the control
+  ok   a description is linked, not nested
+  ok   an error status is linked and the input is invalid
+  ok   a warning status that has no message renders nothing below the row
+  ok   a disabled box is disabled
+  ok   and it is not a hover scope
+  ok   an enabled box is a hover scope
+  ok   a read-only box says so
+  ok   a hidden label is clipped rather than removed
+  ok   required is said once
+  ok   the box's own state is on the element
+  ok   the indicator draws a bar for the mixed state, not a tick
+  ok   and a tick for the checked one
+
+300 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

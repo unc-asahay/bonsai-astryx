@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 29,
-    "unported": 74,
+    "ported": 30,
+    "unported": 73,
     "total": 103,
     "documented": 103
   },
@@ -46,6 +46,12 @@
       "module": "Astryx.Center",
       "file": "src/center.ml",
       "milestone": "M2"
+    },
+    {
+      "name": "CheckboxInput",
+      "module": "Astryx.Checkbox_input",
+      "file": "src/checkbox_input.ml",
+      "milestone": "M12"
     },
     {
       "name": "Citation",
@@ -198,7 +204,6 @@
     "Calendar",
     "Carousel",
     "Chat",
-    "CheckboxInput",
     "CheckboxList",
     "ClickableCard",
     "CodeBlock",

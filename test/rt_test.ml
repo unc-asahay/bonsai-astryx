@@ -987,3 +987,73 @@ let () =
   in
   mount "indicator-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- CheckboxInput (M12) *)
+
+let checkbox_input_static_component (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : Checkbox_input.value) -> Effect.Many []) in
+  (* The control is a tree, so the examples have to be joined rather than nested — a plain node
+     cannot hold a Bonsai.t. *)
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let box ?is_disabled ?is_read_only ?is_label_hidden ?is_optional ?is_required ?description
+        ?description_id ?status ?size ~label ~id value
+    =
+    Checkbox_input.view
+      ?is_disabled
+      ?is_read_only
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?description
+      ?description_id
+      ?status
+      ?size
+      ~label
+      ~id
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let boxes =
+    [ box ~label:"Selected" ~id:"rt-cb-on" Checkbox_input.Checked
+       ; box ~label:"Not selected" ~id:"rt-cb-off" Checkbox_input.Unchecked
+       ; box ~label:"Partly selected" ~id:"rt-cb-mixed" Checkbox_input.Indeterminate
+       ; box
+           ~label:"With a description"
+           ~id:"rt-cb-described"
+           ~description:"The notes are short."
+           ~description_id:"rt-cb-described-desc"
+           Checkbox_input.Unchecked
+       ; box
+           ~label:"In error"
+           ~id:"rt-cb-error"
+           ~status:
+             { Input_types.type_ = Input_types.Error; message = Some "Read them first." }
+           Checkbox_input.Unchecked
+       ; box
+           ~label:"Warnings only"
+           ~id:"rt-cb-warning"
+           ~status:{ Input_types.type_ = Input_types.Warning; message = None }
+           Checkbox_input.Unchecked
+       ; box ~label:"Disabled" ~id:"rt-cb-disabled" ~is_disabled:true Checkbox_input.Checked
+       ; box ~label:"Read only" ~id:"rt-cb-readonly" ~is_read_only:true Checkbox_input.Unchecked
+       ; box ~label:"Hidden label" ~id:"rt-cb-hidden" ~is_label_hidden:true Checkbox_input.Checked
+       ; box ~label:"Required" ~id:"rt-cb-required" ~is_required:true Checkbox_input.Unchecked
+    ; box ~label:"Optional" ~id:"rt-cb-optional" ~is_optional:true Checkbox_input.Unchecked
+    ]
+  in
+  Bonsai.map (join_all boxes) ~f:(fun boxes -> Vdom.Node.div boxes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      checkbox_input_static_component
+  in
+  mount "checkbox-static" (Bonsai_web_test.Handle.last_result handle)
+;;

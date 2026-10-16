@@ -1275,3 +1275,89 @@
 }
 
 .astryx-indicator[data-astryx-size="md"] .astryx-indicator__dot { width: 10px; height: 10px; }
+
+/* ---------------------------------------------------------------------- CheckboxInput */
+
+/* A checkbox row: the control and its label are siblings, because a checkbox's label is a row
+   partner rather than a heading. The native input is transparent and laid over the box, so the
+   whole box is the hit target and the browser's own click/keyboard/Space behaviour is what runs —
+   the visual is drawn by the indicator underneath, which is the only thing that can shape a ring to
+   match it. */
+
+.astryx-checkbox-input {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+
+.astryx-checkbox-input__container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.astryx-checkbox-input__container--label-hidden { align-items: center; }
+
+.astryx-checkbox-input__control {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.astryx-checkbox-input__input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.astryx-checkbox-input__input:disabled { cursor: default; }
+
+/* The ring goes on the indicator, not on the input: the input is invisible, so an outline on it
+   would be drawn around a box nobody can see. The input precedes the slot, so a sibling selector
+   reaches it — upstream uses a ref-driven hook for the same effect. */
+.astryx-checkbox-input__input:focus-visible
+  + .astryx-checkbox-input__indicator-slot
+  .astryx-indicator {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* display: contents keeps the slot out of layout entirely, so the indicator is positioned by the
+   control box rather than by a wrapper that is only there to be a selector target. */
+.astryx-checkbox-input__indicator-slot { display: contents; }
+
+.astryx-checkbox-input__label-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding-top: 1px;
+}
+
+/* ---------------------------------------------------- showcase layout for the checkbox rows */
+
+.showcase-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  align-items: flex-start;
+}
+
+.showcase-checkbox-children {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding-left: var(--spacing-6);
+}
+
+#showcase-checkbox-live-state,
+#showcase-checkbox-parent-state {
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}

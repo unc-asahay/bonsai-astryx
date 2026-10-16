@@ -237,7 +237,7 @@ if (mode === "showcase") {
   ];
 
   console.log("\nshowcase sections");
-  check("30 sections", sections.length === 30, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("31 sections", sections.length === 31, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -253,11 +253,11 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
+    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("200 examples across the page", totalExamples === 200, `got ${totalExamples}`);
+  check("210 examples across the page", totalExamples === 210, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("30 nav links", nav.length === 30, `got ${nav.length}`);
+  check("31 nav links", nav.length === 31, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -896,6 +896,92 @@ if (mode === "showcase") {
       absences.on === 2, JSON.stringify(absences));
   }
 
+  console.log("\ncheckbox (real engine)");
+  {
+    const state = (id) =>
+      page.evaluate((id) => {
+        const el = document.getElementById(id);
+        return {checked: el.checked, indeterminate: el.indeterminate, disabled: el.disabled};
+      }, id);
+
+    // The round trip: a real click changes the application's value, and the DOM's *property* has to
+    // follow it back. jsdom cannot test this — it has no click-to-toggle for a checkbox.
+    check("the live box starts unchecked", (await state("showcase-checkbox-live")).checked === false);
+    await page.click("#showcase-checkbox-live");
+    await page.waitForTimeout(200);
+    const afterClick = await state("showcase-checkbox-live");
+    const readout = ((await page.textContent("#showcase-checkbox-live-state")) || "").trim();
+    check("a real click checks it, and the property follows the value",
+      afterClick.checked === true, JSON.stringify(afterClick));
+    check("and the readout agrees", readout === "this box: checked", readout);
+    await page.click("#showcase-checkbox-live");
+    await page.waitForTimeout(200);
+    check("clicking it again unchecks it", (await state("showcase-checkbox-live")).checked === false);
+
+    // Space on a focused checkbox *is* a click in every browser. The port relies on that instead of
+    // a keydown handler, so this is what decides whether a keyboard user can use it at all.
+    await page.evaluate(() => document.getElementById("showcase-checkbox-live").focus());
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(200);
+    check("Space toggles it, because Space on a checkbox is a click",
+      (await state("showcase-checkbox-live")).checked === true);
+
+    // Clicking the *label* is the other half of a real <label for>: the browser forwards it.
+    await page.click('label[for="showcase-checkbox-live"]');
+    await page.waitForTimeout(200);
+    check("clicking the label toggles the box too",
+      (await state("showcase-checkbox-live")).checked === false);
+
+    // The group. A parent whose children disagree is the only producer of the third state.
+    const parentBefore = await state("showcase-checkbox-parent");
+    check("the parent starts indeterminate, with two of three children on",
+      parentBefore.indeterminate === true && parentBefore.checked === false,
+      JSON.stringify(parentBefore));
+    await page.click("#showcase-checkbox-child-2");
+    await page.waitForTimeout(200);
+    const parentAll = await state("showcase-checkbox-parent");
+    check("turning the last child on checks the parent and clears the mixed state",
+      parentAll.checked === true && parentAll.indeterminate === false, JSON.stringify(parentAll));
+    await page.click("#showcase-checkbox-child-2");
+    await page.waitForTimeout(200);
+    const parentMixed = await state("showcase-checkbox-parent");
+    const parentReadout = ((await page.textContent("#showcase-checkbox-parent-state")) || "").trim();
+    check("turning it back off makes the parent indeterminate again",
+      parentMixed.indeterminate === true && parentMixed.checked === false,
+      JSON.stringify(parentMixed));
+    check("and the readout is derived from the children, so it cannot drift",
+      parentReadout === "the parent: indeterminate", parentReadout);
+    check("a mixed box still carries no aria-checked, in a real engine",
+      (await page.evaluate(() =>
+        document.getElementById("showcase-checkbox-parent").getAttribute("aria-checked"),
+      )) === null);
+
+    // Clicking the parent sets all three, which is what the browser does with a half-selected one.
+    await page.click("#showcase-checkbox-parent");
+    await page.waitForTimeout(200);
+    const kids = await page.evaluate(() =>
+      ["showcase-checkbox-child-1", "showcase-checkbox-child-2", "showcase-checkbox-child-3"].map(
+        (id) => document.getElementById(id).checked,
+      ),
+    );
+    check("clicking the parent checks every child", kids.every((k) => k === true), JSON.stringify(kids));
+    check("and the parent's own box is checked rather than mixed",
+      (await state("showcase-checkbox-parent")).indeterminate === false);
+
+    // Read-only takes focus and refuses the click; disabled cannot be reached at all.
+    await page.click("#showcase-checkbox-readonly");
+    await page.waitForTimeout(150);
+    check("a read-only box refuses the click",
+      (await state("showcase-checkbox-readonly")).checked === false);
+    const disabled = await page.evaluate(() => {
+      const el = document.getElementById("showcase-checkbox-disabled");
+      el.click();
+      return {disabled: el.disabled, checked: el.checked};
+    });
+    check("a disabled box is disabled and does not move",
+      disabled.disabled === true && disabled.checked === true, JSON.stringify(disabled));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -908,11 +994,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 29 ported / 74 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["29", "74", "103"]),
+    "coverage stats are 30 ported / 73 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["30", "73", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 74 entries", cov.unported === 74, `got ${cov.unported}`);
+  check("unported list rendered 73 entries", cov.unported === 73, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

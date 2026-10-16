@@ -1091,6 +1091,70 @@ section("FieldLabel");
     !!checkOn && !!checkOn.querySelector("svg[aria-hidden='true']"));
 }
 
+// ---------------------------------------------------------------- CheckboxInput (M12)
+{
+  const input = (id) => document.querySelector(`#${id}`);
+  const box = (id) => document.querySelector(`#${id}`).closest(".astryx-checkbox-input");
+  section("CheckboxInput");
+
+  // checked and indeterminate are DOM *properties*, not attributes. The attribute only sets a
+  // checkbox's initial state, and there is no indeterminate attribute at all — an implementation
+  // that "renders" them as attributes looks right on the first paint and never updates after.
+  const on = input("rt-cb-on");
+  const off = input("rt-cb-off");
+  const mixed = input("rt-cb-mixed");
+  check("a checked box has the checked property", on.checked === true);
+  check("an unchecked box does not", off.checked === false);
+  check("the checked property is not the checked attribute",
+    on.hasAttribute("checked") === false && on.checked === true);
+  check("an indeterminate box has the indeterminate property", mixed.indeterminate === true);
+  check("and it is not checked at the same time", mixed.checked === false);
+  check("an indeterminate box carries no indeterminate attribute",
+    mixed.hasAttribute("indeterminate") === false);
+  // The deliberate omission: upstream dropped aria-checked="mixed" because the native property is
+  // the authoritative mixed state, and two sources of truth can disagree.
+  check("and no aria-checked, deliberately — the native property is authoritative",
+    mixed.getAttribute("aria-checked") === null);
+
+  check("the label is a real <label for> the input",
+    document.querySelector('label[for="rt-cb-on"]') !== null);
+  check("the label names the control", input("rt-cb-on").labels.length === 1);
+  const described = input("rt-cb-described");
+  check("a description is linked, not nested",
+    (described.getAttribute("aria-describedby") || "").includes("rt-cb-described-desc")
+      && document.querySelector('label[for="rt-cb-described"] #rt-cb-described-desc') === null,
+    described.getAttribute("aria-describedby"));
+  const errored = input("rt-cb-error");
+  check("an error status is linked and the input is invalid",
+    (errored.getAttribute("aria-describedby") || "").includes("rt-cb-error-status")
+      && errored.getAttribute("aria-invalid") === "true",
+    `${errored.getAttribute("aria-describedby")} / ${errored.getAttribute("aria-invalid")}`);
+  check("a warning status that has no message renders nothing below the row",
+    box("rt-cb-warning").querySelector(".astryx-status") === null
+      && input("rt-cb-warning").getAttribute("aria-invalid") === null);
+
+  check("a disabled box is disabled", input("rt-cb-disabled").disabled === true);
+  check("and it is not a hover scope", input("rt-cb-disabled")
+    .closest(".astryx-checkbox-input__container").classList.contains("astryx-indicator-scope") === false);
+  check("an enabled box is a hover scope", input("rt-cb-on")
+    .closest(".astryx-checkbox-input__container").classList.contains("astryx-indicator-scope") === true);
+  check("a read-only box says so", input("rt-cb-readonly").getAttribute("aria-readonly") === "true");
+  check("a hidden label is clipped rather than removed",
+    document.querySelector('label[for="rt-cb-hidden"]').classList.contains("astryx-visually-hidden"));
+  check("required is said once", /Required/.test(box("rt-cb-required").textContent)
+    && !/Required/.test(box("rt-cb-optional").textContent));
+
+  // The visual has to agree with the property, or the box lies about its own state.
+  check("the box's own state is on the element",
+    box("rt-cb-mixed").dataset.astryxState === "indeterminate"
+      && box("rt-cb-on").dataset.astryxState === "checked");
+  check("the indicator draws a bar for the mixed state, not a tick",
+    !!box("rt-cb-mixed").querySelector(".astryx-indicator__dash")
+      && !box("rt-cb-mixed").querySelector(".astryx-indicator__check"));
+  check("and a tick for the checked one",
+    !!box("rt-cb-on").querySelector(".astryx-indicator__check"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

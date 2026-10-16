@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **29 of 103** components.
+Ported: **30 of 103** components.
 
 ## Milestones
 
@@ -63,9 +63,10 @@ Ported: **29 of 103** components.
 | `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
 | `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
 | `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
+| `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
 
-## Not ported yet (74)
+## Not ported yet (73)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `FormLayout`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`
+`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `FormLayout`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`

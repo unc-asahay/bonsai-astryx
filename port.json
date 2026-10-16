@@ -312,6 +312,13 @@
       "milestone": "M12",
       "class": "A",
       "note": "one module, three kinds (checkbox, radio, bare check) \u2014 upstream's registry default, with the theme-override seam not ported yet"
+    },
+    {
+      "component": "CheckboxInput",
+      "module": "Astryx.Checkbox_input",
+      "file": "src/checkbox_input.ml",
+      "milestone": "M12",
+      "class": "B"
     }
   ]
 }

@@ -1393,6 +1393,223 @@ let s_indicator () =
     ]
 ;;
 
+(* ------------------------------------------------- checkbox (state) *)
+
+(* A checkbox is the first control in the port whose whole point is a round trip: the click changes
+   the application's value, and the DOM's *property* has to follow it back. So two of these are live,
+   and the browser gate drives them.
+
+   The group is the reason the third value exists. A parent whose children disagree is
+   indeterminate — that is the only way that state is ever produced, and it is not something styling
+   can fake. Clicking the parent sets all three, which is what the browser does natively with a
+   half-selected parent, and the parent's value is *derived* from the children rather than stored,
+   so its readout cannot drift from the boxes.
+
+   Every example here is a tree, because the control itself is one: [ex] wraps a node, so each
+   example's tree is mapped through [ex] and the resulting trees are joined back into the section. *)
+let checkbox_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let checked_of = function true -> Checkbox_input.Checked | false -> Checkbox_input.Unchecked in
+  let bool_of = function
+    | Checkbox_input.Checked -> true
+    | Checkbox_input.Unchecked | Checkbox_input.Indeterminate -> false
+  in
+  let as_value t = Bonsai.map t ~f:checked_of in
+  let as_change t = Bonsai.map t ~f:(fun set value -> set (bool_of value)) in
+  (* Bonsai has no variadic join, so a fixed list of trees is threaded through map2. *)
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let note id text = Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text text ] in
+  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-checkbox-row" ]) nodes in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let no_change =
+    Bonsai.return (fun (_ : Checkbox_input.value) -> Effect.Many [])
+  in
+  let state_text prefix value =
+    match value with
+    | Checkbox_input.Checked -> prefix ^ ": checked"
+    | Checkbox_input.Unchecked -> prefix ^ ": unchecked"
+    | Checkbox_input.Indeterminate -> prefix ^ ": indeterminate"
+  in
+  (* --- one live box, whose state is printed beside it --------------------- *)
+  let one, set_one = Bonsai.state false graph in
+  let live_one =
+    let control =
+      Checkbox_input.view
+        ~label:"Email me about changes"
+        ~id:"showcase-checkbox-live"
+        ~description:"One message per release, no more."
+        ~description_id:"showcase-checkbox-live-desc"
+        ~value:(as_value one)
+        ~on_change:(as_change set_one)
+        ()
+    in
+    let readout =
+      Bonsai.map one ~f:(fun one ->
+        note "showcase-checkbox-live-state" (state_text "this box" (checked_of one)))
+    in
+    Bonsai.map (join_all [ control; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  (* --- a parent and three children --------------------------------------- *)
+  let a, set_a = Bonsai.state true graph in
+  let b, set_b = Bonsai.state false graph in
+  let c, set_c = Bonsai.state true graph in
+  let parent_value =
+    Bonsai.map2
+      (Bonsai.map2 a b ~f:(fun a b -> a, b))
+      c
+      ~f:(fun (a, b) c ->
+      let on = List.count [ a; b; c ] ~f:Fn.id in
+      if on = 0 then Checkbox_input.Unchecked
+      else if on = 3 then Checkbox_input.Checked
+      else Checkbox_input.Indeterminate)
+  in
+  let parent_change =
+    Bonsai.map2
+      (Bonsai.map2 set_a set_b ~f:(fun sa sb -> sa, sb))
+      set_c
+      ~f:(fun (set_a, set_b) set_c value ->
+      let on = bool_of value in
+      Effect.Many [ set_a on; set_b on; set_c on ])
+  in
+  let child id label value set =
+    Checkbox_input.view
+      ~label
+      ~id
+      ~value:(as_value value)
+      ~on_change:(as_change set)
+      ()
+  in
+  let group =
+    let parent =
+      Checkbox_input.view
+        ~label:"Include in the release"
+        ~id:"showcase-checkbox-parent"
+        ~description:"Some of these are optional."
+        ~description_id:"showcase-checkbox-parent-desc"
+        ~value:parent_value
+        ~on_change:parent_change
+        ()
+    in
+    let children =
+      Bonsai.map
+        (join_all
+           [ child "showcase-checkbox-child-1" "The changelog" a set_a
+           ; child "showcase-checkbox-child-2" "The README" b set_b
+           ; child "showcase-checkbox-child-3" "The migration notes" c set_c
+           ])
+        ~f:(fun nodes ->
+        Vdom.Node.div
+          ~attrs:(Common.Attr.class_ [ "showcase-checkbox-children" ])
+          nodes)
+    in
+    let readout =
+      Bonsai.map parent_value ~f:(fun value ->
+        note "showcase-checkbox-parent-state" (state_text "the parent" value))
+    in
+    Bonsai.map (join_all [ parent; children; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let static value =
+    Bonsai.return value
+  in
+  let plain ?is_disabled ?is_read_only ?is_label_hidden ?is_optional ?is_required ~label ~id value =
+    Checkbox_input.view
+      ?is_disabled
+      ?is_read_only
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ~label
+      ~id
+      ~value:(static value)
+      ~on_change:no_change
+      ()
+  in
+  let examples =
+    [ ex_tree "a live checkbox: click it, and the property follows the value" live_one
+    ; ex_tree "a parent and its children: indeterminate is what a disagreement looks like" group
+    ; ex_tree "indeterminate on its own"
+        (plain ~label:"Partially selected" ~id:"showcase-checkbox-mixed"
+           Checkbox_input.Indeterminate)
+    ; ex_tree "checked and unchecked, the two ordinary states"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"Selected" ~id:"showcase-checkbox-on" Checkbox_input.Checked
+              ; plain ~label:"Not selected" ~id:"showcase-checkbox-off" Checkbox_input.Unchecked
+              ])
+           ~f:row)
+    ; ex_tree "disabled: dimmed, and it does not toggle"
+        (plain ~label:"Frozen" ~id:"showcase-checkbox-disabled" ~is_disabled:true
+           Checkbox_input.Checked)
+    ; ex_tree "read-only: it still takes focus and refuses the click"
+        (plain ~label:"Locked but reachable" ~id:"showcase-checkbox-readonly" ~is_read_only:true
+           Checkbox_input.Unchecked)
+    ; ex_tree "required, and optional"
+        (Bonsai.map
+           (join_all
+              [ plain ~label:"Accept the terms" ~id:"showcase-checkbox-required" ~is_required:true
+                  Checkbox_input.Unchecked
+              ; plain
+                  ~label:"Subscribe to the newsletter"
+                  ~id:"showcase-checkbox-optional"
+                  ~is_optional:true
+                  Checkbox_input.Unchecked
+              ])
+           ~f:row)
+    ; ex_tree "a description, and an error status below the row"
+        (Checkbox_input.view
+           ~label:"I have read the migration notes"
+           ~id:"showcase-checkbox-status"
+           ~description:"The notes are short."
+           ~description_id:"showcase-checkbox-status-desc"
+           ~status:
+             { Input_types.type_ = Input_types.Error
+             ; message = Some "You have to read them before continuing."
+             }
+           ~value:(static Checkbox_input.Unchecked)
+           ~on_change:no_change
+           ())
+    ; ex_tree "a hidden label still names the control"
+        (plain ~label:"Include diagnostics" ~id:"showcase-checkbox-hidden" ~is_label_hidden:true
+           Checkbox_input.Checked)
+    ; ex_tree "sm and md"
+        (Bonsai.map
+           (join_all
+              [ Checkbox_input.view
+                  ~label:"Small"
+                  ~id:"showcase-checkbox-sm"
+                  ~size:Indicator.Sm
+                  ~value:(static Checkbox_input.Checked)
+                  ~on_change:no_change
+                  ()
+              ; Checkbox_input.view
+                  ~label:"Medium"
+                  ~id:"showcase-checkbox-md"
+                  ~size:Indicator.Md
+                  ~value:(static Checkbox_input.Checked)
+                  ~on_change:no_change
+                  ()
+              ])
+           ~f:row)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"checkbox"
+      ~title:"CheckboxInput"
+      ~note:
+        "The label sits *beside* the control, which is why upstream composes this out of FieldLabel \
+         and FieldStatus rather than out of Field. The first two examples are live: click one, or \
+         tab to it and press Space. The group is the only thing that ever produces the indeterminate \
+         state — a parent whose children disagree — and clicking it sets all three, the way a \
+         browser does with a half-selected parent. Note what the third example does *not* have: an \
+         aria-checked=\"mixed\". The native indeterminate property is the authoritative mixed \
+         state, and a second source of truth can disagree with it."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1434,6 +1651,7 @@ let nav_items =
   ; "fieldstatus", "FieldStatus"
   ; "fieldlabel", "FieldLabel"
   ; "indicator", "Indicator"
+  ; "checkbox", "CheckboxInput"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -1465,22 +1683,23 @@ let nav () =
 
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
+  let checkbox_section = checkbox_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
-  let sections = Bonsai.map2 interactive_section dropdown_section ~f:(fun a b -> a, b) in
-  let sections = Bonsai.map2 sections field_section ~f:(fun (i, d) f -> i, d, f) in
-  Bonsai.map2
-    sections
-    text_area_section
-    ~f:(fun (interactive_section, dropdown_section, field_section) text_area_section ->
+  let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
+  let stateful =
+    pair
+      (pair interactive_section checkbox_section)
+      (pair dropdown_section field_section)
+  in
+  Bonsai.map2 stateful text_area_section ~f:(fun ((interactive, checkbox), (dropdown, field)) text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs
-           @ [ field_section; text_area_section; dropdown_section; interactive_section ])
+          (specs @ [ field; text_area; checkbox; dropdown; interactive ])
       ])
 ;;
 

@@ -690,6 +690,51 @@ it counts rather than what a list would claim.
 glyph, and the slot arrives with its first consumer; and the focus-ring / press-feedback hooks,
 which belong to the control that composes the indicator rather than to the indicator.
 
+
+## Gate 17 — CheckboxInput (M12, phase 2c)
+
+**What it covers.** `CheckboxInput` — the first control whose label is a *row partner* rather than a
+heading above it, which is why upstream composes it out of `FieldLabel` + `FieldStatus` instead of
+`Field`. It is also the first control with a third state that is not a value: `Indeterminate`.
+
+**Three things that are invisible until they are wrong.**
+
+- **`checked` and `indeterminate` are DOM properties.** Neither works as an attribute — `checked`
+  only seeds the initial state, and there is no `indeterminate` attribute at all — so a box built
+  that way looks right on the first paint and never changes again. The gates assert the *properties*
+  (`el.checked`, `el.indeterminate`) and also that the `checked` attribute is absent, so a passing
+  implementation cannot be the accidental kind.
+- **No `aria-checked="mixed"`, deliberately.** The native property is the authoritative mixed state
+  and a second source of truth can disagree with it; upstream dropped the ARIA state for that reason.
+  Both harnesses assert the attribute's **absence**, because adding it back would be a regression
+  that looks like kindness.
+- **A refused click has to be *canceled*, not merely ignored.** React restores a controlled input's
+  DOM value after every event; Vdom re-applies a property only when its value *changes*. A click the
+  application refuses — read-only, or a validator saying no — therefore left the browser's own toggle
+  sitting in the DOM with nothing scheduled to undo it: the read-only example visibly flipped while
+  the application still said unchecked. **The first browser run of this gate caught exactly that**,
+  in a real engine and only there, because jsdom never clicks. The fix is `preventDefault` on the
+  refused click: a checkbox's checkedness is set *before* the event is dispatched and reverted when
+  the event is canceled, so the revert is native and immediate.
+
+**What the live examples prove.** A real click round-trips — the box's property follows the
+application's value — Space on a focused box toggles it (the port relies on "Space *is* a click"
+rather than on a keydown handler), clicking the *label* toggles it (the `<label for>` wiring end to
+end), and a parent whose three children disagree is indeterminate, which is the only producer of that
+state: its value is derived from the children, so turning the last child on clears the mixed state,
+turning it back off restores it, the readout cannot drift from the boxes, and clicking the parent
+checks all three the way a browser does with a half-selected parent.
+
+**Coverage.** **30 / 73 / 103**, with an appearance page generated from the 16 boxes the section
+renders.
+
+**Totals at this gate:** 300 component checks, 128 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440, 27 appearance pages.
+
+**Deferred, deliberately:** `isBusy` and its spinner (there is no `Spinner` in the port yet),
+`changeAction` (a React form action), and the `disabledMessage` tooltip — the one upstream path where
+a disabled control stays focusable so that its reason can be reached.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -697,7 +742,7 @@ which belong to the control that composes the indicator rather than to the indic
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M12.** 29 of 103 components are ported; the other 74 have
+- **Anything below M12.** 30 of 103 components are ported; the other 73 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
   a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;

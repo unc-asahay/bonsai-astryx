@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   30 sections
+  ok   31 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   200 examples across the page
+  ok   210 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   30 nav links
+  ok   31 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -145,15 +145,32 @@ indicator marks (real engine)
   ok   an unchecked bare check mark renders nothing at all — not even an empty box
   ok   while its checked and disabled-checked siblings are on the page
 
+checkbox (real engine)
+  ok   the live box starts unchecked
+  ok   a real click checks it, and the property follows the value
+  ok   and the readout agrees
+  ok   clicking it again unchecks it
+  ok   Space toggles it, because Space on a checkbox is a click
+  ok   clicking the label toggles the box too
+  ok   the parent starts indeterminate, with two of three children on
+  ok   turning the last child on checks the parent and clears the mixed state
+  ok   turning it back off makes the parent indeterminate again
+  ok   and the readout is derived from the children, so it cannot drift
+  ok   a mixed box still carries no aria-checked, in a real engine
+  ok   clicking the parent checks every child
+  ok   and the parent's own box is checked rather than mixed
+  ok   a read-only box refuses the click
+  ok   a disabled box is disabled and does not move
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 29 ported / 74 not / 103 total
-  ok   unported list rendered 74 entries
+  ok   coverage stats are 30 ported / 73 not / 103 total
+  ok   unported list rendered 73 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-113/113 checks passed, 0 failure(s)
+128/128 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
