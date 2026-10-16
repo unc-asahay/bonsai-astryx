@@ -519,6 +519,77 @@ app mounted in Chromium"* check, from a page that had gone blank.
 is what M18 was for.
 
 
+### Recon on what is next, measured — because file sizes mislead four times
+
+The first version of this section claimed "the cheap wins are spent" and named `ScrollableArea` a quick win.
+Both were wrong, and the way they were wrong is worth keeping.
+
+Each time, the *main file's* line count described the container and not the job:
+
+| Component | main file | what the job actually is |
+| --- | --- | --- |
+| `Breadcrumbs` | 167 | `BreadcrumbItem` beside it is **689** — the container is thin because the work is next door |
+| `ScrollableArea` | 260 | `useScrollableArea` (493) + geometry (155) + resize observer (142) + keyboard delegation (233) + owner registry (47) ≈ **1,330** |
+| `ClickableCard` | 401 | a card wrapper *plus* the press-feedback pillar (`usePressFeedback`, the interaction overlay) that `SelectableCard` and `Thumbnail` also stand on |
+| `Table` | 301 | the roadmap's own pillar, and the main file is the smallest part of it |
+
+So the honest planning metric is **the component's whole directory plus every `hooks/` and `utils/` module it
+pulls in from outside it**. Measured that way, the remaining 63 sort like this (smallest first):
+
+```
+ tsx lines  files  component          shared machinery pulled in from outside
+       183      1  MoreMenu           —            (blocked: see below)
+       260      1  ScrollableArea     hooks/useScrollableArea + 4 more
+       341      2  InputGroup         utils/themeProps only
+       395      1  Toolbar            hooks/useListFocus, useKeyboardHint
+       401      1  ClickableCard      hooks/usePressFeedback (a pillar)
+       411      1  OverflowList       hooks/useOverflow, useMergedRefs
+       426      2  AvatarGroup        hooks/useListFocus, useMergedRefs
+       463      1  SelectableCard     hooks/useClickableContainer, usePressFeedback
+       508      1  Outline            hooks/useIsomorphicLayoutEffect, useListFocus
+       557      3  MetadataList       utils/themeProps only
+       586      2  SegmentedControl   hooks/useKeyboardHint, useListFocus
+       609      2  ToggleButton       utils/mergeProps, themeProps, types
+       ...                    (the pillars: TopNav 3,030 · PowerSearch 3,093 · DateTimeInput 4,222 ·
+                               DateInput 4,608 · Chat 6,184)
+```
+
+Two things fall out of that table and neither was guessable from the sizes I first used:
+
+- **`InputGroup` (341, two files, nothing shared but `themeProps`) is the cheapest honest next step** — it is
+  a layout wrapper with no mechanism of its own and no subsystem behind it.
+- **`Toolbar` is the second**, and for a specific reason: the machinery it pulls in, `useListFocus`, *already
+  exists in this port* — `ButtonGroup` implemented the APG roving tabindex in M17. Toolbar is largely a
+  consumer of something already proven, which is the shape that made Popover and Timer small.
+- **`MoreMenu` (183, one file, nothing shared) stays blocked** on `DropdownMenu`'s surface anyway: the port's
+  `DropdownMenu` takes a trigger *label* and owns its open state, while MoreMenu forwards a button config, a
+  placement and a *controlled* `isMenuOpen`.
+
+`BottomSheet` (6.6k) and `Chat` (12.9k) remain multi-milestone jobs, to be planned as such rather than
+started at the end of a session. The next milestone should be chosen as *which mechanism to build next*,
+with its first consumer as the component — the arrangement that made Popover small.
+
+### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
+
+One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
+ISO 8601 duration in `datetime` and the human reading as its text, and past an hour the elapsed text drops
+its seconds — at which point the duration follows the *text* rather than the clock. The showcase renders two
+timers from one start time to make the difference measurable rather than argued.
+
+"Nothing re-renders" turned out to be checkable: the browser gate holds the DOM node across a second and
+checks it is still the same node, because a re-render would have replaced it.
+
+**The discovery of this milestone is a platform one and it took the whole page down:** under js_of_ocaml an
+`int` is 32 bits, so milliseconds since 1970 do not fit in one and converting raises `Invalid_argument`.
+Core's `Time_ns` refuses on this target for the same reason. A JS `number` is a double and an OCaml `float`
+is a double, so `start_time` and the internal clock are floats — the faithful type on both sides rather than
+a workaround — while durations within the component stay ints. What caught it was the browser gate's *"the
+app mounted in Chromium"* check, from a page that had gone blank.
+
+**Next:** `BottomSheet` and `DropdownMenu` phase 2 — both now consumers of mechanisms that are proven, which
+is what M18 was for.
+
+
 ### Recon on what is next, so it is not re-guessed from file sizes
 
 Sizes mislead, and three of them misled here:
