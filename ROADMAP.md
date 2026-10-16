@@ -519,6 +519,27 @@ visual member, the same insight the overlay family produced in M16.
 
 **Correction to the measurement below:** it counted `.tsx` files. Count `.ts` as well.
 
+### Toolbar, reconnoitred before it is started
+
+Recorded so the next session can begin at once, and because one line of the measurement above needs
+correcting:
+
+- **`useKeyboardHint` is 337 lines in a `.tsx`** — a real mechanism, and new to this port. `.tsx`, not `.ts`,
+  which is why a `hooks/useKeyboardHint.ts` lookup finds nothing and why the "second cheapest" reading of it
+  was optimistic. What it does — a hint that surfaces a control's keyboard shortcut — may itself be a named
+  divergence rather than a port; that is a decision to make *before* writing Toolbar, not during it.
+- **The measurement's claim that "the machinery Toolbar needs already exists" is half true, and the half that
+  is false matters.** The *behaviour* exists: `button_group.ml` implements the APG roving tabindex and proves
+  it in the browser. The *module* does not — the port has no `List_focus` to import, because ButtonGroup was
+  its first and only consumer and extraction with no second caller was correctly refused at the time.
+  Toolbar is that second caller, so this milestone is really **"extract the roving-focus mechanism, with
+  Toolbar as its first consumer"** — the arrangement that made Popover small, and the first time in this port
+  that a mechanism gets extracted because a second consumer appeared rather than in anticipation of one.
+- The rest is composition, and it is already here: `Section` is ported, and the slot layout
+  (`startContent` / `centerContent` / `endContent`, `orientation`, `gap`, `dividers`) is CSS over a flex or
+  grid box. `SizeProvider` is the same named divergence as `InputGroup`'s — the caller builds the children,
+  the box carries the size.
+
 ### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
 
 One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
