@@ -1,6 +1,9 @@
 # Build the library and run the DOM/accessibility gate.
 #
-# NOTE: this workflow has not been executed on GitHub yet. The Dune/opam half is
+# NOTE: the branch trigger lists both `main` and `master`: this repository's default
+# branch is `master`, and a trigger naming only `main` means a push runs nothing at all.
+#
+# NOTE: this workflow had never been executed on GitHub when it was first pushed. The Dune/opam half is
 # the part most likely to need adjustment, because the Jane Street preview
 # packages (`v0.18~preview.*`) require their opam repository and an OCaml version
 # that predates `effect` becoming a reserved keyword — 5.2.1, not 5.3. See
@@ -13,7 +16,7 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
   workflow_dispatch:
 
