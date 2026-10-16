@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Card` (`src/card.ml`, M1)
-- rendered instances in the demo: 1
-- classes: `astryx-card`, `astryx-card--elevation-low`, `astryx-card--padded`
+- rendered instances in the demo: 12
+- classes: `astryx-card`, `astryx-card--blue`, `astryx-card--elevation-high`, `astryx-card--elevation-med`, `astryx-card--green`, `astryx-card--muted`, `astryx-card--padded`, `astryx-card--red`, `astryx-card--transparent`
 
 ## other
 
@@ -30,13 +30,14 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `border` | `1px solid light-dark(#05365919, #F2F4F619)` _(from `var(--border-width) solid var(--color-border)`)_ | `.astryx-card` |
+| `border-color` | `transparent` | `.astryx-card--transparent` |
 | `border-radius` | `var(--_card-radius)` | `.astryx-card` |
 
 ## background
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `#FFFFFF (light) / #1F1F22 (dark)` _(from `var(--color-background-card)`)_ | `.astryx-card` |
+| `background-color` | `#FFFFFF (light) / #1F1F22 (dark)` _(from `var(--color-background-card)`)_<br>`transparent`<br>`#0536590C (light) / #1111127F (dark)` _(from `var(--color-background-muted)`)_<br>`#0171E333 (light) / #0171E333 (dark)` _(from `var(--color-background-blue)`)_<br>`#24BB5E33 (light) / #24BB5E33 (dark)` _(from `var(--color-background-green)`)_<br>`#E3193B33 (light) / #E3193B33 (dark)` _(from `var(--color-background-red)`)_ | `.astryx-card`<br>`.astryx-card--transparent`<br>`.astryx-card--muted`<br>`.astryx-card--blue`<br>`.astryx-card--green`<br>`.astryx-card--red` |
 
 ## colour
 
@@ -56,24 +57,29 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `box-shadow` | `0px 1px 1px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 8px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` _(from `var(--shadow-low)`)_ | `.astryx-card--elevation-low` |
+| `box-shadow` | `0px 1px 2px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 12px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` _(from `var(--shadow-med)`)_<br>`0px 2px 2px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 8px 24px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3))` _(from `var(--shadow-high)`)_ | `.astryx-card--elevation-med`<br>`.astryx-card--elevation-high` |
 
 ## tokens referenced
 
 | token | value |
 | --- | --- |
 | `--border-width` | `1px` |
+| `--color-background-blue` | `light-dark(#0171E333, #0171E333)` |
 | `--color-background-card` | `light-dark(#FFFFFF, #1F1F22)` |
+| `--color-background-green` | `light-dark(#24BB5E33, #24BB5E33)` |
+| `--color-background-muted` | `light-dark(#0536590C, #1111127F)` |
+| `--color-background-red` | `light-dark(#E3193B33, #E3193B33)` |
 | `--color-border` | `light-dark(#05365919, #F2F4F619)` |
 | `--color-text-primary` | `light-dark(#0A1317, #DFE2E5)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
 | `--radius-container` | `12px` |
-| `--shadow-low` | `0px 1px 1px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 8px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` |
+| `--shadow-high` | `0px 2px 2px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 8px 24px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3))` |
+| `--shadow-med` | `0px 1px 2px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 12px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` |
 | `--text-body-leading` | `1.4286` |
 | `--text-body-size` | `var(--font-size-base)` |
 
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Card in its documented states, on a neutral surface. Surface fills: #FFFFFF (light) / #1F1F22 (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark). Corner radius var(--_card-radius). Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Card in its documented states, on a neutral surface. Surface fills: #FFFFFF (light) / #1F1F22 (dark) / transparent / #0536590C (light) / #1111127F (dark) / #0171E333 (light) / #0171E333 (dark) / #24BB5E33 (light) / #24BB5E33 (dark) / #E3193B33 (light) / #E3193B33 (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark). Corner radius var(--_card-radius). Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

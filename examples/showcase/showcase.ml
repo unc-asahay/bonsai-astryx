@@ -427,11 +427,95 @@ let interactive (graph : Bonsai.graph) =
       ])
 ;;
 
+(* ------------------------------------------- HStack / VStack / AspectRatio *)
+
+(* HStack and VStack render through Stack upstream, so their examples are labelled
+   with the preset, not a separate component name. *)
+let s_hstack () =
+  section
+    ~id:"hstack"
+    ~title:"HStack"
+    ~note:
+      "A prop preset over Stack with direction pinned horizontal — upstream renders \
+       it through Stack, so it carries Stack's marker. hAlign drives the main axis, \
+       vAlign the cross axis; justify/align are the Tailwind-style aliases."
+    [ ex "gap: 2" (Astryx.HStack.view ~gap:S.S2 [ chip "a"; chip "b"; chip "c" ])
+    ; ex "hAlign: Center" (Astryx.HStack.view ~h_align:A.Center ~gap:S.S2 [ chip "a"; chip "b" ])
+    ; ex
+        "justify: Between"
+        (Astryx.HStack.view ~justify:A.Between ~gap:S.S2 [ chip "a"; chip "b"; chip "c" ])
+    ; ex "vAlign: End" (Astryx.HStack.view ~v_align:A.End ~gap:S.S2 [ chip "a"; chip "b" ])
+    ]
+;;
+
+let s_vstack () =
+  section
+    ~id:"vstack"
+    ~title:"VStack"
+    ~note:
+      "The mirror of HStack: direction pinned vertical, so vAlign drives the main \
+       axis and hAlign the cross axis. Everything else is Stack."
+    [ ex "gap: 2" (Astryx.VStack.view ~gap:S.S2 [ chip "a"; chip "b"; chip "c" ])
+    ; ex "vAlign: End" (Astryx.VStack.view ~v_align:A.End ~gap:S.S2 [ chip "a"; chip "b" ])
+    ; ex
+        "justify: Between"
+        (Astryx.VStack.view ~justify:A.Between ~gap:S.S1 [ chip "a"; chip "b"; chip "c" ])
+    ; ex "hAlign: Center" (Astryx.VStack.view ~h_align:A.Center ~gap:S.S2 [ chip "a"; chip "b" ])
+    ]
+;;
+
+let s_aspect_ratio () =
+  section
+    ~id:"aspectratio"
+    ~title:"AspectRatio"
+    ~note:
+      "Two elements, as upstream: the outer box holds the ratio and the clip, the \
+       inner box fills it. The ratio is emitted as a CSS custom property rather than \
+       an inline aspect-ratio, so a consumer rule can still override it — which is \
+       how a responsive ratio is set."
+    [ ex
+        "ratio: 16/9"
+        (Astryx.AspectRatio.view
+           ~ratio:(16. /. 9.)
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-fill" ] [ Vdom.Node.text "16 / 9" ] ])
+    ; ex
+        "ratio: 4/3"
+        (Astryx.AspectRatio.view
+           ~ratio:(4. /. 3.)
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-fill" ] [ Vdom.Node.text "4 / 3" ] ])
+    ; ex
+        "ratio: 1 (square)"
+        (Astryx.AspectRatio.view
+           ~ratio:1.0
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-fill" ] [ Vdom.Node.text "1 / 1" ] ])
+    ; ex
+        "shape: Ellipse, fit: Cover"
+        (Astryx.AspectRatio.view
+           ~ratio:1.0
+           ~shape:Astryx.AspectRatio.Ellipse
+           ~fit:Astryx.AspectRatio.Cover
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-fill" ] [] ])
+    ; ex
+        "fit: Contain"
+        (Astryx.AspectRatio.view
+           ~ratio:(16. /. 9.)
+           ~fit:Astryx.AspectRatio.Contain
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-fill" ] [] ])
+    ; ex
+        "fit: Center"
+        (Astryx.AspectRatio.view
+           ~ratio:(16. /. 9.)
+           ~fit:Astryx.AspectRatio.Center
+           [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ratio-chip" ] [ Vdom.Node.text "natural size" ] ])
+    ]
+;;
+
 (* ---------------------------------------------------------------- assembly *)
 
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
+  ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ]
 ;;
 
@@ -453,6 +537,9 @@ let nav_items =
   ; "section", "Section"
   ; "grid", "Grid"
   ; "visuallyhidden", "VisuallyHidden"
+  ; "hstack", "HStack"
+  ; "vstack", "VStack"
+  ; "aspectratio", "AspectRatio"
   ; "interactive", "Interactive"
   ]
 ;;

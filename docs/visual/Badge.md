@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Badge` (`src/badge.ml`, M1)
-- rendered instances in the demo: 5
-- classes: `astryx-badge`, `astryx-badge--error`, `astryx-badge--info`, `astryx-badge--neutral`, `astryx-badge--success`, `astryx-badge--warning`
+- rendered instances in the demo: 15
+- classes: `astryx-badge`, `astryx-badge--blue`, `astryx-badge--cyan`, `astryx-badge--error`, `astryx-badge--green`, `astryx-badge--info`, `astryx-badge--neutral`, `astryx-badge--orange`, `astryx-badge--pink`, `astryx-badge--purple`, `astryx-badge--red`, `astryx-badge--success`, `astryx-badge--teal`, `astryx-badge--warning`, `astryx-badge--yellow`
 
 ## layout
 
@@ -59,19 +59,28 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark)` _(from `var(--color-neutral)`)_<br>`#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_<br>`#E9AF08 (light) / #F2C00B (dark)` _(from `var(--color-warning)`)_<br>`#E3193B (light) / #F5394F (dark)` _(from `var(--color-error)`)_ | `.astryx-badge--neutral`<br>`.astryx-badge--info`<br>`.astryx-badge--success`<br>`.astryx-badge--warning`<br>`.astryx-badge--error` |
+| `background-color` | `rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark)` _(from `var(--color-neutral)`)_<br>`#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_<br>`#E9AF08 (light) / #F2C00B (dark)` _(from `var(--color-warning)`)_<br>`#E3193B (light) / #F5394F (dark)` _(from `var(--color-error)`)_<br>`#0171E333 (light) / #0171E333 (dark)` _(from `var(--color-background-blue)`)_<br>`#03A7D733 (light) / #03A7D733 (dark)` _(from `var(--color-background-cyan)`)_<br>`#24BB5E33 (light) / #24BB5E33 (dark)` _(from `var(--color-background-green)`)_<br>`#F2790233 (light) / #F2790233 (dark)` _(from `var(--color-background-orange)`)_<br>`#E638B333 (light) / #E638B333 (dark)` _(from `var(--color-background-pink)`)_<br>`#7952FF33 (light) / #7952FF33 (dark)` _(from `var(--color-background-purple)`)_<br>`#E3193B33 (light) / #E3193B33 (dark)` _(from `var(--color-background-red)`)_<br>`#0DB7AF33 (light) / #0DB7AF33 (dark)` _(from `var(--color-background-teal)`)_<br>`#E2A40033 (light) / #E2A40033 (dark)` _(from `var(--color-background-yellow)`)_ | `.astryx-badge--neutral`<br>`.astryx-badge--info`<br>`.astryx-badge--success`<br>`.astryx-badge--warning`<br>`.astryx-badge--error`<br>`.astryx-badge--blue`<br>`.astryx-badge--cyan`<br>`.astryx-badge--green`<br>`.astryx-badge--orange`<br>`.astryx-badge--pink`<br>`.astryx-badge--purple`<br>`.astryx-badge--red`<br>`.astryx-badge--teal`<br>`.astryx-badge--yellow` |
 
 ## colour
 
 | property | value | source class |
 | --- | --- | --- |
-| `color` | `#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-success)`)_<br>`#0A1317 (light) / #0A1317 (dark)` _(from `var(--color-on-warning)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-error)`)_ | `.astryx-badge--neutral`<br>`.astryx-badge--info`<br>`.astryx-badge--success`<br>`.astryx-badge--warning`<br>`.astryx-badge--error` |
+| `color` | `#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-success)`)_<br>`#0A1317 (light) / #0A1317 (dark)` _(from `var(--color-on-warning)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-error)`)_<br>`#042F97 (light) / #AFD7FF (dark)` _(from `var(--color-text-blue)`)_<br>`#014975 (light) / #A1EEF9 (dark)` _(from `var(--color-text-cyan)`)_<br>`#09441F (light) / #A5F690 (dark)` _(from `var(--color-text-green)`)_<br>`#6B2203 (light) / #FDB876 (dark)` _(from `var(--color-text-orange)`)_<br>`#650053 (light) / #FEADE3 (dark)` _(from `var(--color-text-pink)`)_<br>`#3E0697 (light) / #B3B0FE (dark)` _(from `var(--color-text-purple)`)_<br>`#7B0210 (light) / #FFB2B8 (dark)` _(from `var(--color-text-red)`)_<br>`#083943 (light) / #40DCCD (dark)` _(from `var(--color-text-teal)`)_<br>`#753F07 (light) / #FBCE03 (dark)` _(from `var(--color-text-yellow)`)_ | `.astryx-badge--neutral`<br>`.astryx-badge--info`<br>`.astryx-badge--success`<br>`.astryx-badge--warning`<br>`.astryx-badge--error`<br>`.astryx-badge--blue`<br>`.astryx-badge--cyan`<br>`.astryx-badge--green`<br>`.astryx-badge--orange`<br>`.astryx-badge--pink`<br>`.astryx-badge--purple`<br>`.astryx-badge--red`<br>`.astryx-badge--teal`<br>`.astryx-badge--yellow` |
 
 ## tokens referenced
 
 | token | value |
 | --- | --- |
 | `--color-accent` | `light-dark(#0064E0, #2694FE)` |
+| `--color-background-blue` | `light-dark(#0171E333, #0171E333)` |
+| `--color-background-cyan` | `light-dark(#03A7D733, #03A7D733)` |
+| `--color-background-green` | `light-dark(#24BB5E33, #24BB5E33)` |
+| `--color-background-orange` | `light-dark(#F2790233, #F2790233)` |
+| `--color-background-pink` | `light-dark(#E638B333, #E638B333)` |
+| `--color-background-purple` | `light-dark(#7952FF33, #7952FF33)` |
+| `--color-background-red` | `light-dark(#E3193B33, #E3193B33)` |
+| `--color-background-teal` | `light-dark(#0DB7AF33, #0DB7AF33)` |
+| `--color-background-yellow` | `light-dark(#E2A40033, #E2A40033)` |
 | `--color-error` | `light-dark(#E3193B, #F5394F)` |
 | `--color-neutral` | `light-dark(rgba(5, 54, 89, 0.1), rgba(223, 226, 229, 0.2))` |
 | `--color-on-accent` | `light-dark(#FFFFFF, #FFFFFF)` |
@@ -79,7 +88,16 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-on-success` | `light-dark(#FFFFFF, #FFFFFF)` |
 | `--color-on-warning` | `light-dark(#0A1317, #0A1317)` |
 | `--color-success` | `light-dark(#0D8626, #0D8626)` |
+| `--color-text-blue` | `light-dark(#042F97, #AFD7FF)` |
+| `--color-text-cyan` | `light-dark(#014975, #A1EEF9)` |
+| `--color-text-green` | `light-dark(#09441F, #A5F690)` |
+| `--color-text-orange` | `light-dark(#6B2203, #FDB876)` |
+| `--color-text-pink` | `light-dark(#650053, #FEADE3)` |
 | `--color-text-primary` | `light-dark(#0A1317, #DFE2E5)` |
+| `--color-text-purple` | `light-dark(#3E0697, #B3B0FE)` |
+| `--color-text-red` | `light-dark(#7B0210, #FFB2B8)` |
+| `--color-text-teal` | `light-dark(#083943, #40DCCD)` |
+| `--color-text-yellow` | `light-dark(#753F07, #FBCE03)` |
 | `--color-warning` | `light-dark(#E9AF08, #F2C00B)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
 | `--font-weight-medium` | `500` |
@@ -93,5 +111,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Badge in its documented states, on a neutral surface. Surface fills: rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark) / #0064E0 (light) / #2694FE (dark) / #0D8626 (light) / #0D8626 (dark) / #E9AF08 (light) / #F2C00B (dark) / #E3193B (light) / #F5394F (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark) / #FFFFFF (light) / #FFFFFF (dark) / #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #0A1317 (dark) / #FFFFFF (light) / #FFFFFF (dark). Corner radius 9999px. Type size 0.75rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Badge in its documented states, on a neutral surface. Surface fills: rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark) / #0064E0 (light) / #2694FE (dark) / #0D8626 (light) / #0D8626 (dark) / #E9AF08 (light) / #F2C00B (dark) / #E3193B (light) / #F5394F (dark) / #0171E333 (light) / #0171E333 (dark) / #03A7D733 (light) / #03A7D733 (dark) / #24BB5E33 (light) / #24BB5E33 (dark) / #F2790233 (light) / #F2790233 (dark) / #E638B333 (light) / #E638B333 (dark) / #7952FF33 (light) / #7952FF33 (dark) / #E3193B33 (light) / #E3193B33 (dark) / #0DB7AF33 (light) / #0DB7AF33 (dark) / #E2A40033 (light) / #E2A40033 (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark) / #FFFFFF (light) / #FFFFFF (dark) / #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #0A1317 (dark) / #FFFFFF (light) / #FFFFFF (dark) / #042F97 (light) / #AFD7FF (dark) / #014975 (light) / #A1EEF9 (dark) / #09441F (light) / #A5F690 (dark) / #6B2203 (light) / #FDB876 (dark) / #650053 (light) / #FEADE3 (dark) / #3E0697 (light) / #B3B0FE (dark) / #7B0210 (light) / #FFB2B8 (dark) / #083943 (light) / #40DCCD (dark) / #753F07 (light) / #FBCE03 (dark). Corner radius 9999px. Type size 0.75rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

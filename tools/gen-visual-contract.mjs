@@ -21,7 +21,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { mountDemo, mountedComponents, root } from "./visual/mount.mjs";
+import { mountDemo, mountedComponents, root, showcaseBundlePath } from "./visual/mount.mjs";
 
 const readJson = (p) => JSON.parse(readFileSync(resolve(root, p), "utf8"));
 const port = readJson("port.json");
@@ -196,7 +196,19 @@ function nas(x) {
 
 // ---------------------------------------------------------------- main
 
-const { document } = await mountDemo({ quiet: true });
+// Mount the SHOWCASE bundle by default: it renders every ported component, whereas
+// the demo page is a smaller composition — mounting the demo here would silently
+// leave the newest components out of the appearance contract. `--source demo`
+// switches back if a smaller page is wanted.
+const source = process.argv.includes("--source")
+  ? process.argv[process.argv.indexOf("--source") + 1]
+  : "showcase";
+const { document } = await mountDemo(
+  source === "demo"
+    ? { quiet: true }
+    : { quiet: true, waitMs: 700, bundle: showcaseBundlePath(), rootId: "astryx-showcase" },
+);
+console.log(`source: ${source} bundle\n`);
 const mounted = mountedComponents(document);
 
 // Group mounted instances by component, keeping the union of their classes.

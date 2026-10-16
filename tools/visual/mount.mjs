@@ -39,6 +39,12 @@ export const temporalPath = () =>
 
 export const bundlePath = () => resolve(root, "_build/default/examples/demo/demo.bc.js");
 
+/* The showcase bundle renders every ported component (the demo page is a smaller
+   composition). Tools that need the full set — the appearance contract — mount this
+   one instead. */
+export const showcaseBundlePath = () =>
+  resolve(root, "_build/default/examples/showcase/showcase.bc.js");
+
 export function assetsCss() {
   const assets = resolve(root, "assets");
   const order = ["tokens.css", "components.css", "layout.css"];
@@ -52,7 +58,12 @@ export function assetsCss() {
  * Boots the demo app in jsdom and returns the live window once it has mounted.
  * Throws (rather than exiting) so callers can decide how to report failure.
  */
-export async function mountDemo({ quiet = true, waitMs = 250 } = {}) {
+export async function mountDemo({
+  quiet = true,
+  waitMs = 250,
+  bundle = null,
+  rootId = "astryx-demo",
+} = {}) {
   const { JSDOM, VirtualConsole } = require(jsdomPath());
   const TemporalPolyfill = require(temporalPath());
 
@@ -66,7 +77,7 @@ export async function mountDemo({ quiet = true, waitMs = 250 } = {}) {
 
   const dom = new JSDOM(
     `<!DOCTYPE html><html><head><style>${assetsCss()}</style></head>` +
-      `<body><div id="astryx-demo"></div></body></html>`,
+      `<body><div id="${rootId}"></div></body></html>`,
     {
       runScripts: "outside-only",
       pretendToBeVisual: true,
@@ -94,11 +105,11 @@ export async function mountDemo({ quiet = true, waitMs = 250 } = {}) {
     },
   );
 
-  const bundle = bundlePath();
-  if (!existsSync(bundle)) throw new Error(`missing ${bundle} — run: dune build`);
+  const bundlePathToUse = bundle ?? bundlePath();
+  if (!existsSync(bundlePathToUse)) throw new Error(`missing ${bundlePathToUse} — run: dune build`);
 
   // ES modules are strict: no implicit globals. Everything goes through dom.window.
-  dom.window.eval(readFileSync(bundle, "utf8"));
+  dom.window.eval(readFileSync(bundlePathToUse, "utf8"));
   await new Promise((r) => setTimeout(r, waitMs));
 
   const document = dom.window.document;

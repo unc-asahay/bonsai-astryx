@@ -16,14 +16,15 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Button` (`src/button.ml`, M1)
-- rendered instances in the demo: 7
-- classes: `astryx-button`, `astryx-button--destructive`, `astryx-button--disabled`, `astryx-button--ghost`, `astryx-button--lg`, `astryx-button--loading`, `astryx-button--md`, `astryx-button--primary`, `astryx-button--secondary`
+- rendered instances in the demo: 15
+- classes: `astryx-button`, `astryx-button--destructive`, `astryx-button--disabled`, `astryx-button--elevation-low`, `astryx-button--ghost`, `astryx-button--icon-only`, `astryx-button--lg`, `astryx-button--loading`, `astryx-button--md`, `astryx-button--primary`, `astryx-button--secondary`, `astryx-button--sm`
 
 ## layout
 
 | property | value | source class |
 | --- | --- | --- |
 | `align-items` | `center` | `.astryx-button` |
+| `aspect-ratio` | `1 / 1` | `.astryx-button--icon-only` |
 | `display` | `inline-flex` | `.astryx-button` |
 | `gap` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-button` |
 | `justify-content` | `center` | `.astryx-button` |
@@ -35,7 +36,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `padding-block` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-button` |
-| `padding-inline` | `0.75rem` _(from `var(--spacing-3)`)_ | `.astryx-button` |
+| `padding-inline` | `0.75rem` _(from `var(--spacing-3)`)_<br>`0` | `.astryx-button`<br>`.astryx-button--icon-only` |
 
 ## borders
 
@@ -60,13 +61,14 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `cursor` | `pointer`<br>`default`<br>`progress` | `.astryx-button`<br>`.astryx-button--disabled`<br>`.astryx-button--loading` |
-| `height` | `32px` _(from `var(--size-element-md)`)_<br>`36px` _(from `var(--size-element-lg)`)_ | `.astryx-button--md`<br>`.astryx-button--lg` |
+| `height` | `28px` _(from `var(--size-element-sm)`)_<br>`32px` _(from `var(--size-element-md)`)_<br>`36px` _(from `var(--size-element-lg)`)_ | `.astryx-button--sm`<br>`.astryx-button--md`<br>`.astryx-button--lg` |
 | `max-width` | `100%` | `.astryx-button` |
 
 ## effects
 
 | property | value | source class |
 | --- | --- | --- |
+| `box-shadow` | `0px 1px 1px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 8px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` _(from `var(--shadow-low)`)_ | `.astryx-button--elevation-low` |
 | `opacity` | `0.5` | `.astryx-button--disabled` |
 | `transition-duration` | `175ms` _(from `var(--duration-fast)`)_ | `.astryx-button` |
 | `transition-property` | `background-color, color, box-shadow` | `.astryx-button` |
@@ -97,8 +99,10 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--duration-fast` | `175ms` |
 | `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
 | `--radius-element` | `8px` |
+| `--shadow-low` | `0px 1px 1px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), 0px 2px 8px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))` |
 | `--size-element-lg` | `36px` |
 | `--size-element-md` | `32px` |
+| `--size-element-sm` | `28px` |
 | `--spacing-2` | `0.5rem` |
 | `--spacing-3` | `0.75rem` |
 | `--text-label-leading` | `1.4286` |

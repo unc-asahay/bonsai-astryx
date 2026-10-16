@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Section` (`src/section.ml`, M2)
-- rendered instances in the demo: 1
-- classes: `astryx-section`, `astryx-section--divider-bottom`, `astryx-section--divider-top`, `astryx-section--muted`
+- rendered instances in the demo: 7
+- classes: `astryx-section`, `astryx-section--divider-bottom`, `astryx-section--divider-end`, `astryx-section--divider-start`, `astryx-section--divider-top`, `astryx-section--muted`, `astryx-section--section`, `astryx-section--transparent`
 
 ## layout
 
@@ -42,13 +42,15 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `#0536590C (light) / #1111127F (dark)` _(from `var(--color-background-muted)`)_ | `.astryx-section--muted` |
+| `background-color` | `#FFFFFF (light) / #1F1F22 (dark)` _(from `var(--color-background-surface)`)_<br>`transparent`<br>`#0536590C (light) / #1111127F (dark)` _(from `var(--color-background-muted)`)_ | `.astryx-section--section`<br>`.astryx-section--transparent`<br>`.astryx-section--muted` |
 
 ## borders
 
 | property | value | source class |
 | --- | --- | --- |
 | `border-bottom` | `1px solid light-dark(#05365919, #F2F4F619)` _(from `1px solid var(--color-border)`)_ | `.astryx-section--divider-bottom` |
+| `border-inline-end` | `1px solid light-dark(#05365919, #F2F4F619)` _(from `1px solid var(--color-border)`)_ | `.astryx-section--divider-end` |
+| `border-inline-start` | `1px solid light-dark(#05365919, #F2F4F619)` _(from `1px solid var(--color-border)`)_ | `.astryx-section--divider-start` |
 | `border-top` | `1px solid light-dark(#05365919, #F2F4F619)` _(from `1px solid var(--color-border)`)_ | `.astryx-section--divider-top` |
 
 ## tokens referenced
@@ -56,6 +58,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | token | value |
 | --- | --- |
 | `--color-background-muted` | `light-dark(#0536590C, #1111127F)` |
+| `--color-background-surface` | `light-dark(#FFFFFF, #1F1F22)` |
 | `--color-border` | `light-dark(#05365919, #F2F4F619)` |
 | `--color-text-primary` | `light-dark(#0A1317, #DFE2E5)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
@@ -63,5 +66,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Section in its documented states, on a neutral surface. Surface fills: #0536590C (light) / #1111127F (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark). System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Section in its documented states, on a neutral surface. Surface fills: #FFFFFF (light) / #1F1F22 (dark) / transparent / #0536590C (light) / #1111127F (dark). Content colours: #0A1317 (light) / #DFE2E5 (dark). System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

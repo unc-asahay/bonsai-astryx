@@ -20,6 +20,24 @@
       "name": "layout primitives",
       "status": "complete",
       "note": "Center, Section, Grid and VisuallyHidden — all Class A (no hooks, no measurement)."
+    },
+    {
+      "id": "M3",
+      "name": "appearance contract",
+      "status": "complete",
+      "note": "docs/visual/ — every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs)."
+    },
+    {
+      "id": "M4",
+      "name": "showcase site + real-browser gate",
+      "status": "complete",
+      "note": "site/ renders every ported component; tools/visual/verify-browser.mjs loads it in Chromium over HTTP and clicks a ported Button into Bonsai state. Cross-checked through opencli."
+    },
+    {
+      "id": "M5",
+      "name": "component tests in OCaml",
+      "status": "complete",
+      "note": "test/rt_test.ml builds each component in isolation and dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM. Also the milestone for the HStack/VStack/AspectRatio trio."
     }
   ],
   "infrastructure": [
@@ -39,6 +57,9 @@
     { "component": "Center", "module": "Astryx.Center", "file": "src/center.ml", "milestone": "M2", "class": "A" },
     { "component": "Section", "module": "Astryx.Section", "file": "src/section.ml", "milestone": "M2", "class": "A" },
     { "component": "Grid", "module": "Astryx.Grid", "file": "src/grid.ml", "milestone": "M2", "class": "A" },
-    { "component": "VisuallyHidden", "module": "Astryx.VisuallyHidden", "file": "src/visually_hidden.ml", "milestone": "M2", "class": "A" }
+    { "component": "VisuallyHidden", "module": "Astryx.VisuallyHidden", "file": "src/visually_hidden.ml", "milestone": "M2", "class": "A" },
+    { "component": "HStack", "module": "Astryx.HStack", "file": "src/hstack.ml", "milestone": "M5", "class": "A" },
+    { "component": "VStack", "module": "Astryx.VStack", "file": "src/vstack.ml", "milestone": "M5", "class": "A" },
+    { "component": "AspectRatio", "module": "Astryx.AspectRatio", "file": "src/aspect_ratio.ml", "milestone": "M5", "class": "A" }
   ]
 }

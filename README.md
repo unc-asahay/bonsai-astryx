@@ -43,15 +43,15 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
 | Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
 | Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
-| Component library (`src/`) | 🚧 13 of 103 ported (M1 + M2) | `dune build` |
+| Component library (`src/`) | 🚧 16 of 103 ported (M1 + M2 + M5) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
-| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 67 checks, 0 failures | `node test/run.mjs` |
+| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 81 checks, 0 failures | `node test/run.mjs` |
 | **Real-browser gate** (Chromium over HTTP, incl. a real click into Bonsai state) | ✅ 38 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
-| Showcase site (`site/`, all 13 ported components, 111 examples) | ✅ live | serve the repo root, open `/site/index.html` |
-| Coverage panel (ported vs not, from `port.json`) | ✅ 13 / 90 / 103 | `node tools/site/gen-coverage.mjs` |
+| Showcase site (`site/`, all 16 ported components, 125 examples) | ✅ live | serve the repo root, open `/site/index.html` |
+| Coverage panel (ported vs not, from `port.json`) | ✅ 16 / 87 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
-| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 13 pages | `node tools/gen-visual-contract.mjs` |
+| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 14 pages (HStack/VStack appear under Stack, which is what they render) | `node tools/gen-visual-contract.mjs` |
 | Upstream screenshot capture (`tools/visual/capture.mjs`) | ⏳ needs the upstream Storybook build | `node tools/visual/capture.mjs` |
 | Upstream-vs-port pixel parity | ⏳ not yet | — |
 | Published opam package | ⏳ not yet | — |

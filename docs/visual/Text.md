@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Text` (`src/text.ml`, M1)
-- rendered instances in the demo: 6
-- classes: `astryx-text`, `astryx-text--color-primary`, `astryx-text--color-secondary`, `astryx-text--type-body`, `astryx-text--type-label`, `astryx-text--type-supporting`
+- rendered instances in the demo: 43
+- classes: `astryx-text`, `astryx-text--color-accent`, `astryx-text--color-disabled`, `astryx-text--color-primary`, `astryx-text--color-secondary`, `astryx-text--strikethrough`, `astryx-text--tabular`, `astryx-text--type-body`, `astryx-text--type-code`, `astryx-text--type-display-1`, `astryx-text--type-label`, `astryx-text--type-large`, `astryx-text--type-supporting`, `astryx-text--weight-semibold`
 
 ## spacing
 
@@ -29,30 +29,45 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `font-family` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` _(from `var(--font-family-body)`)_ | `.astryx-text` |
-| `font-size` | `0.875rem` _(from `var(--text-body-size)`)_<br>`0.875rem` _(from `var(--text-body-size)`)_<br>`0.875rem` _(from `var(--text-label-size)`)_<br>`0.75rem` _(from `var(--text-supporting-size)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting` |
-| `font-weight` | `400` _(from `var(--text-body-weight)`)_<br>`400` _(from `var(--text-body-weight)`)_<br>`500` _(from `var(--text-label-weight)`)_<br>`400` _(from `var(--text-supporting-weight)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting` |
-| `line-height` | `1.4286` _(from `var(--text-body-leading)`)_<br>`1.4286` _(from `var(--text-body-leading)`)_<br>`1.4286` _(from `var(--text-label-leading)`)_<br>`1.6667` _(from `var(--text-supporting-leading)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting` |
+| `font-family` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` _(from `var(--font-family-body)`)_<br>`"SF Mono", Monaco, Consolas, monospace` _(from `var(--font-family-code)`)_ | `.astryx-text`<br>`.astryx-text--type-code` |
+| `font-size` | `0.875rem` _(from `var(--text-body-size)`)_<br>`0.875rem` _(from `var(--text-body-size)`)_<br>`1.0625rem` _(from `var(--text-large-size)`)_<br>`0.875rem` _(from `var(--text-label-size)`)_<br>`0.75rem` _(from `var(--text-supporting-size)`)_<br>`0.875rem` _(from `var(--text-code-size)`)_<br>`2.625rem` _(from `var(--text-display-1-size)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1` |
+| `font-variant-numeric` | `tabular-nums` | `.astryx-text--tabular` |
+| `font-weight` | `400` _(from `var(--text-body-weight)`)_<br>`400` _(from `var(--text-body-weight)`)_<br>`600` _(from `var(--text-large-weight)`)_<br>`500` _(from `var(--text-label-weight)`)_<br>`400` _(from `var(--text-supporting-weight)`)_<br>`400` _(from `var(--text-code-weight)`)_<br>`400` _(from `var(--text-display-1-weight)`)_<br>`600` _(from `var(--font-weight-semibold)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1`<br>`.astryx-text--weight-semibold` |
+| `line-height` | `1.4286` _(from `var(--text-body-leading)`)_<br>`1.4286` _(from `var(--text-body-leading)`)_<br>`1.4118` _(from `var(--text-large-leading)`)_<br>`1.4286` _(from `var(--text-label-leading)`)_<br>`1.6667` _(from `var(--text-supporting-leading)`)_<br>`1.4286` _(from `var(--text-code-leading)`)_<br>`1.2381` _(from `var(--text-display-1-leading)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1` |
+| `text-decoration` | `line-through` | `.astryx-text--strikethrough` |
 
 ## colour
 
 | property | value | source class |
 | --- | --- | --- |
-| `color` | `#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-text-secondary)`)_ | `.astryx-text`<br>`.astryx-text--color-primary`<br>`.astryx-text--color-secondary` |
+| `color` | `#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-text-secondary)`)_<br>`#A4B0BC (light) / #6F747C (dark)` _(from `var(--color-text-disabled)`)_<br>`#0064E0 (light) / #3E9EFB (dark)` _(from `var(--color-text-accent)`)_ | `.astryx-text`<br>`.astryx-text--color-primary`<br>`.astryx-text--color-secondary`<br>`.astryx-text--color-disabled`<br>`.astryx-text--color-accent` |
 
 ## tokens referenced
 
 | token | value |
 | --- | --- |
+| `--color-text-accent` | `light-dark(#0064E0, #3E9EFB)` |
+| `--color-text-disabled` | `light-dark(#A4B0BC, #6F747C)` |
 | `--color-text-primary` | `light-dark(#0A1317, #DFE2E5)` |
 | `--color-text-secondary` | `light-dark(#4E606F, #AAAFB5)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
+| `--font-family-code` | `"SF Mono", Monaco, Consolas, monospace` |
+| `--font-weight-semibold` | `600` |
 | `--text-body-leading` | `1.4286` |
 | `--text-body-size` | `var(--font-size-base)` |
 | `--text-body-weight` | `var(--font-weight-normal)` |
+| `--text-code-leading` | `1.4286` |
+| `--text-code-size` | `var(--font-size-base)` |
+| `--text-code-weight` | `var(--font-weight-normal)` |
+| `--text-display-1-leading` | `1.2381` |
+| `--text-display-1-size` | `var(--font-size-5xl)` |
+| `--text-display-1-weight` | `var(--font-weight-normal)` |
 | `--text-label-leading` | `1.4286` |
 | `--text-label-size` | `var(--font-size-base)` |
 | `--text-label-weight` | `var(--font-weight-medium)` |
+| `--text-large-leading` | `1.4118` |
+| `--text-large-size` | `var(--font-size-lg)` |
+| `--text-large-weight` | `var(--font-weight-semibold)` |
 | `--text-supporting-leading` | `1.6667` |
 | `--text-supporting-size` | `var(--font-size-sm)` |
 | `--text-supporting-weight` | `var(--font-weight-normal)` |
@@ -60,5 +75,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Text in its documented states, on a neutral surface. Content colours: #0A1317 (light) / #DFE2E5 (dark) / #0A1317 (light) / #DFE2E5 (dark) / #4E606F (light) / #AAAFB5 (dark). Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Text in its documented states, on a neutral surface. Content colours: #0A1317 (light) / #DFE2E5 (dark) / #0A1317 (light) / #DFE2E5 (dark) / #4E606F (light) / #AAAFB5 (dark) / #A4B0BC (light) / #6F747C (dark) / #0064E0 (light) / #3E9EFB (dark). Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

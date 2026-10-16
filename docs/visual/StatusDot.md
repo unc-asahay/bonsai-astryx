@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.StatusDot` (`src/status_dot.ml`, M1)
-- rendered instances in the demo: 1
-- classes: `astryx-status-dot`, `astryx-status-dot--success`
+- rendered instances in the demo: 7
+- classes: `astryx-status-dot`, `astryx-status-dot--accent`, `astryx-status-dot--error`, `astryx-status-dot--neutral`, `astryx-status-dot--pulsing`, `astryx-status-dot--success`, `astryx-status-dot--warning`
 
 ## layout
 
@@ -29,6 +29,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
+| `animation` | `astryx-pulse 1.6s cubic-bezier(0.24, 1, 0.4, 1) infinite` _(from `astryx-pulse 1.6s var(--ease-standard) infinite`)_ | `.astryx-status-dot--pulsing` |
 | `flex-shrink` | `0` | `.astryx-status-dot` |
 | `height` | `8px` | `.astryx-status-dot` |
 | `width` | `8px` | `.astryx-status-dot` |
@@ -43,16 +44,21 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_ | `.astryx-status-dot--success` |
+| `background-color` | `#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_<br>`#E9AF08 (light) / #F2C00B (dark)` _(from `var(--color-warning)`)_<br>`#E3193B (light) / #F5394F (dark)` _(from `var(--color-error)`)_<br>`#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-secondary)`)_ | `.astryx-status-dot--success`<br>`.astryx-status-dot--warning`<br>`.astryx-status-dot--error`<br>`.astryx-status-dot--accent`<br>`.astryx-status-dot--neutral` |
 
 ## tokens referenced
 
 | token | value |
 | --- | --- |
+| `--color-accent` | `light-dark(#0064E0, #2694FE)` |
+| `--color-error` | `light-dark(#E3193B, #F5394F)` |
+| `--color-icon-secondary` | `light-dark(#4E606F, #AAAFB5)` |
 | `--color-success` | `light-dark(#0D8626, #0D8626)` |
+| `--color-warning` | `light-dark(#E9AF08, #F2C00B)` |
+| `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
 
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx StatusDot in its documented states, on a neutral surface. Surface fills: #0D8626 (light) / #0D8626 (dark). Corner radius 50%. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx StatusDot in its documented states, on a neutral surface. Surface fills: #0D8626 (light) / #0D8626 (dark) / #E9AF08 (light) / #F2C00B (dark) / #E3193B (light) / #F5394F (dark) / #0064E0 (light) / #2694FE (dark) / #4E606F (light) / #AAAFB5 (dark). Corner radius 50%. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

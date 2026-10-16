@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Grid` (`src/grid.ml`, M2)
-- rendered instances in the demo: 1
+- rendered instances in the demo: 6
 - classes: `astryx-grid`, `astryx-grid--align-stretch`, `astryx-grid--justify-stretch`
 
 ## layout

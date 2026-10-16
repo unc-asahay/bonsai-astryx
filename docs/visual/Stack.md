@@ -16,18 +16,25 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Stack` (`src/stack.ml`, M1)
-- rendered instances in the demo: 12
-- classes: `astryx-align--center`, `astryx-align--start`, `astryx-stack`, `astryx-stack--horizontal`, `astryx-stack--wrap`
+- rendered instances in the demo: 30
+- classes: `astryx-align--center`, `astryx-align--end`, `astryx-align--start`, `astryx-justify--between`, `astryx-justify--center`, `astryx-justify--end`, `astryx-stack`, `astryx-stack--horizontal`, `astryx-stack--scrollable`, `astryx-stack--wrap`
 
 ## layout
 
 | property | value | source class |
 | --- | --- | --- |
-| `align-items` | `flex-start`<br>`center` | `.astryx-align--start`<br>`.astryx-align--center` |
+| `align-items` | `flex-start`<br>`center`<br>`flex-end` | `.astryx-align--start`<br>`.astryx-align--center`<br>`.astryx-align--end` |
 | `display` | `flex` | `.astryx-stack` |
 | `flex-direction` | `column`<br>`row` | `.astryx-stack`<br>`.astryx-stack--horizontal` |
 | `flex-wrap` | `wrap` | `.astryx-stack--wrap` |
+| `justify-content` | `center`<br>`flex-end`<br>`space-between` | `.astryx-justify--center`<br>`.astryx-justify--end`<br>`.astryx-justify--between` |
 | `min-width` | `0` | `.astryx-stack` |
+
+## effects
+
+| property | value | source class |
+| --- | --- | --- |
+| `overflow` | `auto` | `.astryx-stack--scrollable` |
 
 ## tokens referenced
 

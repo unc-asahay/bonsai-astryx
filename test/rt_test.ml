@@ -229,6 +229,46 @@ let () =
        ])
 ;;
 
+(* HStack / VStack: prop presets over Stack — upstream renders them through Stack,
+   so they carry Stack's marker rather than one of their own. Axis defaults differ
+   with direction, which is what these two cases pin down. *)
+let () =
+  mount
+    "hstack-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.HStack.view ~gap:S.S2 [ Vdom.Node.text "a"; Vdom.Node.text "b" ]
+       ; Astryx.HStack.view ~h_align:A.Center ~gap:S.S1 [ Vdom.Node.text "c" ]
+       ]);
+  mount
+    "vstack-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.VStack.view ~gap:S.S2 [ Vdom.Node.text "a"; Vdom.Node.text "b" ]
+       ; Astryx.VStack.view ~v_align:A.End ~gap:S.S1 [ Vdom.Node.text "c" ]
+       ])
+;;
+
+(* AspectRatio: the two shapes, and all three fit values (plus the no-fit case,
+   where the child is left to style itself). *)
+let () =
+  mount
+    "aspect-ratio-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.AspectRatio.view ~ratio:(16. /. 9.) [ Vdom.Node.text "16:9" ]
+       ; Astryx.AspectRatio.view
+           ~ratio:1.0
+           ~shape:Astryx.AspectRatio.Ellipse
+           ~fit:Astryx.AspectRatio.Cover
+           [ Vdom.Node.text "1:1" ]
+       ; Astryx.AspectRatio.view
+           ~ratio:(4. /. 3.)
+           ~fit:Astryx.AspectRatio.Center
+           [ Vdom.Node.text "4:3" ]
+       ])
+;;
+
 (* -------------------------------------------------------------- interaction *)
 
 (* The part that has to be OCaml: a real event dispatched into the Bonsai graph.

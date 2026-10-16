@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Skeleton` (`src/skeleton.ml`, M1)
-- rendered instances in the demo: 2
-- classes: `astryx-skeleton`
+- rendered instances in the demo: 10
+- classes: `astryx-skeleton`, `astryx-skeleton--radius-0`, `astryx-skeleton--radius-1`, `astryx-skeleton--radius-2`, `astryx-skeleton--radius-3`, `astryx-skeleton--radius-4`, `astryx-skeleton--radius-none`, `astryx-skeleton--radius-rounded`
 
 ## background
 
@@ -29,7 +29,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `border-radius` | `4px` _(from `var(--radius-inner)`)_ | `.astryx-skeleton` |
+| `border-radius` | `4px` _(from `var(--radius-inner)`)_<br>`0`<br>`0`<br>`4px` _(from `var(--radius-inner)`)_<br>`8px` _(from `var(--radius-element)`)_<br>`12px` _(from `var(--radius-container)`)_<br>`28px` _(from `var(--radius-page)`)_<br>`9999px` _(from `var(--radius-full)`)_ | `.astryx-skeleton`<br>`.astryx-skeleton--radius-none`<br>`.astryx-skeleton--radius-0`<br>`.astryx-skeleton--radius-1`<br>`.astryx-skeleton--radius-2`<br>`.astryx-skeleton--radius-3`<br>`.astryx-skeleton--radius-4`<br>`.astryx-skeleton--radius-rounded` |
 
 ## other
 
@@ -48,7 +48,11 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-skeleton` | `light-dark(#CCD3DB, #5A5E66)` |
 | `--duration-slow` | `975ms` |
 | `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
+| `--radius-container` | `12px` |
+| `--radius-element` | `8px` |
+| `--radius-full` | `9999px` |
 | `--radius-inner` | `4px` |
+| `--radius-page` | `28px` |
 
 ## image-generation prompt
 

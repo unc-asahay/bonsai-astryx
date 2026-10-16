@@ -270,6 +270,56 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("visually-hidden is styled as such", vs.every((v) => hasClass(v, /visually-hidden/)));
 }
 
+// --- HStack / VStack (prop presets over Stack)
+{
+  const hs = inCase("hstack-all");
+  const vs = inCase("vstack-all");
+  check("HStack renders two stacks", hs.length === 2, `${hs.length}`);
+  check("HStack carries Stack's marker, not one of its own",
+    hs.length > 0 && hs.every((e) => attr(e, "data-astryx-component") === "Stack"),
+    hs.map((e) => attr(e, "data-astryx-component")).join(","));
+  check("HStack is horizontal", hs.length > 0 && hs.every((e) => hasClass(e, /horizontal/)),
+    hs.map((e) => classesOf(e).join(" ")).join(" | "));
+  check("VStack renders two stacks", vs.length === 2, `${vs.length}`);
+  // Vertical is the base state in this port, so it carries no direction class —
+  // the assertion is that nothing marks it horizontal, not that "vertical" appears.
+  check("VStack is vertical (nothing marks it horizontal)",
+    vs.length > 0 && vs.every((e) => !hasClass(e, /horizontal/)),
+    vs.map((e) => classesOf(e).join(" ")).join(" | "));
+}
+
+// --- AspectRatio
+{
+  const ars = inCase("aspect-ratio-all");
+  check("three aspect-ratio boxes render", ars.length === 3, `${ars.length}`);
+  const styles = ars.map((e) => attr(e, "style") || "");
+  // The whole point of the indirection: the ratio must NOT be an inline
+  // aspect-ratio, or a consumer rule could never override it.
+  check("the ratio travels as a custom property",
+    styles.every((s) => /--astryx-aspect-ratio\s*:/.test(s)), styles.join(" | "));
+  check("no inline aspect-ratio declaration is emitted",
+    styles.every((s) => !/(^|;)\s*aspect-ratio\s*:/.test(s)), styles.join(" | "));
+  const ratios = styles.map((s) => Number((s.match(/--astryx-aspect-ratio:\s*([^;]+)/) || [])[1]));
+  check("the ratios are the ones asked for (16/9, 1, 4/3)",
+    Math.abs(ratios[0] - 16 / 9) < 0.001 &&
+      Math.abs(ratios[1] - 1) < 0.001 &&
+      Math.abs(ratios[2] - 4 / 3) < 0.001,
+    ratios.join(", "));
+  check("shape is declared on the component",
+    ars.map((e) => attr(e, "data-astryx-shape")).join(",") === "rectangle,ellipse,rectangle",
+    ars.map((e) => attr(e, "data-astryx-shape")).join(","));
+  check("the ellipse clips to a radius", ars.some((e) => hasClass(e, /--ellipse/)));
+  check("every box has its inner child", ars.every((e) => e.querySelector(".astryx-aspect-ratio__child")));
+  const overrides = ars.map((e) => {
+    const c = e.querySelector(".astryx-aspect-ratio__child");
+    return c ? attr(c, "data-astryx-aspect-ratio-override") ?? "none" : "MISSING";
+  });
+  check("fit is carried on the child as the override attribute (and omitted when unset)",
+    overrides.join(",") === "none,cover,center", overrides.join(","));
+  check("fit=center centres from the wrapper class",
+    ars.some((e) => e.querySelector(".astryx-aspect-ratio__child--center")));
+}
+
 // --- the interaction: a real event dispatched into the Bonsai graph
 section("interaction (OCaml dispatched the event)");
 {

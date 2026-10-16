@@ -2,26 +2,27 @@
 
 # Visual contract index
 
-13 ported component(s). Each page records the appearance the port
+14 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
 | component | rendered | classes | declarations | tokens | page |
 | --- | --- | --- | --- | --- | --- |
-| Badge | 5 | 6 | 13 | 18 | [Badge.md](Badge.md) |
-| Button | 7 | 9 | 25 | 16 | [Button.md](Button.md) |
-| Card | 1 | 3 | 9 | 9 | [Card.md](Card.md) |
-| Center | 2 | 3 | 4 | 0 | [Center.md](Center.md) |
-| Divider | 2 | 1 | 5 | 2 | [Divider.md](Divider.md) |
-| Grid | 1 | 3 | 4 | 0 | [Grid.md](Grid.md) |
-| Heading | 6 | 3 | 6 | 8 | [Heading.md](Heading.md) |
-| Section | 1 | 4 | 7 | 4 | [Section.md](Section.md) |
-| Skeleton | 2 | 1 | 7 | 4 | [Skeleton.md](Skeleton.md) |
-| Stack | 12 | 5 | 5 | 0 | [Stack.md](Stack.md) |
-| StatusDot | 1 | 2 | 6 | 1 | [StatusDot.md](StatusDot.md) |
-| Text | 6 | 6 | 6 | 12 | [Text.md](Text.md) |
-| VisuallyHidden | 1 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
+| AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
+| Badge | 15 | 15 | 13 | 36 | [Badge.md](Badge.md) |
+| Button | 15 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
+| Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
+| Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
+| Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
+| Heading | 6 | 7 | 6 | 20 | [Heading.md](Heading.md) |
+| Section | 7 | 8 | 9 | 5 | [Section.md](Section.md) |
+| Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
+| Stack | 30 | 10 | 7 | 0 | [Stack.md](Stack.md) |
+| StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
+| Text | 43 | 14 | 8 | 25 | [Text.md](Text.md) |
+| VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 90 components with no OCaml port. They
+Not listed: the 89 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

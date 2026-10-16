@@ -16,22 +16,23 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Divider` (`src/divider.ml`, M1)
-- rendered instances in the demo: 2
-- classes: `astryx-divider`
+- rendered instances in the demo: 6
+- classes: `astryx-divider`, `astryx-divider--full-bleed`, `astryx-divider--labelled`, `astryx-divider--strong`, `astryx-divider--vertical`
 
 ## other
 
 | property | value | source class |
 | --- | --- | --- |
+| `align-self` | `stretch` | `.astryx-divider--vertical` |
 | `flex-shrink` | `0` | `.astryx-divider` |
-| `height` | `1px` _(from `var(--border-width)`)_ | `.astryx-divider` |
-| `width` | `100%` | `.astryx-divider` |
+| `height` | `1px` _(from `var(--border-width)`)_<br>`100%`<br>`auto` | `.astryx-divider`<br>`.astryx-divider--vertical`<br>`.astryx-divider--labelled` |
+| `width` | `100%`<br>`1px` _(from `var(--border-width)`)_ | `.astryx-divider`<br>`.astryx-divider--vertical` |
 
 ## background
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `#05365919 (light) / #F2F4F619 (dark)` _(from `var(--color-border)`)_ | `.astryx-divider` |
+| `background-color` | `#05365919 (light) / #F2F4F619 (dark)` _(from `var(--color-border)`)_<br>`#CCD3DB (light) / #494D53 (dark)` _(from `var(--color-border-emphasized)`)_<br>`transparent` | `.astryx-divider`<br>`.astryx-divider--strong`<br>`.astryx-divider--labelled` |
 
 ## borders
 
@@ -39,15 +40,32 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | --- | --- | --- |
 | `border` | `none` | `.astryx-divider` |
 
+## spacing
+
+| property | value | source class |
+| --- | --- | --- |
+| `margin-inline` | `calc(-1 * 1rem)` _(from `calc(-1 * var(--spacing-4))`)_ | `.astryx-divider--full-bleed` |
+
+## layout
+
+| property | value | source class |
+| --- | --- | --- |
+| `align-items` | `center` | `.astryx-divider--labelled` |
+| `display` | `flex` | `.astryx-divider--labelled` |
+| `gap` | `0.75rem` _(from `var(--spacing-3)`)_ | `.astryx-divider--labelled` |
+
 ## tokens referenced
 
 | token | value |
 | --- | --- |
 | `--border-width` | `1px` |
 | `--color-border` | `light-dark(#05365919, #F2F4F619)` |
+| `--color-border-emphasized` | `light-dark(#CCD3DB, #494D53)` |
+| `--spacing-3` | `0.75rem` |
+| `--spacing-4` | `1rem` |
 
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Divider in its documented states, on a neutral surface. Surface fills: #05365919 (light) / #F2F4F619 (dark). System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Divider in its documented states, on a neutral surface. Surface fills: #05365919 (light) / #F2F4F619 (dark) / #CCD3DB (light) / #494D53 (dark) / transparent. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

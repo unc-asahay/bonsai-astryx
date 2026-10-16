@@ -215,7 +215,7 @@ Transcript: [`verification/ocaml-tests.txt`](verification/ocaml-tests.txt).
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M2.** 13 of 103 components are ported; the other 90 have
+- **Anything below M2.** 16 of 103 components are ported; the other 87 have
   reference text but no implementation.
 - **Keyboard and focus behaviour.** One click path is verified in a real browser (the
   showcase counter) and one in-process (Gate 7), but `Tab`/`Enter`/`Escape`, focus
@@ -223,6 +223,6 @@ Transcript: [`verification/ocaml-tests.txt`](verification/ocaml-tests.txt).
   needed for it now exists — `test/rt_test.ml` dispatches events through
   `Bonsai_web_test.Handle`, which also has `keydown`, `focus` and `blur` — so this is
   a matter of writing the assertions, not building infrastructure.
-- **The showcase covers the ported components only.** The 90 unported ones appear as
+- **The showcase covers the ported components only.** The 87 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

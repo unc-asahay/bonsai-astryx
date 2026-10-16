@@ -17,7 +17,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 - module: `Astryx.Heading` (`src/heading.ml`, M1)
 - rendered instances in the demo: 6
-- classes: `astryx-heading`, `astryx-heading--1`, `astryx-heading--3`
+- classes: `astryx-heading`, `astryx-heading--1`, `astryx-heading--2`, `astryx-heading--3`, `astryx-heading--4`, `astryx-heading--5`, `astryx-heading--6`
 
 ## spacing
 
@@ -30,9 +30,9 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `font-family` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` _(from `var(--font-family-heading)`)_ | `.astryx-heading` |
-| `font-size` | `1.5rem` _(from `var(--text-heading-1-size)`)_<br>`1.0625rem` _(from `var(--text-heading-3-size)`)_ | `.astryx-heading--1`<br>`.astryx-heading--3` |
-| `font-weight` | `600` _(from `var(--text-heading-1-weight)`)_<br>`600` _(from `var(--text-heading-3-weight)`)_ | `.astryx-heading--1`<br>`.astryx-heading--3` |
-| `line-height` | `1.3333` _(from `var(--text-heading-1-leading)`)_<br>`1.4118` _(from `var(--text-heading-3-leading)`)_ | `.astryx-heading--1`<br>`.astryx-heading--3` |
+| `font-size` | `1.5rem` _(from `var(--text-heading-1-size)`)_<br>`1.25rem` _(from `var(--text-heading-2-size)`)_<br>`1.0625rem` _(from `var(--text-heading-3-size)`)_<br>`0.875rem` _(from `var(--text-heading-4-size)`)_<br>`0.75rem` _(from `var(--text-heading-5-size)`)_<br>`0.625rem` _(from `var(--text-heading-6-size)`)_ | `.astryx-heading--1`<br>`.astryx-heading--2`<br>`.astryx-heading--3`<br>`.astryx-heading--4`<br>`.astryx-heading--5`<br>`.astryx-heading--6` |
+| `font-weight` | `600` _(from `var(--text-heading-1-weight)`)_<br>`600` _(from `var(--text-heading-2-weight)`)_<br>`600` _(from `var(--text-heading-3-weight)`)_<br>`600` _(from `var(--text-heading-4-weight)`)_<br>`600` _(from `var(--text-heading-5-weight)`)_<br>`600` _(from `var(--text-heading-6-weight)`)_ | `.astryx-heading--1`<br>`.astryx-heading--2`<br>`.astryx-heading--3`<br>`.astryx-heading--4`<br>`.astryx-heading--5`<br>`.astryx-heading--6` |
+| `line-height` | `1.3333` _(from `var(--text-heading-1-leading)`)_<br>`1.4` _(from `var(--text-heading-2-leading)`)_<br>`1.4118` _(from `var(--text-heading-3-leading)`)_<br>`1.4286` _(from `var(--text-heading-4-leading)`)_<br>`1.6667` _(from `var(--text-heading-5-leading)`)_<br>`1.6` _(from `var(--text-heading-6-leading)`)_ | `.astryx-heading--1`<br>`.astryx-heading--2`<br>`.astryx-heading--3`<br>`.astryx-heading--4`<br>`.astryx-heading--5`<br>`.astryx-heading--6` |
 
 ## colour
 
@@ -49,9 +49,21 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--text-heading-1-leading` | `1.3333` |
 | `--text-heading-1-size` | `var(--font-size-2xl)` |
 | `--text-heading-1-weight` | `var(--font-weight-semibold)` |
+| `--text-heading-2-leading` | `1.4` |
+| `--text-heading-2-size` | `var(--font-size-xl)` |
+| `--text-heading-2-weight` | `var(--font-weight-semibold)` |
 | `--text-heading-3-leading` | `1.4118` |
 | `--text-heading-3-size` | `var(--font-size-lg)` |
 | `--text-heading-3-weight` | `var(--font-weight-semibold)` |
+| `--text-heading-4-leading` | `1.4286` |
+| `--text-heading-4-size` | `var(--font-size-base)` |
+| `--text-heading-4-weight` | `var(--font-weight-semibold)` |
+| `--text-heading-5-leading` | `1.6667` |
+| `--text-heading-5-size` | `var(--font-size-sm)` |
+| `--text-heading-5-weight` | `var(--font-weight-semibold)` |
+| `--text-heading-6-leading` | `1.6` |
+| `--text-heading-6-size` | `var(--font-size-xs)` |
+| `--text-heading-6-weight` | `var(--font-weight-semibold)` |
 
 ## image-generation prompt
 
