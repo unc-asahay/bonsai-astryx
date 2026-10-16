@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-37 ported component(s). Each page records the appearance the port
+38 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -43,9 +43,10 @@ for image generation.
 | Text | 65 | 15 | 8 | 26 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
+| Timer | 3 | 0 | 0 | 0 | [Timer.md](Timer.md) |
 | Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 66 components with no OCaml port. They
+Not listed: the 65 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

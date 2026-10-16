@@ -236,6 +236,7 @@ let view
           ([ Vdom.Attr.create "datetime" initial.datetime
            ; Tick_hook.attr ~start_time ~format ()
            ]
+           @ Common.Attr.data "component" "Timer"
            @ attrs)
         [ Vdom.Node.text initial.text ]
     ]
