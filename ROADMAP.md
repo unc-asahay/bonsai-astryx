@@ -519,6 +519,35 @@ app mounted in Chromium"* check, from a page that had gone blank.
 is what M18 was for.
 
 
+### Recon on what is next, so it is not re-guessed from file sizes
+
+Sizes mislead, and three of them misled here:
+
+- **`ClickableCard` (401 lines) is not a card wrapper.** It composes `Card` and then adds a press-feedback
+  model — `usePressFeedback`, a touch press strength written as `data-astryx-press` states, and an
+  interaction overlay whose hover and press paint is shared infrastructure. That is a *pillar*, not a
+  component: the same machinery is what `Button`'s press states and any future ripple will stand on. Port it
+  as a pillar, deliberately, or not at all.
+- **`ScrollableArea` (260 lines) is a mechanism, not a wrapper** — and the first version of this line said
+  the opposite, because it was written from the file's size and its header comment rather than from the hook
+  underneath it. `useScrollableArea` carries a real one: axis and overscroll policy, sticky containment, an
+  *observed* content box, and a viewport that enters the tab order only when it is actually scrollable —
+  which is a tabindex that changes with the layout, plus eight padding props and full-bleed escapes from
+  inherited container padding. A deliberate milestone, not a quick win.
+- **`MoreMenu` (183 lines) is still blocked on `DropdownMenu`'s surface**, as recorded at M16: the port's
+  `DropdownMenu` takes a trigger *label* and owns its open state, while MoreMenu forwards a button config,
+  a placement and a *controlled* `isMenuOpen`. Extend that surface first.
+
+`BottomSheet` (6.6k) and `Chat` (12.9k) remain the class-C giants; both are multi-milestone jobs and should
+be planned as such rather than started at the end of a session.
+
+**The cheap wins are spent.** Every remaining candidate either needs a mechanism first (`ScrollableArea`'s
+observed viewport, `DropdownMenu`'s surface before `MoreMenu` can be thin), or is really a pillar wearing a
+component's name (`ClickableCard` and the press-feedback layer under it). The next milestone should
+therefore be chosen as *which mechanism to build next*, with the component as its first consumer — the
+arrangement that made Popover small.
+
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind
