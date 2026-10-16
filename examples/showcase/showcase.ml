@@ -1422,7 +1422,7 @@ let checkbox_demo (graph : Bonsai.graph) =
       Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
   in
   let note id text = Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text text ] in
-  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-checkbox-row" ]) nodes in
+  let row nodes = Vdom.Node.div ~attrs:(Astryx.Common.Attr.class_ [ "showcase-checkbox-row" ]) nodes in
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
   let no_change =
     Bonsai.return (fun (_ : Checkbox_input.value) -> Effect.Many [])
@@ -1502,7 +1502,7 @@ let checkbox_demo (graph : Bonsai.graph) =
            ])
         ~f:(fun nodes ->
         Vdom.Node.div
-          ~attrs:(Common.Attr.class_ [ "showcase-checkbox-children" ])
+          ~attrs:(Astryx.Common.Attr.class_ [ "showcase-checkbox-children" ])
           nodes)
     in
     let readout =
@@ -1631,7 +1631,7 @@ let switch_demo (graph : Bonsai.graph) =
     List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
       Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
   in
-  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-switch-row" ]) nodes in
+  let row nodes = Vdom.Node.div ~attrs:(Astryx.Common.Attr.class_ [ "showcase-switch-row" ]) nodes in
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
   let no_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
   let is_on, set_is_on = Bonsai.state false graph in
@@ -1763,7 +1763,7 @@ let radio_list_demo (graph : Bonsai.graph) =
     List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
       Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
   in
-  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
+  let row nodes = Vdom.Node.div ~attrs:(Astryx.Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
   let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
   let item ?(description = None) ?(is_disabled = false) value label =
@@ -1981,7 +1981,7 @@ let tooltip_demo (graph : Bonsai.graph) =
       Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
   in
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
-  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
+  let row nodes = Vdom.Node.div ~attrs:(Astryx.Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
   let tip ?(placement = Tooltip.Above) ?(alignment = Tooltip.Center) ?is_open ~id ~content
         trigger
     =
@@ -2012,7 +2012,7 @@ let tooltip_demo (graph : Bonsai.graph) =
          ; Vdom.Attr.create "type" "button"
          ; Vdom.Attr.create "aria-disabled" "true"
          ]
-         @ Common.Attr.class_ [ "astryx-button"; "astryx-button--secondary"; "astryx-button--md" ])
+         @ Astryx.Common.Attr.class_ [ "astryx-button"; "astryx-button--secondary"; "astryx-button--md" ])
       [ Vdom.Node.text label ]
   in
   let examples =
@@ -2101,7 +2101,7 @@ let dialog_demo (graph : Bonsai.graph) =
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
   let body text =
     Vdom.Node.div
-      ~attrs:(Common.Attr.class_ [ "showcase-dialog-body" ])
+      ~attrs:(Astryx.Common.Attr.class_ [ "showcase-dialog-body" ])
       [ Vdom.Node.text text ]
   in
   let title id text =
@@ -2360,7 +2360,7 @@ let dialog_header_demo (graph : Bonsai.graph) =
   let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
   let body text =
     Vdom.Node.div
-      ~attrs:(Common.Attr.class_ [ "showcase-dialog-body" ])
+      ~attrs:(Astryx.Common.Attr.class_ [ "showcase-dialog-body" ])
       [ Vdom.Node.text text ]
   in
   let header ?on_open_change ?subtitle ?start_content ?end_content ?edge ?(divider = false) id =
@@ -2521,6 +2521,126 @@ let s_kbd () =
     ]
 ;;
 
+(* ------------------------------------------------------------------ layer (the native popover API) *)
+
+(* The mechanism the overlay family stands on, demonstrated rather than described. Two layers, the same
+   markup, one attribute apart: `auto` is dismissed by the platform and `manual` is not. That difference
+   is not a flag the port implements — it is what the attribute means to the browser — which is the whole
+   point of asking the platform first. *)
+
+let layer_demo (graph : Bonsai.graph) =
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let one ~id ~popover_kind ~label =
+    let is_open, set_is_open = Bonsai.state false graph in
+    (* The trigger is an ordinary ported Button. Nothing about it knows it opens a layer: the ARIA
+       wiring Popover adds (aria-haspopup, aria-expanded, aria-controls) is the next milestone's job,
+       and leaving it out here is deliberate — this demonstrates the mechanism, not the component. *)
+    let trigger =
+      Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+        Astryx.Button.view
+          ~label
+          ~attrs:[ Vdom.Attr.create "id" (id ^ "-trigger") ]
+          ~on_click:(fun _ -> set (not is_open))
+          [])
+    in
+    let surface =
+      Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+        Vdom.Node.div
+          ~attrs:
+            ([ Vdom.Attr.create "id" (id ^ "-surface")
+             ; Vdom.Attr.create "popover" popover_kind
+             ; Vdom.Attr.class_ "astryx-layer-demo"
+             ]
+             (* Attr.data returns a list, and these are lists too, so the whole set is spliced. *)
+             @ Astryx.Common.Attr.data "component" "Layer"
+             @ [ (* The one line that is the mechanism: the value goes in, and a close the platform
+                    performs comes back out through on_platform_close. *)
+                 Astryx.Common.Layer_hook.attr ~is_open ~on_platform_close:(set false)
+               ])
+          [ Vdom.Node.div
+              ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__title" ]
+              [ Vdom.Node.text "An anchored layer" ]
+          ; Vdom.Node.p
+              ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__body" ]
+              [ Vdom.Node.text
+                  (if String.equal popover_kind "auto"
+                   then
+                     "Dismissed by the platform: click anywhere outside this box, or press Escape. \
+                      Neither is a handler in this port — a popover=\"auto\" layer behaves that way \
+                      because the browser decides it does."
+                   else
+                     "Not dismissed by the platform: click outside it, or press Escape. The layer \
+                      stays where it is, because popover=\"manual\" means the platform leaves it \
+                      alone.")
+              ]
+          ; Astryx.Button.view
+              ~label:"Close it from the application"
+              ~attrs:[ Vdom.Attr.create "id" (id ^ "-close") ]
+              ~on_click:(fun _ -> set false)
+              []
+          ])
+    in
+    let readout =
+      Bonsai.map is_open ~f:(fun is_open ->
+        Vdom.Node.div
+          ~attrs:
+            [ Vdom.Attr.create "id" (id ^ "-state")
+            ; Vdom.Attr.class_ "astryx-layer-demo__state"
+            ]
+          [ Vdom.Node.text
+              (Printf.sprintf
+                 "the value the application holds: %s"
+                 (if is_open then "open" else "closed"))
+          ])
+    in
+    Bonsai.map3 trigger surface readout ~f:(fun trigger surface readout ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__wrap" ]
+        [ trigger; surface; readout ])
+  in
+  (* Two trees, in the order the match below destructures them — the same pairwise discipline the rest
+     of this file uses, since Bonsai offers no list combinator over trees. *)
+  let examples =
+    [ one
+        ~id:"showcase-layer-auto"
+        ~popover_kind:"auto"
+        ~label:"Open a layer the platform dismisses"
+    ; one
+        ~id:"showcase-layer-manual"
+        ~popover_kind:"manual"
+        ~label:"Open a layer the platform leaves alone"
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    match examples with
+    | [ auto; manual ] ->
+      section
+        ~id:"layer"
+        ~title:"Layer"
+        ~note:
+          "The mechanism the whole overlay family stands on, demonstrated rather than described. \
+           Upstream does not position its layers with JavaScript — it opens them with the native \
+           Popover API, which hands the platform the top layer, outside-click dismissal, Escape, and \
+           CSS anchor positioning against the trigger. The two layers below differ by one attribute: \
+           popover=auto is the platform's to dismiss, popover=manual is not, and the second is how a \
+           surface asks for explicit dismissal only. Note what is missing from the markup: no \
+           document-level click listener, no keydown handler, no stacking maths. What the port adds is \
+           the part the platform cannot know — that a layer the *browser* closed has to be reported \
+           back, or the value saying open quietly becomes a lie. The gate presses both halves: in \
+           jsdom, which has no Popover API at all, nothing is thrown and the value is still the truth; \
+           in Chromium, a real click outside and a real Escape decide it. This is a mechanism, not yet \
+           a component: Popover adds the trigger's ARIA wiring, the labelled surface and the close \
+           button on top of it."
+        (* Inside the map the trees are resolved, so these are plain nodes. *)
+        [ ex "dismissed by the platform (popover=auto)" auto
+        ; ex "explicit dismissal only (popover=manual)" manual
+        ]
+    | _ -> Vdom.Node.none)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2572,6 +2692,7 @@ let nav_items =
   ; "alert-dialog", "AlertDialog"
   ; "dialog-header", "DialogHeader"
   ; "kbd", "Kbd"
+  ; "layer", "Layer"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2611,6 +2732,7 @@ let page (graph : Bonsai.graph) =
   let dialog_section = dialog_demo graph in
   let alert_dialog_section = alert_dialog_demo graph in
   let dialog_header_section = dialog_header_demo graph in
+  let layer_section = layer_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2627,15 +2749,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful dialog_section in
   let stateful = pair stateful alert_dialog_section in
   let stateful = pair stateful dialog_header_section in
+  let stateful = pair stateful layer_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
-                     , form_layout )
-                   , tooltip )
-                 , dialog )
-               , alert_dialog )
-             , dialog_header )
+    ~f:(fun ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+                      , form_layout )
+                    , tooltip )
+                  , dialog )
+                , alert_dialog )
+              , dialog_header )
+            , layer )
           text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -2643,7 +2767,7 @@ let page (graph : Bonsai.graph) =
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; dropdown; interactive ])
       ])
 ;;
 

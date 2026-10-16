@@ -1523,3 +1523,32 @@ let () =
   Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) kbd_static
   |> fun handle -> mount "kbd" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* --------------------------------------------------------------------- layer (M16)
+
+   jsdom has no Popover API at all, so this fixture is about the *fallback*: the hook must be a no-op
+   rather than a crash, and the caller's value must survive untouched. The native path is the browser
+   gate's business — the same split <dialog> forced, for the same reason. *)
+let layer_static (_ : Bonsai.graph) =
+  let one id is_open =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      [ Vdom.Node.div
+          ~attrs:
+            ([ Vdom.Attr.create "id" (id ^ "-surface"); Vdom.Attr.create "popover" "auto" ]
+             @ Astryx.Common.Attr.data "component" "Layer"
+             @ [ Astryx.Common.Layer_hook.attr ~is_open ~on_platform_close:Effect.Ignore ])
+          [ Vdom.Node.text "layer content" ]
+      ; Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" (id ^ "-value") ]
+          [ Vdom.Node.text (if is_open then "the value says open" else "the value says closed") ]
+      ]
+  in
+  (* One closed and one open: the open one is the case that would throw if the guard were missing. *)
+  Bonsai.return (Vdom.Node.div [ one "layer-closed" false; one "layer-open" true ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) layer_static
+  |> fun handle -> mount "layer" (Bonsai_web_test.Handle.last_result handle)
+;;

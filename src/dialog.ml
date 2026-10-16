@@ -23,23 +23,10 @@ type position =
 (* jsdom has no dialog behaviour at all (showModal and close simply do not exist on its elements,
    which is why upstream's own isInline path exists and why this port checks before calling). A real
    browser has both. Calling through a missing method would throw where the structural gate runs. *)
-let is_function : Js.Unsafe.any -> bool =
-  (* Parenthesised: eval_string evaluates a *statement*, and a bare function expression is a syntax
-     error there. *)
-  Js.Unsafe.eval_string "(function (x) { return typeof x === 'function'; })"
-;;
-
-let has_method (el : Dom_html.element Js.t) (name : string) : bool =
-  is_function (Js.Unsafe.get el name)
-;;
-
-let call (el : Dom_html.element Js.t) (name : string) : unit =
-  if has_method el name then ignore (Js.Unsafe.meth_call el name [||])
-;;
-
-let is_connected (el : Dom_html.element Js.t) : bool =
-  Js.to_bool (Js.Unsafe.get el "isConnected")
-;;
+(* These moved to Common once a second component needed them. Only the two dialog.ml still uses keep an
+   alias — an unused one is a compile error here, which is how this file stayed honest. *)
+let call = Common.call
+let is_connected = Common.is_connected
 
 (* The modal state follows the *value*, not an event: no vdom event fires when a caller decides to
    open a dialog, which is exactly the case Gate 23 opened up. The hook is given is_open on every

@@ -424,6 +424,26 @@ Layer work `Popover` needs. The dependency graph, read rather than assumed:
 Which is why the next milestone is the mechanism, not the cheapest-looking wrapper: three components and
 the whole overlay family are waiting on one thing, and the platform already implements most of it.
 
+### M16, first step — the layer mechanism (done)
+
+`Common.Layer_hook` drives a native popover layer off a Bonsai boolean: `popover="auto"`, `showPopover`
+and `hidePopover`, feature-checked, plus the one thing the platform cannot do — **report back when the
+browser dismisses the layer itself.** After a light-dismiss click the layer is gone while the value still
+says open, and every later click on the trigger would look like a no-op; the hook listens for the
+platform's `toggle` event and tells the application. Two ordering rules came with it: the state moves
+*before* `hidePopover()` (that call fires `toggle` too, and a close we asked for is not news), and
+`showPopover()` is never called from inside the toggle handler, where it throws.
+
+The demonstration is the verification: two live layers in the showcase differing by one attribute, and a
+real Chrome deciding both. `popover="auto"` is dismissed by a genuine outside click and a genuine
+`Escape`, and the value is told each time; `popover="manual"` ignores both, because "explicit dismissal
+only" is an attribute meaning rather than a flag this port implements. In jsdom — which has no Popover
+API at all — the gate asserts only the fallback, and says so.
+
+`Layer` itself is still unported. This is one mechanism underneath it, which is why coverage is
+unchanged at 37 of 103: a gate that moved the number by porting a mechanism would be counting the wrong
+thing. What is next in the family is now a wrapper around something already proven.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

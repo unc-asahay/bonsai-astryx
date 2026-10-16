@@ -1340,3 +1340,76 @@ would render a plain glyph and pass every DOM assertion.
 
 Transcript: `docs/verification/sweep-m15a.txt`.
 
+## Gate 29 — the layer mechanism (M16, first step): the platform dismisses, and the value is told
+
+Not a component. This is the mechanism the whole overlay family stands on — `Popover`, `BottomSheet`,
+`DropdownMenu` phase 2 and everything waiting behind them — landed on its own so that the components
+above it are wrappers around something already proven, rather than the place it is discovered.
+
+**Upstream does not position its layers with JavaScript.** It opens them with the **native Popover
+API** — `popover="auto"` plus `showPopover({source: trigger})` — which hands the platform the top layer,
+outside-click dismissal, `Escape`, and CSS anchor positioning against the trigger. The 46 KB of placement
+maths in `useLayer.tsx` is largely the *fallback* for browsers without `showPopover` (Firefox < 125), not
+the mechanism. Reading that before writing is the difference between an afternoon and a week.
+
+So the port's `Common.Layer_hook` is small on purpose: it drives `showPopover`/`hidePopover` off a Bonsai
+boolean, feature-checks `typeof el.showPopover === "function"`, and does the one thing the platform
+*cannot* do — **report back when the browser closes the layer behind the application's back.** That is
+the whole reason a controlled component needs a hook here instead of an attribute: after a light-dismiss
+click the layer is gone but the value still says open, and every later click on the trigger would look
+like a no-op. Three ordering rules came with it, all recorded in the code:
+
+- the state is updated **before** `hidePopover()`, because that call fires `toggle` too — a close the
+  application asked for is not news;
+- `showPopover()` is never called from inside the toggle handler, because it throws if a toggle is
+  already in progress;
+- `Escape` is not intercepted. A `popover="auto"` layer closes on `Escape` because that is what the
+  platform does with one; a surface that wants explicit dismissal only asks for it by rendering
+  `popover="manual"`, and then the platform leaves it alone.
+
+**The demonstration is the verification.** The showcase has two live layers that differ by exactly one
+attribute, and the browser gate presses both:
+
+| What | Evidence (real Chromium) |
+| --- | --- |
+| A click opens the layer, and the browser agrees it is open | `matches(":popover-open")` is true |
+| A **real** click outside dismisses it | the browser's own light dismiss, not a listener of ours |
+| …and the application is **told**, so the value is not left saying open | the readout flips to closed |
+| It reopens after being dismissed out from under the application | the trap this hook exists to prevent |
+| `Escape` dismisses it, and the value is told again | real key event |
+| `popover="manual"` ignores `Escape` **and** outside clicks | the platform was never asked to dismiss it |
+| Only the application closes a manual layer | the readout follows the value |
+
+That last pair is the point worth keeping: "explicit dismissal only" is an **attribute meaning**, not a
+flag this port implements. There is no code path in the port that decides to ignore `Escape`.
+
+**The jsdom half is the fallback path, and says so.** jsdom has no Popover API at all, so the component
+gate asserts what is true there and nothing more: the attribute is present (that *is* the mechanism — a
+supporting browser acts on it), the marker is there, the hook is a no-op rather than a crash, and the
+caller's value survives untouched. It does not pretend the layer opened. The same split `<dialog>`
+forced, for the same reason.
+
+**A supporting change rode along:** `is_function`, `has_method`, `call` and `is_connected` moved out of
+`dialog.ml` into `Common`, where the second consumer can reach them. Only the two `dialog.ml` still uses
+kept an alias — an unused value is a compile error in this repo, which is how the move stayed honest
+rather than leaving four aliases of which two were dead. The Dialog gate re-ran unchanged afterwards:
+the refactor is invisible to every existing check, which is the standard a refactor is held to here.
+
+**What this gate does *not* claim.** `Layer` is still unported: the registry component is upstream's
+stacking and depth machinery, and this is one mechanism underneath it. Coverage is unchanged at 37 of
+103, and the count below would be a lie if it were not said out loud.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **409 / 0** |
+| Real-browser checks (Chromium, live showcase) | **201 / 201** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | 37 of 103 ported, 66 not (unchanged: a mechanism, not a component) |
+| Showcase | 40 sections, 260 examples |
+| Appearance pages | 36 |
+
+Transcript: `docs/verification/sweep-m16a.txt`.
+

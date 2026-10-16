@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   39 sections
+  ok   40 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   258 examples across the page
+  ok   260 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   39 nav links
+  ok   40 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -243,6 +243,18 @@ Kbd (measured in a real engine)
   ok   and it paints: a background, a bottom edge and a radius
   ok   the caps are not selectable text
 
+Layer (the native popover API)
+  ok   a click opens the layer, and the browser says it is open
+  ok   the value the application holds agrees
+  ok   a real click outside dismisses it — the browser's light dismiss
+  ok   and the application is told, so the value is not left saying open
+  ok   it reopens after being dismissed out from under the application
+  ok   Escape dismisses it too, and the value is told again
+  ok   a manual layer opens
+  ok   Escape does not touch it — the platform was never asked to dismiss this one
+  ok   nor does a real click outside
+  ok   only the application closes it, and the value follows
+
 coverage panel (fetched from coverage.json at runtime)
   ok   coverage stats are 37 ported / 66 not / 103 total
   ok   unported list rendered 66 entries
@@ -251,7 +263,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-191/191 checks passed, 0 failure(s)
+201/201 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

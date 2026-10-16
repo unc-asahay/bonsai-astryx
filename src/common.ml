@@ -249,3 +249,145 @@ module Delay_hook = struct
 
   let cancel = attr ~delay_ms:None ~on_elapsed:Effect.Ignore
 end
+
+(* ------------------------------------------------------------------------------------ DOM helpers *)
+
+let is_function : Js.Unsafe.any -> bool =
+  (* Parenthesised: eval_string evaluates a *statement*, and a bare function expression is a syntax
+     error there. *)
+  Js.Unsafe.eval_string "(function (x) { return typeof x === 'function'; })"
+;;
+
+let has_method (el : Dom_html.element Js.t) (name : string) : bool =
+  is_function (Js.Unsafe.get el name)
+;;
+
+let call (el : Dom_html.element Js.t) (name : string) : unit =
+  if has_method el name then ignore (Js.Unsafe.meth_call el name [||])
+;;
+
+let is_connected (el : Dom_html.element Js.t) : bool =
+  Js.to_bool (Js.Unsafe.get el "isConnected")
+;;
+
+(* ---------------------------------------------------------------------------------- the layer hook *)
+
+(* Drives a native popover layer off a Bonsai boolean, and reports back when the *platform* closes it.
+
+   Worth knowing before reading: a `popover="auto"` layer is dismissed by the platform itself — a
+   pointer-down outside it, or Escape — and when that happens no handler of ours has run, so the value
+   saying "open" is now a lie. The hook listens for the platform's own `toggle` event and reports it,
+   which is the difference between a controlled component and one that quietly drifts.
+
+   Three ordering rules, all of them learned from upstream or from the platform:
+
+   - `hidePopover()` fires `toggle` as well, so the state is updated *before* the call: a close we
+     asked for is not news, and only a close the application did not ask for is reported.
+   - `showPopover()` throws if it is called while a toggle is already in progress, so it is never
+     called from inside the event handler.
+   - Escape is not ours to intercept. A `popover="auto"` layer closes on Escape because that is what
+     the platform does with one; a caller that wants explicit-dismiss-only must render the layer with
+     `popover="manual"` instead, and then the platform will leave it alone.
+
+   jsdom has no Popover API at all, so `has_method el "showPopover"` is the guard that lets the
+   component gate mount this at all. Where it is missing, the element keeps its attribute and nothing
+   else happens — which is what an unsupporting browser does with it anyway. *)
+
+module Layer_hook = struct
+  module T = struct
+    module State = struct
+      type t =
+        { mutable listener : Js.Unsafe.any option
+        ; (* What the application believes. Kept here, not read back off the DOM, so that our own
+             show/hide can be told apart from the platform's. *)
+          mutable is_open : bool
+        }
+
+      let create () = { listener = None; is_open = false }
+    end
+
+    module Input = struct
+      type t =
+        { is_open : bool
+        ; on_platform_close : (unit Effect.t[@sexp.opaque])
+        }
+
+      let sexp_of_t { is_open; on_platform_close = _ } = Sexp.Atom (Bool.to_string is_open)
+
+      let combine left _ = left
+    end
+
+    (* `:popover-open` is the question "is this layer actually up?", which is not the same as the value
+       the caller holds — the platform can have taken it down since. *)
+    let platform_open (el : Dom_html.element Js.t) : bool =
+      Js.Unsafe.meth_call
+        el
+        "matches"
+        [| Js.Unsafe.inject (Js.string ":popover-open") |]
+    ;;
+
+    let attach (state : State.t) (input : Input.t) (el : Dom_html.element Js.t) =
+      match state.listener with
+      | Some _ -> ()
+      | None ->
+        let listener =
+          Js.wrap_callback (fun (event : Dom_html.event Js.t) ->
+            let new_state =
+              Option.value_map
+                (Js.Opt.to_option
+                   (Js.Unsafe.get event "newState" : Js.js_string Js.t Js.opt))
+                ~default:""
+                ~f:Js.to_string
+            in
+            (* A close we ran ourselves has already moved the state, so this only fires for the
+               platform's own dismissal — the case where nothing else in the application knows. *)
+            if String.equal new_state "closed" && state.is_open
+            then (
+              state.is_open <- false;
+              Effect.Expert.handle_non_dom_event_exn input.on_platform_close))
+        in
+        state.listener <- Some (Js.Unsafe.inject listener);
+        ignore
+          (Js.Unsafe.meth_call
+             el
+             "addEventListener"
+             [| Js.Unsafe.inject (Js.string "toggle"); Js.Unsafe.inject listener |])
+    ;;
+
+    let apply (state : State.t) (input : Input.t) (el : Dom_html.element Js.t) =
+      attach state input el;
+      (* Before the call, deliberately: see the note above about hidePopover firing toggle. *)
+      state.is_open <- input.is_open;
+      if has_method el "showPopover"
+      then (
+        let open_now = platform_open el in
+        if input.is_open && not open_now
+        then call el "showPopover"
+        else if (not input.is_open) && open_now
+        then call el "hidePopover")
+    ;;
+
+    let init _ _ = State.create ()
+    let on_mount input state el = apply state input el
+    let on_mount = `Schedule_immediately_after_this_dom_patch_completes on_mount
+    let update ~old_input:_ ~new_input state el = apply state new_input el
+
+    let destroy _ (state : State.t) el =
+      match state.listener with
+      | None -> ()
+      | Some listener ->
+        state.listener <- None;
+        ignore
+          (Js.Unsafe.meth_call
+             el
+             "removeEventListener"
+             [| Js.Unsafe.inject (Js.string "toggle"); Js.Unsafe.inject listener |])
+    ;;
+  end
+
+  module Hook = Vdom.Attr.Hooks.Make (T)
+
+  let attr ~is_open ~on_platform_close =
+    Vdom.Attr.create_hook "astryx-layer" (Hook.create { T.Input.is_open; on_platform_close })
+  ;;
+end

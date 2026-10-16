@@ -1557,6 +1557,26 @@ section("FieldLabel");
     rule("kbd-rule-split") === "mod,shift,p", rule("kbd-rule-split") ?? "none");
 }
 
+// ----------------------------------------------------------------------- Layer (M16)
+{
+  // The attribute is what a supporting browser acts on. Asserting its presence here is not decoration:
+  // the whole mechanism is "the platform does it", so the attribute IS the mechanism.
+  const closedSurface = document.getElementById("layer-closed-surface");
+  check("a layer renders with the attribute a supporting browser acts on",
+    closedSurface?.getAttribute("popover") === "auto",
+    String(closedSurface?.getAttribute("popover")));
+  check("and carries the component marker", !!closedSurface?.hasAttribute("data-astryx-component"));
+  // This engine has no showPopover, so the guard makes the hook a no-op. The evidence that it did not
+  // crash is that the assertion below can read a tree that a throw would have left unbuilt — and the
+  // value is untouched, which is the honest fallback: no API means no open state to reconcile.
+  check("in an engine with no Popover API the hook is a no-op, and the caller's value survives",
+    document.getElementById("layer-open-value")?.textContent === "the value says open",
+    String(document.getElementById("layer-open-value")?.textContent));
+  check("nothing claims the layer is open in the DOM when the platform cannot say so",
+    !!closedSurface && !closedSurface.hasAttribute("open"),
+    String(closedSurface?.outerHTML?.slice(0, 80)));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

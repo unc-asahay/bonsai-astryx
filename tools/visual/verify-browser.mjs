@@ -232,7 +232,8 @@ if (mode === "showcase") {
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
-    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "Kbd", "DropdownMenu", "Interactive",
+    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "Kbd", "Layer", "DropdownMenu",
+    "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
   ];
@@ -597,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("39 sections", sections.length === 39, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("40 sections", sections.length === 40, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -614,11 +615,11 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
-    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3,
+    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("258 examples across the page", totalExamples === 258, `got ${totalExamples}`);
+  check("260 examples across the page", totalExamples === 260, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -631,7 +632,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("39 nav links", nav.length === 39, `got ${nav.length}`);
+  check("40 nav links", nav.length === 40, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1448,6 +1449,74 @@ if (mode === "showcase") {
       !!kbd && kbd.background !== "rgba(0, 0, 0, 0)" && kbd.borderBottom === "2px" && !!kbd.radius,
       JSON.stringify(kbd && { bg: kbd.background, border: kbd.borderBottom, radius: kbd.radius }));
     check("the caps are not selectable text", !!kbd && kbd.userSelect === "none", String(kbd?.userSelect));
+  }
+
+  // ---------------------------------------------------------------- Layer (the popover mechanism)
+  console.log("\nLayer (the native popover API)");
+  {
+    const layerState = (id) =>
+      page.evaluate((i) => {
+        const el = document.getElementById(`${i}-surface`);
+        const app = document.getElementById(`${i}-state`);
+        return {
+          present: !!el,
+          /* `:popover-open` is the browser's own answer to "is this layer up?", which is not the same
+             as the value the application holds — that difference is the thing being tested. */
+          open: !!el && el.matches(":popover-open"),
+          popover: el ? el.getAttribute("popover") : null,
+          value: app ? app.textContent.trim() : null,
+        };
+      }, id);
+
+    await page.click("#showcase-layer-auto-trigger");
+    await page.waitForTimeout(250);
+    const opened = await layerState("showcase-layer-auto");
+    check("a click opens the layer, and the browser says it is open",
+      opened.open === true, JSON.stringify(opened));
+    check("the value the application holds agrees", /open$/.test(opened.value ?? ""), String(opened.value));
+
+    /* Light dismiss is the platform's, not a document-level listener of ours: a real pointer-down
+       outside the layer. The top-left corner is page margin, chosen so the click cannot land on a
+       control and navigate away from the thing under test. */
+    await page.mouse.click(5, 5);
+    await page.waitForTimeout(300);
+    const dismissed = await layerState("showcase-layer-auto");
+    check("a real click outside dismisses it — the browser's light dismiss",
+      dismissed.open === false, JSON.stringify(dismissed));
+    /* The part the platform cannot know. Without the hook's report the layer would be gone and the
+       value would still say open, and every later click on the trigger would look like a no-op. */
+    check("and the application is told, so the value is not left saying open",
+      /closed$/.test(dismissed.value ?? ""), String(dismissed.value));
+
+    await page.click("#showcase-layer-auto-trigger");
+    await page.waitForTimeout(250);
+    check("it reopens after being dismissed out from under the application",
+      (await layerState("showcase-layer-auto")).open === true);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    const escaped = await layerState("showcase-layer-auto");
+    check("Escape dismisses it too, and the value is told again",
+      escaped.open === false && /closed$/.test(escaped.value ?? ""), JSON.stringify(escaped));
+
+    /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
+       meaning, not a flag this port implements. */
+    await page.click("#showcase-layer-manual-trigger");
+    await page.waitForTimeout(250);
+    check("a manual layer opens", (await layerState("showcase-layer-manual")).open === true);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    check("Escape does not touch it — the platform was never asked to dismiss this one",
+      (await layerState("showcase-layer-manual")).open === true);
+    await page.mouse.click(5, 5);
+    await page.waitForTimeout(250);
+    check("nor does a real click outside",
+      (await layerState("showcase-layer-manual")).open === true);
+    await page.click("#showcase-layer-manual-close");
+    await page.waitForTimeout(250);
+    const manualClosed = await layerState("showcase-layer-manual");
+    check("only the application closes it, and the value follows",
+      manualClosed.open === false && /closed$/.test(manualClosed.value ?? ""),
+      JSON.stringify(manualClosed));
   }
 
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
