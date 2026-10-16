@@ -991,6 +991,53 @@ section("TextArea");
   );
 }
 
+// --- FieldLabel (M12)
+//
+// The label group on its own, which is how the controls that want the label beside them use it.
+// The group-label path matters most: a <label> names exactly one form control, so a group label
+// must not be one — it is a <span> that a group references with aria-labelledby.
+
+section("FieldLabel");
+
+{
+  const labelOf = (id) => document.querySelector(`label[for="${id}"]`);
+  const groupLabel = document.getElementById("rt-fl-group-label");
+  const group = document.querySelector('[role="group"][aria-labelledby="rt-fl-group-label"]');
+
+  check("a label names its control with a real <label for>", !!labelOf("rt-fl-named"),
+    labelOf("rt-fl-named")?.outerHTML?.slice(0, 90));
+  check("the label and the description share one group",
+    !!labelOf("rt-fl-named")?.closest(".astryx-field__label-group"));
+  check("the description is a sibling of the label, never inside it",
+    labelOf("rt-fl-named").querySelector("#rt-fl-named-desc") === null
+      && !!document.getElementById("rt-fl-named-desc"));
+  check("a required label says Required, exactly once",
+    (labelOf("rt-fl-required").textContent.match(/Required/g) || []).length === 1,
+    labelOf("rt-fl-required").textContent);
+  check("an optional label says Optional and not Required",
+    /Optional/.test(labelOf("rt-fl-optional").textContent)
+      && !/Required/.test(labelOf("rt-fl-optional").textContent),
+    labelOf("rt-fl-optional").textContent);
+  check("the marker's separator is decoration only",
+    !!labelOf("rt-fl-required").querySelector('[aria-hidden="true"]'));
+  check("a label icon renders inside the label",
+    !!labelOf("rt-fl-icon").querySelector(".astryx-icon"));
+  check("a hidden label is clipped, not removed, and still names its control",
+    labelOf("rt-fl-hidden").classList.contains("astryx-visually-hidden")
+      && labelOf("rt-fl-hidden").hasAttribute("for"),
+    labelOf("rt-fl-hidden").className);
+  check("a disabled label says so",
+    attr(labelOf("rt-fl-disabled"), "data-astryx-disabled") === "true",
+    String(attr(labelOf("rt-fl-disabled"), "data-astryx-disabled")));
+  check("a group label is a <span>, not a <label>",
+    groupLabel?.tagName.toLowerCase() === "span" && !groupLabel.hasAttribute("for"),
+    groupLabel && `${groupLabel.tagName} for=${attr(groupLabel, "for")}`);
+  check("the group names itself from the label",
+    attr(group, "aria-labelledby") === "rt-fl-group-label"
+      && /Include in the release/.test(groupLabel.textContent));
+  check("nothing points at the group label with for=", labelOf("rt-fl-group-label") === null);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

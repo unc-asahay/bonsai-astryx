@@ -100,6 +100,12 @@
    "module": "Astryx.Menu_focus",
    "file": "src/menu_focus.ml",
    "note": "the DOM-driven menu navigation ported from upstream's useListFocus/useTypeahead: item selector with boundary scoping, wrap and disabled-skipping, typeahead with a 750 ms reset and same-character cycling, activation carrying the key's modifiers, and the one-frame focus move"
+  },
+  {
+   "name": "FieldLabel",
+   "module": "Astryx.Field_label",
+   "file": "src/field_label.ml",
+   "note": "the label and description group, rendered by Field and used on its own by the controls that want the label beside their control rather than above it. It is not one of the extracted 103: upstream's Field/index.ts exports it as part of Field, and the component extraction that gives FieldStatus its own page does not list it (the same extraction merges HStack and VStack into Stack). It is therefore not counted in the coverage numbers, and the coverage generator would flag it as an inconsistency if it were claimed there."
   }
  ],
  "ported": [

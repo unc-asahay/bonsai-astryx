@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   28 sections
+  ok   29 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   181 examples across the page
+  ok   188 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   28 nav links
+  ok   29 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -132,6 +132,11 @@ textarea (real typing, native label activation, the missing value attribute)
   ok   the value the user replaced does not come back
   ok   Enter inserts a newline instead of submitting
 
+field label (element.labels: a group label names nothing)
+  ok   a label names its control in a real engine
+  ok   a group label is a <span> with no for
+  ok   the group takes the group label as its name, and its controls do not
+
 coverage panel (fetched from coverage.json at runtime)
   ok   coverage stats are 28 ported / 75 not / 103 total
   ok   unported list rendered 75 entries
@@ -140,7 +145,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-104/104 checks passed, 0 failure(s)
+107/107 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

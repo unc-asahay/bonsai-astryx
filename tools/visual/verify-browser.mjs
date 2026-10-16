@@ -233,11 +233,11 @@ if (mode === "showcase") {
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
-    "Field + TextInput", "TextArea",
+    "Field + TextInput", "TextArea", "FieldLabel",
   ];
 
   console.log("\nshowcase sections");
-  check("28 sections", sections.length === 28, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("29 sections", sections.length === 29, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -254,10 +254,10 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
-    "Field + TextInput": 10, TextArea: 9,
+    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("181 examples across the page", totalExamples === 181, `got ${totalExamples}`);
+  check("188 examples across the page", totalExamples === 188, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("28 nav links", nav.length === 28, `got ${nav.length}`);
+  check("29 nav links", nav.length === 29, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -797,6 +797,41 @@ if (mode === "showcase") {
       "Enter inserts a newline instead of submitting",
       multiline && multiline.value.includes("\nsecond line"),
       JSON.stringify(multiline && multiline.value),
+    );
+  }
+
+  console.log("\nfield label (element.labels: a group label names nothing)");
+  {
+    const state = await page.evaluate(() => {
+      const named = document.querySelector("#showcase-fl-named");
+      const groupLabel = document.getElementById("showcase-fl-group-label");
+      const choice = document.querySelector("#showcase-fl-group-a");
+      const group = document.querySelector('[role="group"][aria-labelledby="showcase-fl-group-label"]');
+      return {
+        namedLabels: named && named.labels ? named.labels.length : -1,
+        namedText: named && named.labels && named.labels[0] ? named.labels[0].textContent.trim() : "",
+        groupTag: groupLabel ? groupLabel.tagName : null,
+        groupHasFor: groupLabel ? groupLabel.hasAttribute("for") : null,
+        groupLabelledBy: group ? group.getAttribute("aria-labelledby") : null,
+        choiceLabels: choice && choice.labels ? choice.labels.length : -1,
+      };
+    });
+    check(
+      "a label names its control in a real engine",
+      state && state.namedLabels === 1 && state.namedText.includes("Workspace name"),
+      JSON.stringify(state && { labels: state.namedLabels, text: state.namedText }),
+    );
+    check(
+      "a group label is a <span> with no for",
+      state && state.groupTag === "SPAN" && state.groupHasFor === false,
+      JSON.stringify(state && { tag: state.groupTag, hasFor: state.groupHasFor }),
+    );
+    check(
+      "the group takes the group label as its name, and its controls do not",
+      state &&
+        state.groupLabelledBy === "showcase-fl-group-label" &&
+        state.choiceLabels === 0,
+      JSON.stringify(state && { labelledby: state.groupLabelledBy, choiceLabels: state.choiceLabels }),
     );
   }
 

@@ -23,11 +23,11 @@ for image generation.
 | FieldStatus | 9 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 6 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 48 | 12 | 9 | 7 | [Icon.md](Icon.md) |
+| Icon | 49 | 13 | 9 | 7 | [Icon.md](Icon.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | Section | 7 | 8 | 9 | 5 | [Section.md](Section.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
-| Stack | 32 | 10 | 7 | 0 | [Stack.md](Stack.md) |
+| Stack | 39 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Text | 45 | 14 | 8 | 25 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |

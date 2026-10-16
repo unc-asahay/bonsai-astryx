@@ -598,7 +598,48 @@ second check that the value the user replaced does not reappear.
 auto-focus. Each is real work, none is needed by the base control, and half of one would be worse
 than none.
 
-**Totals at this gate:** 252 component checks, 104 real-browser checks, 25/25 demo checks,
+## Gate 15 — the label group, promoted to a component
+
+**What it covers:** `FieldLabel`, the label + description group, and `Field` refactored to render
+through it.
+
+**Why it is its own module.** Upstream keeps `Field/FieldLabel.tsx` separate because more than one
+control composes it: `Field` wraps a whole control, but `CheckboxInput` and `Switch` want the label
+*beside* their control rather than above it. The port had the same code inside `Field` as a private
+function — a component living in the wrong place, which the controls that need it next would have had
+to reach into `Field` for.
+
+**How it was verified.** By the checks that already existed, before any new one was written: the
+extraction changed no markup, so the 252 component checks, the DOM gate and the 104 browser checks
+had to still pass unchanged — and they did, on the same run. That is what makes a pure extraction
+safe to attempt at all. The component is then verified by its own 12 component checks and 3 browser
+checks.
+
+**What the new checks assert** (12 component, 3 real-browser): the label is a real `<label for>`
+naming its control; the label and the description share one group, and the description is a
+*sibling* of the label, never inside it (nested, it would fold into the control's accessible name and
+then be announced twice); Required is said exactly once, and Optional instead of it; the marker's
+separator is `aria-hidden`; a label icon renders inside the label; a hidden label is *clipped*, not
+removed, and still carries `for`; a disabled label says so. The group-label path gets the most
+attention because nothing had exercised it before: the group label is a `<span>` with no `for`, a
+`role="group"` names itself from it with `aria-labelledby`, the controls inside do **not** take it as
+their label (`element.labels.length === 0` in a real engine), and no `<label>` points at its id.
+
+**One honest gap in the coverage numbers.** `FieldLabel` is not one of the extracted 103: upstream's
+`Field/index.ts` exports it as part of Field, and the same extraction that gives `FieldStatus` its
+own reference page merges `HStack` and `VStack` into `Stack`. It is therefore recorded in `port.json`
+under `infrastructure`, not `ported` — the coverage generator treats a ported component that is not
+in the extracted list as an inconsistency, and it would be right to. It has no appearance page for
+the same reason: the appearance contract is built from elements marked `data-component`, and the
+label group is not a component-level visual.
+
+**Deferred, with reasons:** upstream's `labelTooltip` (an info icon at the end of the label, which
+needs the Tooltip component), the clickable description that forwards a click to the control through
+upstream's `useInputContainer`, and the form-level `defaultOptionality` context that decides whether
+a marker shows at all — that one arrives with `FormLayout`, and until a context exists a marker means
+what it says.
+
+**Totals at this gate:** 264 component checks, 107 real-browser checks, 25/25 demo checks,
 66 responsive checks at 0.00% drift across 320/375/768/1440, 25 appearance pages.
 
 ## Not yet verified — do not read these as claims

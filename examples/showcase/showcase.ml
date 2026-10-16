@@ -1206,13 +1206,134 @@ let text_area_demo (graph : Bonsai.graph) =
       ])
 ;;
 
+let s_field_label () =
+  (* The label group on its own — which is how a control that is not a Field uses it: the label
+     names the control by id, and nothing here is inside a Field. The last example is the
+     group-label path, where the label is a <span> and a set of controls names itself from it. *)
+  let labelled ?label_icon ?label_id ?(is_group_label = false) ?(is_label_hidden = false)
+        ?(is_disabled = false) ?(is_optional = false) ?(is_required = false) ?description
+        ?description_id ~label ~input_id ()
+    =
+    Astryx.Field_label.view
+      ?label_icon
+      ?label_id
+      ~is_group_label
+      ~is_label_hidden
+      ~is_disabled
+      ~is_optional
+      ~is_required
+      ?description
+      ?description_id
+      ~label
+      ~input_id
+      ()
+  in
+  let control id =
+    Vdom.Node.div
+      ~attrs:(Astryx.Common.Attr.class_ [ "astryx-text-input" ])
+      [ Vdom.Node.input
+          ~attrs:
+            (Astryx.Common.Attr.class_ [ "astryx-text-input__input" ]
+             @ [ Vdom.Attr.create "id" id; Vdom.Attr.create "type" "text" ])
+          ()
+      ]
+  in
+  let field ?label_icon ?label_id ?is_group_label ?is_label_hidden ?is_disabled ?is_optional
+        ?is_required ?description ?description_id ~label ~input_id ()
+    =
+    Astryx.Stack.view
+      ~direction:Astryx.Stack.Vertical
+      ~gap:S.S2
+      [ labelled
+          ?label_icon
+          ?label_id
+          ?is_group_label
+          ?is_label_hidden
+          ?is_disabled
+          ?is_optional
+          ?is_required
+          ?description
+          ?description_id
+          ~label
+          ~input_id
+          ()
+      ; control input_id
+      ]
+  in
+  let group_choices =
+    Vdom.Node.div
+      ~attrs:
+        (Astryx.Common.Attr.class_ [ "astryx-text-input" ]
+         @ [ Vdom.Attr.create "role" "group"
+           ; Vdom.Attr.create "aria-labelledby" "showcase-fl-group-label"
+           ])
+      [ Vdom.Node.input
+          ~attrs:
+            [ Vdom.Attr.create "id" "showcase-fl-group-a"
+            ; Vdom.Attr.create "type" "checkbox"
+            ; Vdom.Attr.create "aria-label" "Include the README"
+            ]
+          ()
+      ; Vdom.Node.input
+          ~attrs:
+            [ Vdom.Attr.create "id" "showcase-fl-group-b"
+            ; Vdom.Attr.create "type" "checkbox"
+            ; Vdom.Attr.create "aria-label" "Include the changelog"
+            ]
+          ()
+      ]
+  in
+  section
+    ~id:"fieldlabel"
+    ~title:"FieldLabel"
+    ~note:
+      "The label and description group, on its own. Field renders it above every control, but \
+       CheckboxInput and Switch want it beside their control instead — so upstream keeps it as a \
+       component of its own, and so does this port, where Field now renders through it. The label \
+       is a real <label for> naming the control by id, and the description is a sibling rather \
+       than a child: nested, it would fold into the control's accessible name and then be \
+       announced twice, once as the name and again through aria-describedby. The last example is \
+       the other path — a group label is a <span>, because a <label> names exactly one control and \
+       cannot name a set of them, so the group names itself with aria-labelledby. A hidden label \
+       is still the control's name; it is put out of sight, not out of the accessibility tree."
+    [ ex "a label and description naming a control"
+        (field
+           ~label:"Workspace name"
+           ~input_id:"showcase-fl-named"
+           ~description:"Shown in the sidebar."
+           ~description_id:"showcase-fl-named-desc"
+           ())
+    ; ex "required: the marker is part of the name"
+        (field ~label:"Billing email" ~input_id:"showcase-fl-required" ~is_required:true ())
+    ; ex "optional" (field ~label:"Purchase order" ~input_id:"showcase-fl-optional" ~is_optional:true ())
+    ; ex "a label icon"
+        (field ~label:"Search scope" ~input_id:"showcase-fl-icon" ~label_icon:"search" ())
+    ; ex "a hidden label still names the control"
+        (field ~label:"Account reference" ~input_id:"showcase-fl-hidden" ~is_label_hidden:true ())
+    ; ex "a disabled label"
+        (field ~label:"Frozen field" ~input_id:"showcase-fl-disabled" ~is_disabled:true ())
+    ; ex "a group label names a set of controls, not one"
+        (Astryx.Stack.view
+           ~direction:Astryx.Stack.Vertical
+           ~gap:S.S2
+           [ labelled
+               ~label:"Include in the release"
+               ~input_id:"showcase-fl-group-label"
+               ~label_id:"showcase-fl-group-label"
+               ~is_group_label:true
+               ()
+           ; group_choices
+           ])
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ; s_icon_button (); s_code (); s_blockquote ()
   ; s_nav_icon (); s_empty_state (); s_citation ()
-  ; s_icon (); s_field_status ()
+  ; s_icon (); s_field_status (); s_field_label ()
   ]
 ;;
 
@@ -1245,6 +1366,7 @@ let nav_items =
   ; "citation", "Citation"
   ; "icon", "Icon"
   ; "fieldstatus", "FieldStatus"
+  ; "fieldlabel", "FieldLabel"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"

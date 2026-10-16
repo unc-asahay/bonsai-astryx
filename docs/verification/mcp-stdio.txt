@@ -23,5 +23,4 @@ ported components: 28; truthfully reachable: 28
   note  Citation (ported, no snippet — reported as such)
   note  Icon (ported, no snippet — reported as such)
   note  FieldStatus (ported, no snippet — reported as such)
-  note  TextArea (ported, no snippet — reported as such)
 ok    every ported component is reported as ported

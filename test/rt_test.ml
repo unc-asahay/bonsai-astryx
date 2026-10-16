@@ -866,3 +866,89 @@ let () =
   Bonsai_web_test.Handle.recompute_view_until_stable handle;
   mount "textarea-after" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- FieldLabel (M12) *)
+
+(* The label group on its own: the label names a control by id, the description is a sibling of it,
+   and a group label is a <span> naming a set of controls rather than one. *)
+let field_label_static_component (_ : Bonsai.graph) =
+  let group
+        ?label_icon
+        ?label_id
+        ?(is_group_label = false)
+        ?(is_label_hidden = false)
+        ?(is_disabled = false)
+        ?(is_optional = false)
+        ?(is_required = false)
+        ?description
+        ?description_id
+        ~label
+        ~input_id
+        ()
+    =
+    Astryx.Field_label.view
+      ?label_icon
+      ?label_id
+      ~is_group_label
+      ~is_label_hidden
+      ~is_disabled
+      ~is_optional
+      ~is_required
+      ?description
+      ?description_id
+      ~label
+      ~input_id
+      ()
+  in
+  let control id =
+    Vdom.Node.input ~attrs:[ Vdom.Attr.create "id" id; Vdom.Attr.create "type" "text" ] ()
+  in
+  let group_choices =
+    Vdom.Node.div
+      ~attrs:
+        [ Vdom.Attr.create "role" "group"
+        ; Vdom.Attr.create "aria-labelledby" "rt-fl-group-label"
+        ]
+      [ Vdom.Node.input
+          ~attrs:
+            [ Vdom.Attr.create "id" "rt-fl-group-a"
+            ; Vdom.Attr.create "type" "checkbox"
+            ; Vdom.Attr.create "aria-label" "Include the README"
+            ]
+          ()
+      ]
+  in
+  (* A pure node, wrapped: a component's view is a value in the graph, and a static one is the
+     simplest such value. *)
+  Bonsai.return
+    (Vdom.Node.div
+       [ group
+           ~label:"Workspace name"
+        ~input_id:"rt-fl-named"
+        ~description:"Shown in the sidebar."
+        ~description_id:"rt-fl-named-desc"
+        ()
+    ; control "rt-fl-named"
+    ; group ~label:"Billing email" ~input_id:"rt-fl-required" ~is_required:true ()
+    ; group ~label:"Purchase order" ~input_id:"rt-fl-optional" ~is_optional:true ()
+    ; group ~label:"Search scope" ~input_id:"rt-fl-icon" ~label_icon:"search" ()
+    ; group ~label:"Account reference" ~input_id:"rt-fl-hidden" ~is_label_hidden:true ()
+    ; group ~label:"Frozen field" ~input_id:"rt-fl-disabled" ~is_disabled:true ()
+    ; group
+        ~label:"Include in the release"
+        ~input_id:"rt-fl-group-label"
+        ~label_id:"rt-fl-group-label"
+        ~is_group_label:true
+        ()
+       ; group_choices
+       ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      field_label_static_component
+  in
+  mount "fieldlabel-static" (Bonsai_web_test.Handle.last_result handle)
+;;

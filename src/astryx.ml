@@ -45,6 +45,7 @@ module Icon = Icon
 module Entry_animation = Entry_animation
 module Field_status = Field_status
 module Input_types = Input_types
+module Field_label = Field_label
 module Dropdown_menu = Dropdown_menu
 module Field = Field
 module Text_input = Text_input

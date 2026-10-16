@@ -140,9 +140,19 @@ textarea as a property assignment. A port that copies the JSX has a field that l
 screenshot and discards what the user types — so the browser gate types, lets the state change,
 and types again to prove a re-render does not put the old text back.
 
-Still open here: `CheckboxInput` and `Switch`, which are the two components that exercise Field's
-detached placement (the reason that case exists at all), and, from upstream's TextArea, the loading
-spinner, the clear button and auto-focus.
+`FieldLabel` came next, because the two controls that finish this milestone need it: upstream keeps
+the label + description group as its own component precisely because `CheckboxInput` and `Switch`
+want the label *beside* their control instead of above it. It was living inside `Field` as a private
+function; it is now a module `Field` renders through, and the extraction was verified by the checks
+that already existed — the 252 component checks and 104 browser checks, unchanged, on the same run —
+before a single new assertion was written. Upstream exports it from `Field`'s index and the component
+extraction does not list it among the 103, so it is recorded under `infrastructure` rather than
+counted in coverage, and that is stated rather than glossed over.
+
+Still open here: `CheckboxInput` and `Switch` (the two components that exercise Field's detached
+placement, and the reason that case exists at all) — and, deferred with reasons, upstream TextArea's
+loading spinner, clear button and auto-focus; FieldLabel's `labelTooltip` and its clickable
+description; and `FormLayout`'s `defaultOptionality`, which decides whether a marker shows at all.
 
 ## M9 — FieldStatus and entry animations (done)
 

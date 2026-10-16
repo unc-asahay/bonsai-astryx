@@ -264,5 +264,19 @@ TextArea
   ok   the textarea starts empty and the application agrees
   ok   typing reaches the control and the application, newlines included
 
-252 checks, 0 failure(s)
+FieldLabel
+  ok   a label names its control with a real <label for>
+  ok   the label and the description share one group
+  ok   the description is a sibling of the label, never inside it
+  ok   a required label says Required, exactly once
+  ok   an optional label says Optional and not Required
+  ok   the marker's separator is decoration only
+  ok   a label icon renders inside the label
+  ok   a hidden label is clipped, not removed, and still names its control
+  ok   a disabled label says so
+  ok   a group label is a <span>, not a <label>
+  ok   the group names itself from the label
+  ok   nothing points at the group label with for=
+
+264 checks, 0 failure(s)
 COMPONENT CHECKS PASSED
