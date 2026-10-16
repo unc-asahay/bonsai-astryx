@@ -951,3 +951,54 @@ between "a substitute" and "nothing" is the difference between a documented dive
 | Coverage | **34 of 103** ported, 69 not |
 | Showcase | 35 sections, 240 examples |
 | Appearance pages | 31 |
+
+## Gate 22 — `disabledMessage` (M13, phase 4), the deferral Tooltip unblocked
+
+A disabled control that cannot say why it is disabled is a dead end, and the native attribute is what
+makes it one: `disabled` refuses focus as well as input, so a control nobody can reach can never
+explain itself. Upstream's `disabledMessage` gives the attribute up for `aria-disabled` plus
+`form=""` — the second half matters, because `aria-disabled` does not stop submission on its own and
+`form=""` is what detaches the control from any form it sits in — and it adds the reason to the
+control's `aria-describedby`.
+
+**The one judgement worth recording: this is not a Tooltip.** Upstream renders the reason through its
+tooltip machinery, and the port's first instinct was to compose the `Tooltip` component. It would have
+been wrong twice over. Upstream pushes the message id into the control's `describedByParts`
+*unconditionally while the control is disabled* — the description is present whether or not anyone is
+hovering, because a description that only exists on hover is one a screen reader never reads — and
+while `Tooltip` owns its open state and therefore needs a graph, the *visual* half here is one CSS
+rule: the bubble is in the DOM for as long as the control is disabled and visibility is the only thing
+`:hover` and `:focus-within` change. So `Checkbox_input` and `Switch` keep their stateless signatures,
+and the behaviour is asserted rather than approximated: jsdom checks the attribute set and the merge
+into `aria-describedby` (including that the control's ordinary description survives it), and the
+browser checks the halves jsdom cannot see — present and hidden at rest, shown and *laid out* on
+hover, shown on focus, hidden again when the pointer leaves.
+
+**A real bug this change would have introduced, caught by reasoning about it before the tests.**
+`Switch` carried a comment saying its click guard was "belt-and-braces today, because a disabled input
+never fires a click", and naming itself as the seam where the `disabledMessage` path would need to
+*cancel* the event rather than ignore it. That is exactly what happened: focusable-disabled controls
+do fire clicks, so the guard became load-bearing and now calls `prevent_default` — without it the
+browser would have flipped the switch before the handler ran, and the state would have lied.
+
+Two more shared helpers moved to `Common` on the way (`prevent_default` here, and `prop`/`string_prop`/
+`bool_prop` with Tooltip): the first component to need a DOM helper is not a reason for the second
+copy, which is how two components drift.
+
+**Re-baselined, deliberately.** The two gates before this one added the Tooltip section and two
+disabled-reason examples to the page, and the coverage panel's text is part of every screenshot,
+so the responsive baseline was regenerated on those commits and then verified on a separate run
+(66 / 0 at 0.00%). It is recorded here rather than done quietly: a baseline created on a run
+cannot detect a regression on that same run.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **362 / 0** |
+| Real-browser checks (Chromium, live showcase) | **160 / 0** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **34 of 103** ported, 69 not |
+| Showcase | 35 sections, 242 examples |
+| Appearance pages | 31 |

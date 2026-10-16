@@ -362,6 +362,43 @@ if (mode === "showcase") {
   await page.waitForTimeout(150);
   check("Escape closes it", (await tipBox("showcase-tip-above-message")) === null);
 
+  // ------------------------------------------------- disabledMessage (M13)
+  console.log("\ndisabledMessage (live)");
+  const reasonState = (id) =>
+    page.evaluate((i) => {
+      const el = document.getElementById(i);
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return { visibility: cs.visibility, opacity: cs.opacity, w: Math.round(r.width) };
+    }, id);
+
+  // In the DOM always, visible only while the pointer or the focus is there. jsdom cannot say either
+  // half of that: it has no layout, so "hidden" and "zero-sized" look alike from inside it.
+  const atRest = await reasonState("showcase-checkbox-reason-disabled-message");
+  check("a disabled control's reason is present but not shown at rest",
+    !!atRest && atRest.visibility === "hidden", JSON.stringify(atRest));
+  await page.hover("#showcase-checkbox-reason");
+  await page.waitForTimeout(120);
+  const onHover = await reasonState("showcase-checkbox-reason-disabled-message");
+  check("hovering the control shows it, laid out",
+    !!onHover && onHover.visibility === "visible" && onHover.w > 0, JSON.stringify(onHover));
+  await page.focus("#showcase-checkbox-reason");
+  check("and so does focusing it", (await reasonState("showcase-checkbox-reason-disabled-message"))?.visibility === "visible");
+  await page.mouse.move(2, 2);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.waitForTimeout(120);
+
+  await page.hover("#showcase-switch-reason");
+  await page.waitForTimeout(120);
+  const swShown = await reasonState("showcase-switch-reason-disabled-message");
+  check("the switch's reason behaves the same way",
+    !!swShown && swShown.visibility === "visible" && swShown.w > 0, JSON.stringify(swShown));
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(120);
+  check("and hides again when the pointer leaves",
+    (await reasonState("showcase-switch-reason-disabled-message"))?.visibility === "hidden");
+
   console.log("\nshowcase sections");
   check("35 sections", sections.length === 35, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
@@ -379,12 +416,12 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10, Switch: 8,
+    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
     RadioList: 9, FormLayout: 7, Tooltip: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("240 examples across the page", totalExamples === 240, `got ${totalExamples}`);
+  check("242 examples across the page", totalExamples === 242, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",

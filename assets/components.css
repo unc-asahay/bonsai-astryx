@@ -1665,3 +1665,34 @@
 .astryx-tooltip--below.astryx-tooltip--align-center { left: 50%; transform: translateX(-50%); }
 .astryx-tooltip--above.astryx-tooltip--align-end,
 .astryx-tooltip--below.astryx-tooltip--align-end { right: 0; }
+
+/* A disabled control's reason. The message is in the DOM for as long as the control is disabled —
+   that is what makes it describable — and visibility is the only thing hover and focus change, so
+   the whole behaviour is CSS and the component needs no state. */
+.astryx-disabled-message {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + var(--spacing-1));
+  left: 0;
+  max-width: 16rem;
+  width: max-content;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-element);
+  background: var(--color-background-inverted);
+  color: var(--color-text-inverted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.astryx-checkbox-input__control:hover > .astryx-disabled-message,
+.astryx-checkbox-input__control:focus-within > .astryx-disabled-message,
+.astryx-switch__control:hover > .astryx-disabled-message,
+.astryx-switch__control:focus-within > .astryx-disabled-message,
+.astryx-radio-list-item:hover > .astryx-disabled-message,
+.astryx-radio-list-item:focus-within > .astryx-disabled-message {
+  visibility: visible;
+  opacity: 1;
+}

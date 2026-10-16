@@ -98,4 +98,40 @@ let () =
   ignore (field : unit -> Vdom.Node.t);
   ignore (text_input : Bonsai.graph -> Vdom.Node.t Bonsai.t);
   ignore (text_area : Bonsai.graph -> Vdom.Node.t Bonsai.t)
+
 ;;
+
+(* --- snippets.json / Tooltip --- *)
+let tooltip (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
+  (* the tooltip owns its open state, so it takes the graph; the trigger is any node *)
+  Astryx.Tooltip.view
+    ~id:"delete-tooltip"
+    ~content:"Deletes the draft, not the published version."
+    ~trigger:(Astryx.Button.view ~variant:Astryx.Button.Destructive ~label:"Delete" [])
+    graph
+;;
+
+(* --- snippets.json / FormLayout --- *)
+let form_layout () : Vdom.Node.t Bonsai.t =
+  (* a layout is stateless AND takes plain nodes, so the field trees are resolved first — the
+     container cannot reach into a child that is still a Bonsai.t, which is the same moment that
+     keeps upstream's context from having an analogue here *)
+  let field label id =
+    Astryx.Text_input.view
+      ~label
+      ~id
+      ~value:(Bonsai.return "")
+      ~on_change:(Bonsai.return (fun (_ : string) -> Effect.Many []))
+      ()
+  in
+  Bonsai.map2 (field "Email" "snippet-form-email") (field "Name" "snippet-form-name")
+    ~f:(fun email name ->
+    Astryx.Form_layout.view
+      ~direction:Astryx.Form_layout.Horizontal
+      ~children:[ email; name; Astryx.Button.view ~label:"Save" [] ]
+      ())
+;;
+
+let () =
+  ignore (tooltip : Bonsai.graph -> Vdom.Node.t Bonsai.t);
+  ignore (form_layout : unit -> Vdom.Node.t Bonsai.t)

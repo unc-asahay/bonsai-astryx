@@ -56,6 +56,10 @@ end
    reach for [Js.Unsafe.get]. *)
 let prop (obj : 'a Js.t) (name : string) = Js.Unsafe.get obj name
 
+(* Generic DOM helpers live here rather than in whichever component needed them first: the second
+   copy is how two components drift. *)
+let prevent_default (obj : 'a Js.t) = ignore (Js.Unsafe.meth_call obj "preventDefault" [||])
+
 let string_prop (obj : 'a Js.t) (name : string) : string option =
   Option.map (Js.Opt.to_option (prop obj name : Js.js_string Js.t Js.opt)) ~f:Js.to_string
 ;;

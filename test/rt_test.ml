@@ -1288,3 +1288,64 @@ let () =
   in
   mount "tooltip-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------- disabledMessage (M13) *)
+
+(* The contract in one place: a disabled control *with* a reason drops the native disabled attribute
+   for aria-disabled plus form="" — so it stays focusable and submits nothing — renders the reason
+   and describes it; a disabled control *without* a reason keeps the native attribute it always had;
+   and a reason on an enabled control changes nothing at all. *)
+let disabled_message_static (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_checkbox_change = Bonsai.return (fun (_ : Checkbox_input.value) -> Effect.Many []) in
+  let no_switch_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let checkbox ?is_disabled ?disabled_message ~id value =
+    Checkbox_input.view
+      ?is_disabled
+      ?disabled_message
+      ~label:"Managed setting"
+      ~description:"A description that must survive the merge."
+      ~description_id:(id ^ "-description")
+      ~id
+      ~value:(Bonsai.return value)
+      ~on_change:no_checkbox_change
+      ()
+  in
+  let switch ?is_disabled ?disabled_message ~id value =
+    Switch.view
+      ?is_disabled
+      ?disabled_message
+      ~label:"Managed switch"
+      ~id
+      ~value:(Bonsai.return value)
+      ~on_change:no_switch_change
+      ()
+  in
+  join_all
+    [ checkbox
+        ~is_disabled:true
+        ~disabled_message:"Your administrator manages this."
+        ~id:"dm-checkbox-reason"
+        Checkbox_input.Checked
+    ; checkbox ~is_disabled:true ~id:"dm-checkbox-noreason" Checkbox_input.Unchecked
+    ; checkbox ~disabled_message:"Ignored while the control is enabled." ~id:"dm-checkbox-enabled"
+        Checkbox_input.Checked
+    ; switch
+        ~is_disabled:true
+        ~disabled_message:"Enforced by your organisation."
+        ~id:"dm-switch-reason"
+        true
+    ]
+  |> Bonsai.map ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    disabled_message_static
+  |> fun handle -> mount "disabled-message" (Bonsai_web_test.Handle.last_result handle)
+;;

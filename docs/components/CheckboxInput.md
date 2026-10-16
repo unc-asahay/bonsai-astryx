@@ -77,22 +77,7 @@ Generated from `astryx/packages/core/src/CheckboxInput/CheckboxInput.doc.mjs` (M
 val view
   :  ?attrs:Vdom.Attr.t list
   -> ?is_disabled:bool
-  -> ?is_read_only:bool
-  -> ?is_label_hidden:bool
-  -> ?is_optional:bool
-  -> ?is_required:bool
-  -> ?optionality:Common.Optionality.t
-  -> ?label_icon:string
-  -> ?description:string
-  -> ?description_id:string
-  -> ?status:Input_types.status
-  -> ?size:Indicator.size
-  -> label:string
-  -> id:string
-  -> value:value Bonsai.t
-  -> on_change:(value -> unit Effect.t) Bonsai.t
-  -> unit
-  -> Vdom.Node.t Bonsai.t
+  -> ?disabled_message:string
 ```
 
 Call it with the same prop names and defaults the upstream contract above documents; `Divergence` comments in the source record the few places the port deliberately differs (class names, and inline styles for per-instance numeric props).

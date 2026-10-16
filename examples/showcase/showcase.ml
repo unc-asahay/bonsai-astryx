@@ -1514,9 +1514,12 @@ let checkbox_demo (graph : Bonsai.graph) =
   let static value =
     Bonsai.return value
   in
-  let plain ?is_disabled ?is_read_only ?is_label_hidden ?is_optional ?is_required ~label ~id value =
+  let plain ?is_disabled ?disabled_message ?is_read_only ?is_label_hidden ?is_optional
+        ?is_required ~label ~id value
+    =
     Checkbox_input.view
       ?is_disabled
+      ?disabled_message
       ?is_read_only
       ?is_label_hidden
       ?is_optional
@@ -1546,6 +1549,13 @@ let checkbox_demo (graph : Bonsai.graph) =
     ; ex_tree "read-only: it still takes focus and refuses the click"
         (plain ~label:"Locked but reachable" ~id:"showcase-checkbox-readonly" ~is_read_only:true
            Checkbox_input.Unchecked)
+    ; ex_tree "disabled with a reason, and still reachable"
+        (plain
+           ~label:"Managed by your administrator"
+           ~id:"showcase-checkbox-reason"
+           ~is_disabled:true
+           ~disabled_message:"Your administrator manages this setting."
+           Checkbox_input.Checked)
     ; ex_tree "required, and optional"
         (Bonsai.map
            (join_all
@@ -1644,9 +1654,12 @@ let switch_demo (graph : Bonsai.graph) =
     in
     Bonsai.map (join_all [ control; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
   in
-  let plain ?is_disabled ?is_label_hidden ?is_optional ?is_required ?size ~label ~id value =
+  let plain ?is_disabled ?disabled_message ?is_label_hidden ?is_optional ?is_required ?size ~label
+        ~id value
+    =
     Switch.view
       ?is_disabled
+      ?disabled_message
       ?is_label_hidden
       ?is_optional
       ?is_required
@@ -1672,6 +1685,23 @@ let switch_demo (graph : Bonsai.graph) =
            (join_all
               [ plain ~label:"Frozen on" ~id:"showcase-switch-disabled-on" ~is_disabled:true true
               ; plain ~label:"Frozen off" ~id:"showcase-switch-disabled-off" ~is_disabled:true false
+              ])
+           ~f:row)
+    ; ex_tree "disabled with a reason, and still reachable"
+        (Bonsai.map
+           (join_all
+              [ plain
+                  ~label:"Two-factor"
+                  ~id:"showcase-switch-reason"
+                  ~is_disabled:true
+                  ~disabled_message:"Two-factor is enforced by your organisation."
+                  true
+              ; plain
+                  ~label:"Beta channel"
+                  ~id:"showcase-switch-reason-2"
+                  ~is_disabled:true
+                  ~disabled_message:"Ask an admin to turn this on."
+                  false
               ])
            ~f:row)
     ; ex_tree "sm and md"

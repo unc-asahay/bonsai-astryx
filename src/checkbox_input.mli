@@ -19,6 +19,13 @@ type value = Indicator.state =
 val view
   :  ?attrs:Vdom.Attr.t list
   -> ?is_disabled:bool
+  -> ?disabled_message:string
+(** Why a disabled control is disabled. With a message the control drops the native [disabled]
+    attribute for [aria-disabled] plus [form=""], which keeps it focusable — a natively disabled
+    button receives no pointer events and takes no focus, so it can never explain itself — and the
+    message joins its [aria-describedby] for as long as it is disabled, not only while hovered. The
+    bubble itself is shown on hover and focus by CSS, so this needs no state. *)
+
   -> ?is_read_only:bool
   -> ?is_label_hidden:bool
   -> ?is_optional:bool

@@ -1345,6 +1345,51 @@ section("FieldLabel");
     placed ? `${placed.getAttribute("data-astryx-placement")}/${placed.getAttribute("data-astryx-alignment")}` : "missing");
 }
 
+// ------------------------------------------------------- disabledMessage (M13)
+{
+  section("disabledMessage");
+  const input = (id) => document.getElementById(id);
+  const describedBy = (id) =>
+    (input(id)?.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+
+  const withReason = input("dm-checkbox-reason");
+  // The native attribute is what a reason has to give up: it refuses focus as well as input, and a
+  // control nobody can reach can never explain itself.
+  check("a disabled control with a reason drops the native disabled attribute",
+    !!withReason && !withReason.hasAttribute("disabled"));
+  check("it is disabled by aria instead", withReason?.getAttribute("aria-disabled") === "true");
+  // form="" is what keeps that from being a lie: the control is out of any form it sits in, so it
+  // still submits nothing.
+  check("and it is detached from any form", withReason?.getAttribute("form") === "");
+  const reason = input("dm-checkbox-reason-disabled-message");
+  check("the reason is rendered, with role=tooltip",
+    !!reason && reason.getAttribute("role") === "tooltip"
+      && reason.textContent === "Your administrator manages this.");
+  // Described for as long as it is disabled, not only while hovered — which is the whole reason this
+  // is not simply a bubble owned by the Tooltip component.
+  check("and the control describes it",
+    describedBy("dm-checkbox-reason").includes("dm-checkbox-reason-disabled-message"));
+  check("without losing the description it already had",
+    describedBy("dm-checkbox-reason").includes("dm-checkbox-reason-description"));
+
+  const noReason = input("dm-checkbox-noreason");
+  check("a disabled control with no reason keeps the native attribute",
+    !!noReason && noReason.hasAttribute("disabled"));
+  check("and renders no reason at all",
+    input("dm-checkbox-noreason-disabled-message") === null);
+
+  const enabled = input("dm-checkbox-enabled");
+  check("a reason on an enabled control changes nothing",
+    !!enabled && !enabled.hasAttribute("disabled") && enabled.getAttribute("aria-disabled") === null
+      && input("dm-checkbox-enabled-disabled-message") === null);
+
+  const sw = input("dm-switch-reason");
+  check("the switch does the same",
+    !!sw && !sw.hasAttribute("disabled") && sw.getAttribute("aria-disabled") === "true"
+      && sw.getAttribute("form") === ""
+      && describedBy("dm-switch-reason").includes("dm-switch-reason-disabled-message"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

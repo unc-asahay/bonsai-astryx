@@ -96,8 +96,14 @@
     {
       "id": "M12",
       "name": "the rest of the basic controls (TextArea, phase 1)",
-      "note": "TextArea is TextInput's sibling in upstream's input family, so this milestone opens with the contract the family shares: Input_types, which upstream keeps in Field/types.ts under the Input* names. TextInput was moved onto it too \u2014 the status type, the three sizes and the status record with its optional message are now one definition rather than one per control, which is what stops the next four inputs from each inventing their own answer. The move corrected a real gap: upstream's InputStatus.message is optional, so a status may carry no message at all (the control takes the colour, nothing is shown and nothing is announced), and the port had required one. CheckboxInput and Switch come next and will use the same types; they are the components that exercise Field's detached placement.",
-      "status": "in progress"
+      "note": "The rest of the basic controls, and M13 folded the last two into one milestone: CheckboxInput (a controlled checkbox whose checked and indeterminate states are DOM *properties*, and which cancels a refused click because React restores a controlled input after every event and Vdom does not), Switch (a native checkbox wearing role=switch, with no aria-checked shadowing its own checkedness) and Indicator (one module with three kinds \u2014 check, checkbox and radio \u2014 the same judgment as HStack/VStack becoming Stack). TextArea opened the milestone by moving the family contract into Input_types; upstream's InputStatus.message being optional was a real gap the move corrected.",
+      "status": "complete"
+    },
+    {
+      "id": "M13",
+      "name": "the forms layer's edges",
+      "note": "RadioList (the first real consumer of the group-label path M12 built, and the milestone where to ask what the platform already does paid off: three radios sharing a name are already one tab stop whose arrows move *and* select, so the port writes no keydown handler at all), FormLayout (upstream's defaultOptionality arrives through React context, which has no analogue here because a child is already built before the container is applied \u2014 so it becomes ?optionality per field, and the resolved rule is aria-required = !is_optional && (is_required || default = required), with the layout default moving only aria-required and never the native attribute so it cannot switch on browser validation), and Tooltip \u2014 which the plan first put here and which turned out to depend on Layer, so it opened the overlay pillar instead and followed DropdownMenu's convention of a positioned element rather than a top-layer portal. Two divergences are named in tooltip.mli: the message is positioned in place, and the 200 ms hover delay is not ported because this release has no timer whose callback can write back into the graph. The milestone also retires the disabledMessage deferral, which turned out not to be a Tooltip at all: the reason must be described for as long as the control is disabled rather than only while hovered, so the controls trade the native disabled attribute for aria-disabled plus form=\"\" and the visual half is one CSS rule \u2014 which keeps their stateless signatures.",
+      "status": "complete"
     }
   ],
   "ported": [

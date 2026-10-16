@@ -218,7 +218,12 @@ const tools = {
       `upstream: ${port.upstream.repo} @ ${port.upstream.commit} (${port.upstream.license})`,
       `ported: ${ported.length} of ${upstreamComponents.length}`,
       `by milestone: ${Object.entries(byMilestone).map(([m, n]) => `${m}=${n}`).join(", ")}`,
-      `milestones: ${port.milestones.map((m) => `${m.id} (${m.status})`).join(", ")}`,
+      // Numeric order, not the file's: "M10" sorts before "M4" as a string, and a reader
+      // scanning a status line reads order as meaning.
+      `milestones: ${[...port.milestones]
+        .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)))
+        .map((m) => `${m.id} (${m.status})`)
+        .join(", ")}`,
       "",
       `ported modules: ${ported.map((p) => p.module).join(", ")}`,
     ].join("\n");

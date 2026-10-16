@@ -378,5 +378,17 @@ Tooltip
   ok   the trigger is inside the anchor
   ok   placement and alignment are stated on the message
 
-352 checks, 0 failure(s)
+disabledMessage
+  ok   a disabled control with a reason drops the native disabled attribute
+  ok   it is disabled by aria instead
+  ok   and it is detached from any form
+  ok   the reason is rendered, with role=tooltip
+  ok   and the control describes it
+  ok   without losing the description it already had
+  ok   a disabled control with no reason keeps the native attribute
+  ok   and renders no reason at all
+  ok   a reason on an enabled control changes nothing
+  ok   the switch does the same
+
+362 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

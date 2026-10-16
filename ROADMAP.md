@@ -212,7 +212,7 @@ halves of the rule are gated: the in-process tests assert nothing on the first p
 and the browser gate mounts one on demand and asserts the class *and* that
 `prefers-reduced-motion` neutralises it.
 
-## M13 — closing the forms layer (RadioList, FormLayout, Tooltip)
+## M13 — closing the forms layer (RadioList, FormLayout, Tooltip) (done)
 
 M12 ported the controls; this milestone finishes their surroundings. Every piece of it is tractable
 *because* of what M12 left in place, which is the only reason it is worth doing before the larger
@@ -246,11 +246,14 @@ pillars below.
   `aria-required` and never the native `required` attribute, so choosing a form default cannot switch
   on the browser's own validation.
 
+- ~~**`disabledMessage`** on `CheckboxInput` and `Switch`~~ — **done**, and not the way this line
+  first said it would be. It was going to compose `Tooltip`; it does not, because the description has
+  to be present for as long as the control is disabled rather than only while hovered, and the visual
+  half is one CSS rule. The controls keep their stateless signatures. The canceled click this note
+  predicted `Switch` would need is now there, and it was load-bearing the moment focusable-disabled
+  controls started firing clicks.
 - **`Tooltip`** (class B, 1,998 lines) — **now built**, in the overlay pillar below rather than here,
-  and it is the piece that retires the `disabledMessage` path on `CheckboxInput` and `Switch`: a
-  control that looks disabled and stays focusable, because a natively disabled button receives no
-  pointer events and can never explain itself. That path is also where `Switch` will need the canceled
-  click `CheckboxInput` already has — the seam is commented where it goes. The other deferral this
+  and it is what a control reaches for when the message should appear on hover and go away again. The other deferral this
   section used to claim is smaller than it looked: `FieldStatus`'s third variant already renders its
   message as a visually-hidden live region (`field.ml`'s `announcement_node`), so assistive technology
   gets the message today and only the *visible* bubble is missing.

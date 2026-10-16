@@ -39,14 +39,21 @@ Tooltip (live)
   ok   focusing the trigger opens it too
   ok   Escape closes it
 
+disabledMessage (live)
+  ok   a disabled control's reason is present but not shown at rest
+  ok   hovering the control shows it, laid out
+  ok   and so does focusing it
+  ok   the switch's reason behaves the same way
+  ok   and hides again when the pointer leaves
+
 showcase sections
   ok   35 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   240 examples across the page
+  ok   242 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 Switch:8 RadioList:9 FormLayout:7 Tooltip:6 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 DropdownMenu:2 Interactive:2
 
 navigation
   ok   35 nav links
@@ -205,7 +212,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-155/155 checks passed, 0 failure(s)
+160/160 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
