@@ -22,7 +22,13 @@ let title_el ~title_id ~title =
     "h2"
     ~attrs:
       (Attr.class_ [ "astryx-dialog-header__title" ]
-       @ [ Vdom.Attr.create "id" title_id; Vdom.Attr.create "tabindex" "-1" ])
+       @ [ Vdom.Attr.create "id" title_id
+         ; Vdom.Attr.create "tabindex" "-1"
+         ; (* Marks the element the dialog should focus when it opens — see dialog.ml's hook. Without
+              it the platform's own focus delegate picks the close button, and a screen reader
+              announces "Close" instead of the dialog's name. *)
+           Vdom.Attr.create "data-astryx-focus-on-open" ""
+         ])
     [ title ]
 ;;
 

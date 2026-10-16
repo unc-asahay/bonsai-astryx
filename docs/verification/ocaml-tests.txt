@@ -420,11 +420,12 @@ DialogHeader
   ok   the header renders a heading
   ok   the heading carries the id a dialog names itself from
   ok   and it is focusable programmatically without being in the tab order
+  ok   and it marks itself as what the dialog should focus on open
   ok   its text is the dialog's accessible name
   ok   no callback means NO close button
   ok   a callback means the button exists, and it has an accessible name
   ok   the subtitle sits in its own slot
   ok   has_divider is a class on the header
 
-387 checks, 0 failure(s)
+388 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

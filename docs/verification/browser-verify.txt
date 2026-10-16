@@ -74,7 +74,7 @@ AlertDialog (live)
 DialogHeader (live)
   ok   the dialog opens modal, named by its header
   ok   and what it points at is the heading carrying the title
-  ok   the heading can be focused programmatically
+  ok   the dialog focuses its marked title, not the close button
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections

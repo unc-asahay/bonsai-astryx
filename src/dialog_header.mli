@@ -14,20 +14,19 @@
     caller holding a state setter has no way to produce a plain function. That is why this view returns
     a [Bonsai.t] rather than a node, even in the case where no button is drawn.
 
-    {2 Not ported, with the reason — and it is a real accessibility behaviour, not a flourish}
+    {2 Focus on open, and why the platform's own choice is the wrong one}
 
-    Upstream focuses the title when a modal dialog opens, and suppresses that on inline previews. It
-    matters because the platform does not do it for us: the focus delegate [showModal()] runs skips any
-    element with [tabindex="-1"], so the browser lands on the first *tabbable* thing — the close button —
-    and a screen reader announces "Close" rather than the dialog's name. The title is consequently
-    reachable but not focused.
+    Upstream focuses the title when a modal dialog opens, and it is not a flourish: the focus delegate
+    [showModal()] runs skips any element with [tabindex="-1"], so the browser's own choice is the first
+    *tabbable* thing — the close button — and a screen reader would announce "Close" rather than the
+    dialog's name. So the title is marked ([data-astryx-focus-on-open]) and {!Dialog.view}'s hook focuses
+    it. The dialog is the only thing that knows it opened; upstream learns that from context, which has
+    no analogue here.
 
-    The mechanism exists in this port: [Menu_focus.focus_on_next_frame] focuses an element, and
-    {!Common.Delay_hook} established the hook shape for doing DOM work no event triggers. What is missing
-    is the *moment* — the header does not know the dialog opened, and upstream learns it from context.
-    The honest home for it is {!Dialog.view}, which does know (its hook already runs on open), and it is
-    recorded here rather than approximated with a [focus_on_open] argument that would have no signal to
-    act on. Until then the title is focusable and a caller can focus it deliberately. *)
+    Two consequences worth stating: a dialog that marks nothing keeps the platform's choice, and an
+    inline preview never runs the hook at all — which is how upstream suppresses the focus there too,
+    arrived at rather than special-cased.
+*)
 
 open! Core
 open! Bonsai_web

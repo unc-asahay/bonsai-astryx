@@ -45,6 +45,22 @@ let is_connected (el : Dom_html.element Js.t) : bool =
    open a dialog, which is exactly the case Gate 23 opened up. The hook is given is_open on every
    update and puts the element in step with it, so a caller that ignores the close callback gets the
    dialog back — the DOM follows the value, the value is the truth. *)
+(* The element a dialog asks to have focused when it opens, if it marks one. The platform's own focus
+   delegate picks the first *tabbable* descendant — a close button, typically — so a dialog whose title
+   is marked gets the title focused instead, and a screen reader hears the dialog's name rather than
+   "Close". Upstream's DialogHeader focuses its title from context; here the marking is a data attribute
+   and the focusing belongs to the hook that already runs on open, because that is the only place that
+   knows the dialog opened at all. *)
+let focus_target (el : Dom_html.element Js.t) : Dom_html.element Js.t option =
+  let found : Dom_html.element Js.t Js.opt =
+    Js.Unsafe.meth_call
+      el
+      "querySelector"
+      [| Js.Unsafe.inject (Js.string "[data-astryx-focus-on-open]") |]
+  in
+  Js.Opt.to_option found
+;;
+
 module Dialog_hook = struct
   module T = struct
     module State = struct
@@ -73,7 +89,12 @@ module Dialog_hook = struct
           <- (if is_connected active then Some (Js.Unsafe.coerce active) else None);
         (* Also what puts the element in the top layer: the [open] attribute alone would be a
            non-modal dialog wearing a modal's name. *)
-        call el "showModal")
+        call el "showModal";
+        (* After showModal, deliberately: the platform has just chosen its own focus target, and this is
+           the correction. A dialog that marks nothing keeps the platform's choice. *)
+        (match focus_target el with
+         | Some target -> ignore (Js.Unsafe.meth_call target "focus" [||])
+         | None -> ()))
       else if (not input.is_open) && is_open_now
       then (
         call el "close";

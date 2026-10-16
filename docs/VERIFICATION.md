@@ -1230,3 +1230,53 @@ written down, and the coverage count is unchanged at 36 of 103.
 
 Transcript: `docs/verification/sweep-m14f.txt`.
 
+## Gate 27 — focus on open, or: how a recorded gap gets closed
+
+Gate 26 recorded a gap rather than approximating it — upstream focuses the title when a modal dialog
+opens, and this port did not, which matters because the platform's focus delegate skips an element with
+`tabindex="-1"` and lands on the first *tabbable* thing. In a dialog with a header that is the close
+button, so a screen reader announces "Close" instead of the dialog's name. This gate closes it.
+
+**The fix is two lines of marking and one of action.** The heading carries
+`data-astryx-focus-on-open`, and `Dialog`'s hook — which already runs on open, because it is what calls
+`showModal()` in the first place — focuses the first marked descendant if there is one. Two things make
+that the right owner:
+
+- **The dialog is the only thing that knows it opened.** The header cannot know: upstream learns it from
+  context, and context has no analogue here. This is the same constraint that turned `~labelled_by` into
+  an argument, resolved the other way round because the *action* lives where the *signal* does.
+- **It has to happen after `showModal()`, not before.** The platform moves focus itself as part of
+  opening the dialog, so the correction belongs after it. A dialog that marks nothing keeps the
+  platform's choice — the hook does nothing.
+
+**The evidence is where focus actually lands**, measured in a real browser immediately after opening:
+`document.activeElement` is the `h2`, not the close button. The component gate asserts the marker's
+presence; only Chromium can assert the consequence, the same split as every other focus behaviour in this
+port.
+
+Two notes on discipline rather than behaviour:
+
+- **The `not ported` paragraph in `dialog_header.mli` was corrected in the same commit as the work that
+  retired it.** A deferral that stays written after it is closed is a false claim, and this repo has
+  already been bitten by one (Gate 21's "unportable" delay).
+- **A gate that asserts a capability survives an improvement; one that asserts a limitation does not.**
+  Gate 26 deliberately asserted that the heading *can* be focused rather than who receives focus
+  automatically, precisely so that fixing it would not read as a regression. That check is now replaced
+  by the stronger one — the improvement is what changed it, and the old name is gone rather than
+  quietly relaxed.
+
+An inline preview never runs the hook at all, so no focus is taken there — which is how upstream
+suppresses this on previews too, arrived at rather than special-cased.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **388 / 0** |
+| Real-browser checks (Chromium, live showcase) | **185 / 185** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | 36 of 103 ported, 67 not |
+| Showcase | 38 sections, 255 examples |
+
+Transcript: `docs/verification/sweep-m14g.txt`.

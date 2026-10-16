@@ -1497,6 +1497,9 @@ section("FieldLabel");
     heading?.getAttribute("id") === "dhdr-no-close-title", heading?.getAttribute("id") ?? "none");
   check("and it is focusable programmatically without being in the tab order",
     heading?.getAttribute("tabindex") === "-1");
+  // What the dialog's hook looks for. The platform would focus the close button instead.
+  check("and it marks itself as what the dialog should focus on open",
+    !!heading && heading.hasAttribute("data-astryx-focus-on-open"));
   check("its text is the dialog's accessible name",
     heading?.textContent === "Delete this project?", heading?.textContent ?? "none");
 

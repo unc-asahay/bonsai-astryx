@@ -558,17 +558,16 @@ if (mode === "showcase") {
     const d = document.getElementById("showcase-dialog-header-live");
     const named = d?.getAttribute("aria-labelledby");
     const heading = named ? document.getElementById(named) : null;
-    const before = document.activeElement?.id ?? document.activeElement?.tagName ?? null;
-    if (heading) heading.focus();
-    const after = document.activeElement === heading;
+    const active = document.activeElement;
     return {
+      activeIsHeading: !!heading && active === heading,
+      activeId: active?.id ?? active?.tagName ?? null,
       open: !!d && d.open,
       modal: !!d && d.matches(":modal"),
       named,
       tag: heading?.tagName ?? null,
       text: heading?.textContent ?? null,
-      focusBeforeId: before,
-      titleTakesFocus: after,
+
       readout: document.getElementById("showcase-dialog-header-state")?.textContent ?? null,
     };
   });
@@ -580,11 +579,11 @@ if (mode === "showcase") {
   check("and what it points at is the heading carrying the title",
     headerFacts.tag === "H2" && headerFacts.text === "Delete this project?",
     `${headerFacts.tag} ${headerFacts.text}`);
-  // The capability tabindex="-1" exists for. Who receives focus automatically on open is a named gap
-  // (see dialog_header.mli): the platform's focus delegate skips this element and lands on the close
-  // button, where upstream focuses the title. Asserting the capability keeps this check true when that
-  // is fixed, rather than writing a gate that fails on an improvement.
-  check("the heading can be focused programmatically", headerFacts.titleTakesFocus);
+  // Where focus actually lands, which is the whole point of the marker: the platform's focus delegate
+  // skips a tabindex=-1 element, so without the dialog's hook this would be the close button and a
+  // screen reader would announce "Close" rather than the dialog's name.
+  check("the dialog focuses its marked title, not the close button",
+    headerFacts.activeIsHeading, `focus is on ${headerFacts.activeId}`);
   await page.click("#showcase-dialog-header-live .astryx-icon-button, #showcase-dialog-header-live .astryx-button");
   await page.waitForTimeout(150);
   const afterClose = await page.evaluate(() => {
