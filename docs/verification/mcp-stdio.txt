@@ -2,8 +2,8 @@
 # command: node tools/mcp/astryx-mcp.mjs --cli status
 
 upstream: facebook/astryx @ b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e (MIT)
-ported: 19 of 103
-by milestone: M1=9, M2=4, M5=3, M6=3
-milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M6 (complete), M5 (complete)
+ported: 22 of 103
+by milestone: M1=9, M2=4, M5=3, M6=3, M7=3
+milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M6 (complete), M5 (complete), M7 (complete)
 
-ported modules: Astryx.Stack, Astryx.Text, Astryx.Heading, Astryx.Button, Astryx.Card, Astryx.Badge, Astryx.Divider, Astryx.StatusDot, Astryx.Skeleton, Astryx.Center, Astryx.Section, Astryx.Grid, Astryx.VisuallyHidden, Astryx.HStack, Astryx.VStack, Astryx.AspectRatio, Astryx.IconButton, Astryx.Code, Astryx.Blockquote
+ported modules: Astryx.Stack, Astryx.Text, Astryx.Heading, Astryx.Button, Astryx.Card, Astryx.Badge, Astryx.Divider, Astryx.StatusDot, Astryx.Skeleton, Astryx.Center, Astryx.Section, Astryx.Grid, Astryx.VisuallyHidden, Astryx.HStack, Astryx.VStack, Astryx.AspectRatio, Astryx.IconButton, Astryx.Code, Astryx.Blockquote, Astryx.NavIcon, Astryx.EmptyState, Astryx.Citation

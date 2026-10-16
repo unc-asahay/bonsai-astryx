@@ -87,6 +87,17 @@ const classesOf = (el) => (el.getAttribute("class") || "").split(/\s+/).filter(B
 const hasClass = (el, re) => classesOf(el).some((c) => re.test(c));
 const attr = (el, name) => el.getAttribute(name);
 
+// Components of one kind inside a case. inCase returns every marked element under the
+// case, including nested components (an EmptyState contains Buttons), so a case that
+// composes components has to filter.
+const inCaseOf = (name, component) =>
+  inCase(name).filter((e) => attr(e, "data-astryx-component") === component);
+
+// Plain elements inside a case, for cases whose rows are not marked components.
+const inCaseMatching = (name, selector) => [
+  ...document.querySelectorAll(`[data-case="${name}"] ${selector}`),
+];
+
 // ----------------------------------------------------------------- assertions
 
 section("the ported components render in isolation");
@@ -384,6 +395,122 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("the cite is a bare <cite>, never wrapped in a <footer>",
     qs.every((e) => e.querySelector("footer") === null) &&
       qs.some((e) => e.querySelector("cite.astryx-blockquote__cite")));
+}
+
+// --- NavIcon
+{
+  const ns = inCase("nav-icon-all");
+  check("two nav icons render", ns.length === 2, `${ns.length}`);
+  check("NavIcon renders a span", ns.every((e) => e.tagName.toLowerCase() === "span"));
+  check("NavIcon carries its marker",
+    ns.every((e) => attr(e, "data-astryx-component") === "NavIcon"));
+  check("NavIcon keeps whatever the caller passed as the icon",
+    ns.every((e) => e.children.length >= 1));
+  // Deliberate: upstream leaves the icon's accessibility to the caller, so a component
+  // that hid the icon would silence one that a caller gave a role and a label.
+  check("NavIcon does not hide the caller's icon from assistive tech",
+    ns.every((e) => e.getAttribute("aria-hidden") !== "true"));
+}
+
+// --- EmptyState
+{
+  const es = inCaseOf("empty-state-all", "EmptyState");
+  check("two empty states render", es.length === 2, `${es.length}`);
+  check("the case also contains the two nested buttons",
+    inCaseOf("empty-state-all", "Button").length === 2,
+    `${inCaseOf("empty-state-all", "Button").length}`);
+  check("the empty state is a live region (role=status)",
+    es.every((e) => attr(e, "role") === "status"));
+  const [full, compact] = es;
+  check("the illustration is hidden from assistive tech",
+    full.querySelector('[aria-hidden="true"]') !== null);
+  check("the default title is an h3",
+    full.querySelector("h3.astryx-empty-state__title") !== null,
+    full.querySelector(".astryx-empty-state__title")?.tagName);
+  check("headingLevel is honoured (h2 when asked)",
+    compact.querySelector("h2.astryx-empty-state__title") !== null,
+    compact.querySelector(".astryx-empty-state__title")?.tagName);
+  check("the description is a div, not a p",
+    full.querySelector(".astryx-empty-state__description")?.tagName.toLowerCase() === "div",
+    full.querySelector(".astryx-empty-state__description")?.tagName);
+  // The reason for the div: the description accepts arbitrary nodes, and a <p> cannot
+  // legally contain block children.
+  check("no <p> anywhere in the empty state", full.querySelector("p") === null);
+  check("compact carries both the class and the variant marker",
+    hasClass(compact, /empty-state--compact/) && attr(compact, "data-astryx-variant") === "compact",
+    `${compact.className} / ${attr(compact, "data-astryx-variant")}`);
+  check("actions render inside the actions row",
+    full.querySelectorAll(".astryx-empty-state__actions button").length === 2,
+    `${full.querySelectorAll(".astryx-empty-state__actions button").length}`);
+  check("a compact empty state with no actions renders no actions row",
+    compact.querySelector(".astryx-empty-state__actions") === null);
+  check("the title text is rendered as text, not markup",
+    full.querySelector(".astryx-empty-state__title")?.textContent.trim() === "No results",
+    full.querySelector(".astryx-empty-state__title")?.textContent);
+}
+
+// --- Citation
+{
+  const cs = inCase("citation-all");
+  check("six citations render", cs.length === 6, `${cs.length}`);
+  check("a citation with a safe URL is a real link",
+    cs[0].tagName.toLowerCase() === "a" && attr(cs[0], "href") === "https://example.com/spec",
+    `${cs[0].tagName} ${attr(cs[0], "href")}`);
+  check("the link does not hand over window.opener",
+    attr(cs[0], "target") === "_blank" && attr(cs[0], "rel") === "noopener noreferrer",
+    `${attr(cs[0], "target")} ${attr(cs[0], "rel")}`);
+  check("a javascript: URL is NOT rendered as a link",
+    cs[1].tagName.toLowerCase() === "span", cs[1].tagName);
+  check("...and the refused URL is not in the markup at all",
+    !/javascript:/i.test(cs[1].outerHTML), cs[1].outerHTML.slice(0, 120));
+  check("a citation with no URL is inert too", cs[2].tagName.toLowerCase() === "span");
+  check("a linked citation uses the doc-noteref link role",
+    attr(cs[0], "role") === "doc-noteref", attr(cs[0], "role"));
+  // doc-noteref is not permitted on an inert span, so upstream gives it a supported
+  // role instead of leaving it unnamed.
+  check("an inert citation falls back to a permitted role",
+    attr(cs[1], "role") === "group" && attr(cs[2], "role") === "group",
+    `${attr(cs[1], "role")}/${attr(cs[2], "role")}`);
+  check("every citation is named by its aria-label",
+    cs.every((e) => (attr(e, "aria-label") || "").startsWith("Citation ")),
+    cs.map((e) => attr(e, "aria-label")).join(" | "));
+  check("the label uses upstream's English string",
+    attr(cs[0], "aria-label") === "Citation 1: Designing with tokens",
+    attr(cs[0], "aria-label"));
+  check("a citation with no title falls back to its number in the label",
+    attr(cs[2], "aria-label") === "Citation 3: 3", attr(cs[2], "aria-label"));
+  check("the number variant renders the number, not the title",
+    cs[3].textContent.trim() === "4" && attr(cs[3], "data-astryx-variant") === "number",
+    `${cs[3].textContent.trim()} / ${attr(cs[3], "data-astryx-variant")}`);
+  check("the number variant is still a link when it has a URL",
+    cs[3].tagName.toLowerCase() === "a");
+  check("the number variant without a URL is inert", cs[4].tagName.toLowerCase() === "span");
+  check("the title attribute carries the visible label",
+    attr(cs[0], "title") === "Designing with tokens", attr(cs[0], "title"));
+  check("the favicon image is decorative (empty alt)",
+    cs[5].querySelector("img")?.getAttribute("alt") === "");
+  check("the favicon sits inside the aria-hidden icon wrapper",
+    cs[5].querySelector('[aria-hidden="true"] .astryx-citation__icon-img') !== null);
+  check("the label text element is present for text overflow handling",
+    cs[0].querySelector(".astryx-citation__text")?.textContent === "Designing with tokens");
+}
+
+// --- the safe-URL control, as decided by the compiled OCaml
+{
+  const rows = inCaseMatching("citation-safety", "span[data-url]");
+  check("every URL case rendered", rows.length === 13, `${rows.length}`);
+  const actual = (r) => r.textContent.trim();
+  const expected = (r) => attr(r, "data-safe");
+  const wrong = rows.filter((r) => (actual(r) === "safe") !== (expected(r) === "true"));
+  check("is_safe_url agrees with upstream on every case", wrong.length === 0,
+    wrong.map((r) => `"${attr(r, "data-url")}" decided ${actual(r)}, expected ${expected(r)}`).join(" | "));
+  const nul = rows.find((r) => (attr(r, "data-url") || "").includes("\u0000"));
+  check("a NUL spliced into the scheme is refused",
+    nul !== undefined && nul.textContent.trim() === "unsafe",
+    nul ? `${JSON.stringify(attr(nul, "data-url"))} -> ${nul.textContent.trim()}` : "case missing");
+  const nl = rows.find((r) => (attr(r, "data-url") || "").includes("\n"));
+  check("a newline spliced into the scheme is refused",
+    nl !== undefined && nl.textContent.trim() === "unsafe");
 }
 
 // --- the interaction: a real event dispatched into the Bonsai graph

@@ -499,3 +499,170 @@
   line-height: var(--text-supporting-leading);
   font-style: normal;
 }
+
+/* ---------------------------------------------------------------- NavIcon
+
+   One fixed-size round accent bubble. Nothing here is responsive by design: the size
+   comes from --size-element-md, which is a token, so a theme change resizes it and the
+   component never needs a media query. */
+.astryx-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  flex-shrink: 0;
+  width: var(--size-element-md);
+  height: var(--size-element-md);
+}
+
+/* ------------------------------------------------------------- EmptyState */
+
+.astryx-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-4);
+  padding-block: var(--spacing-8);
+  padding-inline: var(--spacing-6);
+}
+
+.astryx-empty-state--compact {
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-4);
+}
+
+.astryx-empty-state__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 360px;
+}
+
+.astryx-empty-state__title {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--text-large-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-large-leading);
+  color: var(--color-text-primary);
+}
+
+.astryx-empty-state__title--compact { font-size: var(--text-label-size); }
+
+.astryx-empty-state__description {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--text-body-size);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-secondary);
+}
+
+.astryx-empty-state__description--compact { font-size: var(--text-supporting-size); }
+
+.astryx-empty-state__actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.astryx-empty-state__actions--compact { flex-direction: column; }
+
+/* --------------------------------------------------------------- Citation
+
+   Shared base, then the two variants. Note for anyone comparing against upstream's
+   StyleX source: it declares an explicit `default` alongside its hover colour and
+   background, because in StyleX a hover-only conditional replaces the base value on
+   merge. Plain CSS does not merge that way — the base rule keeps applying — so the
+   explicit defaults are not needed here and are deliberately absent. */
+.astryx-citation {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--text-supporting-size);
+  font-weight: var(--text-supporting-weight);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition-property: background-color, border-color, color;
+  transition-duration: var(--duration-fast-max);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-citation--link { cursor: pointer; }
+
+.astryx-citation--label {
+  vertical-align: baseline;
+  height: var(--spacing-5);
+  border-radius: var(--radius-element);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border);
+  padding-inline: var(--spacing-2);
+  margin-inline-start: var(--spacing-0-5);
+  max-width: 15em;
+  overflow: hidden;
+}
+
+/* A citation with a favicon needs less leading padding than one without, so the gap
+   after the icon is the icon's own size rather than the label's padding. */
+.astryx-citation--label:has(.astryx-citation__icon) {
+  padding-inline-start: var(--spacing-0-5);
+}
+
+.astryx-citation__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.astryx-citation--number {
+  justify-content: center;
+  vertical-align: super;
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--color-accent-muted);
+  border-radius: var(--radius-full);
+  min-width: var(--spacing-5);
+  height: var(--spacing-5);
+  padding-inline: var(--spacing-1);
+}
+
+/* Hover is guarded: without the media query, a touch device keeps the hover colour
+   stuck on after a tap. */
+@media (hover: hover) {
+  .astryx-citation--link.astryx-citation--label:hover {
+    background-color: var(--color-overlay-hover);
+    color: var(--color-text-primary);
+  }
+  .astryx-citation--link.astryx-citation--number:hover {
+    background-color: var(--color-overlay-hover);
+  }
+}
+
+.astryx-citation__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  border-radius: var(--radius-full);
+  background-color: var(--color-background-surface);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.astryx-citation__icon-img {
+  width: var(--spacing-3);
+  height: var(--spacing-3);
+}

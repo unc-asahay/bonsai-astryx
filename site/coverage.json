@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 19,
-    "unported": 84,
+    "ported": 22,
+    "unported": 81,
     "total": 103,
     "documented": 103
   },
@@ -48,6 +48,12 @@
       "milestone": "M2"
     },
     {
+      "name": "Citation",
+      "module": "Astryx.Citation",
+      "file": "src/citation.ml",
+      "milestone": "M7"
+    },
+    {
       "name": "Code",
       "module": "Astryx.Code",
       "file": "src/code.ml",
@@ -58,6 +64,12 @@
       "module": "Astryx.Divider",
       "file": "src/divider.ml",
       "milestone": "M1"
+    },
+    {
+      "name": "EmptyState",
+      "module": "Astryx.EmptyState",
+      "file": "src/empty_state.ml",
+      "milestone": "M7"
     },
     {
       "name": "Grid",
@@ -82,6 +94,12 @@
       "module": "Astryx.IconButton",
       "file": "src/icon_button.ml",
       "milestone": "M6"
+    },
+    {
+      "name": "NavIcon",
+      "module": "Astryx.NavIcon",
+      "file": "src/nav_icon.ml",
+      "milestone": "M7"
     },
     {
       "name": "Section",
@@ -140,7 +158,6 @@
     "Chat",
     "CheckboxInput",
     "CheckboxList",
-    "Citation",
     "ClickableCard",
     "CodeBlock",
     "Collapsible",
@@ -152,7 +169,6 @@
     "DateTimeInput",
     "Dialog",
     "DropdownMenu",
-    "EmptyState",
     "Field",
     "FieldStatus",
     "FileInput",
@@ -174,7 +190,6 @@
     "MoreMenu",
     "MultiSelector",
     "NavHeadingMenu",
-    "NavIcon",
     "NumberInput",
     "Outline",
     "OverflowList",

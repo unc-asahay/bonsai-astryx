@@ -26,6 +26,11 @@ module Vstack = Vstack
 module Icon_button = Icon_button
 module Code = Code
 module Blockquote = Blockquote
+module Nav_icon = Nav_icon
+module NavIcon = Nav_icon
+module Empty_state = Empty_state
+module EmptyState = Empty_state
+module Citation = Citation
 
 (* The file is status_dot.ml (OCaml module names cannot carry the upstream
    capitalisation), but the public name matches upstream: Astryx.StatusDot. *)

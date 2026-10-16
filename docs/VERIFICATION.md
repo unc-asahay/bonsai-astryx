@@ -280,6 +280,66 @@ same run. The tool says so explicitly ("a baseline created on this run cannot ye
 regression") rather than printing a pass, and the baselines here were created from the fixed
 layout and then re-verified on a second, independent run.
 
+## Gate 9 — the M7 trio, and the first ported security control
+
+NavIcon, EmptyState and Citation (22 of 103). The component-test gate is now **138 checks**,
+and the gates that count things were all updated deliberately: 23 sections, 149 examples,
+coverage 22 / 81 / 103, 20 appearance pages.
+
+### Citation carries a security control, so it is tested as one
+
+Upstream's `utils/safeUrl.ts` decides whether a URL may become an `href`, and it is ported
+literally rather than approximated: control characters (`\x00-\x1f`, `\x7f`) are stripped
+**before** inspection, the comparison is case-insensitive, and `javascript:`, `vbscript:` and
+`data:text/html` are refused. A refused URL does not remove the citation — it renders as inert
+text, which is what upstream does.
+
+`is_safe_url` is exported from the port specifically so the control can be asserted directly,
+and `test/rt_test.ml` drives a 13-case matrix **through the compiled bundle** — each row carries
+what the caller expects in `data-safe` and what the port decided as its text, and `run.mjs`
+compares the two. The cases are the ones a naive prefix test gets wrong:
+
+```
+https://example.com/spec      safe      javascript:alert(1)            refused
+/relative/path                safe      JavaScript:alert(1)            refused
+mailto:a@example.com          safe      javascript:   alert(1)          refused
+data:image/png;base64,AAAA    safe      java\0script:alert(1)          refused
+                                        java\nscript:alert(1)          refused
+                                        "  javascript:alert(1)  "      refused
+                                        vbscript:msgbox(1)             refused
+                                        data:text/html,<script>…       refused
+                                        JAVASCRIPT :alert(1)           safe
+```
+
+That last row is worth recording, because the first version of this test asserted `refused` and
+**the port was right and the test was wrong.** A space *before* the colon means there is no valid
+scheme — a space is not a scheme character — so the string is not a `javascript:` URL and browsers
+resolve it as a relative path. Upstream allows it. Refusing it would have been inventing policy
+the original does not have, and the code comment now says so explicitly, because it looks like a
+hole and is not one.
+
+### Two things the component tests caught in the harness, not in the components
+
+- `inCase(name)` returns *every* marked element under a case, so a case that composes components
+  (an EmptyState containing two Buttons) reported four where two were expected. Added
+  `inCaseOf(name, component)` and `inCaseMatching(name, selector)`, both documented.
+- A case whose rows are plain elements rather than marked components is invisible to `inCase`
+  entirely — the safety matrix needed `inCaseMatching`.
+
+### One real bug, in the showcase rather than in a component
+
+The Citation example pointed its favicon at a remote URL, so the showcase page made an external
+network request and the browser gate failed on a console error (`ERR_NAME_NOT_RESOLVED`). Fixed by
+adding a local `site/favicon.svg` and pointing the example at it: a showcase must not need the
+network to render its own examples.
+
+### Baselines were re-created, deliberately
+
+Adding three sections changed the page height, so every stored screenshot legitimately stopped
+matching. Baselines were regenerated with `--update-baseline` (8 page/viewport pairs), and then
+**verified on a separate run**: 66 checks, 0 failures, 0.00% differ on all eight. Re-baselining is
+a deliberate act recorded here, not a gate that was silenced.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -287,7 +347,7 @@ layout and then re-verified on a second, independent run.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M6.** 19 of 103 components are ported; the other 84 have
+- **Anything below M7.** 22 of 103 components are ported; the other 81 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — partially verified.** What is now asserted: `Enter` on a
   focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;

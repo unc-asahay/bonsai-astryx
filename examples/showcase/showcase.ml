@@ -579,11 +579,111 @@ let s_blockquote () =
 
 (* ---------------------------------------------------------------- assembly *)
 
+(* ------------------------------------------- NavIcon / EmptyState / Citation *)
+
+let s_nav_icon () =
+  section
+    ~id:"navicon"
+    ~title:"NavIcon"
+    ~note:
+      "One round accent bubble, sized by a token. Deliberately not responsive: the size \
+       comes from --size-element-md, so a theme change resizes it and the component needs \
+       no media query. Upstream leaves the icon's accessibility to the caller and so does \
+       this port."
+    [ ex "icon node" (Astryx.NavIcon.view ~icon:button_icon ())
+    ; ex "text glyph" (Astryx.NavIcon.view ~icon:(Vdom.Node.span [ Vdom.Node.text "S" ]) ())
+    ]
+;;
+
+let s_empty_state () =
+  section
+    ~id:"emptystate"
+    ~title:"EmptyState"
+    ~note:
+      "role=status, so assistive tech is told the state changed. The title is a real \
+       heading (h3 by default). The description renders as a div, never a <p>: it accepts \
+       arbitrary nodes and a <p> cannot legally contain block children."
+    [ ex "with icon, description and actions"
+        (Astryx.EmptyState.view
+           ~title:"No results"
+           ~description:(Vdom.Node.text "Try a different search term or clear the filters.")
+           ~icon:button_icon
+           ~actions:
+             [ Astryx.Button.view ~variant:Astryx.Button.Primary ~label:"Clear filters" []
+             ; Astryx.Button.view ~label:"Learn more" []
+             ]
+           ())
+    ; ex "title only" (Astryx.EmptyState.view ~title:"Nothing here yet" ())
+    ; ex "is_compact"
+        (Astryx.EmptyState.view ~is_compact:true ~title:"Nothing here yet" ())
+    ; ex "heading_level: H2"
+        (Astryx.EmptyState.view ~heading_level:Astryx.EmptyState.H2 ~title:"No results" ())
+    ]
+;;
+
+let s_citation () =
+  section
+    ~id:"citation"
+    ~title:"Citation"
+    ~note:
+      "The URL is checked before it becomes an href: control characters are stripped first \
+       (so 'java\\0script:' cannot slip through), and javascript:, vbscript: and \
+       data:text/html are refused. A refused URL does not remove the citation — it renders \
+       as inert text instead of a link, which is what the last example shows."
+    [ ex "label, with URL"
+        (Astryx.Citation.view
+           ~source:
+             (Astryx.Citation.source
+                ~title:"Designing with design tokens"
+                ~url:"https://example.com/tokens"
+                ())
+           ~number:1
+           ())
+    ; ex "number"
+        (Astryx.Citation.view
+           ~variant:Astryx.Citation.Number
+           ~source:(Astryx.Citation.source ~url:"https://example.com/a" ())
+           ~number:2
+           ())
+    ; ex "with favicon"
+        (Astryx.Citation.view
+           ~source:
+             (Astryx.Citation.source
+                ~title:"example.com"
+                ~url:"https://example.com"
+                (* A local asset on purpose: the showcase must not reach out to the
+                   network to render its own examples, and a remote favicon produced a
+                   console error (ERR_NAME_NOT_RESOLVED) in the browser gate. *)
+                ~src:"/site/favicon.svg"
+                ())
+           ~number:3
+           ())
+    ; ex "no URL: inert, still named"
+        (Astryx.Citation.view
+           ~source:(Astryx.Citation.source ~title:"Offline source" ())
+           ~number:4
+           ())
+    ; ex "refused URL (javascript:) renders inert"
+        (Astryx.Citation.view
+           ~source:
+             (Astryx.Citation.source ~title:"Untrusted" ~url:"javascript:alert(1)" ())
+           ~number:5
+           ())
+    ; ex "number only, no URL"
+        (Astryx.Citation.view
+           ~variant:Astryx.Citation.Number
+           ~source:(Astryx.Citation.source ())
+           ~number:6
+           ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ; s_icon_button (); s_code (); s_blockquote ()
+  ; s_nav_icon (); s_empty_state (); s_citation ()
   ]
 ;;
 
@@ -611,6 +711,9 @@ let nav_items =
   ; "iconbutton", "IconButton"
   ; "code", "Code"
   ; "blockquote", "Blockquote"
+  ; "navicon", "NavIcon"
+  ; "emptystate", "EmptyState"
+  ; "citation", "Citation"
   ; "interactive", "Interactive"
   ]
 ;;

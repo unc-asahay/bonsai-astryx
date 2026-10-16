@@ -303,6 +303,118 @@ let () =
        ])
 ;;
 
+(* NavIcon, EmptyState and Citation — the M7 trio. *)
+let () =
+  mount
+    "nav-icon-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.NavIcon.view ~icon:(icon ()) ()
+       ; Astryx.NavIcon.view ~icon:(Vdom.Node.span [ Vdom.Node.text "S" ]) ()
+       ])
+;;
+
+let () =
+  mount
+    "empty-state-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ Astryx.EmptyState.view
+           ~title:"No results"
+           ~description:(Vdom.Node.text "Try a different search.")
+           ~icon:(icon ())
+           ~actions:
+             [ Astryx.Button.view ~label:"Retry" []; Astryx.Button.view ~label:"Clear" [] ]
+           ()
+       ; Astryx.EmptyState.view
+           ~heading_level:Astryx.EmptyState.H2
+           ~title:"Nothing here yet"
+           ~is_compact:true
+           ()
+       ])
+;;
+
+let () =
+  mount
+    "citation-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ (* a safe URL becomes a real link *)
+         Astryx.Citation.view
+           ~source:
+             (Astryx.Citation.source
+                ~title:"Designing with tokens"
+                ~url:"https://example.com/spec"
+                ())
+           ~number:1
+           ()
+       ; (* a javascript: URL must not become a link, but must not vanish either *)
+         Astryx.Citation.view
+           ~source:(Astryx.Citation.source ~title:"Untrusted" ~url:"javascript:alert(1)" ())
+           ~number:2
+           ()
+       ; (* no URL at all, and no title either: both fall back to the number *)
+         Astryx.Citation.view ~source:(Astryx.Citation.source ()) ~number:3 ()
+       ; Astryx.Citation.view
+           ~variant:Astryx.Citation.Number
+           ~source:(Astryx.Citation.source ~url:"https://example.com/a" ())
+           ~number:4
+           ()
+       ; Astryx.Citation.view
+           ~variant:Astryx.Citation.Number
+           ~source:(Astryx.Citation.source ())
+           ~number:5
+           ()
+       ; (* favicon path: a src supplied instead of an icon node *)
+         Astryx.Citation.view
+           ~source:
+             (Astryx.Citation.source
+                ~title:"With favicon"
+                ~url:"https://example.com"
+                ~src:"https://example.com/favicon.ico"
+                ())
+           ~number:6
+           ()
+       ])
+;;
+
+(* The safe-URL control, exercised through the compiled bundle rather than
+   re-implemented in JavaScript: each row carries what the caller expects in
+   [data-safe] and what the port actually decided as its text. The cases are the ones
+   a naive prefix test gets wrong — a scheme spliced with a control character or a
+   newline, a space before the colon, and mixed case. *)
+let () =
+  let cases =
+    [ "https://example.com/spec", true
+    ; "/relative/path", true
+    ; "mailto:someone@example.com", true
+    ; "data:image/png;base64,AAAA", true
+    ; "javascript:alert(1)", false
+    ; "JavaScript:alert(1)", false
+    ; "javascript:   alert(1)", false
+    ; (* A space BEFORE the colon is not a scheme at all, so this is not a javascript:
+         URL — browsers resolve it as a relative path, and upstream allows it. Expecting
+         a refusal here would be inventing policy. *)
+      "JAVASCRIPT :alert(1)", true
+    ; "java\x00script:alert(1)", false
+    ; "java\nscript:alert(1)", false
+    ; "  javascript:alert(1)  ", false
+    ; "vbscript:msgbox(1)", false
+    ; "data:text/html,<script>alert(1)</script>", false
+    ]
+  in
+  mount
+    "citation-safety"
+    (Vdom.Node.div
+       ~attrs:[]
+       (List.map cases ~f:(fun (url, expected_safe) ->
+          Vdom.Node.span
+            ~attrs:
+              ([ Vdom.Attr.create "data-url" url ]
+               @ [ Vdom.Attr.create "data-safe" (Bool.to_string expected_safe) ])
+            [ Vdom.Node.text (if Astryx.Citation.is_safe_url url then "safe" else "unsafe") ])))
+;;
+
 (* -------------------------------------------------------------- interaction *)
 
 (* The part that has to be OCaml: a real event dispatched into the Bonsai graph.

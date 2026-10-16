@@ -98,6 +98,45 @@ the ported components render in isolation
   ok   Blockquote renders a real <blockquote>
   ok   exactly one carries a cite
   ok   the cite is a bare <cite>, never wrapped in a <footer>
+  ok   two nav icons render
+  ok   NavIcon renders a span
+  ok   NavIcon carries its marker
+  ok   NavIcon keeps whatever the caller passed as the icon
+  ok   NavIcon does not hide the caller's icon from assistive tech
+  ok   two empty states render
+  ok   the case also contains the two nested buttons
+  ok   the empty state is a live region (role=status)
+  ok   the illustration is hidden from assistive tech
+  ok   the default title is an h3
+  ok   headingLevel is honoured (h2 when asked)
+  ok   the description is a div, not a p
+  ok   no <p> anywhere in the empty state
+  ok   compact carries both the class and the variant marker
+  ok   actions render inside the actions row
+  ok   a compact empty state with no actions renders no actions row
+  ok   the title text is rendered as text, not markup
+  ok   six citations render
+  ok   a citation with a safe URL is a real link
+  ok   the link does not hand over window.opener
+  ok   a javascript: URL is NOT rendered as a link
+  ok   ...and the refused URL is not in the markup at all
+  ok   a citation with no URL is inert too
+  ok   a linked citation uses the doc-noteref link role
+  ok   an inert citation falls back to a permitted role
+  ok   every citation is named by its aria-label
+  ok   the label uses upstream's English string
+  ok   a citation with no title falls back to its number in the label
+  ok   the number variant renders the number, not the title
+  ok   the number variant is still a link when it has a URL
+  ok   the number variant without a URL is inert
+  ok   the title attribute carries the visible label
+  ok   the favicon image is decorative (empty alt)
+  ok   the favicon sits inside the aria-hidden icon wrapper
+  ok   the label text element is present for text overflow handling
+  ok   every URL case rendered
+  ok   is_safe_url agrees with upstream on every case
+  ok   a NUL spliced into the scheme is refused
+  ok   a newline spliced into the scheme is refused
 
 interaction (OCaml dispatched the event)
   ok   the click target is a ported Button
@@ -105,5 +144,5 @@ interaction (OCaml dispatched the event)
   ok   one dispatched click moves the count to 1
   ok   a second click moves it to 2
 
-99 checks, 0 failure(s)
+138 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

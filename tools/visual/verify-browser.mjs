@@ -232,11 +232,12 @@ if (mode === "showcase") {
   const EXPECTED = [
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
-    "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote", "Interactive",
+    "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
+    "NavIcon", "EmptyState", "Citation", "Interactive",
   ];
 
   console.log("\nshowcase sections");
-  check("20 sections", sections.length === 20, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("23 sections", sections.length === 23, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -251,10 +252,11 @@ if (mode === "showcase") {
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
+    NavIcon: 2, EmptyState: 4, Citation: 6,
     Interactive: 1,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("137 examples across the page", totalExamples === 137, `got ${totalExamples}`);
+  check("149 examples across the page", totalExamples === 149, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -267,7 +269,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("20 nav links", nav.length === 20, `got ${nav.length}`);
+  check("23 nav links", nav.length === 23, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -381,11 +383,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 19 ported / 84 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["19", "84", "103"]),
+    "coverage stats are 22 ported / 81 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["22", "81", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 84 entries", cov.unported === 84, `got ${cov.unported}`);
+  check("unported list rendered 81 entries", cov.unported === 81, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }
