@@ -47,6 +47,15 @@ module Spacing = struct
   let all = [ S0; S0_5; S1; S1_5; S2; S3; S4; S5; S6; S8; S10 ]
 end
 
+(* Which state a form treats as its default. Upstream declares this in FormLayout.tsx and passes it
+   down through React context; the port puts the value here, next to the other shared value types,
+   because the controls and the layout both need it and neither should own the other. *)
+module Optionality = struct
+  type t =
+    | Optional
+    | Required
+end
+
 module Size_value = struct
   (* Astryx: numbers are pixels, strings are used as-is. *)
   type t =

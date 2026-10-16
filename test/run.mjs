@@ -1262,6 +1262,57 @@ section("FieldLabel");
     document.getElementById("rt-rl-hidden-label").classList.contains("astryx-visually-hidden"));
 }
 
+// ---------------------------------------------------------------- FormLayout (M13)
+{
+  section("FormLayout");
+  // Each field's marker lives in the label that points at its control, so the label is also the
+  // association under test.
+  const labelText = (id) => {
+    const l = document.querySelector(`label[for="${id}"]`);
+    return l ? l.textContent : null;
+  };
+  const has = (id, word) => (labelText(id) || "").includes(word);
+  const input = (id) => document.getElementById(id);
+
+  // A layout container is a div, not a form — upstream is explicit that submission is elsewhere.
+  const vertical = document.querySelector('[data-astryx-component="FormLayout"][data-astryx-direction="vertical"]');
+  check("a layout renders a div, not a form", !!vertical && vertical.tagName.toLowerCase() === "div");
+  check("and names its direction",
+    !!document.querySelector('[data-astryx-direction="horizontal"]')
+      && !!document.querySelector('[data-astryx-direction="horizontal-labels"]'));
+
+  // The rule: only the exception is marked.
+  check("under optionality=Optional the required field still reads Required", has("rt-fl-opt-email", "Required"));
+  check("under optionality=Optional a field that matches the default shows nothing",
+    !has("rt-fl-opt-nick", "Optional") && !has("rt-fl-opt-nick", "Required"));
+  check("under optionality=Required the optional field reads Optional", has("rt-fl-req-nick", "Optional"));
+  check("under optionality=Required a field that matches the default shows nothing",
+    !has("rt-fl-req-email", "Optional") && !has("rt-fl-req-email", "Required"));
+  check("with no layout default each field marks itself, as before",
+    has("rt-fl-both-email", "Required") && has("rt-fl-both-nick", "Optional"));
+
+  // The half that is easy to lose: a layout default moves aria-required and never the native
+  // attribute, so choosing a default cannot switch on the browser's own validation.
+  check("a layout default sets aria-required on the unmarked majority",
+    input("rt-fl-req-email").getAttribute("aria-required") === "true");
+  check("but never the native required attribute, so validation stays off",
+    input("rt-fl-req-email").hasAttribute("required") === false);
+  check("an explicitly optional field is required by neither route",
+    input("rt-fl-req-nick").getAttribute("aria-required") === null
+      && input("rt-fl-req-nick").hasAttribute("required") === false);
+  // Upstream's TextInput sets aria-required and nothing else — there is no native required
+  // attribute on it anywhere, so no field of this kind can turn on the browser's own validation,
+  // under any layout default. (Checkbox and radio inputs do carry the native attribute, which is
+  // why their contracts assert it separately.)
+  check("a text field is never natively required, by either route",
+    input("rt-fl-opt-email").getAttribute("aria-required") === "true"
+      && input("rt-fl-opt-email").hasAttribute("required") === false);
+
+  // Nesting: a horizontal layout inside a vertical one is two containers, not one flattened one.
+  check("a horizontal layout nests inside a vertical one",
+    document.querySelectorAll('[data-astryx-direction="horizontal"]').length >= 2);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

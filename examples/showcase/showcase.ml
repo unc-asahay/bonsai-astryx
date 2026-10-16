@@ -1847,6 +1847,96 @@ let radio_list_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- form layout (state) *)
+
+(* Upstream's FormLayout does two jobs: it arranges fields, and it supplies the form's
+   [defaultOptionality] through React context. The port keeps the first and makes the second an
+   argument on each field, because a context would have to be active while the child tree is built
+   and these children are built before the container sees them. What the examples below are for is
+   the *rule*, which is upstream's exactly: only the exception is marked. *)
+let form_layout_demo (_ : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let field ?(is_optional = false) ?(is_required = false) ?optionality label id =
+    Astryx.TextInput.view
+      ~label
+      ~id
+      ~is_optional
+      ~is_required
+      ?optionality
+      ~value:(Bonsai.return "")
+      ~on_change:no_change
+      ()
+  in
+  (* The fields are trees — a control returns a [Bonsai.t] — so the layout is a tree over them. *)
+  let layout ?(direction = Form_layout.Vertical) fields =
+    Bonsai.map (join_all fields) ~f:(fun children -> Form_layout.view ~direction ~children ())
+  in
+  let opt = Form_layout.Optional in
+  let req = Form_layout.Required in
+  let examples =
+    [ ex_tree "vertical, the default"
+        (layout [ field "Full name" "showcase-fl-v-name"; field "Email" "showcase-fl-v-email" ])
+    ; ex_tree "horizontal: equal columns"
+        (layout
+           ~direction:Form_layout.Horizontal
+           [ field "Street" "showcase-fl-h-street"
+           ; field "City" "showcase-fl-h-city"
+           ; field "Postcode" "showcase-fl-h-post"
+           ])
+    ; ex_tree "labels to the left, collapsing on a narrow container"
+        (layout
+           ~direction:Form_layout.Horizontal_labels
+           [ field "Account" "showcase-fl-l-account"; field "Region" "showcase-fl-l-region" ])
+    ; ex_tree "optionality = Optional: only the required field is marked"
+        (layout
+           [ field ~optionality:opt ~is_required:true "Email (you will be emailed)"
+               "showcase-fl-opt-email"
+           ; field ~optionality:opt "Nickname" "showcase-fl-opt-nick"
+           ])
+    ; ex_tree "optionality = Required: only the optional field is marked"
+        (layout
+           [ field ~optionality:req "Email" "showcase-fl-req-email"
+           ; field ~optionality:req ~is_optional:true "Nickname (if you have one)"
+               "showcase-fl-req-nick"
+           ])
+    ; ex_tree "unset: each field marks itself, as it did before FormLayout existed"
+        (layout
+           [ field ~is_required:true "Email" "showcase-fl-both-email"
+           ; field ~is_optional:true "Nickname" "showcase-fl-both-nick"
+           ])
+    ; ex_tree "a horizontal row nested inside a vertical form"
+        (layout
+           [ field "Company" "showcase-fl-nest-company"
+           ; layout
+               ~direction:Form_layout.Horizontal
+               [ field "City" "showcase-fl-nest-city"; field "Postcode" "showcase-fl-nest-post" ]
+           ])
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"form-layout"
+      ~title:"FormLayout"
+      ~note:
+        "Arranges fields — vertical, equal columns, or labels to the left — and owns the rule that \
+         decides whether a field is marked at all. Upstream supplies that rule through React \
+         context; here it is an argument on each field, the same decision RadioList made about its \
+         items and for the same reason: a context has to be live while the child tree is built, and \
+         children arrive already built. The rule is upstream's exactly — only the exception is \
+         marked, so under Optional just the required field reads Required and under Required just \
+         the optional one reads Optional. The other half of that rule is the part that is easy to \
+         lose: a layout default moves aria-required but never the native required attribute, so \
+         choosing a default cannot switch on the browser's own validation. The port asserts both \
+         halves."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1891,6 +1981,7 @@ let nav_items =
   ; "checkbox", "CheckboxInput"
   ; "switch", "Switch"
   ; "radiogroup", "RadioList"
+  ; "form-layout", "FormLayout"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -1925,6 +2016,7 @@ let page (graph : Bonsai.graph) =
   let checkbox_section = checkbox_demo graph in
   let switch_section = switch_demo graph in
   let radio_list_section = radio_list_demo graph in
+  let form_layout_section = form_layout_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -1936,17 +2028,18 @@ let page (graph : Bonsai.graph) =
   in
   let stateful = pair stateful switch_section in
   let stateful = pair stateful radio_list_section in
+  let stateful = pair stateful form_layout_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((interactive, checkbox), (dropdown, field)), switch), radio_list) text_area ->
+    ~f:(fun (((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout) text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; dropdown; interactive ])
       ])
 ;;
 

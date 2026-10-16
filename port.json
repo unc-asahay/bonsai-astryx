@@ -325,6 +325,13 @@
       "file": "src/radio_list.ml",
       "milestone": "M13",
       "module": "Astryx.Radio_list"
+    },
+    {
+      "class": "B",
+      "component": "FormLayout",
+      "file": "src/form_layout.ml",
+      "milestone": "M13",
+      "module": "Astryx.Form_layout"
     }
   ],
   "schema": 1,

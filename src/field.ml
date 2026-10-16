@@ -58,6 +58,7 @@ let view
       ?description
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?(is_disabled = false)
       ?label_icon
       ?status
@@ -85,6 +86,7 @@ let view
       ~is_label_hidden
       ~is_disabled
       ~is_optional
+      ?optionality
       ~is_required
       ?description
       ~description_id

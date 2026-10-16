@@ -41,6 +41,7 @@ let view
       ?(is_label_hidden = false)
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?(is_disabled = false)
       ?(is_read_only = false)
       ?placeholder
@@ -77,7 +78,16 @@ let view
         ]
       |> String.concat ~sep:" "
     in
-    let effectively_required = is_required && not is_optional in
+    (* Upstream's useResolvedRequired: an explicit isOptional wins, and otherwise the field is
+         required if it says so *or* the form's default says so. A layout default sets only
+         [aria-required], never the native [required] attribute, so it cannot turn on validation. *)
+      let effectively_required =
+        (not is_optional)
+        && (is_required
+            || match optionality with
+               | Some Common.Optionality.Required -> true
+               | _ -> false)
+      in
     let input_attrs =
       [ Vdom.Attr.create "id" id ]
       (* A disabled control does not submit, so it carries no name — same as upstream. *)
@@ -127,6 +137,7 @@ let view
       @ attrs
     in
     Field_.view
+      ?optionality
       ~label
       ~input_id:id
       ?description

@@ -354,5 +354,19 @@ RadioList
   ok   the orientation is on the element
   ok   a hidden label is clipped rather than removed
 
-332 checks, 0 failure(s)
+FormLayout
+  ok   a layout renders a div, not a form
+  ok   and names its direction
+  ok   under optionality=Optional the required field still reads Required
+  ok   under optionality=Optional a field that matches the default shows nothing
+  ok   under optionality=Required the optional field reads Optional
+  ok   under optionality=Required a field that matches the default shows nothing
+  ok   with no layout default each field marks itself, as before
+  ok   a layout default sets aria-required on the unmarked majority
+  ok   but never the native required attribute, so validation stays off
+  ok   an explicitly optional field is required by neither route
+  ok   a text field is never natively required, by either route
+  ok   a horizontal layout nests inside a vertical one
+
+344 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

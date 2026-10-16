@@ -29,6 +29,7 @@ let view
       ?(is_label_hidden = false)
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?label_icon
       ?description
       ?status
@@ -163,11 +164,14 @@ let view
            @ (match status_type with
               | Some Input_types.Error -> Attr.aria "invalid" "true"
               | Some (_ : Input_types.status_type) | None -> [])
-           @ (if is_required then Attr.aria "required" "true" else [])
+           @ (if is_required || (match optionality with Some Common.Optionality.Required -> true | _ -> false)
+              then Attr.aria "required" "true"
+              else [])
            @ (if String.is_empty described_by then [] else Attr.aria "describedby" described_by))
         (List.mapi items ~f:item_node)
     in
     Field_.view
+      ?optionality
       ~label
       ~input_id:id
       ~label_id

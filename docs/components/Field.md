@@ -82,6 +82,7 @@ val view
   -> ?description:string
   -> ?is_optional:bool
   -> ?is_required:bool
+  -> ?optionality:Common.Optionality.t
   -> ?is_disabled:bool
   -> ?label_icon:string
   -> ?status:Input_types.status

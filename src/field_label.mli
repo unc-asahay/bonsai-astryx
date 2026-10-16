@@ -17,6 +17,7 @@ val view
   -> ?is_disabled:bool
   -> ?is_optional:bool
   -> ?is_required:bool
+  -> ?optionality:Common.Optionality.t
   -> ?description:string
   -> ?description_id:string
   -> ?attrs:Vdom.Attr.t list

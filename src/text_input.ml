@@ -71,6 +71,7 @@ let view
       ?(is_label_hidden = false)
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?(is_disabled = false)
       ?(is_read_only = false)
       ?placeholder
@@ -112,7 +113,17 @@ let view
           ]
         |> String.concat ~sep:" "
       in
-      let effectively_required = is_required && not is_optional in
+      (* Upstream's useResolvedRequired: an explicit isOptional wins, and otherwise the field is
+         required if it says so *or* the form's default says so. A layout default never sets the
+         native [required] attribute — only [aria-required] — so it cannot turn on the browser's own
+         validation. *)
+      let effectively_required =
+        (not is_optional)
+        && (is_required
+            || match optionality with
+               | Some Common.Optionality.Required -> true
+               | _ -> false)
+      in
       let input_attrs =
         [ Vdom.Attr.create "id" id ]
         @ [ Vdom.Attr.create "type" (type_string type_) ]
@@ -171,6 +182,7 @@ let view
           ]
       in
       Field_.view
+      ?optionality
         ~label
         ~input_id:id
         ?description

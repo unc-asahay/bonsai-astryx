@@ -24,12 +24,14 @@
 
     - {b No [label_tooltip].} Upstream renders its Tooltip component there. Tooltip is not ported,
       so the argument does not exist here rather than being accepted and ignored.
-    - {b No [FormLayout] context.} Upstream resolves the effective required state for
-      [aria-required] against a surrounding [FormLayout]'s [defaultOptionality]. With no such
-      context in this port, required is exactly [is_required], and [is_optional] wins when both
-      are set — which is also what upstream does, after warning about it.
-    - {b No horizontal-labels layout.} Upstream drives it from [FormLayoutContext]; it belongs
-      with [FormLayout] rather than here.
+    - {b [optionality] is an argument, not a context.} Upstream reads the surrounding
+      [FormLayout]'s [defaultOptionality] out of React context; the port takes it as
+      [?optionality] here, so a caller states it per field. The rule is upstream's exactly: a field
+      that restates the form's default shows no marker, and only the exception does. When neither
+      is given, [is_optional] wins over [is_required] — which is also what upstream does, after
+      warning about it.
+    - {b No horizontal-labels layout here.} Upstream drives it from the same context; it belongs
+      with [Form_layout], which is where the port puts it.
     - The required/optional marker is the English source text ("Required" / "Optional"). Upstream
       resolves it through its i18n catalogue; the port has no catalogue yet. *)
 
@@ -57,6 +59,7 @@ val view
   -> ?description:string
   -> ?is_optional:bool
   -> ?is_required:bool
+  -> ?optionality:Common.Optionality.t
   -> ?is_disabled:bool
   -> ?label_icon:string
   -> ?status:Input_types.status

@@ -1576,3 +1576,53 @@
 }
 
 #showcase-radio-list-state { color: var(--color-text-secondary); }
+
+/* ---------------------------------------------------------------------------- FormLayout */
+
+/* The container. Upstream resolves the form's default optionality through React context; the port
+   takes it as an argument on each field, so nothing here has to know it. The directions are pure
+   CSS, which is how upstream implements them too. */
+
+.astryx-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.astryx-form-layout--horizontal {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+/* Labels to the left of their controls. The label placement itself lives on each field (upstream
+   reaches the label through context; the port reaches it through the container), and the whole
+   thing collapses to a stack when the container is narrow — the same 480px upstream uses. */
+.astryx-form-layout--horizontal-labels > * {
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) 1fr;
+  gap: var(--spacing-3) var(--spacing-4);
+  align-items: baseline;
+}
+
+.astryx-form-layout--horizontal-labels > * > * {
+  grid-column: 2;
+}
+
+.astryx-form-layout--horizontal-labels > * > :first-child {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+@media (max-width: 480px) {
+  .astryx-form-layout--horizontal-labels > * {
+    grid-template-columns: 1fr;
+  }
+
+  .astryx-form-layout--horizontal-labels > * > * {
+    grid-column: 1;
+  }
+}

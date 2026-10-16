@@ -96,6 +96,7 @@ val view
   -> ?is_label_hidden:bool
   -> ?is_optional:bool
   -> ?is_required:bool
+  -> ?optionality:Common.Optionality.t
   -> ?is_disabled:bool
   -> ?is_read_only:bool
   -> ?placeholder:string

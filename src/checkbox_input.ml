@@ -35,6 +35,7 @@ let view
       ?(is_label_hidden = false)
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?label_icon
       ?description
       ?description_id
@@ -126,6 +127,7 @@ let view
       Vdom.Node.div
         ~attrs:(Attr.class_ [ "astryx-checkbox-input__label-wrapper" ])
         [ Field_label.view
+          ?optionality
             ~label
             ~input_id:id
             ?label_icon

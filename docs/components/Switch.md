@@ -83,6 +83,7 @@ val view
   -> ?is_label_hidden:bool
   -> ?is_optional:bool
   -> ?is_required:bool
+  -> ?optionality:Common.Optionality.t
   -> ?label_icon:string
   -> ?description:string
   -> ?description_id:string

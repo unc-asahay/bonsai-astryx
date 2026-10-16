@@ -234,7 +234,7 @@ if (mode === "showcase") {
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
-    "RadioList",
+    "RadioList", "FormLayout",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -284,8 +284,38 @@ if (mode === "showcase") {
     return !!msg && (msg.textContent || "").includes("Pick one");
   }));
 
+  // ---------------------------------------------------------------- FormLayout (M13)
+  console.log("\nFormLayout (live)");
+  const boxes = (sel) =>
+    page.evaluate((s) => [...document.querySelectorAll(s)].map((e) => {
+      const r = e.getBoundingClientRect();
+      return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width) };
+    }), sel);
+
+  // "Equal columns" is a claim about geometry, so measure it rather than reading the class back.
+  const cols = await boxes(
+    '[data-astryx-direction="horizontal"]:has(#showcase-fl-h-street) > .astryx-field',
+  );
+  const equalWidths = cols.length >= 3 && cols.every((c) => Math.abs(c.w - cols[0].w) <= 2);
+  const oneRow = cols.every((c) => Math.abs(c.y - cols[0].y) <= 2);
+  const increasing = cols.every((c, i) => i === 0 || c.x > cols[i - 1].x);
+  check("three fields sit on one row, left to right, in equal columns",
+    equalWidths && oneRow && increasing, JSON.stringify(cols));
+
+  // "Labels to the left" means the label is beside the control, not above it — again geometry.
+  const placed = await page.evaluate(() => {
+    const label = document.querySelector('label[for="showcase-fl-l-account"]');
+    const input = document.getElementById("showcase-fl-l-account");
+    if (!label || !input) return null;
+    const l = label.getBoundingClientRect();
+    const i = input.getBoundingClientRect();
+    return { labelX: Math.round(l.x), inputX: Math.round(i.x), overlap: Math.round(Math.min(l.bottom, i.bottom) - Math.max(l.top, i.top)) };
+  });
+  check("labels to the left put the label beside its control, not above it",
+    !!placed && placed.labelX < placed.inputX && placed.overlap > 0, JSON.stringify(placed));
+
   console.log("\nshowcase sections");
-  check("33 sections", sections.length === 33, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("34 sections", sections.length === 34, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -303,10 +333,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10, Switch: 8,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
-    RadioList: 9,
+    RadioList: 9, FormLayout: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("227 examples across the page", totalExamples === 227, `got ${totalExamples}`);
+  check("234 examples across the page", totalExamples === 234, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -319,7 +349,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("33 nav links", nav.length === 33, `got ${nav.length}`);
+  check("34 nav links", nav.length === 34, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1096,11 +1126,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 32 ported / 71 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["32", "71", "103"]),
+    "coverage stats are 33 ported / 70 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["33", "70", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 71 entries", cov.unported === 71, `got ${cov.unported}`);
+  check("unported list rendered 70 entries", cov.unported === 70, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

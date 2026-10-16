@@ -236,10 +236,15 @@ pillars below.
   `Indicator`, `CheckboxInput` or `Switch`, so any of them could have disappeared from the showcase
   without a check noticing.
 
-- **`FormLayout`** (class B, 603 lines) is the cheap end of M12's deferrals, and it owns the one rule
-  that changes how every control already ported *renders*: `defaultOptionality`, which decides
-  whether an "Optional" marker appears at all. Porting it retires a deferral that currently affects
-  four controls.
+- **`FormLayout`** (class B, 603 lines) — **done**, the cheap end of M12's deferrals and the one rule
+  that changes how every control already ported *renders*: only the exception is marked, so under a
+  form-wide default an "Optional" marker appears only where it means something. Upstream supplies the
+  rule through React context and the port takes it as `?optionality` on each field, for the concrete
+  reason that a context must be live while the child tree is *built* — and a child here is a tree the
+  caller has already built. `Bonsai.Dynamic_scope` is the right shape and the wrong moment. The rule
+  is upstream's exactly, including the half that is easy to lose: a layout default moves
+  `aria-required` and never the native `required` attribute, so choosing a form default cannot switch
+  on the browser's own validation.
 
 - **`Tooltip`** (class B, 1,998 lines) retires the other two: `FieldStatus`'s third variant (which
   the port type-checks and deliberately renders nothing for today) and the `disabledMessage` path on

@@ -4,8 +4,21 @@ open! Bonsai_web
 module Attr = Common.Attr
 
 (* Upstream: isOptional takes precedence, and setting both is a dev warning. *)
-let marker_text ~is_optional ~is_required =
-  if is_optional then Some "Optional" else if is_required then Some "Required" else None
+(* Only the *exception* is marked when the form states a default (upstream's FieldLabel):
+     a field that merely restates the form's default shows no marker, and only a deviation does.
+
+       optionality     is_required        is_optional
+       Optional        -> "Required"      -> (matches the default, hidden)
+       Required        -> (matches, hidden) -> "Optional"
+       unset           -> "Required"      -> "Optional" *)
+let marker_text ~optionality ~is_optional ~is_required =
+  let show_required =
+    is_required && not (match optionality with Some Common.Optionality.Required -> true | _ -> false)
+  in
+  let show_optional =
+    is_optional && not (match optionality with Some Common.Optionality.Optional -> true | _ -> false)
+  in
+  if show_optional then Some "Optional" else if show_required then Some "Required" else None
 ;;
 
 (* The label text, the icon before it, and the required/optional marker after it. The marker is
@@ -68,6 +81,7 @@ let view
       ?(is_disabled = false)
       ?(is_optional = false)
       ?(is_required = false)
+      ?optionality
       ?description
       ?description_id
       ?(attrs = [])
@@ -75,7 +89,7 @@ let view
       ~input_id
       ()
   =
-  let marker = marker_text ~is_optional ~is_required in
+  let marker = marker_text ~optionality ~is_optional ~is_required in
   let label =
     label_node ~label ~label_icon ~marker ~label_id ~input_id ~is_group_label ~is_disabled
       ~is_label_hidden

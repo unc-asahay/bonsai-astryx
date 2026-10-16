@@ -860,3 +860,47 @@ list at the same time.
 | Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
 | Coverage | **32 of 103** ported, 71 not |
 | Showcase | 33 sections, 227 examples |
+
+## Gate 20 — FormLayout (M13, phase 2), and the rule that is easier to state than to keep
+
+`FormLayout` owns the one rule that changes how controls already ported *render*: only the exception
+is marked. Upstream supplies that rule through React context; the port takes it as `?optionality` on
+each field, and the reason is concrete rather than a preference — a context has to be active while
+the child tree is *built*, and here a child is a `Vdom.Node.t Bonsai.t` that the caller has already
+built before the container is applied. `Bonsai.Dynamic_scope` is the right shape and the wrong
+moment, and an argument that looked load-bearing while reaching nothing would have been the worst
+outcome. So it is absent from the container and present on the fields.
+
+**The rule, ported exactly:**
+
+| `optionality` | `is`Required`` | `is`Optional`` |
+| --- | --- | --- |
+| `Optional` | shows "Required" | matches the default — shows nothing |
+| `Required` | matches the default — shows nothing | shows "Optional" |
+| unset | shows "Required" | shows "Optional" |
+
+**And the half that is easy to lose.** Upstream's `useResolvedRequired` is
+`!isOptional && (isRequired || defaultOptionality === 'required')`, and a layout default sets
+`aria-required` **but never the native `required` attribute** — deliberately, so that choosing a form
+default cannot switch on the browser's own validation. The port resolves it the same way in
+`Text_input`, `Text_area` and `Radio_list`, and the component gate asserts both halves: under
+`Required` the unmarked field carries `aria-required="true"` and *no* native `required`.
+
+**An expectation corrected rather than a component changed.** A check asserting that an explicitly
+required text field still carries the native `required` attribute failed. Upstream's `TextInput`
+sets `aria-required` and nothing else — there is no native attribute on it anywhere — so the check
+was asserting behaviour the original does not have. It now asserts the true rule (a text field is
+never natively required, by either route), and the checkbox and radio inputs, which *do* carry it,
+assert theirs separately.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **344 / 0** |
+| Real-browser checks (Chromium, live showcase) | **148 / 0** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **33 of 103** ported, 70 not |
+| Showcase | 34 sections, 234 examples |
+| Appearance pages | 30 |

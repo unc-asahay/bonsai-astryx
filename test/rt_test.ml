@@ -1195,3 +1195,61 @@ let () =
   in
   mount "radio-list-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- FormLayout (M13) *)
+
+let form_layout_static_component (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let field ?(is_optional = false) ?(is_required = false) ?optionality label id =
+    Text_input.view
+      ~label
+      ~id
+      ~is_optional
+      ~is_required
+      ?optionality
+      ~value:(Bonsai.return "")
+      ~on_change:no_change
+      ()
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let layout ?(direction = Form_layout.Vertical) fields =
+    Bonsai.map (join_all fields) ~f:(fun children -> Form_layout.view ~direction ~children ())
+  in
+  let opt = Form_layout.Optional in
+  let req = Form_layout.Required in
+  let trees =
+    [ layout [ field "Name" "rt-fl-v-name"; field "Email" "rt-fl-v-email" ]
+    ; layout ~direction:Form_layout.Horizontal
+        [ field "City" "rt-fl-h-city"; field "Postcode" "rt-fl-h-post" ]
+    ; layout ~direction:Form_layout.Horizontal_labels
+        [ field "Account" "rt-fl-l-account"; field "Region" "rt-fl-l-region" ]
+    ; layout
+        [ field ~optionality:opt ~is_required:true "Email" "rt-fl-opt-email"
+        ; field ~optionality:opt "Nickname" "rt-fl-opt-nick"
+        ]
+    ; layout
+        [ field ~optionality:req "Email" "rt-fl-req-email"
+        ; field ~optionality:req ~is_optional:true "Nickname" "rt-fl-req-nick"
+        ]
+    ; layout
+        [ field ~is_required:true "Email" "rt-fl-both-email"
+        ; field ~is_optional:true "Nickname" "rt-fl-both-nick"
+        ]
+    ; layout [ field "Company" "rt-fl-nest-company"; layout ~direction:Form_layout.Horizontal [ field "Town" "rt-fl-nest-town" ] ]
+    ]
+  in
+  Bonsai.map (join_all trees) ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      form_layout_static_component
+  in
+  mount "form-layout-static" (Bonsai_web_test.Handle.last_result handle)
+;;
