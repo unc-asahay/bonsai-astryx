@@ -368,5 +368,15 @@ FormLayout
   ok   a text field is never natively required, by either route
   ok   a horizontal layout nests inside a vertical one
 
-344 checks, 0 failure(s)
+Tooltip
+  ok   a closed tooltip renders its anchor
+  ok   and no message element at all
+  ok   a closed anchor does not describe anything
+  ok   an open tooltip renders a message with role=tooltip
+  ok   the message carries the text
+  ok   and the anchor describes it, only while it is open
+  ok   the trigger is inside the anchor
+  ok   placement and alignment are stated on the message
+
+352 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

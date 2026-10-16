@@ -10,6 +10,7 @@
 
 open! Core
 open! Bonsai_web
+open Js_of_ocaml
 
 module Spacing = struct
   (* Astryx's numeric spacing scale: 0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10.
@@ -50,6 +51,17 @@ end
 (* Which state a form treats as its default. Upstream declares this in FormLayout.tsx and passes it
    down through React context; the port puts the value here, next to the other shared value types,
    because the controls and the layout both need it and neither should own the other. *)
+(* Generic property reads on a JS object. A DOM event's fields are untyped from OCaml's side, and a
+   missing one has to come back as a value rather than raising — so these are the only places that
+   reach for [Js.Unsafe.get]. *)
+let prop (obj : 'a Js.t) (name : string) = Js.Unsafe.get obj name
+
+let string_prop (obj : 'a Js.t) (name : string) : string option =
+  Option.map (Js.Opt.to_option (prop obj name : Js.js_string Js.t Js.opt)) ~f:Js.to_string
+;;
+
+let bool_prop (obj : 'a Js.t) (name : string) : bool = Js.to_bool (prop obj name)
+
 module Optionality = struct
   type t =
     | Optional

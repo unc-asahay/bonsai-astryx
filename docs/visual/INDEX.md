@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-30 ported component(s). Each page records the appearance the port
+31 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -11,7 +11,7 @@ for image generation.
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
 | Badge | 15 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 25 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 32 | 12 | 27 | 18 | [Button.md](Button.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
 | CheckboxInput | 16 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
@@ -37,8 +37,9 @@ for image generation.
 | Text | 46 | 15 | 8 | 26 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
+| Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 73 components with no OCaml port. They
+Not listed: the 72 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

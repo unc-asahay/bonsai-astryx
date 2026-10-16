@@ -904,3 +904,50 @@ assert theirs separately.
 | Coverage | **33 of 103** ported, 70 not |
 | Showcase | 34 sections, 234 examples |
 | Appearance pages | 30 |
+
+## Gate 21 — Tooltip (M13, phase 3), the overlay pillar's first build
+
+The pillar's first piece rather than its foundation, and the reasoning is in the roadmap:
+`DropdownMenu` had already established the port's overlay convention — an explicit positioned element
+rather than a top-layer portal — and it is the only overlay here that works. `Tooltip` follows it,
+which means the true portal (stacking contexts, `ResizeObserver` repositioning, a focus trap,
+`layerViewportInset`/`modalOutlet`/depth context) stays a named open item instead of a hidden
+difference.
+
+**Two divergences, both in `tooltip.mli` rather than discovered later:**
+
+1. The message is positioned **in place**, so an ancestor with `overflow: hidden` clips it and no
+   stacking context is escaped. Upstream positions through its `Layer`.
+2. **The hover delay is not ported.** Opening after a pause needs a timer whose callback can reach
+   the component's state setter, and this release has no primitive for that: `Bonsai_web.Effect` has
+   no timer, `Effect.after_display` is not exposed, and the `setTimeout`-plus-`requestAnimationFrame`
+   trick that the entry animation uses works only for a value that is *read* later, never for writing
+   state back into the graph. The port opens immediately, which is the difference between a tooltip
+   shown when a pointer crosses a row of icons and one shown when it stops on one.
+
+**What the gates press rather than read.** The component gate asserts the two lifecycle halves: a
+closed tooltip renders **no message element at all** (upstream does not mount its layer either, so the
+message is absent rather than invisible) and its anchor describes nothing, while an open one carries
+`role="tooltip"`, its text, and an `aria-describedby` on the anchor pointing at it — the attribute
+appears for exactly as long as the message does, which is upstream's set-and-restore behaviour. The
+real-browser gate hovers a trigger and asserts the message *is laid out* (`width > 0`, not merely
+present in the DOM), measures that "below" really puts it below the trigger's bottom edge, then moves
+the pointer away and asserts the element left the DOM; focus opens it, and Escape closes it.
+
+**A claim of mine corrected in the same commit.** The roadmap said `FieldStatus`'s third variant
+"deliberately renders nothing". It does not: `field.ml` renders a visually-hidden live region
+(`announcement_node`) carrying the message, so the message already reaches assistive technology today
+and what is missing is only the *visible* bubble. The roadmap now says that, because the difference
+between "a substitute" and "nothing" is the difference between a documented divergence and a false one.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **352 / 0** |
+| Real-browser checks (Chromium, live showcase) | **155 / 0** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **34 of 103** ported, 69 not |
+| Showcase | 35 sections, 240 examples |
+| Appearance pages | 31 |

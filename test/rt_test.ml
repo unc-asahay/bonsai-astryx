@@ -1253,3 +1253,38 @@ let () =
   in
   mount "form-layout-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Tooltip (M13) *)
+
+let tooltip_static_component (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let trigger id label =
+    Vdom.Node.span ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text label ]
+  in
+  let tip ?(placement = Tooltip.Above) ?(alignment = Tooltip.Center) ?is_open ~id ~content trigger
+    =
+    Tooltip.view ~placement ~alignment ?is_open ~id:(id ^ "-message") ~content ~trigger graph
+  in
+  let trees =
+    [ tip ~id:"rt-tip-closed" ~content:"Hidden until asked for." (trigger "rt-tip-closed-trigger" "Trigger")
+    ; tip ~is_open:true ~id:"rt-tip-open" ~content:"Open because the caller says so."
+        (trigger "rt-tip-open-trigger" "Trigger")
+    ; tip ~is_open:true ~placement:Tooltip.Below ~alignment:Tooltip.End ~id:"rt-tip-placed"
+        ~content:"Placed." (trigger "rt-tip-placed-trigger" "Trigger")
+    ]
+  in
+  Bonsai.map (join_all trees) ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      tooltip_static_component
+  in
+  mount "tooltip-static" (Bonsai_web_test.Handle.last_result handle)
+;;

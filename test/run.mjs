@@ -1313,6 +1313,38 @@ section("FieldLabel");
     document.querySelectorAll('[data-astryx-direction="horizontal"]').length >= 2);
 }
 
+// ---------------------------------------------------------------- Tooltip (M13)
+{
+  section("Tooltip");
+  const anchorOf = (id) => document.querySelector(`[data-astryx-component="Tooltip"] .astryx-tooltip-anchor, .astryx-tooltip-anchor:has(#${id})`);
+  const closedAnchor = anchorOf("rt-tip-closed-trigger");
+  check("a closed tooltip renders its anchor", !!closedAnchor);
+  // Nothing is rendered while closed — not a hidden element, not an empty one. Upstream does not
+  // mount its layer either, so the message is absent rather than invisible.
+  check("and no message element at all",
+    document.querySelector('[role="tooltip"]') === null
+      || !document.getElementById("rt-tip-closed-message"));
+  check("a closed anchor does not describe anything",
+    !closedAnchor || closedAnchor.getAttribute("aria-describedby") === null);
+
+  const openAnchor = anchorOf("rt-tip-open-trigger");
+  const message = document.getElementById("rt-tip-open-message");
+  check("an open tooltip renders a message with role=tooltip",
+    !!message && message.getAttribute("role") === "tooltip");
+  check("the message carries the text", !!message && message.textContent === "Open because the caller says so.");
+  // The association appears for exactly as long as the message does, which is upstream's lifecycle:
+  // it sets aria-describedby when the layer opens and restores what was there when it closes.
+  check("and the anchor describes it, only while it is open",
+    !!openAnchor && openAnchor.getAttribute("aria-describedby") === "rt-tip-open-message");
+  check("the trigger is inside the anchor",
+    !!openAnchor && openAnchor.querySelector("#rt-tip-open-trigger") !== null);
+  const placed = document.getElementById("rt-tip-placed-message");
+  check("placement and alignment are stated on the message",
+    !!placed && placed.getAttribute("data-astryx-placement") === "below"
+      && placed.getAttribute("data-astryx-alignment") === "end",
+    placed ? `${placed.getAttribute("data-astryx-placement")}/${placed.getAttribute("data-astryx-alignment")}` : "missing");
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

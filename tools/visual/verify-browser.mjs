@@ -234,7 +234,7 @@ if (mode === "showcase") {
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
-    "RadioList", "FormLayout",
+    "RadioList", "FormLayout", "Tooltip",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -314,8 +314,56 @@ if (mode === "showcase") {
   check("labels to the left put the label beside its control, not above it",
     !!placed && placed.labelX < placed.inputX && placed.overlap > 0, JSON.stringify(placed));
 
+  // ---------------------------------------------------------------- Tooltip (M13)
+  console.log("\nTooltip (live)");
+  const tipBox = (id) =>
+    page.evaluate((i) => {
+      const el = document.getElementById(i);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), bottom: Math.round(r.bottom), x: Math.round(r.x) };
+    }, id);
+  const triggerBox = (sel) =>
+    page.evaluate((s) => {
+      const el = document.querySelector(s);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { top: Math.round(r.top), bottom: Math.round(r.bottom) };
+    }, sel);
+
+  // The caller-opened one needs no interaction, and being *laid out* is the claim: a message that
+  // exists in the DOM but measures zero would satisfy every structural assertion.
+  const shown = await tipBox("showcase-tip-controlled-message");
+  check("a caller-opened tooltip is laid out, not merely present",
+    !!shown && shown.w > 0 && shown.h > 0, JSON.stringify(shown));
+
+  // Hover and focus are the two ways in, and both are real events here.
+  const hoverTarget = "showcase-tip-below-trigger";
+  check("the hovered tooltip starts closed",
+    (await tipBox("showcase-tip-below-message")) === null);
+  await page.hover(`#${hoverTarget}`);
+  await page.waitForTimeout(150);
+  const opened = await tipBox("showcase-tip-below-message");
+  check("hovering the trigger opens the message", !!opened && opened.w > 0, JSON.stringify(opened));
+  // "below" is a geometric claim: the message sits under the trigger, not over it.
+  const trigger = await triggerBox(`#${hoverTarget}`);
+  check("and 'below' puts it below the trigger, measured",
+    !!opened && !!trigger && opened.top >= trigger.bottom - 1,
+    `message.top=${opened?.top} trigger.bottom=${trigger?.bottom}`);
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(150);
+  check("moving away closes it, and the element leaves the DOM",
+    (await tipBox("showcase-tip-below-message")) === null);
+
+  await page.focus("#showcase-tip-above-trigger button");
+  await page.waitForTimeout(150);
+  check("focusing the trigger opens it too", !!(await tipBox("showcase-tip-above-message")));
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+  check("Escape closes it", (await tipBox("showcase-tip-above-message")) === null);
+
   console.log("\nshowcase sections");
-  check("34 sections", sections.length === 34, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("35 sections", sections.length === 35, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -333,10 +381,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10, Switch: 8,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
-    RadioList: 9, FormLayout: 7,
+    RadioList: 9, FormLayout: 7, Tooltip: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("234 examples across the page", totalExamples === 234, `got ${totalExamples}`);
+  check("240 examples across the page", totalExamples === 240, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -349,7 +397,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("34 nav links", nav.length === 34, `got ${nav.length}`);
+  check("35 nav links", nav.length === 35, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1126,11 +1174,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 33 ported / 70 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["33", "70", "103"]),
+    "coverage stats are 34 ported / 69 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["34", "69", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 70 entries", cov.unported === 70, `got ${cov.unported}`);
+  check("unported list rendered 69 entries", cov.unported === 69, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

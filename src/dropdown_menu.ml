@@ -49,13 +49,11 @@ let focus_el (el : el) =
        [| Js.Unsafe.inject (Js.Unsafe.obj [| "preventScroll", Js.Unsafe.inject Js._true |]) |])
 ;;
 
-let prop (obj : 'a Js.t) (name : string) = Js.Unsafe.get obj name
-
-let string_prop (obj : 'a Js.t) (name : string) : string option =
-  Option.map (Js.Opt.to_option (prop obj name : Js.js_string Js.t Js.opt)) ~f:Js.to_string
-;;
-
-let bool_prop (obj : 'a Js.t) (name : string) : bool = Js.to_bool (prop obj name)
+(* The generic JS readers now live in Common — Tooltip needs the same key lookup, and a second copy
+   is how two components drift apart. Aliased here so the call sites below read unchanged. *)
+let prop = Common.prop
+let string_prop = Common.string_prop
+let bool_prop = Common.bool_prop
 
 (* A click event that carries no [button] field at all is not an unmodified left
    click: upstream reads [event.button !== 0] and [undefined] is not 0, so it does

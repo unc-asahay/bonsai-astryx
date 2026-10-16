@@ -246,15 +246,22 @@ pillars below.
   `aria-required` and never the native `required` attribute, so choosing a form default cannot switch
   on the browser's own validation.
 
-- **`Tooltip`** (class B, 1,998 lines) retires the other two: `FieldStatus`'s third variant (which
-  the port type-checks and deliberately renders nothing for today) and the `disabledMessage` path on
-  `CheckboxInput` and `Switch`. That path is also where `Switch` will need the canceled click
-  `CheckboxInput` already has — the seam is commented where it goes.
+- **`Tooltip`** (class B, 1,998 lines) — **now built**, in the overlay pillar below rather than here,
+  and it is the piece that retires the `disabledMessage` path on `CheckboxInput` and `Switch`: a
+  control that looks disabled and stays focusable, because a natively disabled button receives no
+  pointer events and can never explain itself. That path is also where `Switch` will need the canceled
+  click `CheckboxInput` already has — the seam is commented where it goes. The other deferral this
+  section used to claim is smaller than it looked: `FieldStatus`'s third variant already renders its
+  message as a visually-hidden live region (`field.ml`'s `announcement_node`), so assistive technology
+  gets the message today and only the *visible* bubble is missing.
 
 Next: the overlay pillar (`Tooltip`, `Dialog`/`AlertDialog`, `Popover`, `BottomSheet`, then the
 `Layer` primitives underneath them) — class C, portal-driven, 2.4k–6.6k lines each, and much more
 than a way to close this one. It is the largest unblock in the registry: the field-side deferrals
-above wait on `Tooltip`, and so do `Selector`, `DateInput`'s calendar and `Combobox`.
+above wait on `Tooltip`, and so do `Selector`, `DateInput`'s calendar and `Combobox`. (Note what
+that deferral actually is: the port renders the tooltip *variant* of a field status as a
+visually-hidden live region rather than a visible bubble — a substitute, described as one in
+`field.ml`, not parity.)
 
 The pillar's *first* build is `Tooltip` rather than `Layer`, and the port's own precedent is why:
 `DropdownMenu` already renders its surface as an explicit positioned element rather than in a

@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **33 of 103** components.
+Ported: **34 of 103** components.
 
 ## Milestones
 
@@ -67,9 +67,10 @@ Ported: **33 of 103** components.
 | `Switch` | `Astryx.Switch` | `src/switch.ml` | M12 | B |
 | `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
 | `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
+| `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
 
-## Not ported yet (70)
+## Not ported yet (69)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`
+`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `TopNav`, `TreeList`, `Typeahead`

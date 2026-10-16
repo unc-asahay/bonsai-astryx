@@ -332,6 +332,13 @@
       "file": "src/form_layout.ml",
       "milestone": "M13",
       "module": "Astryx.Form_layout"
+    },
+    {
+      "class": "B",
+      "component": "Tooltip",
+      "file": "src/tooltip.ml",
+      "milestone": "M13",
+      "module": "Astryx.Tooltip"
     }
   ],
   "schema": 1,

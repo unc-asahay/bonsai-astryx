@@ -1937,6 +1937,124 @@ let form_layout_demo (_ : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- tooltip (state) *)
+
+(* The tooltip owns its open/close state, so it takes the graph — the same shape DropdownMenu uses.
+   Two claims in here are the ones worth pressing rather than reading: that the message element is
+   absent from the DOM while closed (so it cannot be found by a selector or a screen reader), and
+   that aria-describedby appears on the anchor only while it is open, which is what upstream does
+   when its layer opens and restores on close. *)
+let tooltip_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
+  let tip ?(placement = Tooltip.Above) ?(alignment = Tooltip.Center) ?is_open ~id ~content
+        trigger
+    =
+    Tooltip.view
+      ~placement
+      ~alignment
+      ?is_open
+      ~id:(id ^ "-message")
+      ~content
+      ~trigger
+      graph
+  in
+  (* Button takes children rather than attrs, so the trigger's id rides on a wrapper — which is also
+     the element the tooltip anchors to, so the gate can hover it either way. *)
+  let button id label =
+    Vdom.Node.span
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      [ Button.view ~variant:Button.Secondary ~label [] ]
+  in
+  (* A control that is disabled but still focusable: this is the pattern upstream's disabledMessage
+     exists for. A natively disabled button receives no pointer events at all, so it can neither show
+     a tooltip nor tell anyone why it is unavailable; arming it with aria-disabled keeps it reachable
+     while telling assistive technology the same thing. *)
+  let focusable_disabled id label =
+    Vdom.Node.button
+      ~attrs:
+        ([ Vdom.Attr.create "id" id
+         ; Vdom.Attr.create "type" "button"
+         ; Vdom.Attr.create "aria-disabled" "true"
+         ]
+         @ Common.Attr.class_ [ "astryx-button"; "astryx-button--secondary"; "astryx-button--md" ])
+      [ Vdom.Node.text label ]
+  in
+  let examples =
+    [ ex_tree "above the trigger — the default"
+        (tip
+           ~id:"showcase-tip-above"
+           ~content:"Above, and centred on the trigger."
+           (button "showcase-tip-above-trigger" "Hover or focus me"))
+    ; ex_tree "below"
+        (tip
+           ~placement:Tooltip.Below
+           ~id:"showcase-tip-below"
+           ~content:"Below the trigger."
+           (button "showcase-tip-below-trigger" "Hover or focus me"))
+    ; ex_tree "start and end"
+        (Bonsai.map2
+           (tip
+              ~placement:Tooltip.Start
+              ~id:"showcase-tip-start"
+              ~content:"Beside the trigger, on the start side."
+              (button "showcase-tip-start-trigger" "Start"))
+           (tip
+              ~placement:Tooltip.End
+              ~id:"showcase-tip-end"
+              ~content:"Beside the trigger, on the end side."
+              (button "showcase-tip-end-trigger" "End"))
+           ~f:(fun start end_ -> row [ start; end_ ]))
+    ; ex_tree "aligned to the start and end of the anchor"
+        (Bonsai.map2
+           (tip
+              ~alignment:Tooltip.Start
+              ~id:"showcase-tip-align-start"
+              ~content:"Aligned to the anchor's start edge."
+              (button "showcase-tip-align-start-trigger" "Align start"))
+           (tip
+              ~alignment:Tooltip.End
+              ~id:"showcase-tip-align-end"
+              ~content:"Aligned to the anchor's end edge."
+              (button "showcase-tip-align-end-trigger" "Align end"))
+           ~f:(fun start end_ -> row [ start; end_ ]))
+    ; ex_tree "open because the caller says so"
+        (tip
+           ~is_open:true
+           ~id:"showcase-tip-controlled"
+           ~content:"is_open replaces the hover and focus state entirely, so this one is open for a reason of the caller's own."
+           (button "showcase-tip-controlled-trigger" "No interaction needed"))
+    ; ex_tree "a disabled control that stays focusable"
+        (tip
+           ~is_open:true
+           ~id:"showcase-tip-disabled"
+           ~content:"Export is not on your plan."
+           (focusable_disabled "showcase-tip-disabled-trigger" "Export"))
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"tooltip"
+      ~title:"Tooltip"
+      ~note:
+        "A short message attached to a trigger, open while the trigger is hovered or focused and \\
+         gone the moment it is not — the message element is not in the DOM at all while closed, \\
+         which is what makes the last two examples worth having: the second-last is open because its \\
+         caller said so, and the last is the pattern a disabled control needs, a control that looks \\
+         disabled and still takes focus, because a natively disabled button receives no pointer \\
+         events and so can never explain itself. Two divergences are named in the interface rather \\
+         than hidden here: the message is positioned in place instead of through a portal, so an \\
+         ancestor with overflow hidden clips it, and the hover delay is not ported — opening after a \\
+         pause needs a timer that can write back into the component's state, which this release has \\
+         no primitive for."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1982,6 +2100,7 @@ let nav_items =
   ; "switch", "Switch"
   ; "radiogroup", "RadioList"
   ; "form-layout", "FormLayout"
+  ; "tooltip", "Tooltip"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2017,6 +2136,7 @@ let page (graph : Bonsai.graph) =
   let switch_section = switch_demo graph in
   let radio_list_section = radio_list_demo graph in
   let form_layout_section = form_layout_demo graph in
+  let tooltip_section = tooltip_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2029,17 +2149,19 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful switch_section in
   let stateful = pair stateful radio_list_section in
   let stateful = pair stateful form_layout_section in
+  let stateful = pair stateful tooltip_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout) text_area ->
+    ~f:(fun ((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip)
+          text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dropdown; interactive ])
       ])
 ;;
 

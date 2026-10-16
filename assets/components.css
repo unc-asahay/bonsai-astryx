@@ -1626,3 +1626,42 @@
     grid-column: 1;
   }
 }
+
+/* ---------------------------------------------------------------------------- Tooltip */
+
+/* The anchor is a positioned box, not upstream's `display: contents` wrapper — upstream can afford
+   that because its message lives in a portal; this one is positioned against its anchor, so the
+   anchor has to be a box that can be positioned. The visible cost is named in the interface: an
+   ancestor with `overflow: hidden` clips the message. */
+
+.astryx-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.astryx-tooltip {
+  position: absolute;
+  z-index: 50;
+  max-width: 16rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-element);
+  background: var(--color-background-inverted);
+  color: var(--color-text-inverted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  white-space: normal;
+  pointer-events: none;
+}
+
+.astryx-tooltip--above { bottom: calc(100% + var(--spacing-1)); }
+.astryx-tooltip--below { top: calc(100% + var(--spacing-1)); }
+.astryx-tooltip--start { right: calc(100% + var(--spacing-1)); top: 0; }
+.astryx-tooltip--end { left: calc(100% + var(--spacing-1)); top: 0; }
+
+.astryx-tooltip--above.astryx-tooltip--align-start,
+.astryx-tooltip--below.astryx-tooltip--align-start { left: 0; }
+.astryx-tooltip--above.astryx-tooltip--align-center,
+.astryx-tooltip--below.astryx-tooltip--align-center { left: 50%; transform: translateX(-50%); }
+.astryx-tooltip--above.astryx-tooltip--align-end,
+.astryx-tooltip--below.astryx-tooltip--align-end { right: 0; }
