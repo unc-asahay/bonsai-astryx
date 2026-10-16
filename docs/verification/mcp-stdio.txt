@@ -2,16 +2,16 @@
 # command: node tools/mcp/astryx-mcp.mjs --cli status
 
 upstream: facebook/astryx @ b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e (MIT)
-ported: 39 of 103
-by milestone: M1=9, M10=1, M11=2, M12=4, M13=3, M14=2, M15=1, M2=4, M5=3, M6=3, M7=3, M8=1, M9=1, M17=1, M18=1
-milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M5 (complete), M6 (complete), M7 (complete), M8 (complete), M9 (complete), M10 (complete), M11 (complete), M12 (complete), M13 (complete), M14 (complete), M15 (complete), M17 (complete), M18 (complete)
+ported: 40 of 103
+by milestone: M1=9, M10=1, M11=2, M12=4, M13=3, M14=2, M15=1, M2=4, M5=3, M6=3, M7=3, M8=1, M9=1, M17=1, M18=1, M19=1
+milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M5 (complete), M6 (complete), M7 (complete), M8 (complete), M9 (complete), M10 (complete), M11 (complete), M12 (complete), M13 (complete), M14 (complete), M15 (complete), M17 (complete), M18 (complete), M19 (complete)
 
-ported modules: Astryx.Badge, Astryx.Button, Astryx.Card, Astryx.Divider, Astryx.Heading, Astryx.Skeleton, Astryx.Stack, Astryx.StatusDot, Astryx.Text, Astryx.Dropdown_menu, Astryx.Field, Astryx.Text_input, Astryx.Checkbox_input, Astryx.Indicator, Astryx.Switch, Astryx.Text_area, Astryx.Form_layout, Astryx.Radio_list, Astryx.Tooltip, Astryx.Alert_dialog, Astryx.Dialog, Astryx.Kbd, Astryx.Center, Astryx.Grid, Astryx.Section, Astryx.VisuallyHidden, Astryx.AspectRatio, Astryx.HStack, Astryx.VStack, Astryx.Blockquote, Astryx.Code, Astryx.IconButton, Astryx.Citation, Astryx.EmptyState, Astryx.NavIcon, Astryx.Icon, Astryx.Field_status, Astryx.Button_group, Astryx.Popover
+ported modules: Astryx.Badge, Astryx.Button, Astryx.Card, Astryx.Divider, Astryx.Heading, Astryx.Skeleton, Astryx.Stack, Astryx.StatusDot, Astryx.Text, Astryx.Dropdown_menu, Astryx.Field, Astryx.Text_input, Astryx.Checkbox_input, Astryx.Indicator, Astryx.Switch, Astryx.Text_area, Astryx.Form_layout, Astryx.Radio_list, Astryx.Tooltip, Astryx.Alert_dialog, Astryx.Dialog, Astryx.Kbd, Astryx.Center, Astryx.Grid, Astryx.Section, Astryx.VisuallyHidden, Astryx.AspectRatio, Astryx.HStack, Astryx.VStack, Astryx.Blockquote, Astryx.Code, Astryx.IconButton, Astryx.Citation, Astryx.EmptyState, Astryx.NavIcon, Astryx.Icon, Astryx.Field_status, Astryx.Button_group, Astryx.Popover, Astryx.Timer
 
 # every ported component must reach get_snippet truthfully
 # (ported-but-unsnippeted must say so, never 'NOT ported yet')
 
-ported components: 39; truthfully reachable: 39
+ported components: 40; truthfully reachable: 40
   note  CheckboxInput (ported, no snippet — reported as such)
   note  Indicator (ported, no snippet — reported as such)
   note  Switch (ported, no snippet — reported as such)
@@ -31,4 +31,5 @@ ported components: 39; truthfully reachable: 39
   note  FieldStatus (ported, no snippet — reported as such)
   note  ButtonGroup (ported, no snippet — reported as such)
   note  Popover (ported, no snippet — reported as such)
+  note  Timer (ported, no snippet — reported as such)
 ok    every ported component is reported as ported

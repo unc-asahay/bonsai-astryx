@@ -40,7 +40,7 @@ for image generation.
 | Stack | 57 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
-| Text | 62 | 15 | 8 | 26 | [Text.md](Text.md) |
+| Text | 65 | 15 | 8 | 26 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
 | Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |

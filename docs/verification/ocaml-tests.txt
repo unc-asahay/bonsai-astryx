@@ -14,6 +14,8 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -465,6 +467,10 @@ DialogHeader
   ok   and a generated close control that is labelled for a screen reader
   ok   which sits *outside* the content wrapper — that is what keeps it out of initial focus
   ok   with the trigger inside the anchor wrapper the mechanism locates it in
+  ok   the reading is a real <time> element, not a span that looks like one
+  ok   carrying a machine-readable duration beside the human one
+  ok   and the clock format differs in exactly the way it should at zero
+  ok   with the tabular-figure treatment applied, so the numbers do not jump
 
-419 checks, 0 failure(s)
+423 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

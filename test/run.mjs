@@ -1636,6 +1636,27 @@ section("FieldLabel");
     "the anchor wrapper is what the trigger ARIA is applied to");
 }
 
+/* ------------------------------------------------------------------------- Timer (M19) */
+{
+  /* The attributes land on the <time> itself, so this is the element - asking for a <time> *inside* it
+     finds nothing, which is how this check was first written. */
+  const time = document.getElementById("timer-elapsed");
+  check("the reading is a real <time> element, not a span that looks like one",
+    time?.tagName === "TIME", String(time?.tagName));
+  check("carrying a machine-readable duration beside the human one",
+    time?.getAttribute("datetime") === "PT0S" && time?.textContent === "0s",
+    JSON.stringify({ datetime: time?.getAttribute("datetime"), text: time?.textContent }));
+  const clock = document.getElementById("timer-clock");
+  check("and the clock format differs in exactly the way it should at zero",
+    clock?.getAttribute("datetime") === "PT0S" && clock?.textContent === "0:00",
+    JSON.stringify({ datetime: clock?.getAttribute("datetime"), text: clock?.textContent }));
+  /* Tabular figures are what stop the numbers shifting as they change. The *class* is all this engine
+     can decide - jsdom has no cascade - and the browser gate measures the computed value it produces. */
+  check("with the tabular-figure treatment applied, so the numbers do not jump",
+    !!time?.closest(".astryx-text--tabular"), String(time?.parentElement?.className));
+}
+
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

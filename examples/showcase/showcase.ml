@@ -2467,6 +2467,45 @@ let dialog_header_demo (graph : Bonsai.graph) =
 (* ---------------------------------------------------------------- Kbd *)
 
 (* ------------------------------------------------------------------------------- ButtonGroup *)
+(* ---------------------------------------------------------------------------------------- Timer *)
+let s_timer () =
+  (* Fixed past start times, so the readings below are deterministic instead of "about two minutes" -
+     the same choice the Tooltip's delay check makes. Offsets are deliberately away from a boundary. *)
+  (* Read through JS, not Core: under js_of_ocaml this is a 32-bit target and
+     Time_ns.to_int_ns_since_epoch refuses there outright - which took the whole showcase page down and
+     was caught by the browser gate's "the app mounted" check. The component reads its own clock the same
+     way, for the same reason. *)
+  let now_ms : float = Js_of_ocaml.Js.Unsafe.eval_string "Date.now()" in
+  let timer ?start_time ?(format = Astryx.Timer.Elapsed) ~id () =
+    Astryx.Timer.view ?start_time ~format ~attrs:[ Vdom.Attr.create "id" id ] ()
+  in
+  section
+    ~id:"timer"
+    ~title:"Timer"
+    ~note:
+      "An elapsed duration that stays readable - and machine-readable - without re-rendering. What is \
+       rendered is a real <time> element: the human reading is its text and an ISO 8601 duration is its \
+       datetime. Those two are not always the same number, and the difference is the interesting part. \
+       Past an hour the elapsed reading stops showing seconds, and then the duration follows the *text* \
+       rather than the raw elapsed time, because a duration that disagrees with its own visible reading \
+       is worse than none; the two timers below share a start time and show that, the clock format \
+       reporting the true duration while the elapsed format reports the one it displays. Nothing here \
+       re-renders to keep the reading current: the component writes the changed text straight to the \
+       element it owns, because a per-second re-render of a timer is a per-second re-render of \
+       everything above it. The wait until the next change is computed rather than rounded to a second - \
+       past an hour the reading only moves once a minute, so asking every second would be work done to \
+       discover that nothing had changed. A start time in the future is the one case where the reading \
+       sits at zero and then moves."
+    [ ex "counting: the reading moves on its own" (timer ~id:"showcase-timer-live" ())
+    ; ex
+        "an hour and two minutes in, elapsed format: the duration reports what the text represents"
+        (timer ~id:"showcase-timer-elapsed-hour" ~start_time:(now_ms -. 3_725_000.) ())
+    ; ex
+        "the same instant, clock format: same start time, and the duration is now the real one"
+        (timer ~id:"showcase-timer-clock" ~start_time:(now_ms -. 3_725_000.) ~format:Astryx.Timer.Clock ())
+    ]
+;;
+
 let s_button_group () =
   let member ?(is_disabled = false) id label =
     Astryx.Button.view ~label ~is_disabled ~attrs:[ Vdom.Attr.create "id" id ] []
@@ -2773,6 +2812,7 @@ let specs =
   ; s_icon (); s_field_status (); s_field_label (); s_indicator ()
   ; s_kbd ()
   ; s_button_group ()
+  ; s_timer ()
   ]
 ;;
 
@@ -2817,6 +2857,7 @@ let nav_items =
   ; "dialog-header", "DialogHeader"
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
+  ; "timer", "Timer"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("42 sections", sections.length === 42, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("43 sections", sections.length === 43, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,11 +616,11 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
-    ButtonGroup: 3, Popover: 1,
+    ButtonGroup: 3, Popover: 1, Timer: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("264 examples across the page", totalExamples === 264, `got ${totalExamples}`);
+  check("267 examples across the page", totalExamples === 267, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -633,7 +633,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("42 nav links", nav.length === 42, `got ${nav.length}`);
+  check("43 nav links", nav.length === 43, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1686,6 +1686,63 @@ if (mode === "showcase") {
     JSON.stringify({ label: closedByButton, open: st.open }));
 }
 
+/* ---------------------------------------------------------------------- Timer (M19) */
+/* The reading moves on its own, and the interesting rules are about *what* it says at the boundaries -
+   so the showcase renders timers with fixed past start times and the assertions are exact rather than
+   "about a minute". */
+{
+  const reading = (id) => page.evaluate((id) => {
+    const el = document.getElementById(id);
+    return { tag: el?.tagName, text: el?.textContent, datetime: el?.getAttribute("datetime") };
+  }, id);
+  const secondsOf = (duration) => {
+    const m = /^PT(\d+)S$/.exec(duration || "");
+    return m ? Number(m[1]) : null;
+  };
+
+  /* "Nothing re-renders" is exactly the claim a screenshot cannot check, so it is checked by identity:
+     a re-render would replace the node, and this one is written to in place. */
+  await page.evaluate(() => {
+    window.__timerNode = document.getElementById("showcase-timer-live");
+    window.__timerText = window.__timerNode.textContent;
+  });
+  await page.waitForTimeout(1400);
+  const live = await page.evaluate(() => ({
+    sameNode: window.__timerNode === document.getElementById("showcase-timer-live"),
+    before: window.__timerText,
+    after: document.getElementById("showcase-timer-live")?.textContent,
+  }));
+  check("the reading moves on its own", live.before !== live.after, JSON.stringify(live));
+  check("and it moves by writing to the node it owns — the element is the same one, not a re-render",
+    live.sameNode === true, JSON.stringify({ sameNode: live.sameNode }));
+  check("counting in whole seconds, as an elapsed reading does", /^\d+s$/.test(live.after || ""), String(live.after));
+
+  /* The rule worth the most: past an hour the elapsed *text* drops its seconds, and the duration agrees
+     with the text rather than with the clock. */
+  const hour = await reading("showcase-timer-elapsed-hour");
+  const hourSeconds = secondsOf(hour.datetime);
+  check("an elapsed reading past an hour shows hours and minutes, with no seconds",
+    hour.text === "1h 02m", String(hour.text));
+  check("and its duration is a whole number of minutes — it follows the text, not the clock",
+    hourSeconds !== null && hourSeconds % 60 === 0 && hourSeconds >= 3720,
+    JSON.stringify({ datetime: hour.datetime, seconds: hourSeconds }));
+
+  /* Same start time, clock format: now the duration *is* the real elapsed time. */
+  const clock = await reading("showcase-timer-clock");
+  const clockSeconds = secondsOf(clock.datetime);
+  check("the clock format at the same instant reads hours, minutes and seconds",
+    /^1:02:\d\d$/.test(clock.text || ""), String(clock.text));
+  check("and its duration is the true elapsed time rather than a rounded one",
+    clockSeconds !== null && clockSeconds % 60 !== 0 && clockSeconds >= 3725,
+    JSON.stringify({ datetime: clock.datetime, seconds: clockSeconds }));
+
+  /* The jsdom gate can see the class; only a browser can say what the class *does*. */
+  const figures = await page.evaluate(() =>
+    getComputedStyle(document.getElementById("showcase-timer-live")).fontVariantNumeric);
+  check("tabular figures are actually applied — the numbers cannot shift as they change",
+    String(figures).includes("tabular-nums"), String(figures));
+}
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -1719,11 +1776,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 39 ported / 64 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["39", "64", "103"]),
+    "coverage stats are 40 ported / 63 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["40", "63", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 64 entries", cov.unported === 64, `got ${cov.unported}`);
+  check("unported list rendered 63 entries", cov.unported === 63, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

@@ -1611,3 +1611,24 @@ let () =
     popover_static
   |> fun handle -> mount "popover" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* --------------------------------------------------------------------------------------- Timer (M19) *)
+(* The reading is initial here and then corrected by the hook, which this harness does not pump — so the
+   initial value is what this gate can honestly assert, plus the two facts that are structure rather than
+   behaviour: a real <time> with a machine-readable duration on it, and digits that do not jitter as they
+   change. The boundaries and the counting are the browser gate's. *)
+let timer_static (_ : Bonsai.graph) =
+  Bonsai.return
+    (Vdom.Node.div
+       [ Astryx.Timer.view ~attrs:[ Vdom.Attr.create "id" "timer-elapsed" ] ()
+       ; Astryx.Timer.view
+           ~format:Astryx.Timer.Clock
+           ~attrs:[ Vdom.Attr.create "id" "timer-clock" ]
+           ()
+       ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) timer_static
+  |> fun handle -> mount "timer" (Bonsai_web_test.Handle.last_result handle)
+;;

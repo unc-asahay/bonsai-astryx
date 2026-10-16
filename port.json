@@ -134,6 +134,12 @@
       "name": "a layer anchored to its trigger",
       "note": "Popover. This component is mostly a wrapper around two mechanisms that were ported and proven on their own first (Gates 29 and 30), which was the point of doing them separately: the surface's show/hide with the platform's dismissal reported back to the application, and the trigger's ARIA with its click. What is left in the component is the labelled surface, the generated close control, the focus rule, and the width/padding seam. The focus rule is upstream's exactly: focus enters the first genuine control in the content, falling back to the labelled surface when there is none, and the generated close button is deliberately not a candidate - it sits outside the content wrapper, which is what keeps it out of initial focus while leaving it reachable by keyboard. Closing returns focus to the trigger, but only if focus was inside, so a dismissal the person did not ask for cannot yank focus out of wherever they had moved it. Focus is asked for on the next frame because the surface is display:none until the layer mechanism shows it, and the two hooks run in unspecified order after the same DOM patch - the same ordering trap the dialog hit with showModal. Upstream's light dismiss and Escape are one popover attribute, so asking for one without the other is not expressible here and the port takes the reading that keeps the surface alive until the application closes it, which the mli states. Three things upstream has are named as missing rather than approximated: width is handed to CSS rather than measured and clamped against the viewport (so the surface flips or slides nowhere), there is no modal focus trap (isModal is announced with aria-modal and nothing is trapped), and the render-prop and anchorRef trigger modes have no equivalent in a language without render props - give the trigger a real button and the automatic mode is enough.",
       "status": "complete"
+    },
+    {
+      "id": "M19",
+      "name": "a duration that stays readable without re-rendering",
+      "note": "Timer. Two numbers come out of one reading and they are deliberately not always the same number: a real <time> element carries an ISO 8601 duration in datetime and the human reading as its text, and past an hour the elapsed text stops showing seconds - at which point the duration follows the *text* rather than the raw elapsed time, because a duration that disagrees with its own visible reading is worse than none. The showcase renders two timers from the same start time to make that visible: the elapsed one reports a whole number of minutes while the clock one reports the true seconds. Nothing re-renders to keep the reading current - the hook owns the <time> node and writes only what changed, which the browser gate proves the only way it can be proven: it holds the node across a second and checks it is still the same node, since a re-render would have replaced it. The wait until the next change is computed against the precision the reading actually has, so past an hour this does not ask the clock every second to discover nothing moved. The discovery of this milestone is a platform one and it took the whole showcase page down: under js_of_ocaml an int is 32 bits, so milliseconds since 1970 do not fit in one and converting raises Invalid_argument. A JS number is a double and an OCaml float is a double, so start_time and the internal clock are floats - which is the faithful type on both sides, not a workaround. Core's Time_ns is unusable on this target for the same reason. The browser gate's 'the app mounted in Chromium' check is what caught it, from a page that had gone blank. Not ported: the theme seam, upstream's themeProps('timer') target - a theme can style the component's classes but cannot retarget its props.",
+      "status": "complete"
     }
   ],
   "ported": [
@@ -410,6 +416,13 @@
       "file": "src/popover.ml",
       "milestone": "M18",
       "module": "Astryx.Popover"
+    },
+    {
+      "class": "A",
+      "component": "Timer",
+      "file": "src/timer.ml",
+      "milestone": "M19",
+      "module": "Astryx.Timer"
     }
   ],
   "schema": 1,

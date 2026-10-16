@@ -498,6 +498,27 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
+
+One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
+ISO 8601 duration in `datetime` and the human reading as its text, and past an hour the elapsed text drops
+its seconds — at which point the duration follows the *text* rather than the clock. The showcase renders two
+timers from one start time to make the difference measurable rather than argued.
+
+"Nothing re-renders" turned out to be checkable: the browser gate holds the DOM node across a second and
+checks it is still the same node, because a re-render would have replaced it.
+
+**The discovery of this milestone is a platform one and it took the whole page down:** under js_of_ocaml an
+`int` is 32 bits, so milliseconds since 1970 do not fit in one and converting raises `Invalid_argument`.
+Core's `Time_ns` refuses on this target for the same reason. A JS `number` is a double and an OCaml `float`
+is a double, so `start_time` and the internal clock are floats — the faithful type on both sides rather than
+a workaround — while durations within the component stay ints. What caught it was the browser gate's *"the
+app mounted in Chromium"* check, from a page that had gone blank.
+
+**Next:** `BottomSheet` and `DropdownMenu` phase 2 — both now consumers of mechanisms that are proven, which
+is what M18 was for.
+
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

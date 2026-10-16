@@ -1639,3 +1639,75 @@ thing that broke rather than the code.
 
 Transcript: `docs/verification/sweep-m18a.txt`.
 
+## Gate 33 — Timer (M19): a duration that stays readable without re-rendering
+
+Coverage moves **39 → 40 of 103**.
+
+### One reading, two numbers, and they are not always the same number
+
+The rendered element is a real `<time>`: the human reading is its text, an ISO 8601 duration is its
+`datetime`. Past an hour the elapsed text stops showing seconds — and then **the duration follows the text,
+not the clock**. A duration that disagrees with its own visible reading is worse than no duration at all.
+
+The showcase makes this measurable rather than argued: two timers rendered from the same start time, one in
+each format. The browser gate asserts both, and the difference between them *is* the rule.
+
+| Check | Evidence (real Chromium) |
+| --- | --- |
+| An elapsed reading past an hour shows hours and minutes and no seconds | the text is exactly `1h 02m` |
+| And its duration is a whole number of minutes | `PT3720S` — 62 × 60, rounded down from 3725 s |
+| The clock format at the same instant shows seconds | it matches `1:02:\d\d` |
+| And *its* duration is the true elapsed time | `PT3725S`+, not a multiple of 60 |
+| Tabular figures are really applied | computed `font-variant-numeric: tabular-nums` |
+
+Two gates, one claim each: jsdom asserts the **class** (`.astryx-text--tabular` is present) because it has
+no cascade, and the browser asserts the **computed value** that class produces. That split exists because
+of the Kbd milestone's mistake, and it is the honest half for each engine.
+
+### "Nothing re-renders" is checkable, and it was checked
+
+Upstream writes the changed text straight to the owned `<time>` node instead of scheduling tick renders. A
+component that re-rendered once a second would re-render everything above it once a second — and that is a
+claim a screenshot cannot test. So the browser gate tests it the only way it can be tested: **hold the DOM
+node across a second and check it is still the same node.** A re-render would have replaced it. It is the
+same node, and the text moved.
+
+The wait until the next change is computed against the precision the reading actually has — past an hour
+this does not ask the clock every second in order to discover that nothing moved. A start time in the future
+is the one case where the reading sits at zero and then moves.
+
+### The discovery: an epoch timestamp does not fit in this platform's `int`
+
+The first browser run after the showcase was wired **took the whole page down** — three uncaught errors and
+"the app mounted in Chromium — no `[data-astryx-component]` appeared". The cause:
+
+> under js_of_ocaml an `int` is 32 bits, and milliseconds since 1970 do not fit in one.
+
+Converting `Date.now()` to an `int` raises `Invalid_argument`. Core's `Time_ns.to_int_ns_since_epoch`
+refuses on this target for the same reason, with a message that says so — which is how the first version of
+this was caught.
+
+The fix is not a workaround but the more faithful type: **a JS `number` is a double and an OCaml `float` is
+a double**, so `start_time` and the internal clock are floats, while durations *within* the component (the
+elapsed reading, the wait until the next change) are small and stay ints. This is written into the `mli`
+rather than left in a commit message, because the next person to add a component with a timestamp will hit
+it too.
+
+Worth stating plainly: this was caught by a check whose purpose is not to test the component — *"the app
+mounted"* — which exists because a page that fails to render must never be mistaken for a page that passed.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **423 / 0** |
+| Real-browser checks (Chromium, live showcase) | **231 / 231** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **40 of 103** ported, 63 not |
+| Showcase | 43 sections, 267 examples |
+| Visual contract pages | 40 |
+| MCP layer | every ported component truthfully reachable |
+
+Transcript: `docs/verification/sweep-m19a.txt`.
+

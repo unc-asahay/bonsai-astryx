@@ -9,6 +9,7 @@
 module Popover = Popover
 module Common = Common
 module Tokens = Tokens
+module Timer = Timer
 module Stack = Stack
 module Text = Text
 module Heading = Heading
