@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   29 sections
+  ok   30 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   188 examples across the page
+  ok   200 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   29 nav links
+  ok   30 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -137,15 +137,23 @@ field label (element.labels: a group label names nothing)
   ok   a group label is a <span> with no for
   ok   the group takes the group label as its name, and its controls do not
 
+indicator marks (real engine)
+  ok   every check mark is a real SVG path in the SVG namespace
+  ok   and every one of them actually paints
+  ok   the indeterminate bar paints, and is a bar
+  ok   the radio dot is round and paints
+  ok   an unchecked bare check mark renders nothing at all — not even an empty box
+  ok   while its checked and disabled-checked siblings are on the page
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 28 ported / 75 not / 103 total
-  ok   unported list rendered 75 entries
+  ok   coverage stats are 29 ported / 74 not / 103 total
+  ok   unported list rendered 74 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-107/107 checks passed, 0 failure(s)
+113/113 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

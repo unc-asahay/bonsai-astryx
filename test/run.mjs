@@ -1038,6 +1038,59 @@ section("FieldLabel");
   check("nothing points at the group label with for=", labelOf("rt-fl-group-label") === null);
 }
 
+// ---------------------------------------------------------------- Indicator (M13)
+{
+  const mark = (id) => document.querySelector(`#${id} > *`);
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  const cbUn = mark("rt-ind-cb-un");
+  section("Indicator");
+  check("an unchecked box draws nothing inside it", cbUn.children.length === 0,
+    `children: ${cbUn.children.length}`);
+  check("and says it is decorative", cbUn.getAttribute("aria-hidden") === "true");
+  check("and is the unchecked state of a checkbox",
+    cbUn.dataset.astryxKind === "checkbox" && cbUn.dataset.astryxState === "unchecked");
+
+  const cbOn = mark("rt-ind-cb-on");
+  const checkmark = cbOn.querySelector("svg");
+  const path = checkmark && checkmark.querySelector("path");
+  check("a checked box draws a check mark", !!path);
+  // The trap this asserts against: inside <svg> an HTML element is a no-op. It compiles, it
+  // renders, it paints nothing, and nothing anywhere throws.
+  check("and the mark is really in the SVG namespace",
+    !!path && path.namespaceURI === svgNS, path && path.namespaceURI);
+  check("and it is upstream's path, not a lookalike",
+    !!path && path.getAttribute("d") === "M8.5 2.5L4 7.5L1.5 5", path && path.getAttribute("d"));
+  check("and the mark takes its colour from the box",
+    !!path && path.getAttribute("stroke") === "currentColor");
+
+  const mixed = mark("rt-ind-cb-mixed");
+  check("an indeterminate box draws a bar, not a tick",
+    !mixed.querySelector("svg") && !!mixed.querySelector(".astryx-indicator__dash"));
+  check("and is still aria-hidden", mixed.getAttribute("aria-hidden") === "true");
+
+  const sm = mark("rt-ind-cb-sm");
+  check("the size is on the element, not just in the class list",
+    sm.dataset.astryxSize === "sm" && mark("rt-ind-cb-on").dataset.astryxSize === "md");
+
+  const dis = mark("rt-ind-cb-dis");
+  check("a disabled indicator says so", dis.classList.contains("astryx-indicator--disabled"));
+
+  const radioOff = mark("rt-ind-radio-off");
+  const radioOn = mark("rt-ind-radio-on");
+  check("an unchecked radio draws a circle with nothing in it",
+    radioOff.classList.contains("astryx-indicator--radio") && radioOff.children.length === 0);
+  check("a checked radio draws a dot", !!radioOn.querySelector(".astryx-indicator__dot"));
+
+  const checkOff = mark("rt-ind-check-off");
+  const checkOn = mark("rt-ind-check-on");
+  check("an unchecked bare check mark renders nothing at all",
+    checkOff === null || checkOff.dataset.astryxComponent === undefined || checkOff.children.length === 0,
+    checkOff === null ? "nothing" : `children: ${checkOff.children.length}`);
+  check("a checked bare check mark is the port's own icon, marked decorative",
+    !!checkOn && !!checkOn.querySelector("svg[aria-hidden='true']"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

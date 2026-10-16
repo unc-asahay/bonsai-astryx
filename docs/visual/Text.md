@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Text` (`src/text.ml`, M1)
-- rendered instances in the demo: 45
-- classes: `astryx-text`, `astryx-text--color-accent`, `astryx-text--color-disabled`, `astryx-text--color-primary`, `astryx-text--color-secondary`, `astryx-text--strikethrough`, `astryx-text--tabular`, `astryx-text--type-body`, `astryx-text--type-code`, `astryx-text--type-display-1`, `astryx-text--type-label`, `astryx-text--type-large`, `astryx-text--type-supporting`, `astryx-text--weight-semibold`
+- rendered instances in the demo: 46
+- classes: `astryx-text`, `astryx-text--color-accent`, `astryx-text--color-disabled`, `astryx-text--color-primary`, `astryx-text--color-secondary`, `astryx-text--size-sm`, `astryx-text--strikethrough`, `astryx-text--tabular`, `astryx-text--type-body`, `astryx-text--type-code`, `astryx-text--type-display-1`, `astryx-text--type-label`, `astryx-text--type-large`, `astryx-text--type-supporting`, `astryx-text--weight-semibold`
 
 ## spacing
 
@@ -30,7 +30,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `font-family` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` _(from `var(--font-family-body)`)_<br>`"SF Mono", Monaco, Consolas, monospace` _(from `var(--font-family-code)`)_ | `.astryx-text`<br>`.astryx-text--type-code` |
-| `font-size` | `0.875rem` _(from `var(--text-body-size)`)_<br>`0.875rem` _(from `var(--text-body-size)`)_<br>`1.0625rem` _(from `var(--text-large-size)`)_<br>`0.875rem` _(from `var(--text-label-size)`)_<br>`0.75rem` _(from `var(--text-supporting-size)`)_<br>`0.875rem` _(from `var(--text-code-size)`)_<br>`2.625rem` _(from `var(--text-display-1-size)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1` |
+| `font-size` | `0.875rem` _(from `var(--text-body-size)`)_<br>`0.875rem` _(from `var(--text-body-size)`)_<br>`1.0625rem` _(from `var(--text-large-size)`)_<br>`0.875rem` _(from `var(--text-label-size)`)_<br>`0.75rem` _(from `var(--text-supporting-size)`)_<br>`0.875rem` _(from `var(--text-code-size)`)_<br>`2.625rem` _(from `var(--text-display-1-size)`)_<br>`0.75rem` _(from `var(--font-size-sm)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1`<br>`.astryx-text--size-sm` |
 | `font-variant-numeric` | `tabular-nums` | `.astryx-text--tabular` |
 | `font-weight` | `400` _(from `var(--text-body-weight)`)_<br>`400` _(from `var(--text-body-weight)`)_<br>`600` _(from `var(--text-large-weight)`)_<br>`500` _(from `var(--text-label-weight)`)_<br>`400` _(from `var(--text-supporting-weight)`)_<br>`400` _(from `var(--text-code-weight)`)_<br>`400` _(from `var(--text-display-1-weight)`)_<br>`600` _(from `var(--font-weight-semibold)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1`<br>`.astryx-text--weight-semibold` |
 | `line-height` | `1.4286` _(from `var(--text-body-leading)`)_<br>`1.4286` _(from `var(--text-body-leading)`)_<br>`1.4118` _(from `var(--text-large-leading)`)_<br>`1.4286` _(from `var(--text-label-leading)`)_<br>`1.6667` _(from `var(--text-supporting-leading)`)_<br>`1.4286` _(from `var(--text-code-leading)`)_<br>`1.2381` _(from `var(--text-display-1-leading)`)_ | `.astryx-text`<br>`.astryx-text--type-body`<br>`.astryx-text--type-large`<br>`.astryx-text--type-label`<br>`.astryx-text--type-supporting`<br>`.astryx-text--type-code`<br>`.astryx-text--type-display-1` |
@@ -52,6 +52,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-text-secondary` | `light-dark(#4E606F, #AAAFB5)` |
 | `--font-family-body` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` |
 | `--font-family-code` | `"SF Mono", Monaco, Consolas, monospace` |
+| `--font-size-sm` | `0.75rem` |
 | `--font-weight-semibold` | `600` |
 | `--text-body-leading` | `1.4286` |
 | `--text-body-size` | `var(--font-size-base)` |

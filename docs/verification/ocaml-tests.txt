@@ -278,5 +278,22 @@ FieldLabel
   ok   the group names itself from the label
   ok   nothing points at the group label with for=
 
-264 checks, 0 failure(s)
+Indicator
+  ok   an unchecked box draws nothing inside it
+  ok   and says it is decorative
+  ok   and is the unchecked state of a checkbox
+  ok   a checked box draws a check mark
+  ok   and the mark is really in the SVG namespace
+  ok   and it is upstream's path, not a lookalike
+  ok   and the mark takes its colour from the box
+  ok   an indeterminate box draws a bar, not a tick
+  ok   and is still aria-hidden
+  ok   the size is on the element, not just in the class list
+  ok   a disabled indicator says so
+  ok   an unchecked radio draws a circle with nothing in it
+  ok   a checked radio draws a dot
+  ok   an unchecked bare check mark renders nothing at all
+  ok   a checked bare check mark is the port's own icon, marked decorative
+
+279 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

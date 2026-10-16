@@ -642,6 +642,54 @@ what it says.
 **Totals at this gate:** 264 component checks, 107 real-browser checks, 25/25 demo checks,
 66 responsive checks at 0.00% drift across 320/375/768/1440, 25 appearance pages.
 
+
+## Gate 16 — the indicator subsystem (M12, phase 2b)
+
+**What it covers.** `Indicator` — the selection visuals themselves, ported as one module with three
+kinds, because upstream's three (`CheckIndicator`, `CheckboxIndicator`, `RadioIndicator`) are one
+primitive with a kind. That is the same judgment the port already made for `HStack`/`VStack` →
+`Stack`. Upstream also resolves them through a registry so a theme can swap one out; the port has no
+theme system yet, so this module is the registry's default entry and a theme seam would sit in front
+of it. A deferral with a place to land, not a silent simplification.
+
+**Why it came before the controls.** `CheckboxInput` and `Switch` do not draw their own boxes — they
+compose this. Porting the controls first would have meant inventing, in two places, a visual that
+upstream keeps in one place for three consumers, and then rewriting both.
+
+**What the checks assert, and the one that is not obvious.** 15 component checks and 6 in a real
+engine. The marked one: a check mark is an SVG *path*, and an HTML element inside `<svg>` is a no-op
+— it compiles, renders, and paints nothing, with no error anywhere. (`Icon` carries the same warning
+for the same reason.) So the assertion is not that the node exists but that the engine **painted**
+it: `path.getBBox()` non-empty, plus the SVG namespace, plus the exact path data `M8.5 2.5L4 7.5L1.5
+5`, so a lookalike fails too.
+
+**The two absences matter as much as the presences.** An unchecked **bare check mark renders nothing
+at all** — no empty box, because a bare mark has no box to be empty — asserted in both gates (the
+component gate checks the node has no children; the real engine checks that no
+`[data-astryx-kind="check"][data-astryx-state="unchecked"]` element is on the page, while the checked
+and disabled-checked ones are). And an **indeterminate checkbox draws a bar, not a tick**: that third
+state is the entire reason the state type has three cases.
+
+**The first run of this gate failed, on a real defect of mine** — and not on a frozen count, which
+every previous failure in this project had been. Passing `aria-hidden` and `data-astryx-component`
+into an `Icon` that already sets both produced Vdom's "not combining attributes" warning: two values,
+one of them silently winning. Every assertion was green; the console-error check caught it. Fixed by
+letting the icon say what is the icon's, and by keeping only the bare mark's own
+`data-astryx-kind`/`data-astryx-state`.
+
+**Coverage.** `Indicator` is one of the 103 (unlike `FieldLabel`, which is not): **29 / 74 / 103**,
+with an appearance page generated from what it actually renders — 14 instances, which is exactly the
+14 box marks on the page. The bare marks carry the port's `Icon` and no box, so the page counts what
+it counts rather than what a list would claim.
+
+**Totals at this gate:** 279 component checks, 113 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440, 26 appearance pages.
+
+**Deferred, deliberately:** the theme-override seam (there is no theme system to override from);
+`CheckIndicator`'s children slot for a custom mark in place of the glyph — the port renders the
+glyph, and the slot arrives with its first consumer; and the focus-ring / press-feedback hooks,
+which belong to the control that composes the indicator rather than to the indicator.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -649,7 +697,7 @@ what it says.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M12.** 28 of 103 components are ported; the other 75 have
+- **Anything below M12.** 29 of 103 components are ported; the other 74 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
   a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;

@@ -1177,3 +1177,101 @@
     .astryx-text-area__input { font-size: max(1rem, var(--text-body-size)); }
   }
 }
+
+/* ------------------------------------------------------------------------- Indicator */
+
+/* The decorative selection visuals. Nothing here is semantic: the control that composes one owns
+   the input, the role and the focus ring, and paints the ring onto this element. Hover is scoped
+   to the owning control instead of the indicator, so hovering the *label* lights the box too. */
+
+.astryx-indicator {
+  box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-inner);
+  transition-property: background-color, border-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-indicator { transition-duration: 0s; }
+}
+
+/* A radio is a circle in both states — its emptiness says "this option exists and is not chosen",
+   which a hidden circle could not. A checkbox is a square, and the round rule must not reach it. */
+.astryx-indicator--radio { border-radius: var(--radius-full); }
+
+.astryx-indicator[data-astryx-size="sm"] { width: 20px; height: 20px; }
+.astryx-indicator[data-astryx-size="md"] { width: 24px; height: 24px; }
+
+.astryx-indicator--unchecked {
+  color: var(--color-accent);
+  border-color: var(--color-border-emphasized);
+  background-color: var(--color-background-surface);
+}
+
+.astryx-indicator--checked,
+.astryx-indicator--indeterminate {
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+}
+
+@media (hover: hover) {
+  .astryx-indicator-scope:hover .astryx-indicator--unchecked {
+    border-color: color-mix(in srgb, var(--color-border-emphasized) 80%, var(--color-accent));
+    background-color: color-mix(in srgb, var(--color-background-surface) 95%, var(--color-tint-hover));
+  }
+
+  .astryx-indicator-scope:hover .astryx-indicator--checked,
+  .astryx-indicator-scope:hover .astryx-indicator--indeterminate {
+    border-color: color-mix(in srgb, var(--color-accent) 85%, var(--color-tint-hover));
+    background-color: color-mix(in srgb, var(--color-accent) 85%, var(--color-tint-hover));
+  }
+}
+
+.astryx-indicator--disabled { opacity: 0.5; }
+
+.astryx-indicator--disabled.astryx-indicator--unchecked {
+  border-color: var(--color-border);
+  background-color: var(--color-background-muted);
+}
+
+.astryx-indicator__check {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.astryx-indicator[data-astryx-size="md"] .astryx-indicator__check { width: 14px; height: 14px; }
+
+/* High contrast flattens the accent fill to Canvas, so the mark cannot rely on on-accent against
+   it; upstream pins the stroke colour for that mode and so does this. The stroke itself is
+   [currentColor] because the box's colour rules already say what colour the mark should be. */
+@media (forced-colors: active) {
+  .astryx-indicator__check { color: CanvasText; }
+}
+
+.astryx-indicator__dash {
+  display: block;
+  width: 10px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-on-accent);
+}
+
+.astryx-indicator[data-astryx-size="md"] .astryx-indicator__dash { width: 12px; }
+
+.astryx-indicator__dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-on-accent);
+}
+
+.astryx-indicator[data-astryx-size="md"] .astryx-indicator__dot { width: 10px; height: 10px; }

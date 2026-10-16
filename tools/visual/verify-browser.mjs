@@ -237,7 +237,7 @@ if (mode === "showcase") {
   ];
 
   console.log("\nshowcase sections");
-  check("29 sections", sections.length === 29, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("30 sections", sections.length === 30, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -254,10 +254,10 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
-    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7,
+    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("188 examples across the page", totalExamples === 188, `got ${totalExamples}`);
+  check("200 examples across the page", totalExamples === 200, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("29 nav links", nav.length === 29, `got ${nav.length}`);
+  check("30 nav links", nav.length === 30, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -835,6 +835,67 @@ if (mode === "showcase") {
     );
   }
 
+  console.log("\nindicator marks (real engine)");
+  {
+    // Inside <svg> an HTML element is a no-op: it compiles, renders, and paints nothing, with no
+    // error anywhere. A namespace check would catch the mistake; measuring what the engine
+    // actually painted catches it *and* catches a mark that exists but is invisible.
+    const paths = await page.evaluate(() =>
+      [...document.querySelectorAll(".astryx-indicator__check path")].map((p) => ({
+        ns: p.namespaceURI,
+        w: Math.round(p.getBBox().width * 100) / 100,
+        h: Math.round(p.getBBox().height * 100) / 100,
+      })),
+    );
+    check(
+      "every check mark is a real SVG path in the SVG namespace",
+      paths.length > 0 && paths.every((p) => p.ns === "http://www.w3.org/2000/svg"),
+      `got ${JSON.stringify(paths.slice(0, 2))}`,
+    );
+    check(
+      "and every one of them actually paints",
+      paths.length > 0 && paths.every((p) => p.w > 0 && p.h > 0),
+      `boxes: ${JSON.stringify(paths.slice(0, 3))}`,
+    );
+
+    const bar = await page.evaluate(() => {
+      const d = document.querySelector(
+        ".astryx-indicator--indeterminate .astryx-indicator__dash",
+      );
+      if (!d) return null;
+      const r = d.getBoundingClientRect();
+      return {w: Math.round(r.width), h: Math.round(r.height)};
+    });
+    check("the indeterminate bar paints, and is a bar", !!bar && bar.w > bar.h && bar.h > 0,
+      JSON.stringify(bar));
+
+    const dot = await page.evaluate(() => {
+      const d = document.querySelector(
+        ".astryx-indicator--radio.astryx-indicator--checked .astryx-indicator__dot",
+      );
+      if (!d) return null;
+      const r = d.getBoundingClientRect();
+      return {w: Math.round(r.width), h: Math.round(r.height)};
+    });
+    check("the radio dot is round and paints", !!dot && dot.w > 0 && dot.w === dot.h,
+      JSON.stringify(dot));
+
+    // The two absences, in a real engine: a bare check mark renders nothing when it is not on.
+    const absences = await page.evaluate(() => {
+      const on = document.querySelectorAll(
+        '[data-astryx-kind="check"][data-astryx-state="checked"]',
+      ).length;
+      const off = document.querySelectorAll(
+        '[data-astryx-kind="check"][data-astryx-state="unchecked"]',
+      ).length;
+      return {on, off};
+    });
+    check("an unchecked bare check mark renders nothing at all — not even an empty box",
+      absences.off === 0, JSON.stringify(absences));
+    check("while its checked and disabled-checked siblings are on the page",
+      absences.on === 2, JSON.stringify(absences));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -847,11 +908,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 28 ported / 75 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["28", "75", "103"]),
+    "coverage stats are 29 ported / 74 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["29", "74", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 75 entries", cov.unported === 75, `got ${cov.unported}`);
+  check("unported list rendered 74 entries", cov.unported === 74, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

@@ -1,309 +1,317 @@
 {
- "schema": 1,
- "_comment": "Which upstream Astryx components have a hand-written OCaml/Bonsai port, and where it lives. This file is the single human-editable input to tools/gen-port-status.py, which injects the status into docs/components/<Name>.md and writes docs/PORT-STATUS.md. Keep it in sync when a component lands.",
- "upstream": {
-  "repo": "facebook/astryx",
-  "url": "https://github.com/facebook/astryx",
-  "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e",
-  "commit_date": "2026-10-15",
-  "license": "MIT"
- },
- "milestones": [
-  {
-   "id": "M1",
-   "name": "layout + text slice",
-   "status": "complete",
-   "note": "Compiles, links to js_of_ocaml, and passes the DOM harness (tools/visual/verify-dom.mjs)."
+  "schema": 1,
+  "_comment": "Which upstream Astryx components have a hand-written OCaml/Bonsai port, and where it lives. This file is the single human-editable input to tools/gen-port-status.py, which injects the status into docs/components/<Name>.md and writes docs/PORT-STATUS.md. Keep it in sync when a component lands.",
+  "upstream": {
+    "repo": "facebook/astryx",
+    "url": "https://github.com/facebook/astryx",
+    "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e",
+    "commit_date": "2026-10-15",
+    "license": "MIT"
   },
-  {
-   "id": "M2",
-   "name": "layout primitives",
-   "status": "complete",
-   "note": "Center, Section, Grid and VisuallyHidden \u2014 all Class A (no hooks, no measurement)."
-  },
-  {
-   "id": "M3",
-   "name": "appearance contract",
-   "status": "complete",
-   "note": "docs/visual/ \u2014 every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs)."
-  },
-  {
-   "id": "M4",
-   "name": "showcase site + real-browser gate",
-   "status": "complete",
-   "note": "site/ renders every ported component; tools/visual/verify-browser.mjs loads it in Chromium over HTTP and clicks a ported Button into Bonsai state. Cross-checked through opencli."
-  },
-  {
-   "id": "M6",
-   "name": "inline + quote content",
-   "status": "complete",
-   "note": "IconButton (a Button preset, so it keeps Button's marker and its accessible-name contract), Code (a real <code> element) and Blockquote (a bare <cite>, never a <footer>)."
-  },
-  {
-   "id": "M5",
-   "name": "component tests in OCaml",
-   "status": "complete",
-   "note": "test/rt_test.ml builds each component in isolation and dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM. Also the milestone for the HStack/VStack/AspectRatio trio."
-  },
-  {
-   "id": "M7",
-   "name": "wayfinding + empty states",
-   "status": "complete",
-   "note": "NavIcon, EmptyState and Citation \u2014 all Class A. NavIcon is a single styled span; EmptyState renders role=status with a real heading and a <div> description (a <p> cannot hold block children); Citation is the first port that carries a security control, porting upstream's safeUrl check literally (control characters stripped before inspection, javascript:/vbscript:/data:text/html refused) and rendering inert text rather than a link when a URL is refused."
-  },
-  {
-   "id": "M8",
-   "name": "the icon set (generated)",
-   "status": "complete",
-   "note": "Icon, with its glyph table generated from upstream's defaultIcons.tsx and globalIconRegistry.tsx by tools/extract-icons.mjs. 30 glyphs, 29 of them IconName. The generator refuses to write a partial table and refuses attributes outside an explicit allow-list, because a renamed attribute is silently ignored by the DOM rather than reported."
-  },
-  {
-   "id": "M9",
-   "name": "field status + entry animations",
-   "status": "complete",
-   "note": "FieldStatus (attached/detached, three types) plus Entry_animation, the port's first time-aware piece: upstream suppresses the entry animation for anything present on the first paint, which is reproduced with a requestAnimationFrame flag read when a view is built. The announcer becomes a role on the container (alert for an error, status otherwise)."
-  },
-  {
-   "id": "M10",
-   "name": "the menu-button core (DropdownMenu, phase 1)",
-   "status": "complete",
-   "note": "DropdownMenu phase 1: the APG menu-button core \u2014 trigger ARIA, a surface that is always in the DOM and closed with [hidden] so aria-controls never dangles, rows as menuitems with headings, dividers, groups, a disabled row and an href row that is the anchor itself, Enter/Space activation carrying the key's modifiers, and Menu_focus, the navigation ported from upstream's useListFocus/useTypeahead. Navigation is DOM-driven, as upstream's is: the highlight *is* DOM focus and a disabled row is excluded by the selector, so no index can ever point at an unfocusable row. Every focus move waits a frame, because Bonsai's Effect.Focus.on_activate fires when a computation activates rather than when the rows appear \u2014 which is why the keyboard and the focus return are asserted in the browser gate and not in jsdom. Phase 2 (the inline-flyout system, the bottom sheet and the native popover model) is deferred; MoreMenu wraps this."
-  },
-  {
-   "id": "M11",
-   "name": "the form-control core (Field + TextInput, phase 1)",
-   "status": "complete",
-   "note": "Field is the wrapper every input renders through \u2014 label, description and status \u2014 and TextInput is the first control that uses it. The wiring is the work: a real <label for>, one name and never two (no aria-labelledby alongside it), aria-describedby listing only the text that is actually rendered, aria-required that agrees with the visible marker, aria-invalid for an error but not a warning, and three placements for a status message (attached behind the control's bottom edge, detached below the field, and tooltip, which renders no message box and announces the message instead). FieldStatus gained the third placement as a type, Icon gained the inherit colour the label icon needs, and every callback is a value in the graph so a state setter can be passed straight in. Deferred with reasons: the loading spinner, the disabled-message tooltip, InputGroup membership and the async changeAction."
-  },
-  {
-   "id": "M12",
-   "name": "the rest of the basic controls (TextArea, phase 1)",
-   "status": "in progress",
-   "note": "TextArea is TextInput's sibling in upstream's input family, so this milestone opens with the contract the family shares: Input_types, which upstream keeps in Field/types.ts under the Input* names. TextInput was moved onto it too \u2014 the status type, the three sizes and the status record with its optional message are now one definition rather than one per control, which is what stops the next four inputs from each inventing their own answer. The move corrected a real gap: upstream's InputStatus.message is optional, so a status may carry no message at all (the control takes the colour, nothing is shown and nothing is announced), and the port had required one. CheckboxInput and Switch come next and will use the same types; they are the components that exercise Field's detached placement."
-  }
- ],
- "infrastructure": [
-  {
-   "name": "Common",
-   "module": "Astryx.Common",
-   "file": "src/common.ml",
-   "note": "spacing scale, size values, alignment, shared attrs"
-  },
-  {
-   "name": "Tokens",
-   "module": "Astryx.Tokens",
-   "file": "src/tokens.ml",
-   "note": "generated by tools/gen-ocaml-tokens.py from upstream tokens.stylex.ts"
-  },
-  {
-   "name": "Menu_focus",
-   "module": "Astryx.Menu_focus",
-   "file": "src/menu_focus.ml",
-   "note": "the DOM-driven menu navigation ported from upstream's useListFocus/useTypeahead: item selector with boundary scoping, wrap and disabled-skipping, typeahead with a 750 ms reset and same-character cycling, activation carrying the key's modifiers, and the one-frame focus move"
-  },
-  {
-   "name": "FieldLabel",
-   "module": "Astryx.Field_label",
-   "file": "src/field_label.ml",
-   "note": "the label and description group, rendered by Field and used on its own by the controls that want the label beside their control rather than above it. It is not one of the extracted 103: upstream's Field/index.ts exports it as part of Field, and the component extraction that gives FieldStatus its own page does not list it (the same extraction merges HStack and VStack into Stack). It is therefore not counted in the coverage numbers, and the coverage generator would flag it as an inconsistency if it were claimed there."
-  }
- ],
- "ported": [
-  {
-   "component": "Stack",
-   "module": "Astryx.Stack",
-   "file": "src/stack.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Text",
-   "module": "Astryx.Text",
-   "file": "src/text.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Heading",
-   "module": "Astryx.Heading",
-   "file": "src/heading.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Button",
-   "module": "Astryx.Button",
-   "file": "src/button.ml",
-   "milestone": "M1",
-   "class": "B"
-  },
-  {
-   "component": "Card",
-   "module": "Astryx.Card",
-   "file": "src/card.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Badge",
-   "module": "Astryx.Badge",
-   "file": "src/badge.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Divider",
-   "module": "Astryx.Divider",
-   "file": "src/divider.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "StatusDot",
-   "module": "Astryx.StatusDot",
-   "file": "src/status_dot.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Skeleton",
-   "module": "Astryx.Skeleton",
-   "file": "src/skeleton.ml",
-   "milestone": "M1",
-   "class": "A"
-  },
-  {
-   "component": "Center",
-   "module": "Astryx.Center",
-   "file": "src/center.ml",
-   "milestone": "M2",
-   "class": "A"
-  },
-  {
-   "component": "Section",
-   "module": "Astryx.Section",
-   "file": "src/section.ml",
-   "milestone": "M2",
-   "class": "A"
-  },
-  {
-   "component": "Grid",
-   "module": "Astryx.Grid",
-   "file": "src/grid.ml",
-   "milestone": "M2",
-   "class": "A"
-  },
-  {
-   "component": "VisuallyHidden",
-   "module": "Astryx.VisuallyHidden",
-   "file": "src/visually_hidden.ml",
-   "milestone": "M2",
-   "class": "A"
-  },
-  {
-   "component": "HStack",
-   "module": "Astryx.HStack",
-   "file": "src/hstack.ml",
-   "milestone": "M5",
-   "class": "A"
-  },
-  {
-   "component": "VStack",
-   "module": "Astryx.VStack",
-   "file": "src/vstack.ml",
-   "milestone": "M5",
-   "class": "A"
-  },
-  {
-   "component": "AspectRatio",
-   "module": "Astryx.AspectRatio",
-   "file": "src/aspect_ratio.ml",
-   "milestone": "M5",
-   "class": "A"
-  },
-  {
-   "component": "IconButton",
-   "module": "Astryx.IconButton",
-   "file": "src/icon_button.ml",
-   "milestone": "M6",
-   "class": "A"
-  },
-  {
-   "component": "Code",
-   "module": "Astryx.Code",
-   "file": "src/code.ml",
-   "milestone": "M6",
-   "class": "A"
-  },
-  {
-   "component": "Blockquote",
-   "module": "Astryx.Blockquote",
-   "file": "src/blockquote.ml",
-   "milestone": "M6",
-   "class": "A"
-  },
-  {
-   "component": "NavIcon",
-   "module": "Astryx.NavIcon",
-   "file": "src/nav_icon.ml",
-   "milestone": "M7",
-   "class": "A"
-  },
-  {
-   "component": "EmptyState",
-   "module": "Astryx.EmptyState",
-   "file": "src/empty_state.ml",
-   "milestone": "M7",
-   "class": "A"
-  },
-  {
-   "component": "Citation",
-   "module": "Astryx.Citation",
-   "file": "src/citation.ml",
-   "milestone": "M7",
-   "class": "A"
-  },
-  {
-   "component": "Icon",
-   "module": "Astryx.Icon",
-   "file": "src/icon.ml",
-   "milestone": "M8",
-   "class": "A"
-  },
-  {
-   "component": "FieldStatus",
-   "module": "Astryx.Field_status",
-   "file": "src/field_status.ml",
-   "milestone": "M9",
-   "class": "A"
-  },
-  {
-   "component": "DropdownMenu",
-   "module": "Astryx.Dropdown_menu",
-   "file": "src/dropdown_menu.ml",
-   "milestone": "M10",
-   "class": "C"
-  },
-  {
-   "component": "Field",
-   "module": "Astryx.Field",
-   "file": "src/field.ml",
-   "milestone": "M11",
-   "class": "B"
-  },
-  {
-   "component": "TextInput",
-   "module": "Astryx.Text_input",
-   "file": "src/text_input.ml",
-   "milestone": "M11",
-   "class": "B"
-  },
-  {
-   "component": "TextArea",
-   "module": "Astryx.Text_area",
-   "file": "src/text_area.ml",
-   "milestone": "M12",
-   "class": "B"
-  }
- ]
+  "milestones": [
+    {
+      "id": "M1",
+      "name": "layout + text slice",
+      "status": "complete",
+      "note": "Compiles, links to js_of_ocaml, and passes the DOM harness (tools/visual/verify-dom.mjs)."
+    },
+    {
+      "id": "M2",
+      "name": "layout primitives",
+      "status": "complete",
+      "note": "Center, Section, Grid and VisuallyHidden \u2014 all Class A (no hooks, no measurement)."
+    },
+    {
+      "id": "M3",
+      "name": "appearance contract",
+      "status": "complete",
+      "note": "docs/visual/ \u2014 every declaration of every ported component resolved from the stylesheet to a literal, plus the image prompts derived from it (tools/gen-visual-contract.mjs)."
+    },
+    {
+      "id": "M4",
+      "name": "showcase site + real-browser gate",
+      "status": "complete",
+      "note": "site/ renders every ported component; tools/visual/verify-browser.mjs loads it in Chromium over HTTP and clicks a ported Button into Bonsai state. Cross-checked through opencli."
+    },
+    {
+      "id": "M6",
+      "name": "inline + quote content",
+      "status": "complete",
+      "note": "IconButton (a Button preset, so it keeps Button's marker and its accessible-name contract), Code (a real <code> element) and Blockquote (a bare <cite>, never a <footer>)."
+    },
+    {
+      "id": "M5",
+      "name": "component tests in OCaml",
+      "status": "complete",
+      "note": "test/rt_test.ml builds each component in isolation and dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM. Also the milestone for the HStack/VStack/AspectRatio trio."
+    },
+    {
+      "id": "M7",
+      "name": "wayfinding + empty states",
+      "status": "complete",
+      "note": "NavIcon, EmptyState and Citation \u2014 all Class A. NavIcon is a single styled span; EmptyState renders role=status with a real heading and a <div> description (a <p> cannot hold block children); Citation is the first port that carries a security control, porting upstream's safeUrl check literally (control characters stripped before inspection, javascript:/vbscript:/data:text/html refused) and rendering inert text rather than a link when a URL is refused."
+    },
+    {
+      "id": "M8",
+      "name": "the icon set (generated)",
+      "status": "complete",
+      "note": "Icon, with its glyph table generated from upstream's defaultIcons.tsx and globalIconRegistry.tsx by tools/extract-icons.mjs. 30 glyphs, 29 of them IconName. The generator refuses to write a partial table and refuses attributes outside an explicit allow-list, because a renamed attribute is silently ignored by the DOM rather than reported."
+    },
+    {
+      "id": "M9",
+      "name": "field status + entry animations",
+      "status": "complete",
+      "note": "FieldStatus (attached/detached, three types) plus Entry_animation, the port's first time-aware piece: upstream suppresses the entry animation for anything present on the first paint, which is reproduced with a requestAnimationFrame flag read when a view is built. The announcer becomes a role on the container (alert for an error, status otherwise)."
+    },
+    {
+      "id": "M10",
+      "name": "the menu-button core (DropdownMenu, phase 1)",
+      "status": "complete",
+      "note": "DropdownMenu phase 1: the APG menu-button core \u2014 trigger ARIA, a surface that is always in the DOM and closed with [hidden] so aria-controls never dangles, rows as menuitems with headings, dividers, groups, a disabled row and an href row that is the anchor itself, Enter/Space activation carrying the key's modifiers, and Menu_focus, the navigation ported from upstream's useListFocus/useTypeahead. Navigation is DOM-driven, as upstream's is: the highlight *is* DOM focus and a disabled row is excluded by the selector, so no index can ever point at an unfocusable row. Every focus move waits a frame, because Bonsai's Effect.Focus.on_activate fires when a computation activates rather than when the rows appear \u2014 which is why the keyboard and the focus return are asserted in the browser gate and not in jsdom. Phase 2 (the inline-flyout system, the bottom sheet and the native popover model) is deferred; MoreMenu wraps this."
+    },
+    {
+      "id": "M11",
+      "name": "the form-control core (Field + TextInput, phase 1)",
+      "status": "complete",
+      "note": "Field is the wrapper every input renders through \u2014 label, description and status \u2014 and TextInput is the first control that uses it. The wiring is the work: a real <label for>, one name and never two (no aria-labelledby alongside it), aria-describedby listing only the text that is actually rendered, aria-required that agrees with the visible marker, aria-invalid for an error but not a warning, and three placements for a status message (attached behind the control's bottom edge, detached below the field, and tooltip, which renders no message box and announces the message instead). FieldStatus gained the third placement as a type, Icon gained the inherit colour the label icon needs, and every callback is a value in the graph so a state setter can be passed straight in. Deferred with reasons: the loading spinner, the disabled-message tooltip, InputGroup membership and the async changeAction."
+    },
+    {
+      "id": "M12",
+      "name": "the rest of the basic controls (TextArea, phase 1)",
+      "status": "in progress",
+      "note": "TextArea is TextInput's sibling in upstream's input family, so this milestone opens with the contract the family shares: Input_types, which upstream keeps in Field/types.ts under the Input* names. TextInput was moved onto it too \u2014 the status type, the three sizes and the status record with its optional message are now one definition rather than one per control, which is what stops the next four inputs from each inventing their own answer. The move corrected a real gap: upstream's InputStatus.message is optional, so a status may carry no message at all (the control takes the colour, nothing is shown and nothing is announced), and the port had required one. CheckboxInput and Switch come next and will use the same types; they are the components that exercise Field's detached placement."
+    }
+  ],
+  "infrastructure": [
+    {
+      "name": "Common",
+      "module": "Astryx.Common",
+      "file": "src/common.ml",
+      "note": "spacing scale, size values, alignment, shared attrs"
+    },
+    {
+      "name": "Tokens",
+      "module": "Astryx.Tokens",
+      "file": "src/tokens.ml",
+      "note": "generated by tools/gen-ocaml-tokens.py from upstream tokens.stylex.ts"
+    },
+    {
+      "name": "Menu_focus",
+      "module": "Astryx.Menu_focus",
+      "file": "src/menu_focus.ml",
+      "note": "the DOM-driven menu navigation ported from upstream's useListFocus/useTypeahead: item selector with boundary scoping, wrap and disabled-skipping, typeahead with a 750 ms reset and same-character cycling, activation carrying the key's modifiers, and the one-frame focus move"
+    },
+    {
+      "name": "FieldLabel",
+      "module": "Astryx.Field_label",
+      "file": "src/field_label.ml",
+      "note": "the label and description group, rendered by Field and used on its own by the controls that want the label beside their control rather than above it. It is not one of the extracted 103: upstream's Field/index.ts exports it as part of Field, and the component extraction that gives FieldStatus its own page does not list it (the same extraction merges HStack and VStack into Stack). It is therefore not counted in the coverage numbers, and the coverage generator would flag it as an inconsistency if it were claimed there."
+    }
+  ],
+  "ported": [
+    {
+      "component": "Stack",
+      "module": "Astryx.Stack",
+      "file": "src/stack.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Text",
+      "module": "Astryx.Text",
+      "file": "src/text.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Heading",
+      "module": "Astryx.Heading",
+      "file": "src/heading.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Button",
+      "module": "Astryx.Button",
+      "file": "src/button.ml",
+      "milestone": "M1",
+      "class": "B"
+    },
+    {
+      "component": "Card",
+      "module": "Astryx.Card",
+      "file": "src/card.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Badge",
+      "module": "Astryx.Badge",
+      "file": "src/badge.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Divider",
+      "module": "Astryx.Divider",
+      "file": "src/divider.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "StatusDot",
+      "module": "Astryx.StatusDot",
+      "file": "src/status_dot.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Skeleton",
+      "module": "Astryx.Skeleton",
+      "file": "src/skeleton.ml",
+      "milestone": "M1",
+      "class": "A"
+    },
+    {
+      "component": "Center",
+      "module": "Astryx.Center",
+      "file": "src/center.ml",
+      "milestone": "M2",
+      "class": "A"
+    },
+    {
+      "component": "Section",
+      "module": "Astryx.Section",
+      "file": "src/section.ml",
+      "milestone": "M2",
+      "class": "A"
+    },
+    {
+      "component": "Grid",
+      "module": "Astryx.Grid",
+      "file": "src/grid.ml",
+      "milestone": "M2",
+      "class": "A"
+    },
+    {
+      "component": "VisuallyHidden",
+      "module": "Astryx.VisuallyHidden",
+      "file": "src/visually_hidden.ml",
+      "milestone": "M2",
+      "class": "A"
+    },
+    {
+      "component": "HStack",
+      "module": "Astryx.HStack",
+      "file": "src/hstack.ml",
+      "milestone": "M5",
+      "class": "A"
+    },
+    {
+      "component": "VStack",
+      "module": "Astryx.VStack",
+      "file": "src/vstack.ml",
+      "milestone": "M5",
+      "class": "A"
+    },
+    {
+      "component": "AspectRatio",
+      "module": "Astryx.AspectRatio",
+      "file": "src/aspect_ratio.ml",
+      "milestone": "M5",
+      "class": "A"
+    },
+    {
+      "component": "IconButton",
+      "module": "Astryx.IconButton",
+      "file": "src/icon_button.ml",
+      "milestone": "M6",
+      "class": "A"
+    },
+    {
+      "component": "Code",
+      "module": "Astryx.Code",
+      "file": "src/code.ml",
+      "milestone": "M6",
+      "class": "A"
+    },
+    {
+      "component": "Blockquote",
+      "module": "Astryx.Blockquote",
+      "file": "src/blockquote.ml",
+      "milestone": "M6",
+      "class": "A"
+    },
+    {
+      "component": "NavIcon",
+      "module": "Astryx.NavIcon",
+      "file": "src/nav_icon.ml",
+      "milestone": "M7",
+      "class": "A"
+    },
+    {
+      "component": "EmptyState",
+      "module": "Astryx.EmptyState",
+      "file": "src/empty_state.ml",
+      "milestone": "M7",
+      "class": "A"
+    },
+    {
+      "component": "Citation",
+      "module": "Astryx.Citation",
+      "file": "src/citation.ml",
+      "milestone": "M7",
+      "class": "A"
+    },
+    {
+      "component": "Icon",
+      "module": "Astryx.Icon",
+      "file": "src/icon.ml",
+      "milestone": "M8",
+      "class": "A"
+    },
+    {
+      "component": "FieldStatus",
+      "module": "Astryx.Field_status",
+      "file": "src/field_status.ml",
+      "milestone": "M9",
+      "class": "A"
+    },
+    {
+      "component": "DropdownMenu",
+      "module": "Astryx.Dropdown_menu",
+      "file": "src/dropdown_menu.ml",
+      "milestone": "M10",
+      "class": "C"
+    },
+    {
+      "component": "Field",
+      "module": "Astryx.Field",
+      "file": "src/field.ml",
+      "milestone": "M11",
+      "class": "B"
+    },
+    {
+      "component": "TextInput",
+      "module": "Astryx.Text_input",
+      "file": "src/text_input.ml",
+      "milestone": "M11",
+      "class": "B"
+    },
+    {
+      "component": "TextArea",
+      "module": "Astryx.Text_area",
+      "file": "src/text_area.ml",
+      "milestone": "M12",
+      "class": "B"
+    },
+    {
+      "component": "Indicator",
+      "module": "Astryx.Indicator",
+      "file": "src/indicator.ml",
+      "milestone": "M12",
+      "class": "A",
+      "note": "one module, three kinds (checkbox, radio, bare check) \u2014 upstream's registry default, with the theme-override seam not ported yet"
+    }
+  ]
 }

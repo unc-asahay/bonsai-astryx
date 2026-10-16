@@ -1327,13 +1327,79 @@ let s_field_label () =
     ]
 ;;
 
+let s_indicator () =
+  (* The decorative visuals on their own, with no control attached — these are what CheckboxInput,
+     a radio list and a bare check mark draw. Every one of them is aria-hidden, because the
+     semantics belong to whatever composes them, so this section is about the marks and the states
+     rather than about interaction.
+
+     The two states that are easy to get wrong are here on purpose: a radio draws a circle in
+     *both* states, because an empty circle is information (this option exists and is not chosen),
+     and a bare check mark draws nothing at all when it is not on, because there is no box for it
+     to be empty. *)
+  let mark ?(is_disabled = false) ~kind ~state ~size () =
+    Astryx.Indicator.view ~kind ~state ~size ~is_disabled ()
+  in
+  let row nodes =
+    Astryx.Stack.view ~direction:Astryx.Stack.Horizontal ~gap:S.S3 nodes
+  in
+  let cb = Astryx.Indicator.Checkbox in
+  let radio = Astryx.Indicator.Radio in
+  let check = Astryx.Indicator.Check in
+  let unchecked = Astryx.Indicator.Unchecked in
+  let checked = Astryx.Indicator.Checked in
+  let indeterminate = Astryx.Indicator.Indeterminate in
+  let sm = Astryx.Indicator.Sm in
+  let md = Astryx.Indicator.Md in
+  let note text = Astryx.Text.view ~size:Astryx.Text.Sm [ Vdom.Node.text text ] in
+  section
+    ~id:"indicator"
+    ~title:"Indicator"
+    ~note:
+      "The selection visuals, ported as one module with three kinds because they are one primitive \
+       with a kind — the same reason Stack covers HStack and VStack. Upstream resolves them through \
+       a registry keyed by name so a theme can swap one out; the port has no theme system yet, so \
+       this is the registry's default entry and a theme seam would sit in front of it. The hover \
+       rules are scoped to the owning control (the [astryx-indicator-scope] element here), not to \
+       the indicator, which is why hovering the label of a checkbox lights the box."
+    [ ex "checkbox, unchecked" (mark ~kind:cb ~state:unchecked ~size:md ())
+    ; ex "checkbox, checked" (mark ~kind:cb ~state:checked ~size:md ())
+    ; ex "checkbox, indeterminate: a bar, not a tick"
+        (mark ~kind:cb ~state:indeterminate ~size:md ())
+    ; ex "sm and md — 20px and 24px, and the mark grows with the box"
+        (row
+           [ mark ~kind:cb ~state:unchecked ~size:sm ()
+           ; mark ~kind:cb ~state:checked ~size:sm ()
+           ; mark ~kind:cb ~state:unchecked ~size:md ()
+           ; mark ~kind:cb ~state:checked ~size:md ()
+           ])
+    ; ex "disabled — dimmed, and an empty box goes muted as well"
+        (row
+           [ mark ~kind:cb ~state:unchecked ~size:md ~is_disabled:true ()
+           ; mark ~kind:cb ~state:checked ~size:md ~is_disabled:true ()
+           ])
+    ; ex "hover — the owning control lights the box, not the box itself"
+        (Vdom.Node.div
+           ~attrs:(Astryx.Common.Attr.class_ [ "astryx-indicator-scope" ])
+           [ row [ mark ~kind:cb ~state:unchecked ~size:md (); mark ~kind:cb ~state:checked ~size:md () ] ])
+    ; ex "radio, unchecked: an empty circle is the information"
+        (mark ~kind:radio ~state:unchecked ~size:md ())
+    ; ex "radio, checked" (mark ~kind:radio ~state:checked ~size:md ())
+    ; ex "radio, disabled" (mark ~kind:radio ~state:checked ~size:md ~is_disabled:true ())
+    ; ex "check, unchecked: nothing renders — a bare mark has no box to be empty"
+        (row [ mark ~kind:check ~state:unchecked ~size:md (); note "an absence, not an empty box" ])
+    ; ex "check, checked" (mark ~kind:check ~state:checked ~size:md ())
+    ; ex "check, disabled" (mark ~kind:check ~state:checked ~size:md ~is_disabled:true ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ; s_icon_button (); s_code (); s_blockquote ()
   ; s_nav_icon (); s_empty_state (); s_citation ()
-  ; s_icon (); s_field_status (); s_field_label ()
+  ; s_icon (); s_field_status (); s_field_label (); s_indicator ()
   ]
 ;;
 
@@ -1367,6 +1433,7 @@ let nav_items =
   ; "icon", "Icon"
   ; "fieldstatus", "FieldStatus"
   ; "fieldlabel", "FieldLabel"
+  ; "indicator", "Indicator"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"

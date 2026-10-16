@@ -952,3 +952,38 @@ let () =
   in
   mount "fieldlabel-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Indicator (M13) *)
+
+(* The three kinds, with no control attached. The interesting assertions are the two absences: an
+   unchecked bare check mark renders nothing at all, and a checkbox in the indeterminate state
+   renders a bar instead of a tick. *)
+let indicator_static_component (_ : Bonsai.graph) =
+  let mark ?(is_disabled = false) id ~kind ~state ~size =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.create "id" id ]
+      [ Astryx.Indicator.view ~kind ~state ~size ~is_disabled () ]
+  in
+  let open Astryx.Indicator in
+  Bonsai.return
+    (Vdom.Node.div
+       [ mark "rt-ind-cb-un" ~kind:Checkbox ~state:Unchecked ~size:Md
+       ; mark "rt-ind-cb-on" ~kind:Checkbox ~state:Checked ~size:Md
+       ; mark "rt-ind-cb-mixed" ~kind:Checkbox ~state:Indeterminate ~size:Md
+       ; mark "rt-ind-cb-sm" ~kind:Checkbox ~state:Checked ~size:Sm
+       ; mark "rt-ind-cb-dis" ~kind:Checkbox ~state:Checked ~size:Md ~is_disabled:true
+       ; mark "rt-ind-radio-off" ~kind:Radio ~state:Unchecked ~size:Md
+       ; mark "rt-ind-radio-on" ~kind:Radio ~state:Checked ~size:Md
+       ; mark "rt-ind-check-off" ~kind:Check ~state:Unchecked ~size:Md
+       ; mark "rt-ind-check-on" ~kind:Check ~state:Checked ~size:Md
+       ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      indicator_static_component
+  in
+  mount "indicator-static" (Bonsai_web_test.Handle.last_result handle)
+;;

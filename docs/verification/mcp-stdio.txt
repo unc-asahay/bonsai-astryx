@@ -2,16 +2,16 @@
 # command: node tools/mcp/astryx-mcp.mjs --cli status
 
 upstream: facebook/astryx @ b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e (MIT)
-ported: 28 of 103
-by milestone: M1=9, M2=4, M5=3, M6=3, M7=3, M8=1, M9=1, M10=1, M11=2, M12=1
+ported: 29 of 103
+by milestone: M1=9, M2=4, M5=3, M6=3, M7=3, M8=1, M9=1, M10=1, M11=2, M12=2
 milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M6 (complete), M5 (complete), M7 (complete), M8 (complete), M9 (complete), M10 (complete), M11 (complete), M12 (in progress)
 
-ported modules: Astryx.Stack, Astryx.Text, Astryx.Heading, Astryx.Button, Astryx.Card, Astryx.Badge, Astryx.Divider, Astryx.StatusDot, Astryx.Skeleton, Astryx.Center, Astryx.Section, Astryx.Grid, Astryx.VisuallyHidden, Astryx.HStack, Astryx.VStack, Astryx.AspectRatio, Astryx.IconButton, Astryx.Code, Astryx.Blockquote, Astryx.NavIcon, Astryx.EmptyState, Astryx.Citation, Astryx.Icon, Astryx.Field_status, Astryx.Dropdown_menu, Astryx.Field, Astryx.Text_input, Astryx.Text_area
+ported modules: Astryx.Stack, Astryx.Text, Astryx.Heading, Astryx.Button, Astryx.Card, Astryx.Badge, Astryx.Divider, Astryx.StatusDot, Astryx.Skeleton, Astryx.Center, Astryx.Section, Astryx.Grid, Astryx.VisuallyHidden, Astryx.HStack, Astryx.VStack, Astryx.AspectRatio, Astryx.IconButton, Astryx.Code, Astryx.Blockquote, Astryx.NavIcon, Astryx.EmptyState, Astryx.Citation, Astryx.Icon, Astryx.Field_status, Astryx.Dropdown_menu, Astryx.Field, Astryx.Text_input, Astryx.Text_area, Astryx.Indicator
 
 # every ported component must reach get_snippet truthfully
 # (ported-but-unsnippeted must say so, never 'NOT ported yet')
 
-ported components: 28; truthfully reachable: 28
+ported components: 29; truthfully reachable: 29
   note  HStack (ported, no snippet — reported as such)
   note  VStack (ported, no snippet — reported as such)
   note  AspectRatio (ported, no snippet — reported as such)
@@ -23,4 +23,5 @@ ported components: 28; truthfully reachable: 28
   note  Citation (ported, no snippet — reported as such)
   note  Icon (ported, no snippet — reported as such)
   note  FieldStatus (ported, no snippet — reported as such)
+  note  Indicator (ported, no snippet — reported as such)
 ok    every ported component is reported as ported

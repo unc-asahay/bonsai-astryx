@@ -149,10 +149,25 @@ before a single new assertion was written. Upstream exports it from `Field`'s in
 extraction does not list it among the 103, so it is recorded under `infrastructure` rather than
 counted in coverage, and that is stated rather than glossed over.
 
+`Indicator` came after that, and before the controls that need it — `CheckboxInput` and `Switch` do
+not draw their own boxes, they compose this. Upstream splits it three ways (`CheckIndicator`,
+`CheckboxIndicator`, `RadioIndicator`) over one primitive and resolves it through a registry a theme
+can swap; the port has one module with a `kind`, which is the judgment it already made for
+`HStack`/`VStack` → `Stack`, and the registry's default entry with the theme seam left in front for
+when a theme system exists. It is one of the 103, so coverage moved: **29 / 74 / 103**. The checks
+that earned their place measured what the engine *painted* rather than what the DOM contained — the
+check mark is an SVG path, and an HTML element inside `<svg>` is a no-op that throws nothing
+anywhere — and asserted two absences: a bare unchecked mark renders nothing at all, and an
+indeterminate box draws a bar rather than a tick. The gate's first run caught a real defect of mine
+(an `Icon` that already sets `aria-hidden` being handed a second one); it was a Vdom warning, not a
+failed assertion, and that is exactly why the console-error check exists.
+
 Still open here: `CheckboxInput` and `Switch` (the two components that exercise Field's detached
 placement, and the reason that case exists at all) — and, deferred with reasons, upstream TextArea's
 loading spinner, clear button and auto-focus; FieldLabel's `labelTooltip` and its clickable
-description; and `FormLayout`'s `defaultOptionality`, which decides whether a marker shows at all.
+description; `FormLayout`'s `defaultOptionality`, which decides whether a marker shows at all; and
+Indicator's theme-override seam, its children slot for a custom mark, and the focus-ring /
+press-feedback hooks that belong to whichever control composes it.
 
 ## M9 — FieldStatus and entry animations (done)
 

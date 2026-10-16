@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Stack` (`src/stack.ml`, M1)
-- rendered instances in the demo: 39
+- rendered instances in the demo: 43
 - classes: `astryx-align--center`, `astryx-align--end`, `astryx-align--start`, `astryx-justify--between`, `astryx-justify--center`, `astryx-justify--end`, `astryx-stack`, `astryx-stack--horizontal`, `astryx-stack--scrollable`, `astryx-stack--wrap`
 
 ## layout
