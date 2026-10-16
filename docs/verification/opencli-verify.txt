@@ -1,0 +1,44 @@
+# opencli cross-check (independent of the playwright gate)
+# tool: opencli browser demo  •  profile wx5bhmsm  •  Browser Bridge into a real running Chrome
+# generated: 2026-10-16T03:31:16Z
+# server: python3 -m http.server 8791 --bind 127.0.0.1 (repo root)
+
+## open (fresh load, so the counter starts at zero)
+{
+  "url": "http://127.0.0.1:8791/site/index.html",
+  "page": "6F9123E0178BEA359EED937BDCD4D3C5"
+}
+
+## page state
+URL: http://127.0.0.1:8791/site/index.html
+
+url: http://127.0.0.1:8791/site/index.html
+title: bonsai-astryx — component showcase
+viewport: 1248x715
+page_scroll: 20.8↑ 0.4↓
+
+## live DOM (read out of the real browser)
+{"total":158,"sections":14,"examples":111,"title":"bonsai-astryx — component showcase"}
+
+## coverage panel
+{"upstream":"facebook/astryx@b69b2df3f8","ported":"13 / 103","unported":90}
+
+## console (empty == the favicon 404 is fixed)
+{
+  "session": "demo",
+  "captured_at": "2026-10-16T03:31:21.203Z",
+  "count": 0,
+  "messages": []
+}
+
+## interaction: reload, read, click the ported Button (CDP), read again
+before: count: 0
+{
+  "clicked": true,
+  "target": "#interactive button",
+  "matches_n": 1,
+  "match_level": "exact",
+  "click_method": "cdp",
+  "hit": "target"
+}
+after:  count: 1

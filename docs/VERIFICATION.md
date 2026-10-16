@@ -171,6 +171,18 @@ like it works:
 Both pages' runs are in [`verification/browser-verify.txt`](verification/browser-verify.txt),
 with screenshots at `verification/localhost-{demo,showcase}.png`.
 
+**Cross-checked with a different tool.** The same page was driven through
+`opencli`'s Browser Bridge into a real, already-running Chrome — not the headless
+Chromium the gate launches — and it agreed: 14 sections, 111 examples, an empty
+console, the coverage panel showing `facebook/astryx@b69b2df3f8` and `13 / 103`, and
+a click on the ported Button taking the counter from `count: 0` to `count: 1`. Two
+independent browser paths, same numbers. See
+[`verification/opencli-verify.txt`](verification/opencli-verify.txt).
+
+The port for the static server is **8791**: 8788 was already held by the Hermes
+gateway's proxy on this machine, which answers `200` with its own JSON — a previous
+attempt "verified" a page that was never being served at all.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
