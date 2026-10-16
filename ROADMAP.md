@@ -212,29 +212,37 @@ halves of the rule are gated: the in-process tests assert nothing on the first p
 and the browser gate mounts one on demand and asserts the class *and* that
 `prefers-reduced-motion` neutralises it.
 
-## Next milestone — DropdownMenu, and why it is not a trio
+## M13 — closing the forms layer (RadioList, FormLayout, Tooltip)
 
-Only seven Class A components remained when this was written, and the two most valuable are
-gated on things the port does not have yet:
+M12 ported the controls; this milestone finishes their surroundings. Every piece of it is tractable
+*because* of what M12 left in place, which is the only reason it is worth doing before the larger
+pillars below.
 
-- **`MoreMenu` is a wrapper, not a component.** Its 183 lines mostly forward props to
-  `DropdownMenu` (it supplies the `moreHorizontal` icon, an i18n label, `variant: 'ghost'`).
-  Porting it alone would mean shipping a stub, so it follows `DropdownMenu`.
-- **`DropdownMenu` is 1,765 lines** across `DropdownMenu.tsx` plus submodules
-  (`DropdownMenuSubMenu` alone is 910), with a 4,177-line test file. It brings typeahead,
-  a roving highlight with focus held on the container, drill-in submenus, modal regions
-  (header/footer make it a dialog), a bottom-sheet presentation, and a native
-  `popover="auto"` layer whose dismissal is the browser's own light dismiss.
-- **Phase 1 scope**: the APG menu-button core — trigger (`aria-haspopup` / `aria-expanded` /
-  `aria-controls`), a `role="menu"` popup, `role="menuitem"` rows, arrow / Home / End /
-  Escape / Enter / Space, typeahead, click-outside dismissal, and focus returning to the
-  trigger. Deferred: submenus, regions, bottom sheet, checkbox and radio items.
-- That phase is also what makes the keyboard claims assertable at last: Tab order, Escape,
-  focus return and `:focus-visible` currently have no ported component with those semantics.
+- **`RadioList`** (class B, 1,781 lines) is the first consumer of `Indicator`'s **radio** kind, which
+  has been ported and unrendered since M12 — the same position `Indicator` itself was in before
+  `CheckboxInput`. It is cheaper than its line count suggests, for one reason worth writing down: a
+  *native* radio group already implements roving focus and arrow-key selection, so a set of
+  `<input type="radio">` sharing a `name` gets the keyboard for free and no keydown handler is
+  needed. What has to be right is the group's shape — `role="radiogroup"` with `aria-labelledby`, a
+  `Field`-composed label above it (a radio group *is* a form field, which is why upstream composes
+  `Field` here and `FieldLabel` directly in the checkbox), `orientation`, and `required` bound to
+  each radio rather than to the group.
 
-Porting `Icon` unblocked the other direction: **`FieldStatus`** (needs `Icon` plus an entry
-animation) and **`Pagination`** (needs `Icon`) are now tractable, and both are closer to a
-single-session port than `DropdownMenu` is.
+- **`FormLayout`** (class B, 603 lines) is the cheap end of M12's deferrals, and it owns the one rule
+  that changes how every control already ported *renders*: `defaultOptionality`, which decides
+  whether an "Optional" marker appears at all. Porting it retires a deferral that currently affects
+  four controls.
+
+- **`Tooltip`** (class B, 1,998 lines) retires the other two: `FieldStatus`'s third variant (which
+  the port type-checks and deliberately renders nothing for today) and the `disabledMessage` path on
+  `CheckboxInput` and `Switch`. That path is also where `Switch` will need the canceled click
+  `CheckboxInput` already has — the seam is commented where it goes.
+
+Deliberately *not* first: the overlay layer (`Layer`, `Dialog`, `Popover`, `BottomSheet` — class C,
+portal-driven, 2.4k–6.6k lines each). It is the largest unblocker left in the registry, and it is a
+pillar of its own rather than a way to close this one. Likewise `Table` (5,007, class B),
+`SideNav`/`TopNav` (6,334/5,238, class B) and `Markdown` (7,754, class B): each is self-contained and
+each is a larger single sitting than anything above.
 
 ## M6 — second upstream: shadcn
 
