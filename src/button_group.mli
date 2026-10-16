@@ -31,7 +31,7 @@
 open! Core
 open! Bonsai_web
 
-type orientation =
+type orientation = Common.List_focus.orientation =
   | Horizontal
   | Vertical
 (** Upstream's [ButtonGroupOrientation]. *)
