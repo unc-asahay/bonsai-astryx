@@ -63,6 +63,7 @@ let view
   ?target
   ?rel
   ?on_click
+  ?(component_name = "Button")
   ?attrs
   children
   =
@@ -131,7 +132,7 @@ let view
   let content = [ content_wrapper; live_region ] in
   let attrs =
     Common.Attr.class_ classes
-    @ Common.Attr.data "component" "Button"
+    @ Common.Attr.data "component" component_name
     @ Common.Attr.data "variant" (variant_string variant)
     @ label_attrs
     @ state_attrs

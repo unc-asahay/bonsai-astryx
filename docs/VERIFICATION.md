@@ -1099,3 +1099,73 @@ presses it rather than reading it:
 
 Transcript: `docs/verification/sweep-m14b.txt`.
 
+## Gate 25 — AlertDialog (M14), and the difference between the prose and the shipped component
+
+AlertDialog is thin over Dialog, and everything interesting about it is in what it asks Dialog for.
+
+**The role override is the contract.** Upstream builds it on `purpose="form"` and then passes
+`role={isInline ? 'group' : 'alertdialog'}`. That is why `Dialog.view` takes `~role` in this port: the
+role is derived from the purpose by default, and this is the caller that has a reason to disagree. The
+modal form is an `alertdialog`; the *inline preview* is not, because an `alertdialog` role promises an
+interruption, a focus trap and an inert page behind it, and the preview has none of those. A component
+that always said `alertdialog` would describe something that is not on screen.
+
+**Where the prose and the code disagree, the port follows the code and says so.** Upstream's own comment
+on this component says an alert dialog *"requires explicit user action to dismiss"*. It then passes
+`purpose="form"`, and `purpose="form"` allows Escape. So the shipped component closes on Escape, whatever
+the sentence above it says. The port keeps Escape, because that is what a consumer of upstream actually
+gets — and because splitting the difference (refusing Escape, as `required` does) would match neither the
+documentation nor the behaviour.
+
+**The title and the description are strings, so the component owns the association.** Unlike Dialog,
+whose caller owns the header and therefore the id, AlertDialog owns its whole body: it builds the heading
+and the description text and wires `aria-labelledby`/`aria-describedby` to them itself. That is not
+decoration — a description that is drawn but not described is one assistive technology never reads.
+
+| What | Evidence |
+| --- | --- |
+| The inline preview says `group`, the modal form says `alertdialog` | component gate (role = group) and browser gate (role = alertdialog, and it matches `:modal`) |
+| The description is *associated*, not just rendered | component gate: `aria-describedby` resolves to an element whose text is the description |
+| The action reaches the application, and closing stays its decision | browser: the readout goes to "answers taken: 1" and the dialog is closed — the component never closes on an action by itself |
+| Both answers have ids of their own | component gate |
+| The small-screen order is CSS | browser: `row` at 1280px, `column-reverse` below 640px with full-width buttons — pressed by resizing, not read off the stylesheet |
+
+**What this component changed in Dialog, and why it is not a wart.** AlertDialog composes Dialog and wires
+a callback into its own content — the Cancel answer closes the dialog. A container cannot do that with a
+plain children list: it has no way to unwrap the callback tree a caller handed it. So `Dialog.view`'s
+`children` became a *tree*. That is not a special case for AlertDialog; it is the general shape of a
+container that composes another, and Dialog's own `is_open`/`on_open_change` were already trees for
+exactly this reason.
+
+**Not ported, with the reason** (in `alert_dialog.mli`): `useImperativeAlertDialog` — upstream's
+`alertDialog.confirm(options)` returning a promise. It needs a handle concept: code that is not a Bonsai
+view asking a mounted component a question. The port has no such concept, and inventing one for a single
+component would be the port's decision rather than upstream's.
+
+**IconButton, in the same commit, because the same oversight caused both.** AlertDialog needed a root
+of its own before any tool could see it — and checking that turned up IconButton, the one ported
+component with no appearance page. The reason was invisible: it is a Button preset that inherited
+Button's marker, and every tool here identifies a component by its marker, so nothing could name it.
+It now names itself, which required `Button.view` to take the marker as an argument — passing it in
+through `~attrs` does not work, because virtual_dom *warns and drops* rather than letting two
+attributes of the same name meet. The browser gate was the only place that showed it: three icon
+buttons, three console warnings, every assertion green. A check had been asserting the shortcut as if
+it were the contract ("IconButton carries Button's marker, not its own"); it now asserts the new truth
+and keeps the old name in a comment, because the reason the shortcut existed is the interesting part.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **379 / 0** |
+| Real-browser checks (Chromium, live showcase) | **181 / 181** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **36 of 103** ported, 67 not |
+| Showcase | 37 sections, 252 examples |
+| Appearance pages | 34 of 36 ported (the two without one are HStack and VStack, which are the
+  same module as Stack, ported once) |
+
+Transcript: `docs/verification/sweep-m14e.txt` — the run for this commit, after the re-baseline.
+The earlier `sweep-m14c.txt` recorded 378/0, before IconButton's second check existed.
+

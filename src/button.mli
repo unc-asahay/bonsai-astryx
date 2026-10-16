@@ -50,6 +50,12 @@ val view
   -> ?target:string
   -> ?rel:string
   -> ?on_click:(Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit Ui_effect.t)
+  -> ?component_name:string
+  (** What this element calls itself in [data-astryx-component] — "Button" unless a component that
+      *delegates* to this one is naming itself (IconButton). The marker is how every tool here
+      identifies a component, so a wrapper that could not name itself would be invisible to all of them;
+      and the attribute cannot simply be passed in through [attrs], because virtual_dom warns and drops
+      rather than letting two attributes of the same name meet. *)
   -> ?attrs:Vdom.Attr.t list
   -> Vdom.Node.t list
   -> Vdom.Node.t

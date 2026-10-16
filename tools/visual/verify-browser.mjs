@@ -234,7 +234,7 @@ if (mode === "showcase") {
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
-    "RadioList", "FormLayout", "Tooltip", "Dialog",
+    "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -482,8 +482,76 @@ if (mode === "showcase") {
   check("a form method=dialog button closes it, and the application is told",
     !required.open && /closed$/.test(required.readout ?? ""), JSON.stringify(required));
 
+  // ---------------------------------------------------------------- AlertDialog (M14)
+  console.log("\nAlertDialog (live)");
+  const adState = () =>
+    page.evaluate(() => {
+      const d = document.getElementById("showcase-alert-dialog-live");
+      return {
+        open: !!d && d.open,
+        modal: !!d && d.matches(":modal"),
+        role: d?.getAttribute("role") ?? null,
+        purpose: d?.getAttribute("data-purpose") ?? null,
+        readout: document.getElementById("showcase-alert-dialog-state")?.textContent ?? null,
+      };
+    });
+  await page.click("#showcase-alert-dialog-open");
+  await page.waitForTimeout(120);
+  let ad = await adState();
+  check("a live alert dialog is modal, and says alertdialog",
+    ad.open && ad.modal && ad.role === "alertdialog", JSON.stringify(ad));
+  check("built on the form purpose, which is what upstream passes", ad.purpose === "form");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(120);
+  ad = await adState();
+  // Upstream's docs say an alert dialog requires an explicit action to dismiss, and the shipped
+  // component passes purpose="form" — which allows Escape. The port follows the code, and says so.
+  check("Escape closes it: purpose = form allows it, whatever the prose says",
+    !ad.open && /closed/.test(ad.readout ?? ""), JSON.stringify(ad));
+
+  await page.click("#showcase-alert-dialog-open");
+  await page.waitForTimeout(120);
+  await page.click("#showcase-alert-dialog-live-action");
+  await page.waitForTimeout(150);
+  ad = await adState();
+  check("the action reaches the application AND the dialog closes",
+    !ad.open && /answers taken: 1/.test(ad.readout ?? ""), ad.readout ?? "");
+
+  await page.click("#showcase-alert-dialog-open");
+  await page.waitForTimeout(120);
+  await page.click("#showcase-alert-dialog-live-cancel");
+  await page.waitForTimeout(150);
+  ad = await adState();
+  check("and Cancel closes it without taking the answer",
+    !ad.open && /answers taken: 1/.test(ad.readout ?? ""), ad.readout ?? "");
+
+  // The small-screen order is a CSS rule in this port where upstream reads the viewport in JavaScript.
+  // Press it: the answer is on top below 640px, and the buttons take the full width.
+  const actionsDir = () =>
+    page.evaluate(() => {
+      const el = document.querySelector("#showcase-alert-dialog-inline .astryx-alert-dialog__actions");
+      const btn = el?.querySelector(".astryx-button");
+      return {
+        direction: el ? getComputedStyle(el).flexDirection : null,
+        buttonWidth: btn ? Math.round(btn.getBoundingClientRect().width) : null,
+        containerWidth: el ? Math.round(el.getBoundingClientRect().width) : null,
+      };
+    });
+  const wide = await actionsDir();
+  await page.setViewportSize({ width: 400, height: 800 });
+  await page.waitForTimeout(200);
+  const narrow = await actionsDir();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForTimeout(200);
+  check("the answers are a row on a wide screen", wide.direction === "row", JSON.stringify(wide));
+  check("and a reversed column below 640px, with full-width buttons",
+    narrow.direction === "column-reverse"
+      && narrow.buttonWidth !== null && narrow.containerWidth !== null
+      && narrow.buttonWidth >= narrow.containerWidth - 2,
+    JSON.stringify(narrow));
+
   console.log("\nshowcase sections");
-  check("36 sections", sections.length === 36, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("37 sections", sections.length === 37, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -501,10 +569,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
-    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7,
+    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("249 examples across the page", totalExamples === 249, `got ${totalExamples}`);
+  check("252 examples across the page", totalExamples === 252, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -517,7 +585,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("36 nav links", nav.length === 36, `got ${nav.length}`);
+  check("37 nav links", nav.length === 37, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1294,11 +1362,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 34 ported / 69 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["35", "68", "103"]),
+    "coverage stats are 36 ported / 67 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["36", "67", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 68 entries", cov.unported === 68, `got ${cov.unported}`);
+  check("unported list rendered 67 entries", cov.unported === 67, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

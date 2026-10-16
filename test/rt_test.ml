@@ -1377,7 +1377,7 @@ let dialog_static (_ : Bonsai.graph) =
       ~is_open:(Bonsai.return is_open)
       ~on_open_change:no_change
       ~id
-      ~children:[ title (id ^ "-title"); body ]
+      ~children:(Bonsai.return [ title (id ^ "-title"); body ])
       ()
   in
   join_all
@@ -1409,4 +1409,42 @@ let () =
     (Bonsai_web_test.Result_spec.vdom Fn.id)
     dialog_static
   |> fun handle -> mount "dialog" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+(* ------------------------------------------------------- AlertDialog (M14) *)
+
+(* The inline path is the one jsdom can read, and it is the interesting one: the role must be "group"
+   there, because an alertdialog role would promise an interruption and a focus trap a non-modal preview
+   does not have. The rest is association — the ids the dialog names and describes itself from have to
+   point at elements that exist. *)
+let alert_dialog_static (_ : Bonsai.graph) =
+  let open Astryx in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let one ?(loading = false) id =
+    Alert_dialog.view
+      ~title:"Delete this page?"
+      ~description:"The page and its history are removed for everyone."
+      ~action_label:"Delete"
+      ~cancel_label:"Keep it"
+      ~action_variant:Button.Destructive
+      ~is_action_loading:loading
+      ~is_inline:true
+      ~is_open:(Bonsai.return true)
+      ~on_action:(Bonsai.return (Effect.Many []))
+      ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.Many []))
+      ~id
+      ()
+  in
+  join_all [ one "adlg-plain"; one ~loading:true "adlg-loading" ]
+  |> Bonsai.map ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    alert_dialog_static
+  |> fun handle -> mount "alert-dialog" (Bonsai_web_test.Handle.last_result handle)
 ;;

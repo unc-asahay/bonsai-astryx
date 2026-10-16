@@ -88,7 +88,8 @@ the ported components render in isolation
   ok   fit is carried on the child as the override attribute (and omitted when unset)
   ok   fit=center centres from the wrapper class
   ok   three icon buttons render
-  ok   IconButton carries Button's marker, not its own
+  ok   IconButton carries its own marker
+  ok   and still carries Button's behaviour and naming contract
   ok   every icon button has an accessible name
   ok   the icon is not hidden by the component (upstream leaves that to the caller)
   ok   icon buttons are native <button> elements
@@ -407,5 +408,13 @@ Dialog
   ok   and it renders where showModal does not exist, without throwing
   ok   a required modal is an alertdialog as well
 
-372 checks, 0 failure(s)
+AlertDialog
+  ok   an inline alert dialog is role = group, not alertdialog
+  ok   and it is built on the form purpose, like upstream's
+  ok   its title element exists and the dialog names itself from it
+  ok   its description element exists and the dialog is described by it
+  ok   both answers are buttons with ids of their own
+  ok   is_action_loading is a state the action can carry
+
+379 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

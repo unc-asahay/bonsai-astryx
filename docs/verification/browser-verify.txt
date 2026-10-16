@@ -62,17 +62,26 @@ Dialog (live)
   ok   and neither does a backdrop click
   ok   a form method=dialog button closes it, and the application is told
 
+AlertDialog (live)
+  ok   a live alert dialog is modal, and says alertdialog
+  ok   built on the form purpose, which is what upstream passes
+  ok   Escape closes it: purpose = form allows it, whatever the prose says
+  ok   the action reaches the application AND the dialog closes
+  ok   and Cancel closes it without taking the answer
+  ok   the answers are a row on a wide screen
+  ok   and a reversed column below 640px, with full-width buttons
+
 showcase sections
-  ok   36 sections
+  ok   37 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   249 examples across the page
+  ok   252 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   36 nav links
+  ok   37 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -221,14 +230,14 @@ switch (real engine)
   ok   a disabled switch does not move
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 34 ported / 69 not / 103 total
-  ok   unported list rendered 68 entries
+  ok   coverage stats are 36 ported / 67 not / 103 total
+  ok   unported list rendered 67 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-174/174 checks passed, 0 failure(s)
+181/181 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

@@ -134,13 +134,17 @@ let view
       ?(purpose = Info)
       ?padding
       ?labelled_by
+      ?described_by
+      ?role
       ~is_open
       ~on_open_change
       ~id
       ~children
       ()
   =
-  let content =
+  (* A function of the resolved children, because they arrive as a tree: a container that composes
+     this one and wires a callback into its own content (Alert_dialog does) cannot pass a plain list. *)
+  let content children =
     Vdom.Node.div
       ~attrs:
         (Attr.class_ [ "astryx-dialog__inner" ]
@@ -149,10 +153,21 @@ let view
             | None -> []))
       children
   in
-  let label_attrs =
-    match labelled_by with
-    | Some title_id -> Attr.aria "labelledby" title_id
-    | None -> []
+  (* What names the dialog and what describes it. Both are arguments rather than context lookups: a
+     child in this port is already built by the time the container sees it. *)
+  let association_attrs =
+    List.concat
+      [ (match labelled_by with Some title_id -> Attr.aria "labelledby" title_id | None -> [])
+      ; (match described_by with Some text_id -> Attr.aria "describedby" text_id | None -> [])
+      ]
+  in
+  (* The role is derived from [purpose] unless the caller states one. Upstream's AlertDialog is the
+     caller that does: it is built on the form purpose but is not a form, and its inline preview is not
+     modal at all, so it asks for "group" there — an alertdialog role would promise an interruption and
+     a focus trap it does not have. A default, not a verdict. *)
+  let role_attr =
+    Vdom.Attr.create "role"
+      (Option.value role ~default:(match purpose with Required -> "alertdialog" | Info | Form -> "dialog"))
   in
   (* One style attribute, not two: virtual_dom merges attributes last-wins, so a second [style]
      would silently discard the first — which is exactly what happened to the position until the gate
@@ -162,7 +177,11 @@ let view
       ~sep:";"
       (List.filter (sizing_style ?width ?max_height () :: [ Option.value_map position ~default:"" ~f:style_of_position ]) ~f:(fun part -> not (String.is_empty part)))
   in
-  Bonsai.map2 is_open on_open_change ~f:(fun is_open on_open_change ->
+  Bonsai.map2
+    (Bonsai.map2 is_open on_open_change ~f:(fun is_open on_open_change -> is_open, on_open_change))
+    children
+    ~f:(fun (is_open, on_open_change) children ->
+  let content = content children in
   if is_inline
   then
     (* The showcase path upstream documents: the same content as ordinary markup, with no top layer
@@ -177,10 +196,10 @@ let view
                  @ (match variant with Fullscreen -> [ "astryx-dialog--fullscreen" ] | Standard -> []))
               @ Attr.data "component" "Dialog"
               @ [ Vdom.Attr.create "id" id
-                ; Vdom.Attr.create "role" "dialog"
+                ; role_attr
                 ; Vdom.Attr.create "data-purpose" (purpose_name purpose)
                 ]
-              @ label_attrs
+              @ association_attrs
               @ (if String.is_empty surface_style then [] else [ Vdom.Attr.create "style" surface_style ])
               @ attrs)
            [ content ]
@@ -197,9 +216,7 @@ let view
              ; Vdom.Attr.create "data-purpose" (purpose_name purpose)
                (* Required is what makes it an alert dialog — a dialog that refuses every exit is one
                   the user has to answer. Upstream keys the role off purpose, not off a variant. *)
-             ; (match purpose with
-                | Required -> Vdom.Attr.create "role" "alertdialog"
-                | Info | Form -> Vdom.Attr.create "role" "dialog")
+             ; role_attr
              ; Dialog_hook.attr ~is_open
              ; (* A click that lands on the dialog element itself is a click on ::backdrop: the
                   content sits inside it, so target and currentTarget differ for anything the user
@@ -226,7 +243,7 @@ let view
                   | Required -> Effect.Many []
                   | Info | Form -> on_open_change false))
              ]
-           @ label_attrs
+           @ association_attrs
            @ (if String.is_empty surface_style then [] else [ Vdom.Attr.create "style" surface_style ])
            @ attrs)
         [ content ])

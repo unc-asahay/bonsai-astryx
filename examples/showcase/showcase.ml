@@ -2124,7 +2124,7 @@ let dialog_demo (graph : Bonsai.graph) =
          ~is_open:(Bonsai.return true)
          ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.Many []))
          ~id:("showcase-dialog-inline-" ^ label)
-         ~children:[ title "showcase-dialog-inline-title" "Dialog"; body text ]
+         ~children:(Bonsai.return [ title "showcase-dialog-inline-title" "Dialog"; body text ])
          ())
   in
   (* One live dialog per purpose, each with a readout the application owns. The gate reads the readout
@@ -2178,10 +2178,11 @@ let dialog_demo (graph : Bonsai.graph) =
         ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
         ~id:("showcase-dialog-" ^ name)
         ~children:
-          [ title ("showcase-dialog-title-" ^ name) ("A " ^ name ^ " dialog")
-          ; body "Escape and a backdrop click are separate permissions."
-          ; close_form
-          ]
+          (Bonsai.return
+             [ title ("showcase-dialog-title-" ^ name) ("A " ^ name ^ " dialog")
+             ; body "Escape and a backdrop click are separate permissions."
+             ; close_form
+             ])
         ()
     in
     ex_tree
@@ -2233,6 +2234,113 @@ let dialog_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- alert dialog (a dialog with an answer) *)
+
+(* Upstream builds this on Dialog with purpose="form" and then overrides the role, which is why
+   Dialog.view takes ~role. Two things are worth pressing here rather than reading: that the inline path
+   really does say "group" (an alertdialog role would promise an interruption and a focus trap a
+   non-modal preview does not have), and that the title and the description are *associated* rather than
+   merely rendered — a description only a sighted user gets is one assistive technology never reads. *)
+let alert_dialog_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let inline ?(loading = false) () =
+    ex_tree
+      ("an inline alert dialog" ^ if loading then ", action in flight" else "")
+      (Alert_dialog.view
+         ~title:"Delete this page?"
+         ~description:"The page and its history are removed for everyone. This cannot be undone."
+         ~action_label:"Delete"
+         ~cancel_label:"Keep it"
+         ~action_variant:Button.Destructive
+         ~is_action_loading:loading
+         ~is_inline:true
+         ~is_open:(Bonsai.return true)
+         ~on_action:(Bonsai.return (Effect.Many []))
+         ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.Many []))
+         ~id:"showcase-alert-dialog-inline"
+         ())
+  in
+  (* One live alert dialog, and the action is the application's to take — which is why on_action is a
+     tree rather than a callback the component calls for you. The answer both counts and closes, because
+     closing after an action is the *caller's* decision here, exactly as upstream leaves it. *)
+  let live =
+    let is_open, set_is_open = Bonsai.state false graph in
+    let actions_taken, set_actions_taken = Bonsai.state 0 graph in
+    let open_button =
+      Bonsai.map set_is_open ~f:(fun set_is_open ->
+        Button.view
+          ~variant:Button.Secondary
+          ~label:"Open alert dialog"
+          ~attrs:[ Vdom.Attr.create "id" "showcase-alert-dialog-open" ]
+          ~on_click:(fun _ -> set_is_open true)
+          [])
+    in
+    let readout =
+      Bonsai.map2 is_open actions_taken ~f:(fun is_open actions ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-alert-dialog-state" ]
+          [ Vdom.Node.text
+              (Printf.sprintf "%s; answers taken: %d"
+                 (if is_open then "the application says: open" else "the application says: closed")
+                 actions)
+          ])
+    in
+    let dialog =
+      Alert_dialog.view
+        ~title:"Discard your changes?"
+        ~description:"Your edits since the last save are lost."
+        ~action_label:"Discard"
+        ~cancel_label:"Keep editing"
+        ~action_variant:Button.Destructive
+        ~is_open
+        (* The action is a tree, and it has to be: a caller holding two state setters has no way to
+           hand a plain function in. It counts the answer and then closes, because closing after an
+           action is the caller's decision here — upstream leaves it to the consumer too. *)
+        ~on_action:
+          (Bonsai.map2
+             (Bonsai.map2 actions_taken set_actions_taken ~f:(fun taken set_taken -> set_taken (taken + 1)))
+             set_is_open
+             ~f:(fun count_up set_is_open -> Effect.Many [ count_up; set_is_open false ]))
+        ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
+        ~id:"showcase-alert-dialog-live"
+        ()
+    in
+    ex_tree
+      "a live alert dialog: the answer is the application's"
+      (Bonsai.map2 (Bonsai.map2 open_button readout ~f:(fun a b -> a, b)) dialog
+         ~f:(fun (open_button, readout) dialog ->
+         Vdom.Node.div [ open_button; dialog; readout ]))
+  in
+  let examples = [ inline (); inline ~loading:true (); live ] in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"alert-dialog"
+      ~title:"AlertDialog"
+      ~note:
+        "A confirmation dialog: a Dialog with a purpose, a subject and two answers. Upstream builds it \
+         on Dialog with purpose = form and then overrides the role, and the override is the interesting \
+         part — the modal form carries role = alertdialog, but the same component is also used as a \
+         non-modal inline preview, and an alertdialog role there would promise an interruption, a focus \
+         trap and an inert page behind it that the preview does not have, so the preview says group. \
+         The port follows the code rather than the prose in one place worth naming: upstream's docs say \
+         an alert dialog requires an explicit action to dismiss, and it passes purpose = form, which \
+         allows Escape. The port keeps Escape, because that is what the shipped component does — the \
+         prose and the code disagree, and a port that split the difference would match neither. The \
+         title and the description are strings here, so the component owns both elements and both ids \
+         and wires aria-labelledby and aria-describedby itself: a description that is drawn but not \
+         described is one assistive technology never reads. The two buttons are one CSS rule rather \
+         than a media query in JavaScript — column-reverse below 640px puts the destructive answer \
+         first under the thumb, which is the order upstream chooses on a small screen, with no \
+         re-render on resize. Not ported, with the reason in alert_dialog.mli: \
+         useImperativeAlertDialog, which needs a handle concept the port does not have."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2280,6 +2388,7 @@ let nav_items =
   ; "form-layout", "FormLayout"
   ; "tooltip", "Tooltip"
   ; "dialog", "Dialog"
+  ; "alert-dialog", "AlertDialog"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2317,6 +2426,7 @@ let page (graph : Bonsai.graph) =
   let form_layout_section = form_layout_demo graph in
   let tooltip_section = tooltip_demo graph in
   let dialog_section = dialog_demo graph in
+  let alert_dialog_section = alert_dialog_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2331,13 +2441,15 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful form_layout_section in
   let stateful = pair stateful tooltip_section in
   let stateful = pair stateful dialog_section in
+  let stateful = pair stateful alert_dialog_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
-                 , form_layout )
-               , tooltip )
-             , dialog )
+    ~f:(fun ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+                   , form_layout )
+                 , tooltip )
+               , dialog )
+             , alert_dialog )
           text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -2345,7 +2457,7 @@ let page (graph : Bonsai.graph) =
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dropdown; interactive ])
       ])
 ;;
 

@@ -353,13 +353,20 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     ars.some((e) => e.querySelector(".astryx-aspect-ratio__child--center")));
 }
 
-// --- IconButton (a Button preset: keeps Button's marker and naming contract)
+// --- IconButton (a Button preset that is its own component to the tooling)
 {
   const bs = inCase("icon-button-all");
   check("three icon buttons render", bs.length === 3, `${bs.length}`);
-  check("IconButton carries Button's marker, not its own",
-    bs.length > 0 && bs.every((e) => attr(e, "data-astryx-component") === "Button"),
+  // This check used to assert the opposite — that IconButton *inherited* Button's marker — which was
+  // true of the port's shortcut and is exactly why IconButton was the one ported component with no
+  // appearance page: every tool here identifies a component by its marker, so an inherited one made the
+  // component invisible to them. Upstream styles it as its own component too.
+  check("IconButton carries its own marker",
+    bs.length > 0 && bs.every((e) => attr(e, "data-astryx-component") === "IconButton"),
     bs.map((e) => attr(e, "data-astryx-component")).join(","));
+  check("and still carries Button's behaviour and naming contract",
+    bs.every((e) => (e.className || "").includes("astryx-button")),
+    bs.map((e) => e.className).join(" | "));
   check("every icon button has an accessible name",
     bs.every((e) => (attr(e, "aria-label") || "").length > 0),
     bs.map((e) => attr(e, "aria-label")).join(" | "));
@@ -1438,6 +1445,43 @@ section("FieldLabel");
     !!modal && modal.open === false);
   check("a required modal is an alertdialog as well",
     document.getElementById("dlg-modal-required")?.getAttribute("role") === "alertdialog");
+}
+
+// ---------------------------------------------------------------- AlertDialog (M14)
+{
+  section("AlertDialog");
+  // These read the *component* mount from rt_test, not the showcase page — the showcase ids belong to
+  // the browser gate, which is the only place they exist.
+  const inline = document.getElementById("adlg-plain");
+  // The role override is the contract: the modal form says alertdialog, and the inline preview must NOT,
+  // because the role promises an interruption, a focus trap and an inert page behind it that a preview
+  // does not have.
+  check("an inline alert dialog is role = group, not alertdialog",
+    !!inline && inline.getAttribute("role") === "group",
+    inline?.getAttribute("role") ?? "missing");
+  check("and it is built on the form purpose, like upstream's", inline?.getAttribute("data-purpose") === "form");
+
+  // Association, not decoration: a description that is drawn but not described is one assistive
+  // technology never reads.
+  const named = inline?.getAttribute("aria-labelledby");
+  const described = inline?.getAttribute("aria-describedby");
+  const nameEl = named ? document.getElementById(named) : null;
+  const descEl = described ? document.getElementById(described) : null;
+  check("its title element exists and the dialog names itself from it",
+    !!nameEl && nameEl.textContent === "Delete this page?", named ?? "no aria-labelledby");
+  check("its description element exists and the dialog is described by it",
+    !!descEl && /The page and its history/.test(descEl.textContent ?? ""),
+    described ?? "no aria-describedby");
+
+  check("both answers are buttons with ids of their own",
+    !!document.getElementById("adlg-plain-cancel")
+      && !!document.getElementById("adlg-plain-action"));
+
+  // isActionLoading is upstream's prop; the port reaches it through Button's is_loading.
+  const loading = document.getElementById("adlg-loading");
+  check("is_action_loading is a state the action can carry",
+    !!loading && !!loading.querySelector("[aria-busy=\"true\"], .astryx-button--loading"),
+    "no loading marker on the action");
 }
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);

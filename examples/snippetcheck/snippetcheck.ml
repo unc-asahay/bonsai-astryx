@@ -152,7 +152,7 @@ let dialog (graph : Bonsai.graph) =
     ~is_open
     ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
     ~id:"snippet-dialog"
-    ~children:[ heading; body; save_form ]
+    ~children:(Bonsai.return [ heading; body; save_form ])
     ()
 ;;
 

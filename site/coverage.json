@@ -5,12 +5,18 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 35,
-    "unported": 68,
+    "ported": 36,
+    "unported": 67,
     "total": 103,
     "documented": 103
   },
   "ported": [
+    {
+      "name": "AlertDialog",
+      "module": "Astryx.Alert_dialog",
+      "file": "src/alert_dialog.ml",
+      "milestone": "M14"
+    },
     {
       "name": "AspectRatio",
       "module": "Astryx.AspectRatio",
@@ -223,7 +229,6 @@
     }
   ],
   "unported": [
-    "AlertDialog",
     "AppShell",
     "Avatar",
     "AvatarGroup",

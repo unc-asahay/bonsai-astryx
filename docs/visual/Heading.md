@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Heading` (`src/heading.ml`, M1)
-- rendered instances in the demo: 6
+- rendered instances in the demo: 9
 - classes: `astryx-heading`, `astryx-heading--1`, `astryx-heading--2`, `astryx-heading--3`, `astryx-heading--4`, `astryx-heading--5`, `astryx-heading--6`
 
 ## spacing

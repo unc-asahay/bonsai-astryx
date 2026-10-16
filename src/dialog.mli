@@ -80,10 +80,22 @@ val view
   -> ?purpose:purpose
   -> ?padding:Common.Spacing.t
   -> ?labelled_by:string
+  (** The id of the element that names this dialog. An argument rather than a context lookup: a child
+      in this port is already built by the time the container sees it. *)
+  -> ?described_by:string
+  (** The id of the element that describes it — upstream's AlertDialog wires its description here, and
+      a description that is only visual is one assistive technology never reads. *)
+  -> ?role:string
+  (** Override the role. It is derived from [purpose] by default ([alertdialog] for [Required], which is
+      upstream's rule); upstream's AlertDialog overrides it because it is built on the form purpose
+      without being a form, and its inline preview is not modal at all and says [group]. *)
   -> is_open:bool Bonsai.t
   -> on_open_change:(bool -> unit Effect.t) Bonsai.t
   -> id:string
-  -> children:Vdom.Node.t list
+  -> children:Vdom.Node.t list Bonsai.t
+  (** A *tree* of children, not a list. A container that composes this component and wires a callback
+      into its own content — upstream's AlertDialog does exactly that — cannot pass a plain list: it has
+      no way to unwrap the callback tree a caller handed it. *)
   -> unit
   -> Vdom.Node.t Bonsai.t
 (** [view ~is_open ~on_open_change ~id ~children ()]. No graph, unlike {!Tooltip.view}: the DOM side

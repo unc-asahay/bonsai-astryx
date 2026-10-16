@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Text` (`src/text.ml`, M1)
-- rendered instances in the demo: 46
+- rendered instances in the demo: 49
 - classes: `astryx-text`, `astryx-text--color-accent`, `astryx-text--color-disabled`, `astryx-text--color-primary`, `astryx-text--color-secondary`, `astryx-text--size-sm`, `astryx-text--strikethrough`, `astryx-text--tabular`, `astryx-text--type-body`, `astryx-text--type-code`, `astryx-text--type-display-1`, `astryx-text--type-label`, `astryx-text--type-large`, `astryx-text--type-supporting`, `astryx-text--weight-semibold`
 
 ## spacing
