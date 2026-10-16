@@ -100,7 +100,7 @@ val view
   -> ?is_read_only:bool
   -> ?placeholder:string
   -> ?start_icon:string
-  -> ?status:status_type * string
+  -> ?status:Input_types.status
   -> ?status_variant:status_variant
   -> ?size:size
   -> ?width:Common.Size_value.t

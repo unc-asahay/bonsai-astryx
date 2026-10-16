@@ -36,7 +36,7 @@
 open! Core
 open! Bonsai_web
 
-type status_type = Field_status.type_ =
+type status_type = Input_types.status_type =
   | Warning
   | Error
   | Success
@@ -59,7 +59,7 @@ val view
   -> ?is_required:bool
   -> ?is_disabled:bool
   -> ?label_icon:string
-  -> ?status:status_type * string
+  -> ?status:Input_types.status
   -> ?status_variant:status_variant
   -> ?width:width
   -> ?label_id:string

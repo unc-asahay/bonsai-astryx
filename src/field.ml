@@ -3,7 +3,7 @@ open! Bonsai_web
 
 module Attr = Common.Attr
 
-type status_type = Field_status.type_ =
+type status_type = Input_types.status_type =
   | Warning
   | Error
   | Success
@@ -147,7 +147,12 @@ let view
   let status_content =
     match status with
     | None -> None
-    | Some (type_, message) -> status_node ~status_variant ~message_id type_ ~message
+    (* A status with no message still colours the control — that is the control's class, not this
+       — but it has nothing to put in a message box, and nothing to announce. Upstream renders no
+       box in that case rather than an empty one. *)
+    | Some { Input_types.type_ = _; message = None } -> None
+    | Some { Input_types.type_; message = Some message } ->
+      status_node ~status_variant ~message_id type_ ~message
   in
   let root_attrs =
     Attr.class_

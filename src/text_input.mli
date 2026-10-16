@@ -41,12 +41,12 @@ type type_ =
   | Password
   | Email
 
-type size =
+type size = Input_types.size =
   | Sm
   | Md
   | Lg
 
-type status_type = Field_status.type_ =
+type status_type = Input_types.status_type =
   | Warning
   | Error
   | Success
@@ -66,7 +66,7 @@ val view
   -> ?is_read_only:bool
   -> ?placeholder:string
   -> ?start_icon:string
-  -> ?status:status_type * string
+  -> ?status:Input_types.status
   -> ?status_variant:status_variant
   -> ?size:size
   -> ?width:Common.Size_value.t

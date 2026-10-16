@@ -895,6 +895,102 @@ section("Field + TextInput");
       .getAttribute("data-rt-value")}`);
 }
 
+// --- TextArea (M12)
+//
+// TextInput's wrapper with a different control inside it, so these assert what is different about a
+// textarea: the element, the row count as the height, a value that is child text rather than an
+// attribute, and a status that carries no message at all.
+
+section("TextArea");
+
+{
+  const area = (id) => document.querySelector(`#${id}`);
+  const wrapper = (id) => area(id)?.closest(".astryx-text-area");
+  const field = (id) => area(id)?.closest(".astryx-field");
+  const areas = inCaseMatching("textarea-static", "textarea");
+
+  check("six textareas mount in the static case", areas.length === 6, `${areas.length}`);
+  check(
+    "every one of them is a real <textarea>",
+    areas.every((a) => a.tagName === "TEXTAREA"),
+    areas.map((a) => a.tagName).join(","),
+  );
+  check("no input element is involved", inCaseMatching("textarea-static", "input").length === 0);
+
+  // The row count is the height: upstream's own note is that rows controls it, not size.
+  check("rows defaults to 3", attr(area("rt-textarea-default"), "rows") === "3",
+    attr(area("rt-textarea-default"), "rows"));
+  check("rows comes from the prop when given", attr(area("rt-textarea-rows"), "rows") === "6",
+    attr(area("rt-textarea-rows"), "rows"));
+  check("the wrapper states the row count for the styling layer",
+    attr(wrapper("rt-textarea-rows"), "data-astryx-rows") === "6",
+    attr(wrapper("rt-textarea-rows"), "data-astryx-rows"));
+
+  // The difference a copied port gets wrong: there is no value attribute on a textarea.
+  check(
+    "the value is the element's text, with no value attribute",
+    area("rt-textarea-default").value === "line one"
+      && !area("rt-textarea-default").hasAttribute("value"),
+    `value=${JSON.stringify(area("rt-textarea-default").value)} attr=${attr(area("rt-textarea-default"), "value")}`,
+  );
+
+  check("spell check is on by default", attr(area("rt-textarea-default"), "spellcheck") === "true");
+  check("spell check can be turned off", attr(area("rt-textarea-readonly"), "spellcheck") === "false");
+  check("a disabled textarea is disabled", area("rt-textarea-disabled").disabled === true);
+  check(
+    "a read-only textarea is read-only, not disabled",
+    area("rt-textarea-readonly").hasAttribute("readonly")
+      && !area("rt-textarea-readonly").hasAttribute("disabled"),
+  );
+
+  // A status with no message: the control takes the colour, and nothing is said.
+  check(
+    "a status with no message still colours the control",
+    wrapper("rt-textarea-no-message").classList.contains("astryx-text-area--warning"),
+    wrapper("rt-textarea-no-message").className,
+  );
+  check(
+    "a status with no message renders no message box",
+    field("rt-textarea-no-message").querySelector(".astryx-field-status") === null,
+    field("rt-textarea-no-message").querySelector(".astryx-field-status")?.outerHTML?.slice(0, 120),
+  );
+  check(
+    "a status with no message is not referenced in aria-describedby",
+    !(attr(area("rt-textarea-no-message"), "aria-describedby") || "").includes(
+      "rt-textarea-no-message-status",
+    ),
+    attr(area("rt-textarea-no-message"), "aria-describedby"),
+  );
+
+  // A status with a message: the same wiring M11 asserts, on this control.
+  check(
+    "an error sets aria-invalid and points at its message",
+    attr(area("rt-textarea-error"), "aria-invalid") === "true"
+      && attr(area("rt-textarea-error"), "aria-describedby") === "rt-textarea-error-status",
+    attr(area("rt-textarea-error"), "aria-describedby"),
+  );
+  check(
+    "the error is announced assertively",
+    field("rt-textarea-error").querySelector('.astryx-field-status[role="alert"]') !== null,
+  );
+
+  // Enter is a character in a textarea, so the value the application receives contains newlines.
+  const before = document.querySelector('[data-case="textarea-before"]');
+  const after = document.querySelector('[data-case="textarea-after"]');
+  check(
+    "the textarea starts empty and the application agrees",
+    before.querySelector("#rt-textarea-live").value === ""
+      && before.querySelector("[data-rt-value]").getAttribute("data-rt-value") === "",
+  );
+  check(
+    "typing reaches the control and the application, newlines included",
+    after.querySelector("#rt-textarea-live").value === "first line\nsecond line"
+      && after.querySelector("[data-rt-value]").getAttribute("data-rt-value")
+        === "first line\nsecond line",
+    JSON.stringify(after.querySelector("[data-rt-value]").getAttribute("data-rt-value")),
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

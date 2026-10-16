@@ -1089,3 +1089,91 @@
   display: inline-flex;
   flex: none;
 }
+\n
+/* ---------------------------------------------------------------- TextArea */
+
+.astryx-text-area {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  /* A textarea grows downward from its first line; TextInput centres a single line. */
+  align-items: flex-start;
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-3);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-text-area { transition-duration: 0s; }
+}
+
+.astryx-text-area:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent-muted);
+}
+
+@media (hover: hover) {
+  .astryx-text-area:hover:not(:focus-within):not(.astryx-text-area--disabled) {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-border-emphasized) 30%, transparent);
+  }
+}
+
+.astryx-text-area--disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.astryx-text-area--warning { border-color: var(--color-warning); }
+.astryx-text-area--error { border-color: var(--color-error); }
+.astryx-text-area--success { border-color: var(--color-success); }
+
+/* Upstream: "The size of the textarea, affecting internal padding. Height is controlled by
+   `rows`, not size." So there is deliberately no height rule here - unlike TextInput, whose
+   sizes do set the element height. */
+.astryx-text-area[data-astryx-size="sm"] {
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+}
+
+.astryx-text-area[data-astryx-size="md"] {
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-3);
+}
+
+.astryx-text-area[data-astryx-size="lg"] {
+  padding-block: var(--spacing-3);
+  padding-inline: var(--spacing-3);
+}
+
+.astryx-text-area__input {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  padding: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: transparent;
+  outline: none;
+  /* Upstream's resize: 'vertical' - the one axis that cannot break the surrounding layout. */
+  resize: vertical;
+}
+
+.astryx-text-area__input::placeholder { color: var(--color-text-secondary); }
+
+@media (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    .astryx-text-area__input { font-size: max(1rem, var(--text-body-size)); }
+  }
+}

@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-24 ported component(s). Each page records the appearance the port
+25 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -19,8 +19,8 @@ for image generation.
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 1 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 8 | 2 | 5 | 1 | [Field.md](Field.md) |
-| FieldStatus | 8 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
+| Field | 16 | 2 | 5 | 1 | [Field.md](Field.md) |
+| FieldStatus | 9 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 6 | 7 | 6 | 20 | [Heading.md](Heading.md) |
 | Icon | 48 | 12 | 9 | 7 | [Icon.md](Icon.md) |
@@ -30,9 +30,10 @@ for image generation.
 | Stack | 32 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Text | 45 | 14 | 8 | 25 | [Text.md](Text.md) |
+| TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 8 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 79 components with no OCaml port. They
+Not listed: the 78 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

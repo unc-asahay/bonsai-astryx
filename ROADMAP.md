@@ -124,6 +124,26 @@ label's colour instead of imposing a palette one). Deferred with reasons: the lo
 `disabledMessage` tooltip, `InputGroup`, the async `changeAction`, `FormLayout`'s
 default-optionality context, and horizontal-labels mode.
 
+## M12 — the rest of the basic controls (TextArea, phase 1) (in progress)
+
+The input family shares one contract, and the first thing this milestone did was make the port
+share it too. Upstream keeps those types in `Field/types.ts` under the `Input*` names — one status
+type, one set of three sizes, and a status record whose `message` is *optional* — and TextInput had
+a private copy of all three. `Input_types` is now that one definition, and TextInput moved onto it,
+which closed a real gap: a status may carry no message at all (the control takes the colour, no box
+is rendered, nothing is announced), and the port had required one. A status that must always have
+something to say pushes callers into inventing something to say.
+
+`TextArea` is the second control on that contract and the first whose value is not an attribute: a
+textarea's value is its child text, and React hides the difference by treating `value` on a
+textarea as a property assignment. A port that copies the JSX has a field that looks right in a
+screenshot and discards what the user types — so the browser gate types, lets the state change,
+and types again to prove a re-render does not put the old text back.
+
+Still open here: `CheckboxInput` and `Switch`, which are the two components that exercise Field's
+detached placement (the reason that case exists at all), and, from upstream's TextArea, the loading
+spinner, the clear button and auto-focus.
+
 ## M9 — FieldStatus and entry animations (done)
 
 Landed `FieldStatus` (attached/detached × warning/error/success) and `Entry_animation`, the

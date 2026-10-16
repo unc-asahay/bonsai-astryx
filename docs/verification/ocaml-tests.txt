@@ -244,5 +244,25 @@ Field + TextInput
   ok   the control starts empty and the application agrees
   ok   typing reaches the control and the application
 
-234 checks, 0 failure(s)
+TextArea
+  ok   six textareas mount in the static case
+  ok   every one of them is a real <textarea>
+  ok   no input element is involved
+  ok   rows defaults to 3
+  ok   rows comes from the prop when given
+  ok   the wrapper states the row count for the styling layer
+  ok   the value is the element's text, with no value attribute
+  ok   spell check is on by default
+  ok   spell check can be turned off
+  ok   a disabled textarea is disabled
+  ok   a read-only textarea is read-only, not disabled
+  ok   a status with no message still colours the control
+  ok   a status with no message renders no message box
+  ok   a status with no message is not referenced in aria-describedby
+  ok   an error sets aria-invalid and points at its message
+  ok   the error is announced assertively
+  ok   the textarea starts empty and the application agrees
+  ok   typing reaches the control and the application, newlines included
+
+252 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

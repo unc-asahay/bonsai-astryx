@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Field` (`src/field.ml`, M11)
-- rendered instances in the demo: 8
+- rendered instances in the demo: 16
 - classes: `astryx-field`, `astryx-field--labeled`
 
 ## layout

@@ -51,6 +51,16 @@ let section ~id ~title ~note examples =
 
 let label s = Astryx.Text.view ~type_:Text.Label [ Vdom.Node.text s ]
 
+(* Every section renders values in the graph, and a section can only render unwrapped nodes. This
+   Bonsai offers map2/both rather than a list combinator, so the trees are combined pairwise and
+   read back by position: the names next to [nth] below make the order checkable at a glance, and a
+   missing example fails loudly instead of quietly rendering the wrong node. *)
+let unwrap_all nodes =
+  List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
+    Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+  |> Bonsai.map ~f:List.rev
+;;
+
 (* ---------------------------------------------------------------- sections *)
 
 let s_stack () =
@@ -963,15 +973,6 @@ let field_demo (graph : Bonsai.graph) =
       ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
       ()
   in
-  (* Everything this section renders is a value in the graph, and the section can only render
-     unwrapped nodes. This Bonsai offers map2/both rather than a list combinator, so the trees are
-     combined pairwise and read back by position — the names below make the order checkable at a
-     glance, and List.nth_exn fails loudly rather than quietly rendering the wrong example. *)
-  let unwrap_all nodes =
-    List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
-      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
-    |> Bonsai.map ~f:List.rev
-  in
   (* Enter is the one thing jsdom cannot test — its synthetic key events carry an empty key — so
      the showcase exposes a field whose only job is to be submitted with a real key press. *)
   let submitted, set_submitted = Bonsai.state false graph in
@@ -1004,18 +1005,18 @@ let field_demo (graph : Bonsai.graph) =
       ; static
           ~label:"Workspace"
           ~id:"showcase-field-attached"
-          ~status:(Astryx.Field_status.Error, "That name is taken.")
+          ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Error; message = Some "That name is taken." }
           "acme"
       ; static
           ~label:"API key"
           ~id:"showcase-field-detached"
-          ~status:(Astryx.Field_status.Success, "Verified.")
+          ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Success; message = Some "Verified." }
           ~status_variant:Astryx.Field_status.Detached
           "sk-live-1234"
       ; static
           ~label:"Database"
           ~id:"showcase-field-tooltip"
-          ~status:(Astryx.Field_status.Warning, "This one is read-only.")
+          ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Warning; message = Some "This one is read-only." }
           ~status_variant:Astryx.Field_status.Tooltip
           "primary"
       ; static
@@ -1078,6 +1079,133 @@ let field_demo (graph : Bonsai.graph) =
       ])
 ;;
 
+(* ---------------------------------------------------------------- TextArea *)
+
+let text_area_demo (graph : Bonsai.graph) =
+  let draft, set_draft = Bonsai.state "Ready when you are." graph in
+  let on_change set = Bonsai.map set ~f:(fun set value -> set value) in
+  let live =
+    Astryx.TextArea.view
+      ~label:"Release notes"
+      ~id:"showcase-textarea-live"
+      ~description:"Markdown is fine; the review step renders it."
+      ~is_required:true
+      ~rows:4
+      ~placeholder:"What changed?"
+      ~value:draft
+      ~on_change:(on_change set_draft)
+      ()
+  in
+  (* The value the application holds, on screen. A textarea's value is its child text, so the
+     question the browser gate asks here is the one a naive port fails: type, then let a re-render
+     happen, and see whether the text the user typed is still there. *)
+  let echo =
+    Bonsai.map draft ~f:(fun draft ->
+      Vdom.Node.p
+        ~attrs:[ Vdom.Attr.create "data-showcase-textarea" "true" ]
+        [ Vdom.Node.text (sprintf "textarea=%S" draft) ])
+  in
+  let static
+        ?status
+        ?status_variant
+        ?is_disabled
+        ?is_read_only
+        ?placeholder
+        ?rows
+        ?size
+        ~label
+        ~id
+        value
+    =
+    Astryx.TextArea.view
+      ~label
+      ~id
+      ?status
+      ?status_variant
+      ?is_disabled
+      ?is_read_only
+      ?placeholder
+      ?rows
+      ?size
+      ~value:(Bonsai.return value)
+      ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
+      ()
+  in
+  let nodes =
+    unwrap_all
+      [ static ~label:"Notes" ~id:"showcase-textarea-default" "Three rows, which is upstream's default."
+      ; static
+          ~label:"Changelog"
+          ~id:"showcase-textarea-rows"
+          ~rows:6
+          ~placeholder:"One line per change"
+          "Six rows, and a placeholder until there is something to say."
+      ; static
+          ~label:"Commit summary"
+          ~id:"showcase-textarea-error"
+          ~status:
+            { Astryx.Input_types.type_ = Astryx.Input_types.Error
+            ; message = Some "Keep the summary under 72 characters."
+            }
+          "A summary line long enough to be rejected by an imaginary repository"
+      ; static
+          ~label:"Deploy target"
+          ~id:"showcase-textarea-no-message"
+          ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Warning; message = None }
+          "coloured, with nothing to say yet"
+      ; static ~label:"Frozen" ~id:"showcase-textarea-disabled" ~is_disabled:true "Cannot be edited."
+      ; static
+          ~label:"Reference"
+          ~id:"showcase-textarea-readonly"
+          ~is_read_only:true
+          "Selectable, submittable, not editable."
+      ; static
+          ~label:"Small"
+          ~id:"showcase-textarea-sm"
+          ~size:Astryx.TextArea.Sm
+          "Small padding, same row count."
+      ]
+  in
+  let live = Bonsai.both live echo in
+  Bonsai.map2 live nodes ~f:(fun (live_node, echo_node) nodes ->
+    let nth i =
+      match List.nth nodes i with
+      | Some node -> node
+      | None -> failwith (sprintf "text_area_demo: no example at index %d" i)
+    in
+    let default_rows = nth 0 in
+    let six_rows = nth 1 in
+    let error = nth 2 in
+    let no_message = nth 3 in
+    let disabled = nth 4 in
+    let readonly = nth 5 in
+    let small = nth 6 in
+    section
+      ~id:"textarea"
+      ~title:"TextArea"
+      ~note:
+        "The same Field wrapper as TextInput, with a textarea inside it — so the label, the \
+         description and the status wiring are the ones already verified, and the difference is \
+         the element. Two of those differences are real. A textarea ignores a value attribute; \
+         its value is its child text, and React hides that by treating value as a property, so a \
+         port that copies the JSX has a field that looks right and discards what the user types. \
+         And its size is padding, not height: upstream's own note is that rows controls the \
+         height, so the sizes here deliberately have no height rule. The first control's value \
+         reaches the application — the line under it is what the state holds after the browser \
+         gate types. The fourth example is a status with no message: coloured, with no box and \
+         nothing announced, because there is nothing to say yet."
+      [ ex "a required textarea, with a description" live_node
+      ; ex "the value the application holds" echo_node
+      ; ex "three rows, upstream's default" default_rows
+      ; ex "rows:6, the height comes from the row count" six_rows
+      ; ex "an error, attached" error
+      ; ex "a status with no message renders no box" no_message
+      ; ex "a disabled textarea" disabled
+      ; ex "a read-only textarea" readonly
+      ; ex "size sm: padding, not height" small
+      ])
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1118,6 +1246,7 @@ let nav_items =
   ; "icon", "Icon"
   ; "fieldstatus", "FieldStatus"
   ; "field", "Field + TextInput"
+  ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
   ; "interactive", "Interactive"
   ]
@@ -1149,17 +1278,20 @@ let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
+  let text_area_section = text_area_demo graph in
   let sections = Bonsai.map2 interactive_section dropdown_section ~f:(fun a b -> a, b) in
+  let sections = Bonsai.map2 sections field_section ~f:(fun (i, d) f -> i, d, f) in
   Bonsai.map2
     sections
-    field_section
-    ~f:(fun (interactive_section, dropdown_section) field_section ->
+    text_area_section
+    ~f:(fun (interactive_section, dropdown_section, field_section) text_area_section ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field_section; dropdown_section; interactive_section ])
+          (specs
+           @ [ field_section; text_area_section; dropdown_section; interactive_section ])
       ])
 ;;
 

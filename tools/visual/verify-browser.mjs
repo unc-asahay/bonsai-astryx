@@ -233,11 +233,11 @@ if (mode === "showcase") {
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
-    "Field + TextInput",
+    "Field + TextInput", "TextArea",
   ];
 
   console.log("\nshowcase sections");
-  check("27 sections", sections.length === 27, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("28 sections", sections.length === 28, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -254,10 +254,10 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
-    "Field + TextInput": 10,
+    "Field + TextInput": 10, TextArea: 9,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("172 examples across the page", totalExamples === 172, `got ${totalExamples}`);
+  check("181 examples across the page", totalExamples === 181, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +270,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("27 nav links", nav.length === 27, `got ${nav.length}`);
+  check("28 nav links", nav.length === 28, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -710,6 +710,96 @@ if (mode === "showcase") {
       await page.inputValue("#showcase-field-enter"));
   }
 
+  console.log("\ntextarea (real typing, native label activation, the missing value attribute)");
+  {
+    const areaState = () =>
+      page.evaluate(() => {
+        const el = document.querySelector("#showcase-textarea-live");
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return {
+          tag: el.tagName,
+          value: el.value,
+          hasValueAttr: el.hasAttribute("value"),
+          labels: el.labels ? el.labels.length : -1,
+          labelText: el.labels && el.labels[0] ? el.labels[0].textContent.trim() : "",
+          focused: document.activeElement === el,
+          resize: cs.resize,
+          rows: el.rows,
+        };
+      });
+
+    const initial = await areaState();
+    check(
+      "the control is a textarea, wired to its label in a real engine",
+      initial &&
+        initial.tag === "TEXTAREA" &&
+        initial.labels === 1 &&
+        initial.labelText.includes("Release notes"),
+      JSON.stringify(initial && { tag: initial.tag, labels: initial.labels }),
+    );
+    check(
+      "the value is carried as the element's text, with no value attribute",
+      initial && initial.value === "Ready when you are." && initial.hasValueAttr === false,
+      JSON.stringify(initial && { value: initial.value, hasValueAttr: initial.hasValueAttr }),
+    );
+    check(
+      "rows comes from the prop, and the box is as tall as its rows",
+      initial && initial.rows === 4,
+      String(initial && initial.rows),
+    );
+    check(
+      "the control resizes vertically only (upstream's resize: vertical)",
+      initial && initial.resize === "vertical",
+      String(initial && initial.resize),
+    );
+
+    await page.click('label[for="showcase-textarea-live"]');
+    const afterLabelClick = await areaState();
+    check("clicking the label focuses the textarea", afterLabelClick && afterLabelClick.focused);
+
+    // Select-all first: where the caret lands after a label click is the engine's business, and an
+    // assertion that depended on it would be testing Chromium's focus behaviour rather than the
+    // port. With the value replaced, the expected string below is exact.
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Shipped M12.");
+    await page.waitForTimeout(120);
+    const typed = await areaState();
+    const echo = (await page.textContent("[data-showcase-textarea]")) || "";
+    check("real keystrokes replace the initial value, in the control",
+      typed && typed.value === "Shipped M12.", typed && typed.value);
+    check("real keystrokes reach the application", /textarea="Shipped M12\."/.test(echo), echo);
+
+    // The failure a copied port has: a re-render that puts the element's earlier text back over
+    // what the user typed. Typing again after the state has changed is what catches it.
+    const beforeMore = await areaState();
+    await page.keyboard.type(" Again.");
+    await page.waitForTimeout(120);
+    const afterMore = await areaState();
+    check(
+      "a re-render does not put the old text back over what was typed",
+      afterMore && beforeMore && afterMore.value === "Shipped M12. Again.",
+      JSON.stringify(afterMore && afterMore.value),
+    );
+    check(
+      "the value the user replaced does not come back",
+      afterMore && !afterMore.value.includes("Ready when you are."),
+      JSON.stringify(afterMore && afterMore.value),
+    );
+
+    // Enter is a character here, not a submit - the difference from TextInput that a shared
+    // control would quietly lose.
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("second line");
+    await page.waitForTimeout(120);
+    const multiline = await areaState();
+    check(
+      "Enter inserts a newline instead of submitting",
+      multiline && multiline.value.includes("\nsecond line"),
+      JSON.stringify(multiline && multiline.value),
+    );
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -722,11 +812,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 27 ported / 76 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["27", "76", "103"]),
+    "coverage stats are 28 ported / 75 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["28", "75", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 76 entries", cov.unported === 76, `got ${cov.unported}`);
+  check("unported list rendered 75 entries", cov.unported === 75, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

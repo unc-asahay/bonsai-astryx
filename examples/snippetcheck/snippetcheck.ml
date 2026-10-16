@@ -71,7 +71,7 @@ let text_input (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ~id:"name"
     ~description:"As it should appear on an invoice."
     ~is_required:true
-    ~status:(Astryx.Field_status.Error, "That name is taken.")
+    ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Error; message = Some "That name is taken." }
     ~value:name
     ~on_change:(Bonsai.map set_name ~f:(fun set value -> set value))
     ()

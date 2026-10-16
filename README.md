@@ -43,15 +43,15 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
 | Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
 | Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
-| Component library (`src/`) | 🚧 27 of 103 ported (M1 + M2 + M5 + M6 + M7 + M8 + M9 + M10 + M11) | `dune build` |
+| Component library (`src/`) | 🚧 28 of 103 ported (M1 + M2 + M5 + M6 + M7 + M8 + M9 + M10 + M11 + M12) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
-| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 234 checks, 0 failures | `node test/run.mjs` |
-| **Real-browser gate** (Chromium over HTTP: a real click into Bonsai state, Enter on a focused button, measured icon sizes, the entry-animation rule, the menu's whole keyboard path — open, arrows, Home/End, typeahead, Escape, focus return — and a text input typed into with real keystrokes: the label focuses it, the value reaches the application, Enter submits, and the tooltip placement's message is in the DOM but clipped) | ✅ 94 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
+| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 252 checks, 0 failures | `node test/run.mjs` |
+| **Real-browser gate** (Chromium over HTTP: a real click into Bonsai state, Enter on a focused button, measured icon sizes, the entry-animation rule, the menu's whole keyboard path — open, arrows, Home/End, typeahead, Escape, focus return — and a text input typed into with real keystrokes: the label focuses it, the value reaches the application, Enter submits, the tooltip placement's message is in the DOM but clipped, and a textarea typed into with real keystrokes twice — the second time after the state had round-tripped, which is the only way to catch a re-render that puts the element's earlier text back over what the user typed) | ✅ 104 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
 | **Responsive + visual-regression gate** (320/375/768/1440 wide, pixel diff vs stored baseline) | ✅ 66 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
 | **CI on GitHub** (`.github/workflows/ci.yml`: compile, component, DOM and browser gates on a clean runner) | ✅ [run 38914492798](https://github.com/unc-asahay/bonsai-astryx/actions/runs/38914492798) — build, `234/0` component checks, DOM gate all pass, `94/94` in Chromium | `gh run list --repo unc-asahay/bonsai-astryx` |
-| Showcase site (`site/`, all 27 ported components, 172 examples, 27 sections) | ✅ live | serve the repo root, open `/site/index.html` |
-| Coverage panel (ported vs not, from `port.json`) | ✅ 27 / 76 / 103 | `node tools/site/gen-coverage.mjs` |
+| Showcase site (`site/`, all 28 ported components, 181 examples, 28 sections) | ✅ live | serve the repo root, open `/site/index.html` |
+| Coverage panel (ported vs not, from `port.json`) | ✅ 28 / 75 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
 | Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 25 pages (HStack/VStack appear under Stack, IconButton under Button, which is what they render) | `node tools/gen-visual-contract.mjs` |
 | Agent-facing snippets (`snippets.json`, served by the MCP tool layer) | ✅ 14 entries, every one build-checked: verbatim copies are compiled in the demo/showcase, the rest are reproduced in `examples/snippetcheck/` | `dune build` |

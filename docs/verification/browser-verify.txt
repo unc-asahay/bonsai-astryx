@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   27 sections
+  ok   28 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   172 examples across the page
+  ok   181 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Field + TextInput:10 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Field + TextInput:10 TextArea:9 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   27 nav links
+  ok   28 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -120,15 +120,27 @@ text input (real keys, real focus, native label activation)
   ok   a real Enter reaches the application
   ok   the field that was submitted still holds what was typed
 
+textarea (real typing, native label activation, the missing value attribute)
+  ok   the control is a textarea, wired to its label in a real engine
+  ok   the value is carried as the element's text, with no value attribute
+  ok   rows comes from the prop, and the box is as tall as its rows
+  ok   the control resizes vertically only (upstream's resize: vertical)
+  ok   clicking the label focuses the textarea
+  ok   real keystrokes replace the initial value, in the control
+  ok   real keystrokes reach the application
+  ok   a re-render does not put the old text back over what was typed
+  ok   the value the user replaced does not come back
+  ok   Enter inserts a newline instead of submitting
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 27 ported / 76 not / 103 total
-  ok   unported list rendered 76 entries
+  ok   coverage stats are 28 ported / 75 not / 103 total
+  ok   unported list rendered 75 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-94/94 checks passed, 0 failure(s)
+104/104 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

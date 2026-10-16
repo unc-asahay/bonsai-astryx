@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **27 of 103** components.
+Ported: **28 of 103** components.
 
 ## Milestones
 
@@ -19,6 +19,7 @@ Ported: **27 of 103** components.
 - **M9 — field status + entry animations**: complete. FieldStatus (attached/detached, three types) plus Entry_animation, the port's first time-aware piece: upstream suppresses the entry animation for anything present on the first paint, which is reproduced with a requestAnimationFrame flag read when a view is built. The announcer becomes a role on the container (alert for an error, status otherwise).
 - **M10 — the menu-button core (DropdownMenu, phase 1)**: complete. DropdownMenu phase 1: the APG menu-button core — trigger ARIA, a surface that is always in the DOM and closed with [hidden] so aria-controls never dangles, rows as menuitems with headings, dividers, groups, a disabled row and an href row that is the anchor itself, Enter/Space activation carrying the key's modifiers, and Menu_focus, the navigation ported from upstream's useListFocus/useTypeahead. Navigation is DOM-driven, as upstream's is: the highlight *is* DOM focus and a disabled row is excluded by the selector, so no index can ever point at an unfocusable row. Every focus move waits a frame, because Bonsai's Effect.Focus.on_activate fires when a computation activates rather than when the rows appear — which is why the keyboard and the focus return are asserted in the browser gate and not in jsdom. Phase 2 (the inline-flyout system, the bottom sheet and the native popover model) is deferred; MoreMenu wraps this.
 - **M11 — the form-control core (Field + TextInput, phase 1)**: complete. Field is the wrapper every input renders through — label, description and status — and TextInput is the first control that uses it. The wiring is the work: a real <label for>, one name and never two (no aria-labelledby alongside it), aria-describedby listing only the text that is actually rendered, aria-required that agrees with the visible marker, aria-invalid for an error but not a warning, and three placements for a status message (attached behind the control's bottom edge, detached below the field, and tooltip, which renders no message box and announces the message instead). FieldStatus gained the third placement as a type, Icon gained the inherit colour the label icon needs, and every callback is a value in the graph so a state setter can be passed straight in. Deferred with reasons: the loading spinner, the disabled-message tooltip, InputGroup membership and the async changeAction.
+- **M12 — the rest of the basic controls (TextArea, phase 1)**: in progress. TextArea is TextInput's sibling in upstream's input family, so this milestone opens with the contract the family shares: Input_types, which upstream keeps in Field/types.ts under the Input* names. TextInput was moved onto it too — the status type, the three sizes and the status record with its optional message are now one definition rather than one per control, which is what stops the next four inputs from each inventing their own answer. The move corrected a real gap: upstream's InputStatus.message is optional, so a status may carry no message at all (the control takes the colour, nothing is shown and nothing is announced), and the port had required one. CheckboxInput and Switch come next and will use the same types; they are the components that exercise Field's detached placement.
 
 ## Infrastructure
 
@@ -59,9 +60,10 @@ Ported: **27 of 103** components.
 | `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
 | `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
 | `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
+| `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
 
-## Not ported yet (76)
+## Not ported yet (75)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `FormLayout`, `HoverCard`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`
+`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `FileInput`, `FormLayout`, `HoverCard`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`

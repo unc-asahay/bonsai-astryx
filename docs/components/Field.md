@@ -84,7 +84,7 @@ val view
   -> ?is_required:bool
   -> ?is_disabled:bool
   -> ?label_icon:string
-  -> ?status:status_type * string
+  -> ?status:Input_types.status
   -> ?status_variant:status_variant
   -> ?width:width
   -> ?label_id:string

@@ -558,7 +558,47 @@ different pairs of the same thing.
 from fighting the browser's echo of a keystroke — a Bonsai state setter has no such race),
 `FormLayout`'s default-optionality context, and horizontal-labels mode.
 
-**Totals at this gate:** 234 component checks, 94 real-browser checks, 25/25 demo checks,
+## Gate 14 — the second control, and the types the family shares
+
+**What it covers:** `TextArea` (M12, phase 1) and the refactor that came first: `Input_types`, the
+one definition of the size, the status type and the status record that every field-composed input
+uses.
+
+**Why the types came first:** upstream keeps them in `Field/types.ts`, and TextInput had a private
+copy of all three. The shared definition differed from the copy in a way that mattered: upstream's
+`InputStatus.message` is *optional*, so a status may carry no message at all — the control takes the
+colour, no box is rendered, nothing is announced. The port had required a message, which is the kind
+of API that makes callers invent a sentence to satisfy a type.
+
+**What the component gate asserts** (18 of its 252 checks): the control is a `<textarea>` and no
+`<input>` is involved; `rows` defaults to 3 and comes from the prop when given; **the value is the
+element's text and there is no `value` attribute** (browsers ignore that attribute on a textarea);
+spell check on by default, off when asked; disabled and read-only are different things; a status
+with no message colours the wrapper, renders no message box and is not referenced in
+`aria-describedby`; a status with a message sets `aria-invalid` and points at it on this control too;
+and typing reaches the application **with a newline in the value**, because Enter is a character in a
+textarea rather than a submit.
+
+**What the browser gate adds** (12 of its 104): the element really is a textarea with
+`element.labels` resolving in a real engine, clicking the label focuses it, `rows` is the height the
+browser gives it, `getComputedStyle().resize` is `vertical` (upstream's own default), real keystrokes
+replace the initial value and reach the application, a second round of typing after the state has
+round-tripped lands where the first one left off, and Enter inserts a newline instead of submitting.
+
+**What the gate caught on its first run.** Five failures, and four of them were the gate's frozen
+description of the page — 27 sections, 172 examples, 27 nav links, and a per-section example count
+with no entry for the new section. A gate that states what the page *is* notices when the page
+changes; that is the whole value of freezing it. The fifth was mine: the assertion had fixed where
+the caret would be after a label click, which is the engine's business rather than the component's.
+The value the run reported showed the component was right — the typed text was there and the initial
+text had not come back — so the check now selects all first and compares exact strings, plus a
+second check that the value the user replaced does not reappear.
+
+**Deferred, with reasons:** upstream's TextArea also has a loading spinner, a clear button and
+auto-focus. Each is real work, none is needed by the base control, and half of one would be worse
+than none.
+
+**Totals at this gate:** 252 component checks, 104 real-browser checks, 25/25 demo checks,
 66 responsive checks at 0.00% drift across 320/375/768/1440, 25 appearance pages.
 
 ## Not yet verified — do not read these as claims
@@ -568,7 +608,7 @@ from fighting the browser's echo of a keystroke — a Bonsai state setter has no
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M11.** 27 of 103 components are ported; the other 76 have
+- **Anything below M12.** 28 of 103 components are ported; the other 75 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
   a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
@@ -585,6 +625,6 @@ from fighting the browser's echo of a keystroke — a Bonsai state setter has no
   `test/rt_test.ml` can dispatch `keydown`, `focus` and `blur` through `Bonsai_web_test.Handle`,
   but a synthetic key event there carries no `key`, which is why keyboard claims live in the
   real-browser gate instead.
-- **The showcase covers the ported components only.** The 76 unported ones appear as
+- **The showcase covers the ported components only.** The 75 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

@@ -74,6 +74,12 @@
    "name": "the form-control core (Field + TextInput, phase 1)",
    "status": "complete",
    "note": "Field is the wrapper every input renders through \u2014 label, description and status \u2014 and TextInput is the first control that uses it. The wiring is the work: a real <label for>, one name and never two (no aria-labelledby alongside it), aria-describedby listing only the text that is actually rendered, aria-required that agrees with the visible marker, aria-invalid for an error but not a warning, and three placements for a status message (attached behind the control's bottom edge, detached below the field, and tooltip, which renders no message box and announces the message instead). FieldStatus gained the third placement as a type, Icon gained the inherit colour the label icon needs, and every callback is a value in the graph so a state setter can be passed straight in. Deferred with reasons: the loading spinner, the disabled-message tooltip, InputGroup membership and the async changeAction."
+  },
+  {
+   "id": "M12",
+   "name": "the rest of the basic controls (TextArea, phase 1)",
+   "status": "in progress",
+   "note": "TextArea is TextInput's sibling in upstream's input family, so this milestone opens with the contract the family shares: Input_types, which upstream keeps in Field/types.ts under the Input* names. TextInput was moved onto it too \u2014 the status type, the three sizes and the status record with its optional message are now one definition rather than one per control, which is what stops the next four inputs from each inventing their own answer. The move corrected a real gap: upstream's InputStatus.message is optional, so a status may carry no message at all (the control takes the colour, nothing is shown and nothing is announced), and the port had required one. CheckboxInput and Switch come next and will use the same types; they are the components that exercise Field's detached placement."
   }
  ],
  "infrastructure": [
@@ -284,6 +290,13 @@
    "module": "Astryx.Text_input",
    "file": "src/text_input.ml",
    "milestone": "M11",
+   "class": "B"
+  },
+  {
+   "component": "TextArea",
+   "module": "Astryx.Text_area",
+   "file": "src/text_area.ml",
+   "milestone": "M12",
    "class": "B"
   }
  ]

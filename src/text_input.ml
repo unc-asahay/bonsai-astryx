@@ -15,12 +15,12 @@ type type_ =
   | Password
   | Email
 
-type size =
+type size = Input_types.size =
   | Sm
   | Md
   | Lg
 
-type status_type = Field_status.type_ =
+type status_type = Input_types.status_type =
   | Warning
   | Error
   | Success
@@ -101,7 +101,8 @@ let view
          announced as nothing at best, and some screen readers read the id itself at worst. *)
       let status_message =
         match status with
-        | Some (_, message) when not (String.is_empty message) -> Some message
+      | Some { Input_types.message = Some message; _ } when not (String.is_empty message) ->
+        Some message
         | _ -> None
       in
       let described_by =
@@ -133,7 +134,7 @@ let view
            else [ Vdom.Attr.create "aria-describedby" described_by ])
         @ (if effectively_required then Attr.aria "required" "true" else [])
         @ (match status with
-           | Some (Error, _) -> Attr.aria "invalid" "true"
+         | Some { Input_types.type_ = Error; message = _ } -> Attr.aria "invalid" "true"
            | _ -> [])
         @ [ Vdom.Attr.on_input (fun _ value ->
               (* The DOM already refuses keystrokes into a disabled or read-only input; the guard
@@ -148,12 +149,13 @@ let view
           ([ "astryx-text-input" ]
            @ (if is_disabled then [ "astryx-text-input--disabled" ] else [])
            @ (match status with
-              | Some (type_, _) -> [ "astryx-text-input--" ^ status_string type_ ]
+            | Some { Input_types.type_; message = _ } ->
+              [ "astryx-text-input--" ^ status_string type_ ]
               | None -> []))
         @ Attr.data "component" "TextInput"
         @ Attr.data "size" (size_string size)
         @ (match status with
-           | Some (type_, _) -> Attr.data "status" (status_string type_)
+         | Some { Input_types.type_; message = _ } -> Attr.data "status" (status_string type_)
            | None -> [])
         @ (if is_disabled then Attr.data "disabled" "true" else [])
         @ (if is_read_only then Attr.data "readonly" "true" else [])

@@ -702,16 +702,16 @@ let field_static_component (_ : Bonsai.graph) =
        ; field
            ~label:"Workspace"
            ~id:"rt-field-error"
-           ~status:(Astryx.Field_status.Error, "That name is taken.") ()
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Error; message = Some "That name is taken." } ()
        ; field
            ~label:"API key"
            ~id:"rt-field-detached"
-           ~status:(Astryx.Field_status.Success, "Verified.")
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Success; message = Some "Verified." }
            ~status_variant:Astryx.Field_status.Detached ()
        ; field
            ~label:"Database"
            ~id:"rt-field-tooltip"
-           ~status:(Astryx.Field_status.Warning, "Read only.")
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Warning; message = Some "Read only." }
            ~status_variant:Astryx.Field_status.Tooltip ()
        ; field ~label:"Account id" ~id:"rt-field-hidden" ~is_label_hidden:true ~is_disabled:true ()
        ; field ~label:"Password" ~id:"rt-field-readonly" ~is_read_only:true ()
@@ -765,4 +765,104 @@ let () =
     ~text:"Ada Lovelace";
   Bonsai_web_test.Handle.recompute_view_until_stable handle;
   mount "field-after" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+(* ---------------------------------------------------------------- TextArea (M12) *)
+
+(* The same Field wrapper as M11 with a different control inside it, so these cases assert what is
+   different about a textarea rather than re-testing the wiring: the element itself, the row
+   count, the value that is not an attribute, and a status that carries no message at all. *)
+let text_area_static_component (_ : Bonsai.graph) =
+  let value = Bonsai.return "line one" in
+  let noop = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let area ?status ?status_variant ?is_disabled ?is_read_only ?rows ?has_spell_check ~label ~id ()
+    =
+    Astryx.Text_area.view
+      ~label
+      ~id
+      ?status
+      ?status_variant
+      ?is_disabled
+      ?is_read_only
+      ?rows
+      ?has_spell_check
+      ~value
+      ~on_change:noop
+      ()
+  in
+  let unwrap_all nodes =
+    List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    (unwrap_all
+       [ area ~label:"Notes" ~id:"rt-textarea-default" ()
+       ; area ~label:"Changelog" ~id:"rt-textarea-rows" ~rows:6 ()
+       ; area
+           ~label:"Commit summary"
+           ~id:"rt-textarea-error"
+           ~status:
+             { Astryx.Input_types.type_ = Astryx.Input_types.Error; message = Some "Too long." }
+           ()
+       ; area
+           ~label:"Deploy target"
+           ~id:"rt-textarea-no-message"
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Warning; message = None }
+           ()
+       ; area ~label:"Frozen" ~id:"rt-textarea-disabled" ~is_disabled:true ()
+       ; area
+           ~label:"Reference"
+           ~id:"rt-textarea-readonly"
+           ~is_read_only:true
+           ~has_spell_check:false
+           ()
+       ])
+    ~f:(fun nodes -> Vdom.Node.div nodes)
+;;
+
+(* The interactive case, and the one behaviour a textarea has that an input does not: the value it
+   reports contains newlines, because Enter is a character here rather than a submit. *)
+let text_area_interactive_component (graph : Bonsai.graph) =
+  let draft, set_draft = Bonsai.state "" graph in
+  let on_change = Bonsai.map set_draft ~f:(fun set value -> set value) in
+  let area =
+    Astryx.Text_area.view
+      ~label:"Release notes"
+      ~id:"rt-textarea-live"
+      ~rows:4
+      ~value:draft
+      ~on_change
+      ()
+  in
+  let echo =
+    Bonsai.map draft ~f:(fun draft ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.create "data-rt-value" draft ] [ Vdom.Node.text draft ])
+  in
+  Bonsai.map2 area echo ~f:(fun area echo -> Vdom.Node.div [ area; echo ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      text_area_static_component
+  in
+  mount "textarea-static" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      text_area_interactive_component
+  in
+  mount "textarea-before" (Bonsai_web_test.Handle.last_result handle);
+  Bonsai_web_test.Handle.input_text
+    handle
+    ~get_vdom:Fn.id
+    ~selector:"#rt-textarea-live"
+    ~text:"first line\nsecond line";
+  Bonsai_web_test.Handle.recompute_view_until_stable handle;
+  mount "textarea-after" (Bonsai_web_test.Handle.last_result handle)
 ;;
