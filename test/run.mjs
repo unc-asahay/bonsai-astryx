@@ -1575,6 +1575,21 @@ section("FieldLabel");
   check("nothing claims the layer is open in the DOM when the platform cannot say so",
     !!closedSurface && !closedSurface.hasAttribute("open"),
     String(closedSurface?.outerHTML?.slice(0, 80)));
+
+  /* The trigger's ARIA is written by a *hook*, and this harness does not pump mount effects the way a
+     real runtime does — so the ARIA itself is the browser gate's assertion (it is checked there, along
+     with the keyboard path). What belongs here is the structure the hook has to find, because a
+     mechanism that is handed nothing can still pass every browser check it does not exercise. */
+  const wrapper = document.getElementById("layer-closed-trigger-wrapper");
+  check("the wrapper the mechanism lives on contains a real button for it to find",
+    !!wrapper?.querySelector("button"),
+    wrapper ? wrapper.innerHTML.slice(0, 60) : "no wrapper");
+  /* Not a restatement of the line above: the button and the surface have to be siblings under the same
+     root, because that is the structure the hook's id reference resolves against. */
+  const layerRoot = document.getElementById("layer-closed");
+  check("with the surface it controls as a sibling in the same root",
+    !!layerRoot?.querySelector("div[popover=\"auto\"]"),
+    layerRoot ? layerRoot.innerHTML.slice(0, 80) : "no root");
 }
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);

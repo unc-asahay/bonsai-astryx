@@ -444,6 +444,22 @@ API at all — the gate asserts only the fallback, and says so.
 unchanged at 37 of 103: a gate that moved the number by porting a mechanism would be counting the wrong
 thing. What is next in the family is now a wrapper around something already proven.
 
+**Second step (done): the trigger's wiring.** `Common.Layer_trigger_hook` locates the first
+`button, [role="button"]` among the children and applies `aria-haspopup`, `aria-expanded` and
+`aria-controls` to it, plus the click that toggles. It is a hook rather than props for one reason:
+`aria-expanded` is *state*, so an attribute handed in by a caller could only be a snapshot. The demo's
+Button consequently has no `on_click` of its own — the mechanism owns the click, as upstream's does. Two
+subtleties came with it: the keydown path is attached only to a **non**-`<button>` (a native button
+synthesizes a click from Enter, so a handler for it would toggle twice — and the browser gate presses
+Enter once and expects the layer *open*, which is the check that catches it), and the listeners read the
+latest effect rather than the one captured when they were attached.
+
+The two mechanisms together are what `Popover` will be a wrapper around: the surface's show/hide with the
+platform's dismissal reported back, and the trigger's ARIA with its click. What remains for the component
+itself is the labelled surface (`role="dialog"`, `aria-modal`, `aria-label`), the close button, autofocus
+and the `width`/`padding` seam — plus the two things upstream has that this port will *name as missing*
+rather than approximate: the modal focus trap and the overflow-measurement machinery.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

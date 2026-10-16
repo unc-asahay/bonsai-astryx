@@ -391,3 +391,175 @@ module Layer_hook = struct
     Vdom.Attr.create_hook "astryx-layer" (Hook.create { T.Input.is_open; on_platform_close })
   ;;
 end
+
+(* ------------------------------------------------------------- the layer's trigger, wired up *)
+
+(* Upstream does not ask the caller to write the trigger's ARIA. It *finds* the trigger — the first
+   `button, [role="button"]` among its children — and applies `aria-haspopup`, `aria-expanded` and
+   `aria-controls` to it, plus the click that toggles the layer. Porting that faithfully means the same
+   imperative step here, because `aria-expanded` is *state*: an attribute passed in by the caller could
+   only ever be a snapshot, and would go stale the first time the layer opened.
+
+   One subtlety worth keeping, straight from upstream: the keydown path is attached **only** to something
+   that is not a native `<button>`. A real button synthesizes a click from Enter and Space, so adding a
+   keydown handler for it would toggle the layer twice. A `role="button"` div gets no such synthesis,
+   which is exactly the case upstream handles explicitly. *)
+
+module Layer_trigger_hook = struct
+  module T = struct
+    module State = struct
+      type t =
+        { (* The latest input, not the one captured when the listener was attached: the caller's effect
+             is rebuilt on every render, and a stale closure would act on an old value. *)
+          mutable on_toggle : (unit Effect.t[@sexp.opaque])
+        ; mutable click_listener : Js.Unsafe.any option
+        ; mutable key_listener : Js.Unsafe.any option
+        }
+
+      let create () =
+        { on_toggle = Effect.Ignore; click_listener = None; key_listener = None }
+      ;;
+    end
+
+    module Input = struct
+      type t =
+        { is_open : bool
+        ; controls : string
+        ; haspopup : string
+        ; on_toggle : (unit Effect.t[@sexp.opaque])
+        }
+
+      let sexp_of_t { is_open; controls; haspopup; on_toggle = _ } =
+        Sexp.List
+          [ Sexp.Atom (Bool.to_string is_open)
+          ; Sexp.Atom controls
+          ; Sexp.Atom haspopup
+          ]
+      ;;
+
+      let combine left _ = left
+    end
+
+    let get_string (obj : 'a) (name : string) : string =
+      Option.value_map
+        (Js.Opt.to_option (Js.Unsafe.get obj name : Js.js_string Js.t Js.opt))
+        ~default:""
+        ~f:Js.to_string
+    ;;
+
+    (* The first button among the children, which is what upstream looks for. *)
+    let find_button (el : Dom_html.element Js.t) : Dom_html.element Js.t option =
+      let found : Dom_html.element Js.t Js.opt =
+        Js.Unsafe.meth_call
+          el
+          "querySelector"
+          [| Js.Unsafe.inject (Js.string "button, [role=\"button\"]") |]
+      in
+      Js.Opt.to_option found
+    ;;
+
+    let set_attr (el : Dom_html.element Js.t) (name : string) (value : string) =
+      ignore
+        (Js.Unsafe.meth_call
+           el
+           "setAttribute"
+           [| Js.Unsafe.inject (Js.string name); Js.Unsafe.inject (Js.string value) |])
+    ;;
+
+    let add_listener (el : Dom_html.element Js.t) (kind : string) (listener : Js.Unsafe.any) =
+      ignore
+        (Js.Unsafe.meth_call
+           el
+           "addEventListener"
+           [| Js.Unsafe.inject (Js.string kind); Js.Unsafe.inject listener |])
+    ;;
+
+    let remove_listener (el : Dom_html.element Js.t) (kind : string) (listener : Js.Unsafe.any) =
+      ignore
+        (Js.Unsafe.meth_call
+           el
+           "removeEventListener"
+           [| Js.Unsafe.inject (Js.string kind); Js.Unsafe.inject listener |])
+    ;;
+
+    let listen (state : State.t) (button : Dom_html.element Js.t) =
+      match state.click_listener with
+      | Some _ -> ()
+      | None ->
+        let click =
+          Js.wrap_callback (fun _ ->
+            Effect.Expert.handle_non_dom_event_exn state.on_toggle)
+        in
+        state.click_listener <- Some (Js.Unsafe.inject click);
+        add_listener button "click" (Js.Unsafe.inject click);
+        (* A native button already produces a click from Enter and Space; anything else does not. *)
+        let is_native_button = String.equal (get_string button "tagName") "BUTTON" in
+        let role =
+          Option.value_map
+            (Js.Opt.to_option
+               (Js.Unsafe.meth_call
+                  button
+                  "getAttribute"
+                  [| Js.Unsafe.inject (Js.string "role") |]
+                : Js.js_string Js.t Js.opt))
+            ~default:""
+            ~f:Js.to_string
+        in
+        (* Both halves of upstream's condition: a native button needs no keydown at all, and a
+           non-button that never claimed the role has no keyboard contract to honour. *)
+        if (not is_native_button) && String.equal role "button"
+        then (
+          let key =
+            Js.wrap_callback (fun (event : Dom_html.event Js.t) ->
+              let key = get_string event "key" in
+              if String.equal key "Enter" || String.equal key " "
+              then (
+                ignore (Js.Unsafe.meth_call event "preventDefault" [||]);
+                Effect.Expert.handle_non_dom_event_exn state.on_toggle))
+          in
+          state.key_listener <- Some (Js.Unsafe.inject key);
+          add_listener button "keydown" (Js.Unsafe.inject key))
+    ;;
+
+    let apply (state : State.t) (input : Input.t) (el : Dom_html.element Js.t) =
+      (* Stored before anything can fire: the listeners read it, and they outlive this call. *)
+      state.on_toggle <- input.on_toggle;
+      match find_button el with
+      | None -> ()
+      | Some button ->
+        set_attr button "aria-haspopup" input.haspopup;
+        set_attr button "aria-expanded" (Bool.to_string input.is_open);
+        set_attr button "aria-controls" input.controls;
+        listen state button
+    ;;
+
+    let init _ _ = State.create ()
+    let on_mount input state el = apply state input el
+    let on_mount = `Schedule_immediately_after_this_dom_patch_completes on_mount
+    let update ~old_input:_ ~new_input state el = apply state new_input el
+
+    let destroy _ (state : State.t) el =
+      (match find_button el with
+       | None -> ()
+       | Some button ->
+         (match state.click_listener with
+          | None -> ()
+          | Some listener -> remove_listener button "click" listener);
+         (match state.key_listener with
+          | None -> ()
+          | Some listener -> remove_listener button "keydown" listener));
+      state.click_listener <- None;
+      state.key_listener <- None
+    ;;
+  end
+
+  module Hook = Vdom.Attr.Hooks.Make (T)
+
+  (* [haspopup] is upstream's `triggerProps['aria-haspopup']`: "dialog" when the layer is one, "true"
+     otherwise. It is an argument rather than a constant because the caller knows which it is. *)
+  let attr ~controls ~is_open ~on_toggle ?(haspopup = "dialog") () =
+    Vdom.Attr.create_hook
+      "astryx-layer-trigger"
+      (Hook.create { T.Input.is_open; controls; haspopup; on_toggle })
+  ;;
+end

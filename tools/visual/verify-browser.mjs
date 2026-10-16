@@ -1498,6 +1498,39 @@ if (mode === "showcase") {
     check("Escape dismisses it too, and the value is told again",
       escaped.open === false && /closed$/.test(escaped.value ?? ""), JSON.stringify(escaped));
 
+    /* The trigger's ARIA is state, so it has to move with the value — checked after a dismissal rather
+       than only at rest. */
+    const triggerAria = () =>
+      page.evaluate(() => {
+        const t = document.getElementById("showcase-layer-auto-trigger");
+        return {
+          haspopup: t ? t.getAttribute("aria-haspopup") : null,
+          expanded: t ? t.getAttribute("aria-expanded") : null,
+          controls: t ? t.getAttribute("aria-controls") : null,
+          controlsExists: !!(t && document.getElementById(t.getAttribute("aria-controls"))),
+        };
+      });
+    const aria = await triggerAria();
+    check("the trigger says what it opens, and whether it is showing",
+      aria.haspopup === "dialog" && aria.expanded === "false",
+      JSON.stringify(aria));
+    check("aria-controls names the layer element itself", aria.controlsExists, JSON.stringify(aria));
+
+    /* The double-handler trap: a native button synthesizes a click from Enter, so a port that also
+       attached a keydown listener would toggle twice — opening and immediately closing. Pressing it
+       once and expecting it open is the check that catches that. */
+    await page.focus("#showcase-layer-auto-trigger");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(250);
+    check("Enter on the trigger opens it, exactly once — no second handler fighting the first",
+      (await layerState("showcase-layer-auto")).open === true);
+    check("and the trigger now reports it as expanded",
+      (await triggerAria()).expanded === "true", JSON.stringify(await triggerAria()));
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(250);
+    check("Enter again closes it",
+      (await layerState("showcase-layer-auto")).open === false);
+
     /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");

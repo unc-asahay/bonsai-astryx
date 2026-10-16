@@ -1533,7 +1533,17 @@ let layer_static (_ : Bonsai.graph) =
   let one id is_open =
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.create "id" id ]
-      [ Vdom.Node.div
+      [ Vdom.Node.span
+          ~attrs:
+            [ Vdom.Attr.create "id" (id ^ "-trigger-wrapper")
+            ; Astryx.Common.Layer_trigger_hook.attr
+                ~controls:(id ^ "-surface")
+                ~is_open
+                ~on_toggle:Effect.Ignore
+                ()
+            ]
+          [ Vdom.Node.create "button" ~attrs:[ Vdom.Attr.create "id" (id ^ "-trigger") ] [] ]
+      ; Vdom.Node.div
           ~attrs:
             ([ Vdom.Attr.create "id" (id ^ "-surface"); Vdom.Attr.create "popover" "auto" ]
              @ Astryx.Common.Attr.data "component" "Layer"

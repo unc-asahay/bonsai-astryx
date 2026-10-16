@@ -1413,3 +1413,65 @@ stacking and depth machinery, and this is one mechanism underneath it. Coverage 
 
 Transcript: `docs/verification/sweep-m16a.txt`.
 
+## Gate 30 — the trigger's wiring (M16, second step), and where a harness stops being evidence
+
+The layer mechanism from Gate 29 drove the surface. This adds the other half of upstream's arrangement:
+the **trigger** is wired up for the caller, not by the caller.
+
+**`aria-expanded` is state, so the caller cannot supply it.** Upstream does not ask for the trigger's ARIA
+as props: it locates the first `button, [role="button"]` among the children and applies `aria-haspopup`,
+`aria-expanded` and `aria-controls` to it, plus the click that toggles the layer. An attribute handed in
+from outside could only ever be a snapshot and would go stale the first time the layer opened — which is
+why `Common.Layer_trigger_hook` is a hook and why the demo's Button now has **no `on_click` of its own**.
+Two subtleties came across with it:
+
+- **The keydown path is attached only to something that is *not* a native `<button>`.** A real button
+  synthesizes a click from Enter and Space, so a port that added a handler for it would toggle the layer
+  **twice** — opening and immediately closing — and the component would look broken in a way no
+  structural assertion would catch. The browser gate presses Enter once and expects the layer open, which
+  is the check that catches exactly that.
+- **The listeners read the *latest* effect, not the one captured at attach time.** A caller's effect tree
+  is rebuilt on every render, so a closure holding the first one would act on a value that has since
+  moved. The state carries the current effect and the listener reads it.
+
+| What | Evidence (real Chromium) |
+| --- | --- |
+| The trigger says what kind of thing it opens, and whether it is showing | `aria-haspopup="dialog"`, `aria-expanded` false then true |
+| `aria-controls` names the layer element itself | resolved, not compared as a string |
+| The keyboard path works and does **not** double-fire | Enter opens it, exactly once; Enter again closes it |
+| The trigger's ARIA follows a dismissal it did not perform | checked after the platform's own light dismiss |
+
+### Where a harness stops being evidence
+
+The first version of these checks was written for the **component** gate, and it failed: the trigger's
+ARIA came back `null`. The informative step was not adjusting the assertion but running the identical
+checks in Chromium, where they passed — so the code was right and the *harness* was the difference. This
+gate's jsdom harness mounts and reads the DOM without pumping the mount effects a live runtime runs, and
+a hook's work happens in exactly those effects.
+
+The checks were therefore split along the same line `<dialog>` forced, and the reason is written into the
+gate rather than discovered again next time:
+
+- **jsdom asserts the structure the hook has to find** — a real `<button>` inside the wrapper the hook
+  lives on, with the surface it controls as a sibling, because a mechanism handed nothing can still pass
+  every browser check it does not exercise;
+- **Chromium asserts the ARIA and the keyboard path themselves.**
+
+Worth stating plainly, because it generalises: *"it fails in jsdom"* is not evidence of a harness
+limitation until the same check passes in an engine that has the API. The two gates disagree here on
+purpose, and the disagreement is documented rather than smoothed over.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **411 / 0** |
+| Real-browser checks (Chromium, live showcase) | **206 / 206** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | 37 of 103 ported, 66 not (unchanged: still a mechanism, not a component) |
+| Showcase | 40 sections, 260 examples |
+| Appearance pages | 36 |
+
+Transcript: `docs/verification/sweep-m16b.txt`.
+

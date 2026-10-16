@@ -250,6 +250,11 @@ Layer (the native popover API)
   ok   and the application is told, so the value is not left saying open
   ok   it reopens after being dismissed out from under the application
   ok   Escape dismisses it too, and the value is told again
+  ok   the trigger says what it opens, and whether it is showing
+  ok   aria-controls names the layer element itself
+  ok   Enter on the trigger opens it, exactly once — no second handler fighting the first
+  ok   and the trigger now reports it as expanded
+  ok   Enter again closes it
   ok   a manual layer opens
   ok   Escape does not touch it — the platform was never asked to dismiss this one
   ok   nor does a real click outside
@@ -263,7 +268,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-201/201 checks passed, 0 failure(s)
+206/206 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

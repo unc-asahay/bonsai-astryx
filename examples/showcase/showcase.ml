@@ -2540,11 +2540,23 @@ let layer_demo (graph : Bonsai.graph) =
        and leaving it out here is deliberate — this demonstrates the mechanism, not the component. *)
     let trigger =
       Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
-        Astryx.Button.view
-          ~label
-          ~attrs:[ Vdom.Attr.create "id" (id ^ "-trigger") ]
-          ~on_click:(fun _ -> set (not is_open))
-          [])
+        Vdom.Node.span
+          ~attrs:
+            [ Vdom.Attr.create "id" (id ^ "-trigger-wrapper")
+              (* The trigger is wired by the mechanism, not by the caller: aria-expanded is state, so
+                 an attribute handed in from outside could only be a snapshot. The click comes from
+                 here for the same reason — which is why this Button has no on_click of its own. *)
+            ; Astryx.Common.Layer_trigger_hook.attr
+                ~controls:(id ^ "-surface")
+                ~is_open
+                ~on_toggle:(set (not is_open))
+                ()
+            ]
+          [ Astryx.Button.view
+              ~label
+              ~attrs:[ Vdom.Attr.create "id" (id ^ "-trigger") ]
+              []
+          ])
     in
     let surface =
       Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
