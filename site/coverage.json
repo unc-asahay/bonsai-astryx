@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 34,
-    "unported": 69,
+    "ported": 35,
+    "unported": 68,
     "total": 103,
     "documented": 103
   },
@@ -64,6 +64,12 @@
       "module": "Astryx.Code",
       "file": "src/code.ml",
       "milestone": "M6"
+    },
+    {
+      "name": "Dialog",
+      "module": "Astryx.Dialog",
+      "file": "src/dialog.ml",
+      "milestone": "M14"
     },
     {
       "name": "Divider",
@@ -238,7 +244,6 @@
     "DateInput",
     "DateRangeInput",
     "DateTimeInput",
-    "Dialog",
     "FileInput",
     "HoverCard",
     "InputGroup",

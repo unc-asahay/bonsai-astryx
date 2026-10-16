@@ -30,6 +30,19 @@ Rendered as an ordered list (not a navigation landmark).
 - **Don't:** Use more than 7 steps; consider grouping related steps or using a
   different pattern.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `activeStep` | `number` | yes | `` | Zero-based index of the active step. / |
+| `children` | `ReactNode` | yes | `` | Step elements to render. / |
+| `orientation` | `StepperOrientation` | no | `'horizontal' /` | Layout direction of the stepper. |
+| `onStepClick` | `(index: number) => void` | no | `` | Called when a step is clicked, or when a compact summary control is used. Enables non-linear navigation. At compact horizontal widths, individual track nodes are presentational; when the collapsed variant includes summary controls, those controls skip disabled steps. / |
+| `label` | `string` | no | `` | Accessible label describing the set of steps. Defaults to a translated "Progress" when unset. / |
+| `density` | `'compact' \| 'balanced' \| 'spacious'` | no | `'balanced' /` | Controls density (padding) of all steps. |
+| `indicatorPosition` | `StepperIndicatorPosition` | no | `'separated' /` | Controls where each step's indicator sits relative to the connector track. - 'separated': indicator lives in the label row, distinct from the progress bar (the original Astryx layout). - 'on-track': indicator is slotted into the connector line as a node on the track (the on-track indicator design). |
+| `horizontalOptions` | `StepperHorizontalOptions` | no | `{minimumStepWidth: 112, collapsedVariant: 'withLabelAndControls'} /` | Options specific to the horizontal layout. `minimumStepWidth` controls the per-step collapse threshold; `collapsedVariant` selects a label with controls, a label alone, or a bare progress track. |
+
 ## Anatomy
 
 - `Stepper` (required) — The ordered list holding the steps. Owns the orientation and the indicator placement the whole flow is laid out on.

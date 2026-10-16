@@ -20,6 +20,24 @@ to existing layout components via their resizable prop.
 - **Don't:** Wrap panels in extra container components for resize. The hook-first
   architecture avoids extra DOM; use it directly on existing components.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `_size` | `number` | yes | `` | None |
+| `_isCollapsed` | `boolean` | yes | `` | None |
+| `_onResizeStart` | `() => void` | yes | `` | None |
+| `_onResizeMove` | `(delta: number) => void` | yes | `` | None |
+| `_onResizeEnd` | `() => void` | yes | `` | None |
+| `_onResizeCancel` | `() => void` | no | `` | The gesture ended without completing — pointercancel, a lost pointer capture, or a handle unmounted mid-drag. Separate from `_onResizeEnd` because a cancelled drag deliberately does not signal a resize end (#5297), but it must still release everything the gesture was holding. Optional: `ResizableProps` is exported, so a hand-built object from before this existed has to keep compiling. / |
+| `_minSizePx` | `number` | yes | `` | None |
+| `_maxSizePx` | `number` | yes | `` | None |
+| `_snaps` | `number[]` | yes | `` | None |
+| `_collapsedSize` | `number` | yes | `` | None |
+| `_collapsible` | `boolean` | yes | `` | Whether the region supports collapsing. */ |
+| `_direction` | `ResizableDirection` | no | `` | The hook's axis, so a handle can flag a direction mismatch. Optional for the same reason as `_onResizeCancel`: this type is exported, and requiring a new field would break every object literal that already satisfies it. Absent means "no axis to check", not "horizontal". / |
+| `_isResizableProps` | `true` | yes | `` | None |
+
 ## Anatomy
 
 - `Handle` (required) — Focusable separator that owns pointer and keyboard resize interaction.

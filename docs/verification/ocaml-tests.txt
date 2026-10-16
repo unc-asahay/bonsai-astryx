@@ -4,6 +4,8 @@
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -393,5 +395,17 @@ disabledMessage
   ok   a reason on an enabled control changes nothing
   ok   the switch does the same
 
-362 checks, 0 failure(s)
+Dialog
+  ok   an inline dialog renders as a dialog role with the component marker
+  ok   and it states its purpose
+  ok   its title is a real element, and the dialog names itself from it
+  ok   a closed inline dialog renders nothing at all
+  ok   an inline dialog states its purpose
+  ok   variant = fullscreen is a class on the surface
+  ok   width and position are inline styles on the surface
+  ok   the modal path renders a real <dialog> element
+  ok   and it renders where showModal does not exist, without throwing
+  ok   a required modal is an alertdialog as well
+
+372 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

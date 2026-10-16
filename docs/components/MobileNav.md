@@ -17,6 +17,18 @@ MobileNavToggle as the trigger; it reads state from context automatically.
   from context. Do not pass isOpen/onOpenChange to the toggle.
 - **Don't:** Use MobileNav on desktop: use a persistent SideNav instead.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `isOpen` | `boolean` | no | `` | Whether the drawer is open. Inside AppShell, this is managed automatically via context. Outside AppShell, provide this prop to control the drawer yourself. / |
+| `onOpenChange` | `(isOpen: boolean) => void` | no | `` | Callback fired when the drawer visibility changes. Called with `false` when the drawer should close (backdrop click, escape, close button). Inside AppShell, this is managed automatically via context. Outside AppShell, provide this prop to control the drawer yourself. / |
+| `children` | `ReactNode` | yes | `` | Drawer content — typically SideNavSection/SideNavItem, or any ReactNode. / |
+| `header` | `ReactNode` | no | `` | Header content for the drawer. Rendered next to the close button. Pass a string for a simple text heading, or a ReactNode for custom content (logo, SideNavHeading, search bar, etc.). / |
+| `width` | `number` | no | `320 /` | Width of the drawer in pixels. |
+| `side` | `'start' \| 'end' \| 'auto'` | no | `'auto' /` | Which side the drawer slides from. - `'start'` — slides from the inline-start edge (left in LTR) - `'end'` — slides from the inline-end edge (right in LTR) - `'auto'` — determined by the trigger element's position: if the toggle is in the start half of the viewport the drawer opens from start, otherwise from end. |
+| `label` | `string 'data-testid'?: string` | no | `` | Accessible label for the drawer. Falls back to header string, then 'Navigation'. / |
+
 ## Anatomy
 
 - `Navigation overlay` (required) — Full-viewport dialog overlay that hosts the mobile navigation drawer.

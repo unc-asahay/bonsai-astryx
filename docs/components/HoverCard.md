@@ -26,6 +26,25 @@ definitions where the user needs more context without navigating away.
   <p>, heading, or link. Those placements are supported when necessary
   through a corrective portal, but the DOM and tab order may differ.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `children` | `ReactNode` | yes | `` | The trigger element(s). Children refs are preserved. / |
+| `content` | `ReactNode` | yes | `` | Content to display in the hover card. / |
+| `placement` | `LayerPlacement` | no | `'above' /` | Position placement relative to anchor |
+| `alignment` | `LayerAlignment` | no | `'center' /` | Alignment along the placement axis |
+| `delay` | `number` | no | `300 /` | Delay before showing on hover (ms) |
+| `hideDelay` | `number` | no | `200 /` | Delay before hiding after mouse/focus leave (ms) |
+| `focusTrigger` | `HoverCardFocusTrigger` | no | `'auto' /` | When to trigger on focus: - `auto`: Only if element is naturally focusable - `always`: Always attach focus listeners - `never`: Never attach focus listeners (for composite widgets) |
+| `touchTrigger` | `HoverCardTouchTrigger` | no | `'auto' /` | What a tap does on a touch pointer, where there is no hover: - `auto`: tap opens the card, unless the trigger performs an action of its own (a button, a link, a form control) — that tap belongs to the control - `tap`: tap always opens the card, even on a trigger that acts - `none`: touch never opens the card |
+| `isEnabled` | `boolean` | no | `true /` | Whether the hover card is enabled. When false, hover/focus triggers are disabled. |
+| `label` | `string` | no | `` | Accessible name for the hover card popup. When provided, the popup is exposed to assistive technology as a named `role="dialog"`. When omitted, the popup falls back to `role="group"` — a group may validly be unnamed, an unnamed dialog may not. / |
+| `onOpenChange` | `(isOpen: boolean) => void` | no | `` | Callback fired when hover card visibility changes. Called with `true` when shown and `false` when hidden. / |
+| `hasHoverIndication` | `'auto' \| boolean` | no | `'auto' /` | Whether to show hover indication (dashed underline) on the trigger. - `'auto'`: Show for text-only children - `true`: Always show - `false`: Never show |
+| `isOpen` | `boolean` | no | `` | Controlled open state. When provided, overrides hover/focus triggers: - `true`: force-show the hover card (hover/focus hide is suppressed) - `false`: force-hide the hover card - `undefined`: uncontrolled — hover/focus triggers manage visibility A controlled hover card still takes Escape when it is the top-most layer, and answers by calling `onOpenChange(false)` without hiding itself — closing is your update's decision, exactly as for a controlled Dialog. Ignore the call and the card stays, and so does the press: nothing underneath dismisses. / |
+| `isDefaultOpen` | `boolean` | no | `` | Whether the hover card should be shown on mount. The hover card is still dismissible — this just opens it initially. / |
+
 ## Anatomy
 
 - `Trigger` (required) — The element that opens the hover card on hover or focus: a button, link, or inline text.

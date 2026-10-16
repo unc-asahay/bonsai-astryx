@@ -170,7 +170,13 @@ const GRID_PROBE = () => {
 
 const LAYOUT_PROBE = () => {
   const vw = window.innerWidth;
-  const boxes = [...document.querySelectorAll("[data-astryx-component]")].map((el) => {
+  const boxes = [...document.querySelectorAll("[data-astryx-component]")]
+    // Ask each element whether it renders at all, rather than assuming every marked component has a
+    // box. A closed <dialog> is display:none by the platform and its *contents* collapse with it —
+    // that is the platform working, not a component collapsing, and the first version of this probe
+    // reported six collapsed components on that basis alone.
+    .filter((el) => el.checkVisibility?.() !== false)
+    .map((el) => {
     const r = el.getBoundingClientRect();
     return {
       component: el.getAttribute("data-astryx-component"),

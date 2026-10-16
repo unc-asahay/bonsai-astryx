@@ -27,6 +27,20 @@ and all buttons, inputs, and tabs inside it match automatically.
 - **Don't:** Use Toolbar for app-wide navigation like main menu links or sign out;
   use TopNav or LayoutHeader for that.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `startContent` | `ReactNode` | no | `` | Content aligned to the start (left in LTR). / |
+| `centerContent` | `ReactNode` | no | `` | Content centered between start and end. When provided, switches layout to CSS grid (1fr auto 1fr). / |
+| `endContent` | `ReactNode` | no | `` | Content aligned to the end (right in LTR). / |
+| `label` | `string` | yes | `` | Accessible label for the toolbar. Applied as aria-label on the inner toolbar element. / |
+| `size` | `ToolbarSize` | no | `'md' /` | Size of the toolbar. Coordinates with Button, TextInput, TabList, and Selector — children inherit this size as their default via SizeContext. - `'sm'`: Compact — fits sm buttons/inputs (28px elements) - `'md'`: Standard — fits md buttons/inputs (32px elements) - `'lg'`: Spacious — fits lg buttons/inputs (36px elements) |
+| `gap` | `SpacingStep` | no | `1 /` | Gap between items within each slot, using the spacing scale. |
+| `orientation` | `'horizontal' \| 'vertical'` | no | `'horizontal' /` | Orientation of the toolbar for keyboard navigation. Controls which arrow keys navigate between items. |
+| `variant` | `SectionVariant` | no | `'transparent' /` | Visual variant passed through to Section. |
+| `dividers` | `('top' \| 'bottom' \| 'start' \| 'end')[]` | no | `` | Which sides should have divider borders. Passed through to Section. @example ``` dividers={['bottom']} ``` / |
+
 ## Anatomy
 
 - `Outer chrome` (required) — Section-owned container that supplies the toolbar surface, padding, and selected divider edges.

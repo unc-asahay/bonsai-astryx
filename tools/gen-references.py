@@ -9,7 +9,9 @@ parity status) come from port.json when it exists.
 import json, re
 from pathlib import Path
 
-ROOT = Path.home() / "src/astryx-port"
+# Derived from this file rather than hardcoded: the repo was once checked out under another
+# name, and a stale absolute path made the generator silently un-runnable from anywhere else.
+ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 COMPONENTS = DOCS / "components"
 registry = json.loads((ROOT / "registry.json").read_text())

@@ -42,6 +42,15 @@ component outright.
   empty circle on an unchosen row). Drawing nothing in a state is a
   decision the indicator makes, not one the host makes for it.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `state` | `IndicatorState<F>` | yes | `` | Which state to draw. The state space is fixed by the family. */ |
+| `size` | `IndicatorSize` | no | `'md' /` | Control size. |
+| `isDisabled` | `boolean` | no | `false /` | Whether the owning control is disabled. Purely visual — the owner still owns the actual disabled semantics. |
+| `children` | `ReactNode` | no | `` | Content rendered inside the indicator chrome *instead of* the state mark. CheckboxInput uses this to show a loading Spinner inside the box while a change action is pending. / |
+
 ## Anatomy
 
 - `Chrome (checkbox, radio)` (required) — The persistent box or circle rendered by CheckboxIndicator and RadioIndicator in every state. CheckIndicator is the state mark itself and intentionally owns no chrome.

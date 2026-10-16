@@ -1390,6 +1390,56 @@ section("FieldLabel");
       && describedBy("dm-switch-reason").includes("dm-switch-reason-disabled-message"));
 }
 
+// ---------------------------------------------------------------- Dialog (M14)
+{
+  section("Dialog");
+  // jsdom has no dialog behaviour — showModal and close do not exist on its elements — so the
+  // structural half is pressed through the inline path, and the modal path is pressed for the two
+  // things jsdom *can* say: that it renders a real <dialog> with the modal attributes, and that it
+  // does not throw in a realm where the platform has no dialog at all.
+  const inline = document.getElementById("dlg-inline");
+  check("an inline dialog renders as a dialog role with the component marker",
+    !!inline && inline.getAttribute("role") === "dialog"
+      && inline.getAttribute("data-astryx-component") === "Dialog");
+  check("and it states its purpose", inline?.getAttribute("data-purpose") === "info");
+  // The port's own lesson: read the attribute, then look up what it points at.
+  const named = inline?.getAttribute("aria-labelledby");
+  const titleEl = named ? document.getElementById(named) : null;
+  check("its title is a real element, and the dialog names itself from it",
+    !!named && !!titleEl && titleEl.textContent === "Title", named ?? "no aria-labelledby");
+
+  check("a closed inline dialog renders nothing at all",
+    document.getElementById("dlg-inline-closed") === null);
+
+  // The inline path is the showcase one, and upstream puts no role on it either — the role belongs to
+  // the modal element, which is checked below. What the inline path does carry is its purpose.
+  const required = document.getElementById("dlg-inline-required");
+  check("an inline dialog states its purpose",
+    required?.getAttribute("data-purpose") === "required");
+
+  const fullscreen = document.getElementById("dlg-inline-fullscreen");
+  check("variant = fullscreen is a class on the surface",
+    !!fullscreen && fullscreen.classList.contains("astryx-dialog--fullscreen"));
+
+  const sized = document.getElementById("dlg-inline-sized");
+  check("width and position are inline styles on the surface",
+    !!sized && /width:28rem/.test(sized.getAttribute("style") || "")
+      && /top:4rem/.test(sized.getAttribute("style") || ""),
+    sized?.getAttribute("style") ?? "no style");
+
+  // The modal path: a real <dialog>, and rendering it here must not throw.
+  const modal = document.getElementById("dlg-modal-closed");
+  check("the modal path renders a real <dialog> element",
+    !!modal && modal.tagName === "DIALOG" && modal.getAttribute("aria-modal") === "true",
+    modal?.tagName ?? "missing");
+  // This is the assertion that would have failed had the port called showModal unconditionally:
+  // in jsdom it does not exist, and the whole page would have thrown while mounting.
+  check("and it renders where showModal does not exist, without throwing",
+    !!modal && modal.open === false);
+  check("a required modal is an alertdialog as well",
+    document.getElementById("dlg-modal-required")?.getAttribute("role") === "alertdialog");
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

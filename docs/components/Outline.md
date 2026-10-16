@@ -28,6 +28,21 @@ Home/End jump to the ends, and Enter/Space activate.
 - **Don't:** Rely on onNavigateEnd to mean "arrived" - it also fires when the user
   interrupts the scroll.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `items` | `OutlineItem[]` | yes | `` | Ordered list of heading items to render. */ |
+| `activeId` | `string` | no | `` | ID of the currently active item. When provided, disables built-in scroll-spy. */ |
+| `onActiveIdChange` | `(id: string) => void` | no | `` | Called when the active item changes from scroll-spy or click. */ |
+| `label` | `string` | no | `'Table of contents' */` | Accessible label for the nav landmark. |
+| `density` | `'default' \| 'compact'` | no | `'default' /` | Density variant controlling item padding. - 'default': Standard spacing (default) - 'compact': Reduced spacing for dense UIs |
+| `onNavigateStart` | `(id: string) => void` | no | `` | Called when navigation to an item begins, before the scroll starts. Receives the item `id`. Pair with `onNavigateEnd` to drive an arrival effect (flash, ring, pulse) on the target heading. / |
+| `onNavigateEnd` | `(id: string) => void` | no | `` | Called once when navigation to an item resolves — when the smooth scroll settles, or immediately-ish when reduced motion turns it into a jump. Fires exactly once for every `onNavigateStart`, including when the user interrupts the scroll by scrolling manually, so a "navigating" state can never leak. It does not fire if the Outline unmounts mid-scroll. / |
+| `offset` | `number` | no | `0 /` | Height in px of a fixed header overlaying the top of the scroll root. Shifts both the activation line *and* the scroll landing by the same amount, so a heading activates exactly where navigating to it puts it — below the header rather than hidden underneath it. It composes with each heading's own `scroll-margin-top` (the header, then the breathing room below it) rather than replacing it. When nothing overlays the content, leave this at 0 and let `scroll-margin-top` do the work — the browser already honors it. |
+| `scrollContainerRef` | `React.RefObject<HTMLElement \| null>` | no | `` | Scroll container to track, instead of auto-detecting the nearest scrollable ancestor. Use this when the content scrolls inside a split pane, modal, or dashboard panel rather than the viewport. / |
+| `hasScrollOnClick` | `boolean 'data-testid'?: string` | no | `true /` | Whether activating an item smooth-scrolls to it. Set to false to own the scrolling yourself (virtualized content, a router) — the Outline still updates the active item, the hash, and the navigate callbacks, but performs no scroll and suppresses the anchor's default jump. |
+
 ## Anatomy
 
 - `Outline` (required) — Navigation container for the same-page heading links and indicator.

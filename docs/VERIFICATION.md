@@ -1003,3 +1003,99 @@ cannot detect a regression on that same run.
 | Coverage | **34 of 103** ported, 69 not |
 | Showcase | 35 sections, 242 examples |
 | Appearance pages | 31 |
+
+## Gate 23 — the hook (`8c4309c`), and a divergence that was never real
+
+This gate exists because Gate 21 recorded something as impossible and the record was wrong.
+
+Gate 21's second divergence read: *"the 200 ms hover delay is not ported. Opening after a pause needs a
+timer whose callback can reach the component's state setter, and this release exposes no primitive for
+that."* The reasoning is sound — it just rests on a premise nobody checked. **`Vdom.Attr.create_hook`
+exists**, `Vdom.Attr.Hooks.Make` is its functor, and a hook's input may carry a `unit Effect.t` that
+`Effect.Expert.handle_non_dom_event_exn` runs. `virtual_dom`'s own `Always_focus_hook` and
+`Single_focus_hook` — sitting in `attr.ml` beside the API — are the worked example, and
+`bonsai_web_components`' element-size and visibility hooks do the same from outside the library. The
+primitive had been there the whole time.
+
+The value of the mistake is that it is recorded rather than quietly fixed. The item is struck through in
+place at Gate 21, with the old reasoning kept, because "what we believed and why" is the more useful
+record than a clean list.
+
+| What | Evidence |
+| --- | --- |
+| `Common.Delay_hook`, cancellable by construction | input `Some delay_ms` while the pointer is present, `None` the moment it leaves — so a changed input **cancels** the pending timer rather than racing it |
+| `?delay_ms` on `Tooltip.view`, default 200 ms | upstream's value, not a chosen one |
+| The delay is pressed, not described | browser: "hovering does NOT open it straight away — there is a delay" and "leaving before the delay elapses never opens it at all" |
+| The false claim corrected in four places | `src/tooltip.mli`, this file's Gate 21, `ROADMAP.md`, and `port.json`'s M13 note — the last because that is the text the tool layer hands to agents |
+
+The bug worth recording is the one the gate could not have described: the first implementation called
+`setTimeout(delay, callback)`. The browser coerces the number, calls nothing, raises nothing and logs
+nothing — a silently empty statement. The only symptom was "the tooltip never opens", and it was found by
+instrumenting the hook with two log lines (`delay start: 200.` with no matching `delay fired`) and one
+throwaway playwright probe that hovered and dumped the console.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **362 / 0** |
+| Real-browser checks (Chromium, live showcase) | **162 / 162** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | 34 of 103 ported, 69 not |
+| Showcase | 35 sections, 242 examples |
+| Appearance pages | 31 |
+
+Transcript: `docs/verification/sweep-m13f.txt` (`sweep-m13f.txt` exit 0, 0 FAIL).
+
+## Gate 24 — Dialog (M14), or: the platform owns the modality
+
+The first component in the port whose behaviour is not written in the port. Upstream builds Dialog on the
+native `<dialog>` opened with `showModal()`, so the top layer, the inert page behind it, the focus trap,
+`Escape` and `::backdrop` are the browser's. What the port owns is the **dismissal matrix**, and the gate
+presses it rather than reading it:
+
+| purpose | Escape | backdrop click | role |
+| --- | --- | --- | --- |
+| `info` | closes | closes | `dialog` |
+| `form` | closes | **does not** | `dialog` |
+| `required` | **does not** | **does not** | `alertdialog` |
+
+| What | Evidence |
+| --- | --- |
+| `showModal()` is really used, not merely `open` | browser: the element matches `:modal`, which an element carrying the `open` attribute in ordinary flow does not |
+| The hook drives it from a *value* | `Common.Delay_hook`'s mechanism (Gate 23); no event fires when a caller changes their own state, so the DOM side cannot be a handler |
+| Focus is trapped, then returned | browser: `document.activeElement` is inside the dialog on open, and is the trigger again after close |
+| The platform's own close works | browser: a `<form method="dialog">` submit button closes it, and the application learns through `on_open_change` — no callback from the content |
+| It renders where the platform has no dialog at all | component gate: jsdom 30 implements neither `showModal` nor `close`, and the modal path still renders without throwing (guarded by a feature check, since the platform is not always there) |
+
+### What the gates caught, and what reading did not
+
+1. **Two `style` attributes lose one.** Sizing and position were written as separate attributes;
+   virtual_dom merges last-wins, so the position was silently dropped. Caught because the check reads the
+   style rather than the class.
+2. **`<form method="dialog">` did nothing when clicked** — the port's `Button` defaults to
+   `type="button"`, which is right, and means a button inside a form does not submit. The example now
+   passes `~type_:Button.Submit`; the prop had been ported since M2 and this is the first caller.
+3. **Six unrelated browser checks failed** because the dialog above them never closed: a modal left open
+   makes the rest of the page inert. The failure names the *symptom*, not the cause — a gate that is one
+   page cannot tell "the dropdown's keyboard path is broken" from "something above it is still modal".
+4. **The responsive probe invented six collapsed components** — a closed `<dialog>` is `display: none`,
+   and everything marked inside it has a zero box. The fix is general: ask each element whether it
+   renders (`checkVisibility`) instead of assuming a marked component has a box. Baselines regenerated;
+   the page legitimately grew.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **372 / 0** |
+| Real-browser checks (Chromium, live showcase) | **174 / 174** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **35 of 103** ported, 68 not |
+| Showcase | 36 sections, 249 examples |
+| Appearance pages | 32 |
+
+Transcript: `docs/verification/sweep-m14b.txt`.
+

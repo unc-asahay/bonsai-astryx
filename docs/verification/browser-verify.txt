@@ -48,17 +48,31 @@ disabledMessage (live)
   ok   the switch's reason behaves the same way
   ok   and hides again when the pointer leaves
 
+Dialog (live)
+  ok   opening a dialog puts it in the top layer, modally
+  ok   and focus is taken into it, which is the trap
+  ok   the application is told it is open
+  ok   Escape closes it, and the application hears about it
+  ok   and focus goes back where it came from
+  ok   purpose = form: a backdrop click does NOT close it
+  ok   and the application is still told it is open
+  ok   but Escape does close it
+  ok   purpose = required is role = alertdialog
+  ok   Escape does NOT close it
+  ok   and neither does a backdrop click
+  ok   a form method=dialog button closes it, and the application is told
+
 showcase sections
-  ok   35 sections
+  ok   36 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   242 examples across the page
+  ok   249 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   35 nav links
+  ok   36 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -208,13 +222,13 @@ switch (real engine)
 
 coverage panel (fetched from coverage.json at runtime)
   ok   coverage stats are 34 ported / 69 not / 103 total
-  ok   unported list rendered 69 entries
+  ok   unported list rendered 68 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-162/162 checks passed, 0 failure(s)
+174/174 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

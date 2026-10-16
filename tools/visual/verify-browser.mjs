@@ -234,7 +234,7 @@ if (mode === "showcase") {
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
-    "RadioList", "FormLayout", "Tooltip",
+    "RadioList", "FormLayout", "Tooltip", "Dialog",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -412,8 +412,78 @@ if (mode === "showcase") {
   check("and hides again when the pointer leaves",
     (await reasonState("showcase-switch-reason-disabled-message"))?.visibility === "hidden");
 
+  // ---------------------------------------------------------------- Dialog (M14)
+  console.log("\nDialog (live)");
+  const dialogState = (name) =>
+    page.evaluate((n) => {
+      const d = document.getElementById(`showcase-dialog-${n}`);
+      return {
+        open: !!d && d.open,
+        modal: !!d && d.matches(":modal"),
+        role: d?.getAttribute("role") ?? null,
+        readout: document.getElementById(`showcase-dialog-state-${n}`)?.textContent ?? null,
+        focusInside: !!d && d.contains(document.activeElement),
+      };
+    }, name);
+  const openDialog = async (name) => {
+    await page.click(`#showcase-dialog-open-${name}`);
+    await page.waitForTimeout(120);
+  };
+  const pressEscape = async () => {
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(120);
+  };
+
+  // INFO: every exit works. The first assertion is that showModal() was used at all — a dialog with
+  // the open attribute would be in ordinary flow and would not match :modal.
+  await openDialog("info");
+  let info = await dialogState("info");
+  check("opening a dialog puts it in the top layer, modally", info.open && info.modal,
+    JSON.stringify(info));
+  check("and focus is taken into it, which is the trap", info.focusInside);
+  check("the application is told it is open", /open$/.test(info.readout ?? ""), info.readout ?? "");
+  await pressEscape();
+  info = await dialogState("info");
+  check("Escape closes it, and the application hears about it",
+    !info.open && /closed$/.test(info.readout ?? ""), JSON.stringify(info));
+  const focusBack = await page.evaluate(
+    () => document.activeElement?.id ?? null);
+  check("and focus goes back where it came from", focusBack === "showcase-dialog-open-info",
+    `focus is on ${focusBack}`);
+
+  // FORM: a half-filled form must not be lost to a stray click, but Escape is still an exit.
+  await openDialog("form");
+  await page.mouse.click(5, 5);
+  await page.waitForTimeout(120);
+  let form = await dialogState("form");
+  check("purpose = form: a backdrop click does NOT close it", form.open && form.modal);
+  check("and the application is still told it is open", /open$/.test(form.readout ?? ""), form.readout ?? "");
+  await pressEscape();
+  form = await dialogState("form");
+  check("but Escape does close it", !form.open && /closed$/.test(form.readout ?? ""));
+
+  // REQUIRED: neither exit, and it says so in its role.
+  await openDialog("required");
+  let required = await dialogState("required");
+  check("purpose = required is role = alertdialog", required.role === "alertdialog", required.role ?? "none");
+  await pressEscape();
+  required = await dialogState("required");
+  check("Escape does NOT close it", required.open && /open$/.test(required.readout ?? ""));
+  await page.mouse.click(5, 5);
+  await page.waitForTimeout(120);
+  required = await dialogState("required");
+  check("and neither does a backdrop click", required.open && /open$/.test(required.readout ?? ""));
+
+  // The platform's own close: a <form method="dialog"> submit button, with no callback from the
+  // application at all — the component reports the close through on_open_change.
+  await page.click("#showcase-dialog-close-required");
+  await page.waitForTimeout(150);
+  required = await dialogState("required");
+  check("a form method=dialog button closes it, and the application is told",
+    !required.open && /closed$/.test(required.readout ?? ""), JSON.stringify(required));
+
   console.log("\nshowcase sections");
-  check("35 sections", sections.length === 35, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("36 sections", sections.length === 36, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -431,10 +501,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
-    RadioList: 9, FormLayout: 7, Tooltip: 6,
+    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("242 examples across the page", totalExamples === 242, `got ${totalExamples}`);
+  check("249 examples across the page", totalExamples === 249, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -447,7 +517,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("35 nav links", nav.length === 35, `got ${nav.length}`);
+  check("36 nav links", nav.length === 36, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1225,10 +1295,10 @@ if (mode === "showcase") {
   }));
   check(
     "coverage stats are 34 ported / 69 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["34", "69", "103"]),
+    JSON.stringify(cov.stats) === JSON.stringify(["35", "68", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 69 entries", cov.unported === 69, `got ${cov.unported}`);
+  check("unported list rendered 68 entries", cov.unported === 68, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

@@ -30,6 +30,17 @@ together visually, like copy/cut/paste, or undo/redo.
   member drops focus, so a keyboard user loses their place; leave the
   group enabled and show progress on the button that started the work.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `children` | `ReactNode` | yes | `` | Button or IconButton children. / |
+| `label` | `string` | yes | `` | Accessible label for the group (used as aria-label). / |
+| `orientation` | `ButtonGroupOrientation` | no | `'horizontal' /` | Orientation of the button group. |
+| `size` | `ButtonSize` | no | `'md' /` | Default size for buttons in the group. Individual buttons can override this with their own `size` prop. |
+| `elevation` | `Elevation` | no | `'none' /` | Resting elevation for the group. The connected buttons share one surface, so the shadow sits on the group and lifts them together. Use for a floating group of actions above content. |
+| `isDisabled` | `boolean 'data-testid'?: string` | no | `false /` | Whether all buttons in the group are disabled. |
+
 ## Anatomy
 
 - `Button` (required) — One or more Button or IconButton children that form the connected group.

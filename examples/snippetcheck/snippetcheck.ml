@@ -132,6 +132,31 @@ let form_layout () : Vdom.Node.t Bonsai.t =
       ())
 ;;
 
+(* A dialog's two arguments are trees straight from the state — the component returns a tree itself,
+   so wrapping it in a map2 would nest one tree inside another. The children stay plain nodes, which
+   is why a close button inside needs no callback: <form method="dialog"> closes it, and the
+   component reports that through on_open_change. *)
+let dialog (graph : Bonsai.graph) =
+  let is_open, set_is_open = Bonsai.state false graph in
+  let heading =
+    Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" "snippet-dialog-title" ] [ Vdom.Node.text "Settings" ]
+  in
+  let body = Vdom.Node.div [ Vdom.Node.text "Body" ] in
+  let save_form =
+    Vdom.Node.create "form" ~attrs:[ Vdom.Attr.create "method" "dialog" ]
+      [ Astryx.Button.view ~label:"Save" [] ]
+  in
+  Astryx.Dialog.view
+    ~purpose:Astryx.Dialog.Info
+    ~labelled_by:"snippet-dialog-title"
+    ~is_open
+    ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
+    ~id:"snippet-dialog"
+    ~children:[ heading; body; save_form ]
+    ()
+;;
+
 let () =
   ignore (tooltip : Bonsai.graph -> Vdom.Node.t Bonsai.t);
-  ignore (form_layout : unit -> Vdom.Node.t Bonsai.t)
+  ignore (form_layout : unit -> Vdom.Node.t Bonsai.t);
+  ignore (dialog : Bonsai.graph -> Vdom.Node.t Bonsai.t)

@@ -104,6 +104,12 @@
       "name": "the forms layer's edges",
       "note": "RadioList (the first real consumer of the group-label path M12 built, and the milestone where to ask what the platform already does paid off: three radios sharing a name are already one tab stop whose arrows move *and* select, so the port writes no keydown handler at all), FormLayout (upstream's defaultOptionality arrives through React context, which has no analogue here because a child is already built before the container is applied \u2014 so it becomes ?optionality per field, and the resolved rule is aria-required = !is_optional && (is_required || default = required), with the layout default moving only aria-required and never the native attribute so it cannot switch on browser validation), and Tooltip \u2014 which the plan first put here and which turned out to depend on Layer, so it opened the overlay pillar instead and followed DropdownMenu's convention of a positioned element rather than a top-layer portal. Two divergences are named in tooltip.mli: the message is positioned in place, and the 200 ms hover delay is NOT a divergence \u2014 it was recorded as one on the false premise that no timer's callback can write back into the graph, and Gate 23 retired that: Vdom.Attr.create_hook plus a unit Effect.t in a hook's input is exactly that mechanism, and the delay is ported and pressed by the browser gate (it must not open straight away, it must open after the pause, and leaving early must cancel). The milestone also retires the disabledMessage deferral, which turned out not to be a Tooltip at all: the reason must be described for as long as the control is disabled rather than only while hovered, so the controls trade the native disabled attribute for aria-disabled plus form=\"\" and the visual half is one CSS rule \u2014 which keeps their stateless signatures.",
       "status": "complete"
+    },
+    {
+      "id": "M14",
+      "name": "the overlay pillar opens (Dialog)",
+      "note": "Dialog is built on the platform's own <dialog>, opened with showModal(), so the top layer, the inert page behind it, the focus trap and the ::backdrop are the browser's rather than the port's \u2014 the same judgment as porting a native radio group with no keydown handler. The opening is driven by the hook Gate 23 unlocked: is_open is a value and showModal/close have to follow it, and no event fires when a caller changes their own state, so the DOM side cannot live in a handler. The dismissal matrix is what the port owns and what the browser gate presses: info closes on Escape and on a backdrop click, form closes on Escape but not on a backdrop click, and required refuses both and carries role=alertdialog. Closing from inside closes through <form method=\"dialog\"> \u2014 the platform's own mechanism \u2014 and the component reports it through on_open_change, which is why the children stay plain nodes. Deferred with reasons: upstream's Layer depth stack, page scroll lock, modal outlet and directional open animation; DialogHeader and AlertDialog are the rest of this milestone.",
+      "status": "in progress"
     }
   ],
   "ported": [
@@ -345,6 +351,13 @@
       "file": "src/tooltip.ml",
       "milestone": "M13",
       "module": "Astryx.Tooltip"
+    },
+    {
+      "class": "C",
+      "component": "Dialog",
+      "file": "src/dialog.ml",
+      "milestone": "M14",
+      "module": "Astryx.Dialog"
     }
   ],
   "schema": 1,

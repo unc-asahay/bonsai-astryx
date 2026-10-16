@@ -53,6 +53,7 @@ module Radio_list = Radio_list
 module Form_layout = Form_layout
 module FormLayout = Form_layout
 module Tooltip = Tooltip
+module Dialog = Dialog
 module RadioList = Radio_list
 module Field_label = Field_label
 module Dropdown_menu = Dropdown_menu

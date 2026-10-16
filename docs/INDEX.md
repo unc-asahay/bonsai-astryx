@@ -1,6 +1,6 @@
 # Component index
 
-Generated 2026-10-15 from Astryx (100 documented components, MIT). One line per component; open the per-component file for the full contract.
+Generated 2026-10-15 from Astryx (103 documented components, MIT). One line per component; open the per-component file for the full contract.
 
 | component | category | status | one-liner |
 | --- | --- | --- | --- |
@@ -43,6 +43,8 @@ Generated 2026-10-15 from Astryx (100 documented components, MIT). One line per 
 | [FileInput](components/FileInput.md) | Form Controls | not started | FileInput provides file upload with optional drag-and-drop support |
 | [FormLayout](components/FormLayout.md) | Layout | not started | A layout container that arranges form fields with consistent spacing and direction |
 | [Grid](components/Grid.md) | Layout | not started | A CSS grid layout container for arranging children in rows and columns |
+| [HStack](components/HStack.md) | - | not started |  |
+| [Heading](components/Heading.md) | - | not started |  |
 | [HoverCard](components/HoverCard.md) | Overlay | not started | HoverCard shows additional information when the user hovers or focuses a trigger element |
 | [Icon](components/Icon.md) | Content | not started | Icons are small visual symbols that represent actions, objects, or concepts |
 | [IconButton](components/IconButton.md) | Action | not started | A button that shows only an icon with no visible text |
@@ -60,8 +62,8 @@ Generated 2026-10-15 from Astryx (100 documented components, MIT). One line per 
 | [MobileNav](components/MobileNav.md) | Navigation | not started | A slide-out drawer for mobile navigation |
 | [MoreMenu](components/MoreMenu.md) | Action | not started | MoreMenu is a three-dot button that opens a list of actions |
 | [MultiSelector](components/MultiSelector.md) | Form Controls | not started | A checkbox dropdown for selecting multiple values from a list |
-| [NavIcon](components/NavIcon.md) | Navigation | not started | NavIcon is a circular icon container with an accent-colored background |
 | [NavHeadingMenu](components/NavHeadingMenu.md) | Navigation | not started | Accessible menu container and items for nav heading popovers |
+| [NavIcon](components/NavIcon.md) | Navigation | not started | NavIcon is a circular icon container with an accent-colored background |
 | [NumberInput](components/NumberInput.md) | Form Controls | not started | A form input for numeric values with built-in validation, min/max constraints, and step controls |
 | [Outline](components/Outline.md) | Navigation | not started | A table-of-contents sidebar for documentation pages, help centers, wikis, and long settings pages |
 | [OverflowList](components/OverflowList.md) | Table & List | not started | A horizontal list that automatically hides items when they exceed the available width |
@@ -85,8 +87,8 @@ Generated 2026-10-15 from Astryx (100 documented components, MIT). One line per 
 | [StatusDot](components/StatusDot.md) | Feedback & Status | not started | A small colored dot that communicates status like online/offline presence or severity levels |
 | [Stepper](components/Stepper.md) | Navigation | not started | Steppers display progress through a sequence of logical and numbered steps |
 | [Switch](components/Switch.md) | Form Controls | not started | A toggle control for on/off states that take effect immediately |
-| [Table](components/Table.md) | Table & List | not started | Table displays structured data in rows and columns with consistent dimensionality |
 | [TabList](components/TabList.md) | Navigation | not started | TabList provides tab-style navigation for organizing content into categorized sections |
+| [Table](components/Table.md) | Table & List | not started | Table displays structured data in rows and columns with consistent dimensionality |
 | [Text](components/Text.md) | Content | not started | Text renders styled body text and headings from the theme |
 | [TextArea](components/TextArea.md) | Form Controls | not started | TextArea is a multi-line text input for collecting longer-form content like comments, descriptions, or message |
 | [TextInput](components/TextInput.md) | Form Controls | not started | TextInput collects short-form text like names, emails, or search queries |
@@ -103,4 +105,5 @@ Generated 2026-10-15 from Astryx (100 documented components, MIT). One line per 
 | [TopNav](components/TopNav.md) | Navigation | not started | TopNav is a horizontal navigation bar for product-level navigation in application headers |
 | [TreeList](components/TreeList.md) | Table & List | not started | An expandable tree structure for displaying hierarchical data with branch connector lines |
 | [Typeahead](components/Typeahead.md) | Form Controls | not started | A searchable input for selecting a single item from a large or dynamic dataset |
+| [VStack](components/VStack.md) | - | not started |  |
 | [VisuallyHidden](components/VisuallyHidden.md) | Utility | not started | Renders content in the accessibility tree while hiding it visually |

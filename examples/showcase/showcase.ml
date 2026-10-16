@@ -2085,6 +2085,154 @@ let tooltip_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- dialog (state, and the platform) *)
+
+(* The only component so far whose behaviour is the browser's: a <dialog> opened with showModal() is
+   in the top layer, the page behind it is inert, focus is trapped and ::backdrop is drawn, none of
+   which is written anywhere in the port. What IS ours is the dismissal matrix, and that is what the
+   live examples below exist to press: Escape and a backdrop click are two separate permissions, and
+   "required" refuses both. *)
+let dialog_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let body text =
+    Vdom.Node.div
+      ~attrs:(Common.Attr.class_ [ "showcase-dialog-body" ])
+      [ Vdom.Node.text text ]
+  in
+  let title id text =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.create "id" id; Vdom.Attr.create "class" "showcase-dialog-title" ]
+      [ Vdom.Node.text text ]
+  in
+  let inline ?purpose ?variant ?width ?max_height ?position ?padding label text =
+    ex_tree
+      label
+      (Dialog.view
+         ~is_inline:true
+         ?purpose
+         ?variant
+         ?width
+         ?max_height
+         ?position
+         ?padding
+         ~labelled_by:"showcase-dialog-inline-title"
+         ~is_open:(Bonsai.return true)
+         ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.Many []))
+         ~id:("showcase-dialog-inline-" ^ label)
+         ~children:[ title "showcase-dialog-inline-title" "Dialog"; body text ]
+         ())
+  in
+  (* One live dialog per purpose, each with a readout the application owns. The gate reads the readout
+     to learn whether the component *reported* a dismissal — a different question from whether the
+     element closed, and the one a controlled component has to get right.
+
+     Both arguments are trees taken straight from the state: the component returns a tree itself, so
+     wrapping it in a map2 would nest one tree inside another. The close button inside needs no
+     callback at all — a <form method="dialog"> submit button closes the dialog itself, and the
+     component reports it through on_open_change. That is the platform doing the work, and it is why
+     the children stay plain nodes. *)
+  let live purpose name =
+    let is_open, set_is_open = Bonsai.state false graph in
+    let open_button =
+      Bonsai.map set_is_open ~f:(fun set_is_open ->
+        Button.view
+          ~variant:Button.Secondary
+          ~label:("Open (" ^ name ^ ")")
+          ~attrs:[ Vdom.Attr.create "id" ("showcase-dialog-open-" ^ name) ]
+          ~on_click:(fun _ -> set_is_open true)
+          [])
+    in
+    let readout =
+      Bonsai.map is_open ~f:(fun is_open ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" ("showcase-dialog-state-" ^ name) ]
+          [ Vdom.Node.text
+              (if is_open then "the application says: open" else "the application says: closed")
+          ])
+    in
+    let close_form =
+      Vdom.Node.create
+        "form"
+        ~attrs:[ Vdom.Attr.create "method" "dialog" ]
+        [ Button.view
+            ~variant:Button.Primary
+            ~label:"Close"
+            (* type=submit is what makes the platform's own <form method="dialog"> close the dialog.
+               The port's Button defaults to type=button — which is the right default, and was also
+               why the first version of this example did nothing at all when clicked. *)
+            ~type_:Button.Submit
+            ~attrs:[ Vdom.Attr.create "id" ("showcase-dialog-close-" ^ name) ]
+            []
+        ]
+    in
+    let dialog =
+      Dialog.view
+        ~purpose
+        ~labelled_by:("showcase-dialog-title-" ^ name)
+        ~is_open
+        ~on_open_change:(Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value))
+        ~id:("showcase-dialog-" ^ name)
+        ~children:
+          [ title ("showcase-dialog-title-" ^ name) ("A " ^ name ^ " dialog")
+          ; body "Escape and a backdrop click are separate permissions."
+          ; close_form
+          ]
+        ()
+    in
+    ex_tree
+      ("a live dialog, purpose = " ^ name)
+      (Bonsai.map2
+         (Bonsai.map2 open_button readout ~f:(fun a b -> a, b))
+         dialog
+         ~f:(fun (open_button, readout) dialog -> Vdom.Node.div [ open_button; dialog; readout ]))
+  in
+  let examples =
+    [ inline "structure, rendered inline" "The showcase path: ordinary markup, no top layer."
+    ; inline
+        "purpose = required, which is what makes it an alert dialog"
+        "role=alertdialog, and neither exit works."
+        ~purpose:Dialog.Required
+    ; inline
+        "sized and placed"
+        "width, max-height and a position are inline styles."
+        ~width:"28rem"
+        ~max_height:"50vh"
+        ~position:{ Dialog.top = Some "4rem"; bottom = None; start = Some "2rem"; end_ = None }
+        ~padding:Common.Spacing.S5
+    ; inline
+        "variant = fullscreen"
+        "Ignores width, max-height and position; it is the viewport."
+        ~variant:Dialog.Fullscreen
+    ; live Dialog.Info "info"
+    ; live Dialog.Form "form"
+    ; live Dialog.Required "required"
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"dialog"
+      ~title:"Dialog"
+      ~note:
+        "A modal surface built on the platform's own <dialog>, opened with showModal() — so the top \\
+         layer, the inert page behind it, the focus trap and the ::backdrop come from the browser and \\
+         are not written here at all. What is ours is the dismissal matrix, and the three live \\
+         dialogs below are how it is pressed rather than read: purpose = info closes on Escape and on \\
+         a backdrop click, purpose = form closes on Escape but NOT on a backdrop click (a half-filled \\
+         form should not be lost to a stray click), and purpose = required refuses both and carries \\
+         role = alertdialog, because a dialog that refuses every exit is one the user has to answer. \\
+         Two divergences are named in the interface rather than hidden: upstream's Layer gives it a \\
+         depth stack, a page scroll lock and a directional open animation, none of which is ported \\
+         (what is ported is the focus restoration, because that is behaviour rather than flourish), \\
+         and the title association is an argument here where upstream wires it from context, because \\
+         a child in this port is already built by the time the container sees it."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2131,6 +2279,7 @@ let nav_items =
   ; "radiogroup", "RadioList"
   ; "form-layout", "FormLayout"
   ; "tooltip", "Tooltip"
+  ; "dialog", "Dialog"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2167,6 +2316,7 @@ let page (graph : Bonsai.graph) =
   let radio_list_section = radio_list_demo graph in
   let form_layout_section = form_layout_demo graph in
   let tooltip_section = tooltip_demo graph in
+  let dialog_section = dialog_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2180,10 +2330,14 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful radio_list_section in
   let stateful = pair stateful form_layout_section in
   let stateful = pair stateful tooltip_section in
+  let stateful = pair stateful dialog_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip)
+    ~f:(fun ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+                 , form_layout )
+               , tooltip )
+             , dialog )
           text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -2191,7 +2345,7 @@ let page (graph : Bonsai.graph) =
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; dropdown; interactive ])
       ])
 ;;
 

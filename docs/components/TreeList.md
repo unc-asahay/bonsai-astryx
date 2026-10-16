@@ -19,6 +19,15 @@ interface that visualizes parent-child relationships.
   pattern.
 - **Don't:** Use a tree for flat, non-hierarchical data; use a List instead.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `items` | `TreeListItemData[]` | yes | `` | Tree items as a recursive data structure. Each item can have nested `children` arrays. / |
+| `density` | `TreeListDensity` | no | `'balanced' /` | Spacing density for tree list items. - 'compact': Tighter spacing for dense UIs - 'balanced': Standard spacing - 'spacious': Extra spacing for readability |
+| `variant` | `TreeListVariant` | no | `'lineGuides' /` | Visual treatment of the hierarchy guide (connector) lines. - `lineGuides`: connector lines between parent and child rows - `noGuides`: no connector lines; indentation alone conveys nesting Orthogonal to `density` (which controls spacing) — the two compose. |
+| `header` | `ReactNode 'data-testid'?: string` | no | `` | Header content rendered above the tree list. Semantically associated via aria-labelledby. / |
+
 ## Anatomy
 
 - `Tree list` (required) — Container that presents the hierarchical tree.

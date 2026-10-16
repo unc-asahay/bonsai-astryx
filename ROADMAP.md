@@ -285,6 +285,66 @@ in-place positioning cannot; they belong to the pillar's later phases. Likewise 
 `SideNav`/`TopNav` (6,334/5,238, class B) and `Markdown` (7,754, class B): each is self-contained and
 each is a larger single sitting than anything above.
 
+## M14 — the overlay pillar opens (Dialog, AlertDialog) (in progress)
+
+`Tooltip` proved the pillar's convention; `Dialog` is where the port starts handing the *behaviour*
+over to the platform rather than reimplementing it. Upstream builds Dialog on the native `<dialog>`
+opened with `showModal()`, so the top layer, the inert page behind it, the focus trap, the `Escape`
+handling and the `::backdrop` are the browser's — nothing in the port writes them. That is the same
+judgment as porting a native radio group with no keydown handler (M13), and it is the reason Dialog is
+the first overlay that is not a copy of the `DropdownMenu` positioning convention.
+
+What the port *does* own is the **dismissal matrix**, which is why the milestone's browser checks press
+it rather than read it:
+
+- `purpose = info` — `Escape` closes it, a backdrop click closes it.
+- `purpose = form` — `Escape` closes it; **a backdrop click does not.** A half-filled form should not be
+  lost to a stray click, and that distinction is invisible in the DOM: it shows up only as behaviour.
+- `purpose = required` — neither exit works, and the element carries `role = alertdialog`. A dialog that
+  refuses every exit is one the user has to answer.
+
+**The mechanism that makes it possible is Gate 23's hook.** A controlled dialog's `is_open` is a value,
+and `showModal()`/`close()` have to follow it — but no event fires when a *caller* changes their own
+state, so the DOM side cannot live in a handler. `Common.Delay_hook` established that
+`Vdom.Attr.create_hook` plus a `unit Effect.t` in the hook's input is that primitive; `Dialog` is its
+first real customer. Gate 21 had recorded this class of thing as unportable, and this is the milestone
+where the correction pays.
+
+Three finds, all of them caught by gates rather than by reading:
+
+1. **`<form method="dialog">` closes a dialog with no JavaScript at all** — the platform's own
+   mechanism, and the reason the component's `children` stay plain nodes: a caller never has to hand a
+   setter down into the content to get a close button. The port reports the close through
+   `on_open_change`, and the `close` event is what carries it.
+   *The first version did nothing when clicked*: `Button.view` defaults to `type="button"`, which is the
+   correct default and also means a button inside a form does not submit. The example now passes
+   `~type_:Button.Submit`. The port had carried upstream's `type?: 'button' | 'submit' | 'reset'` prop
+   since M2; this is the first time anything needed it.
+2. **Two `style` attributes silently lose one.** The sizing and the position were written as separate
+   `style` attributes, and virtual_dom merges last-wins, so the position was dropped. The component gate
+   caught it because the check reads the *style* rather than the class. One merged attribute now.
+3. **A modal left open makes the rest of the page inert** — so six *unrelated* browser checks failed
+   (focus, `Enter` on a button, the whole dropdown keyboard path) purely as a consequence of the dialog
+   above them not closing. A real-browser failure is not always about the thing it names; the gate is
+   one page and the checks share it.
+
+A fourth, in the responsive probe: a closed `<dialog>` is `display: none`, so the dialog *and every
+marked component inside it* report a zero box — and the probe called that "a component collapsed to zero
+size", six of them. The fix is the general one: ask each element whether it renders at all
+(`checkVisibility`), rather than assuming every marked component has a box. The baselines were
+regenerated, because the page legitimately grew.
+
+**Deferred with reasons** (recorded in `dialog.mli`, not hidden): upstream's `Layer` gives a dialog a
+depth stack, a page scroll lock, a modal outlet and a directional open animation. None is ported. Focus
+*restoration* is, because that is behaviour rather than flourish — the element that had focus is captured
+on open and given it back on close. The title association is an argument here (`~labelled_by`) where
+upstream wires it from React context, because a child in this port is already built by the time the
+container sees it — the same moment that shaped `FormLayout` in M13.
+
+Still to do in this milestone: `DialogHeader` (title, description, footer) and `AlertDialog` — the rest
+of the modal group, both thin over what Dialog now provides. Then `Popover` and `BottomSheet`, and the
+`Layer` primitives underneath them.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

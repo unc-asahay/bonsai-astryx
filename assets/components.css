@@ -1696,3 +1696,51 @@
   visibility: visible;
   opacity: 1;
 }
+
+/* ---------------------------------------------------------------- Dialog */
+
+/* The element is the platform's <dialog>, opened with showModal(): the top layer, the inert page
+   behind it, the focus trap and the ::backdrop are the browser's. Only the surface is ours. */
+.astryx-dialog {
+  margin: auto;
+  border: none;
+  padding: 0;
+  max-width: min(90vw, 100%);
+  border-radius: var(--radius-container);
+  background: var(--color-background-popover);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-high);
+}
+
+.astryx-dialog::backdrop {
+  background: rgb(0 0 0 / 40%);
+}
+
+.astryx-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  max-height: inherit;
+  overflow: auto;
+}
+
+/* Upstream's fullscreen variant ignores width, max-height and position: it is the viewport. */
+.astryx-dialog--fullscreen {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+
+/* The showcase path: the same content as ordinary markup, with no top layer and no modality. */
+.astryx-dialog__inline {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-background-popover);
+  color: var(--color-text-primary);
+}

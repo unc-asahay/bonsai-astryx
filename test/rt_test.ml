@@ -1349,3 +1349,64 @@ let () =
     disabled_message_static
   |> fun handle -> mount "disabled-message" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Dialog (M14) *)
+
+(* jsdom has no dialog behaviour at all — showModal and close do not exist on its elements — so this
+   gate presses the half it can: the inline path, which is the structure without any modality, and
+   the fact that the *modal* path renders and reports without throwing where the platform has no
+   dialog. The modal behaviour itself (top layer, focus trap, Escape, backdrop) belongs to a real
+   browser and is pressed there. *)
+let dialog_static (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let title id = Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text "Title" ] in
+  let body = Vdom.Node.div [ Vdom.Node.text "Body" ] in
+  let dialog ?is_inline ?purpose ?variant ?width ?position ~is_open ~id () =
+    Dialog.view
+      ?is_inline
+      ?purpose
+      ?variant
+      ?width
+      ?position
+      ~labelled_by:(id ^ "-title")
+      ~is_open:(Bonsai.return is_open)
+      ~on_open_change:no_change
+      ~id
+      ~children:[ title (id ^ "-title"); body ]
+      ()
+  in
+  join_all
+    [ dialog ~is_inline:true ~is_open:true ~id:"dlg-inline" ()
+    ; (* closed inline renders nothing at all: upstream returns null, and so does this *)
+      dialog ~is_inline:true ~is_open:false ~id:"dlg-inline-closed" ()
+    ; dialog
+        ~is_inline:true
+        ~purpose:Dialog.Required
+        ~is_open:true
+        ~id:"dlg-inline-required" ()
+    ; dialog ~is_inline:true ~variant:Dialog.Fullscreen ~is_open:true
+        ~id:"dlg-inline-fullscreen" ()
+    ; dialog
+        ~is_inline:true
+        ~width:"28rem"
+        ~position:{ Dialog.top = Some "4rem"; bottom = None; start = None; end_ = None }
+        ~is_open:true
+        ~id:"dlg-inline-sized" ()
+      (* the modal path, in a realm where showModal does not exist *)
+    ; dialog ~is_open:false ~id:"dlg-modal-closed" ()
+    ; dialog ~purpose:Dialog.Required ~is_open:false ~id:"dlg-modal-required" ()
+    ]
+  |> Bonsai.map ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    dialog_static
+  |> fun handle -> mount "dialog" (Bonsai_web_test.Handle.last_result handle)
+;;

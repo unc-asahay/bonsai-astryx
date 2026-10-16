@@ -21,6 +21,25 @@ UI.
 - **Don't:** Use tooltips for essential information that users must see to complete a
   task.
 
+## Props
+
+| prop | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `children` | `ReactNode` | no | `` | The trigger element(s). Children refs are preserved. When `anchorRef` is provided, children can be omitted and the tooltip attaches to the external ref element as a sibling. / |
+| `anchorRef` | `React.RefObject<HTMLElement \| null>` | no | `` | External ref to use as the tooltip anchor. When provided (and no children), the tooltip attaches to this element instead of wrapping children. This enables sibling-mode rendering, useful for lazy-loaded tooltips that shouldn't remount children. / |
+| `content` | `ReactNode` | yes | `` | Content to display in the tooltip. Typically short, non-interactive text. / |
+| `placement` | `LayerPlacement` | no | `'above' /` | Position placement relative to anchor |
+| `alignment` | `LayerAlignment` | no | `'center' /` | Alignment along the placement axis |
+| `delay` | `number` | no | `200 /` | Delay before showing on hover (ms) |
+| `hideDelay` | `number` | no | `0 /` | Delay before hiding after mouse/focus leave (ms) |
+| `focusTrigger` | `TooltipFocusTrigger` | no | `'auto' /` | When to trigger on focus: - `auto`: Only if element is naturally focusable - `always`: Always attach focus listeners - `never`: Never attach focus listeners (for composite widgets) |
+| `touchTrigger` | `TooltipTouchTrigger` | no | `'auto' /` | What a tap does on a touch pointer, where there is no hover: - `auto`: tap opens the tooltip, unless the trigger performs an action of its own (a button, a link, a form control) — that tap belongs to the control, and a hint about a control the user just operated is noise - `tap`: tap always opens the tooltip. This is what an info icon rendered as a button wants: it looks like an action to the DOM, but revealing the tooltip is the only thing it does - `none`: touch never opens the tooltip |
+| `isEnabled` | `boolean` | no | `true /` | Whether the tooltip is enabled. When false, hover/focus triggers are disabled. |
+| `onOpenChange` | `(isOpen: boolean) => void` | no | `` | Callback fired when tooltip visibility changes. Called with `true` when shown and `false` when hidden. / |
+| `hasHoverIndication` | `'auto' \| boolean` | no | `'auto' /` | Whether to show hover indication (dashed underline) on the trigger. - `'auto'`: Show for text-only children - `true`: Always show - `false`: Never show |
+| `isOpen` | `boolean` | no | `` | Controlled open state. When provided, overrides hover/focus triggers: - `true`: force-show the tooltip (hover/focus hide is suppressed) - `false`: force-hide the tooltip - `undefined`: uncontrolled — hover/focus triggers manage visibility A controlled tooltip still takes Escape when it is the top-most layer, and answers by calling `onOpenChange(false)` without hiding itself — closing is your update's decision, exactly as for a controlled Dialog. Ignore the call and the tip stays, and so does the press: nothing underneath dismisses. / |
+| `isDefaultOpen` | `boolean` | no | `` | Whether the tooltip should be shown on mount. The tooltip is still dismissible — this just opens it initially. / |
+
 ## Anatomy
 
 - `Tooltip surface` (required) — Painted overlay surface that presents the tooltip.
