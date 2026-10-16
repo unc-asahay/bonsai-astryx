@@ -3,12 +3,24 @@
 # viewports: 375x667, 768x1024, 1440x900; screenshots + baselines beside this file
 
 chromium:   /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
-viewports:  375x667, 768x1024, 1440x900
+viewports:  320x568, 375x667, 768x1024, 1440x900
 baseline:   /home/noor/src/bonsai-astryx/docs/verification/responsive/baseline
 
 ========================================================================
 showcase  http://127.0.0.1:8791/site/index.html
 ========================================================================
+
+showcase @ 320x568
+  ok   [320x568] the page does not overflow horizontally
+  ok   [320x568] no component escapes the viewport
+  ok   [320x568] no component collapsed to zero size
+  ok   [320x568] ported components are on the page
+  ok   [320x568] the responsive grid fills its container (238px of 238px, 1 track(s))
+  ok   [320x568] the nav does not overflow
+  ok   [320x568] the button is hit-testable at its centre
+  ok   [320x568] a real mouse click increments the counter (0 -> 1)
+  ok   [320x568] no console errors
+  ok   [320x568] pixels match the baseline (0.00% differ)
 
 showcase @ 375x667
   ok   [375x667] the page does not overflow horizontally
@@ -50,6 +62,14 @@ showcase @ 1440x900
 demo  http://127.0.0.1:8791/examples/demo/index.html
 ========================================================================
 
+demo @ 320x568
+  ok   [320x568] the page does not overflow horizontally
+  ok   [320x568] no component escapes the viewport
+  ok   [320x568] no component collapsed to zero size
+  ok   [320x568] ported components are on the page
+  ok   [320x568] no console errors
+  ok   [320x568] pixels match the baseline (0.00% differ)
+
 demo @ 375x667
   ok   [375x667] the page does not overflow horizontally
   ok   [375x667] no component escapes the viewport
@@ -75,6 +95,8 @@ demo @ 1440x900
   ok   [1440x900] pixels match the baseline (0.00% differ)
 
 reflow (auto-fill grid: tracks per viewport)
+  320x568: 1 track(s) in 238px
+     all grids: 2x[repeat(2, 1fr)] 3x[repeat(3, 1fr)] 4x[repeat(4, 1fr)] 1x[repeat(auto-fill, minmax(180] 1x[repeat(auto-fit, minmax(180p] 3x[repeat(3, 1fr)]
   375x667: 1 track(s) in 293px
      all grids: 2x[repeat(2, 1fr)] 3x[repeat(3, 1fr)] 4x[repeat(4, 1fr)] 1x[repeat(auto-fill, minmax(180] 1x[repeat(auto-fit, minmax(180p] 3x[repeat(3, 1fr)]
   768x1024: 3 track(s) in 686px
@@ -84,5 +106,5 @@ reflow (auto-fill grid: tracks per viewport)
   ok   the auto-fill grid fits more tracks on a wide viewport than on a narrow one
   ok   every grid on the page has a non-zero track count
 
-50 checks passed, 0 failure(s)
+66 checks passed, 0 failure(s)
 RESPONSIVE CHECKS PASSED

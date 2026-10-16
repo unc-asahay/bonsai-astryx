@@ -48,7 +48,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
 | **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 81 checks, 0 failures | `node test/run.mjs` |
 | **Real-browser gate** (Chromium over HTTP, incl. a real click into Bonsai state, and Enter on a focused button) | ✅ 42 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
-| **Responsive + visual-regression gate** (mobile/tablet/desktop, pixel diff vs stored baseline) | ✅ 50 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
+| **Responsive + visual-regression gate** (320/375/768/1440 wide, pixel diff vs stored baseline) | ✅ 66 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
 | Showcase site (`site/`, all 19 ported components, 137 examples, 20 sections) | ✅ live | serve the repo root, open `/site/index.html` |
 | Coverage panel (ported vs not, from `port.json`) | ✅ 19 / 84 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |

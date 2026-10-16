@@ -46,7 +46,7 @@ const root = resolve(here, "../..");
 const args = process.argv.slice(2);
 const updateBaseline = args.includes("--update-baseline");
 const viewportArg = args.find((a) => a.startsWith("--viewports="));
-const VIEWPORTS = (viewportArg ? viewportArg.split("=")[1] : "375x667,768x1024,1440x900")
+const VIEWPORTS = (viewportArg ? viewportArg.split("=")[1] : "320x568,375x667,768x1024,1440x900")
   .split(",")
   .map((s) => {
     const [w, h] = s.split("x").map(Number);
@@ -326,11 +326,23 @@ for (const [name, g] of cols) {
   console.log(`     all grids: ${g.all.map((x) => `${x.tracks}x[${x.decl}]`).join(" ")}`);
 }
 if (cols.length >= 2) {
-  const narrow = cols[0][1].tracks;
-  const wide = cols[cols.length - 1][1].tracks;
-  check("the auto-fill grid fits more tracks on a wide viewport than on a narrow one",
-    wide > narrow,
-    cols.map(([k, g]) => `${k}:${g.tracks}`).join(" "));
+  const narrow = cols[0];
+  const wide = cols[cols.length - 1];
+  const narrowW = parseInt(narrow[0]);
+  const wideW = parseInt(wide[0]);
+  if (wideW < narrowW * 2) {
+    // Two viewports a few pixels apart may both fit exactly one track, and that is not
+    // a defect. Only assert reflow across a width gap wide enough that the track count
+    // must change; otherwise record the observation without pretending it is a test.
+    console.log(
+      `  note  widest viewport (${wideW}px) is less than twice the narrowest (${narrowW}px) — ` +
+        `reflow not asserted, observation only`,
+    );
+  } else {
+    check("the auto-fill grid fits more tracks on a wide viewport than on a narrow one",
+      wide[1].tracks > narrow[1].tracks,
+      cols.map(([k, g]) => `${k}:${g.tracks}`).join(" "));
+  }
   check("every grid on the page has a non-zero track count",
     cols.every(([, g]) => g.all.every((x) => x.tracks > 0)),
     cols.map(([k, g]) => `${k}:${g.all.filter((x) => x.tracks === 0).length} empty`).join(" "));

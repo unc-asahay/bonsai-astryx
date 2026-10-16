@@ -215,7 +215,8 @@ screenshots: `docs/verification/responsive/`, baselines in `.../baseline/`
 
 Gates 6 and 7 both run at one viewport. This one asks whether the components survive being
 looked at from a phone, a tablet and a desktop, and whether the pixels moved since last time.
-It covers both pages (demo and showcase) at **375x667, 768x1024 and 1440x900** — 50 checks.
+It covers both pages (demo and showcase) at **320x568 (extra-small phone), 375x667, 768x1024
+and 1440x900** — 66 checks.
 
 Per viewport: the page does not overflow horizontally, no component box escapes the viewport,
 no component has collapsed to zero width or height, the AspectRatio examples keep h/w = 0.5625,
@@ -224,13 +225,20 @@ and — the end-to-end part — the counter button is *hit-tested at its centre*
 but covered or off-screen fails here instead of passing on a synthetic `.click()`. The showcase
 also checks that the nav does not overflow.
 
-Across viewports: the auto-fill grid must fit more tracks as the viewport widens.
+Across viewports: the auto-fill grid must fit more tracks as the viewport widens. The assertion
+only runs when the widest viewport is at least twice the narrowest — two viewports a few pixels
+apart legitimately both fit one track, and asserting reflow there would be a false failure. The
+tool says "observation only" in that case rather than quietly passing.
 
-### Result: 50 checks, 0 failures
+### Result: 66 checks, 0 failures
 
 ```
-375x667:  1 track in 293px    768x1024: 3 tracks in 686px    1440x900: 4 tracks in 876px
+320x568:  1 track in 238px     375x667:  1 track in 293px
+768x1024: 3 tracks in 686px    1440x900: 4 tracks in 876px
 ```
+
+At 320px — the width where layouts usually break first — nothing overflows, nothing collapses,
+and the responsive grid still fills its container exactly (238px of 238px).
 
 ### Two bugs this gate found, both in the showcase's own CSS
 
