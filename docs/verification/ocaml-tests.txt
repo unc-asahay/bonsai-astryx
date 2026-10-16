@@ -336,5 +336,23 @@ Switch
   ok   a hidden label is clipped rather than removed
   ok   required is said once
 
-316 checks, 0 failure(s)
+RadioList
+  ok   the group is a radiogroup
+  ok   its label is a group label, not a <label for>
+  ok   its radios share one name, which is what makes them one group
+  ok   exactly one radio is checked, the selected one
+  ok   checked is a property, not an attribute
+  ok   and no aria-checked shadows it
+  ok   each item's label is a real <label for>, so clicking it chooses the radio
+  ok   the selected radio's indicator is the filled one
+  ok   an item description is linked from its radio
+  ok   the group links its status message
+  ok   and says it is invalid
+  ok   required is on every radio, and on the group as aria-required
+  ok   a disabled group is on the element
+  ok   one disabled item disables only its own radio
+  ok   the orientation is on the element
+  ok   a hidden label is clipped rather than removed
+
+332 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

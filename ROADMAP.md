@@ -218,15 +218,23 @@ M12 ported the controls; this milestone finishes their surroundings. Every piece
 *because* of what M12 left in place, which is the only reason it is worth doing before the larger
 pillars below.
 
-- **`RadioList`** (class B, 1,781 lines) is the first consumer of `Indicator`'s **radio** kind, which
-  has been ported and unrendered since M12 — the same position `Indicator` itself was in before
-  `CheckboxInput`. It is cheaper than its line count suggests, for one reason worth writing down: a
-  *native* radio group already implements roving focus and arrow-key selection, so a set of
-  `<input type="radio">` sharing a `name` gets the keyboard for free and no keydown handler is
-  needed. What has to be right is the group's shape — `role="radiogroup"` with `aria-labelledby`, a
-  `Field`-composed label above it (a radio group *is* a form field, which is why upstream composes
-  `Field` here and `FieldLabel` directly in the checkbox), `orientation`, and `required` bound to
-  each radio rather than to the group.
+- **`RadioList`** (class B, 1,781 lines) — **done**, and it is worth saying what it actually cost. It is
+  the first consumer of `Indicator`'s **radio** kind, which had been ported and unrendered since M12
+  (the same position `Indicator` itself was in before `CheckboxInput`). The keyboard was free, exactly
+  as this section predicted: a *native* radio group is one tab stop and its arrows move **and** select,
+  so the port sets a shared `name` and writes no keydown handler at all — and the real-browser gate
+  presses ArrowDown, ArrowUp and Tab rather than believing that. What did have to be right: the group
+  composes `Field` twice over (a radio group is a form field, so its label is a *group* label — a
+  `<span>` the group names itself from with `aria-labelledby`, and it is the first real consumer of the
+  group-label path M12 built for `FieldLabel`), and `Field` renders the description and status outside
+  the group, so the group links them itself.
+
+  Two incidental finds, both of which had been passing silently: the appearance-contract generator
+  could not see any class containing `__` (`82` of the stylesheet's `312` selectors, including
+  `CheckboxInput`'s and `Switch`'s whole innards — their pages had been reporting `1 class, 3
+  declarations`), and the gate's frozen expected-section list had never been extended for
+  `Indicator`, `CheckboxInput` or `Switch`, so any of them could have disappeared from the showcase
+  without a check noticing.
 
 - **`FormLayout`** (class B, 603 lines) is the cheap end of M12's deferrals, and it owns the one rule
   that changes how every control already ported *renders*: `defaultOptionality`, which decides

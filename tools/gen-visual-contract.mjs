@@ -141,8 +141,12 @@ function declarationsFor(classes) {
   const tokensUsed = new Set();
   for (const [selector, decls] of cssRules) {
     const base = selector.includes(" :: ") ? selector.split(" :: ")[1] : selector;
-    // match only plain `.class` selectors (skip pseudo/compound for the base look)
-    if (!/^\.[a-z0-9-]+$/i.test(base)) continue;
+    // Match only plain `.class` selectors (skip pseudo/compound for the base look). The character
+    // class includes `_` because the port's own names are BEM-ish: `.astryx-switch__thumb` is a
+    // plain class and reads as one to any browser. Leaving it out made 82 of the stylesheet's 312
+    // selectors invisible here, so a component whose root class happened to contain `__` reported a
+    // hollow contract (RadioList: 4 classes, 0 declarations) while every assertion still passed.
+    if (!/^\.[a-z0-9_-]+$/i.test(base)) continue;
     if (!classes.includes(base.slice(1))) continue;
     for (const [prop, value] of decls) {
       for (const token of value.match(/--[a-z0-9-]+/gi) ?? []) tokensUsed.add(token);

@@ -233,11 +233,59 @@ if (mode === "showcase") {
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
     "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
-    "Field + TextInput", "TextArea", "FieldLabel",
+    "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
+    "RadioList",
   ];
 
+  // ---------------------------------------------------------------- RadioList (M13)
+  console.log("\nRadioList (live)");
+  const rlReadout = () =>
+    page.evaluate(() => document.getElementById("showcase-radio-list-state")?.textContent ?? null);
+  const rlChecked = (gid) =>
+    page.evaluate((id) => {
+      const r = [...document.getElementById(id).querySelectorAll("input[type=radio]")].find((x) => x.checked);
+      return r ? r.value : null;
+    }, gid);
+
+  check("the live group starts on the value the application holds",
+    (await rlReadout()) === "chosen: express", String(await rlReadout()));
+  await page.click("#showcase-radio-list-live-item-0");
+  await page.waitForTimeout(150);
+  check("clicking a radio chooses it, and the readout follows",
+    (await rlReadout()) === "chosen: standard", String(await rlReadout()));
+  await page.click('label[for="showcase-radio-list-live-item-2"]');
+  await page.waitForTimeout(150);
+  check("clicking the label chooses its radio — the port's labels are real <label for>s",
+    (await rlReadout()) === "chosen: pickup", String(await rlReadout()));
+
+  // The headline claim of this component is not this file's doing: a native radio group is one tab
+  // stop and the arrows move *and* select. Pressed, not assumed.
+  await page.focus('input[id="showcase-radio-list-live-item-2"]');
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(150);
+  check("Down moves to the next radio *and* selects it, as a native group does",
+    (await rlReadout()) === "chosen: standard", String(await rlReadout()));
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(150);
+  check("Up comes back, and selects on the way",
+    (await rlReadout()) === "chosen: pickup", String(await rlReadout()));
+  await page.keyboard.press("Tab");
+  await page.waitForTimeout(90);
+  check("Tab leaves the group in one press — three radios, one stop",
+    await page.evaluate(() => !document.getElementById("showcase-radio-list-live").contains(document.activeElement)));
+
+  await page.evaluate(() => document.getElementById("showcase-radio-disabled-item-item-1").click());
+  await page.waitForTimeout(150);
+  check("a disabled item cannot change the group — it holds its own selection",
+    (await rlChecked("showcase-radio-disabled-item")) === "monthly",
+    String(await rlChecked("showcase-radio-disabled-item")));
+  check("the group's status message is rendered below it", await page.evaluate(() => {
+    const msg = document.getElementById("showcase-radio-status-status");
+    return !!msg && (msg.textContent || "").includes("Pick one");
+  }));
+
   console.log("\nshowcase sections");
-  check("32 sections", sections.length === 32, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("33 sections", sections.length === 33, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -255,9 +303,10 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 10, Switch: 8,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12,
+    RadioList: 9,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("218 examples across the page", totalExamples === 218, `got ${totalExamples}`);
+  check("227 examples across the page", totalExamples === 227, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -270,7 +319,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("32 nav links", nav.length === 32, `got ${nav.length}`);
+  check("33 nav links", nav.length === 33, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1047,11 +1096,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 31 ported / 72 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["31", "72", "103"]),
+    "coverage stats are 32 ported / 71 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["32", "71", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 72 entries", cov.unported === 72, `got ${cov.unported}`);
+  check("unported list rendered 71 entries", cov.unported === 71, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

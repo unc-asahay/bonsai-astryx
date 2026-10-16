@@ -1497,3 +1497,82 @@
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------------------------------------------------------------------------- RadioList */
+
+/* A radiogroup. The input is transparent and covers the circle, so the browser's own group
+   behaviour — one tab stop, arrows that move *and* select — is what runs; the circle beneath is the
+   ported Indicator's radio kind, which is what the ring is drawn on. */
+
+.astryx-radio-list__group {
+  display: flex;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.astryx-radio-list__group--vertical { flex-direction: column; }
+.astryx-radio-list__group--horizontal { flex-direction: row; flex-wrap: wrap; gap: var(--spacing-4); }
+.astryx-radio-list__group--disabled { opacity: 0.5; }
+
+.astryx-radio-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.astryx-radio-list__item--disabled { cursor: default; }
+
+.astryx-radio-list__control {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.astryx-radio-list__input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.astryx-radio-list__input:disabled { cursor: default; }
+
+.astryx-radio-list__input:focus-visible + .astryx-indicator {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.astryx-radio-list__label-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding-top: 1px;
+}
+
+.astryx-radio-list__label {
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.astryx-radio-list__item--disabled .astryx-radio-list__label { cursor: default; }
+
+.astryx-radio-list__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.showcase-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+  align-items: flex-start;
+}
+
+#showcase-radio-list-state { color: var(--color-text-secondary); }

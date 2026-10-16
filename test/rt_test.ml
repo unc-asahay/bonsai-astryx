@@ -1116,3 +1116,82 @@ let () =
   in
   mount "switch-static" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- RadioList (M13) *)
+
+let radio_list_static_component (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let item ?(description = None) ?(is_disabled = false) value label =
+    { Radio_list.value; label; description; is_disabled }
+  in
+  let group ?(is_disabled = false) ?(is_label_hidden = false) ?(is_optional = false)
+        ?(is_required = false) ?(orientation = Radio_list.Vertical) ?description ?status ~label ~id
+        ~value items
+    =
+    Radio_list.view
+      ~label
+      ~id
+      ~items
+      ~is_disabled
+      ~is_label_hidden
+      ~is_optional
+      ~is_required
+      ~orientation
+      ?description
+      ?status
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let groups =
+    [ group
+        ~label:"Shipping"
+        ~id:"rt-rl-live"
+        ~value:"express"
+        ~description:"Express is the default."
+        [ item "standard" "Standard"
+        ; item ~description:(Some "Arrives tomorrow.") "express" "Express"
+        ; item "pickup" "Pick up"
+        ]
+    ; group
+        ~label:"Warranty"
+        ~id:"rt-rl-status"
+        ~value:"one"
+        ~status:{ Input_types.type_ = Input_types.Error; message = Some "Pick one." }
+        [ item "one" "One year"; item "three" "Three years" ]
+    ; group
+        ~label:"Plan"
+        ~id:"rt-rl-disabled"
+        ~value:"free"
+        ~is_disabled:true
+        [ item "free" "Free"; item "pro" "Pro" ]
+    ; group
+        ~label:"Period"
+        ~id:"rt-rl-disabled-item"
+        ~value:"monthly"
+        [ item "monthly" "Monthly"; item ~is_disabled:true "annual" "Annual" ]
+    ; group ~label:"Alignment" ~id:"rt-rl-horizontal" ~value:"start"
+        ~orientation:Radio_list.Horizontal
+        [ item "start" "Start"; item "center" "Centre" ]
+    ; group ~label:"Contact" ~id:"rt-rl-required" ~value:"email" ~is_required:true
+        [ item "email" "Email"; item "phone" "Phone" ]
+    ; group ~label:"Theme" ~id:"rt-rl-hidden" ~value:"light" ~is_label_hidden:true
+        [ item "light" "Light"; item "dark" "Dark" ]
+    ]
+  in
+  Bonsai.map (join_all groups) ~f:(fun groups -> Vdom.Node.div groups)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      radio_list_static_component
+  in
+  mount "radio-list-static" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -803,3 +803,60 @@ disabled switch does not move.
 - **The showcase covers the ported components only.** The 75 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.
+
+## Gate 19 — RadioList (M13, phase 1), and a bug the gate found in its own tooling
+
+RadioList is the first consumer of `Indicator`'s **radio** kind, which had been ported and unrendered
+since M12 — the same position `Indicator` itself was in before CheckboxInput. Three things are worth
+recording.
+
+**The keyboard is not this component's code, and the gate presses it rather than assuming that.** A
+native radio group already implements roving focus: radios sharing a `name` are one tab stop, the
+arrows move between them *and* select, and the browser restores the last selection when focus
+returns. The port sets `name` and stops. So the real-engine gate clicks a radio, clicks a *label*,
+presses ArrowDown and ArrowUp and reads the application's own readout back, then presses Tab and
+asserts focus left the group in one press — "three radios, one stop", measured.
+
+**The group is a form field, so it composes `Field`, not `FieldLabel`** — the first real consumer of
+the group-label path M12 built: the label is a `<span>` the group names itself from with
+`aria-labelledby`, because a `<label for>` names one control and a group is not one. `Field` renders
+the description and status *outside* the group element, so the group links them itself
+(`id ^ "-desc"`, `id ^ "-status"`) or a screen reader reading the radiogroup would never reach
+either. That link is asserted.
+
+**One deliberate difference from upstream**, written in the interface rather than glossed: upstream's
+item label is a plain `<span>` plus `aria-labelledby`, because a real `<label for>` would double-fire
+under its event delegation. The port has no delegation, so its labels are real `<label for>`s — which
+name the radio the same way *and* are clickable. The gate clicks the label and asserts the choice
+followed.
+
+### The bug: the appearance contract was blind to 82 of the stylesheet's 312 selectors
+
+`docs/visual/RadioList.md` was generated and reported **0 declarations, 0 tokens** while every check
+passed. The generator's CSS reader matched selectors with `/^\.[a-z0-9-]+$/i` — no underscore — so
+any class containing `__` was invisible to it. RadioList's root class is `.astryx-radio-list__group`,
+so its contract came out hollow; the same blindness had been silently thinning **CheckboxInput** and
+**Switch** (`1 class, 3 declarations`) since M12. One character in the character class fixed it:
+RadioList went to 8 declarations and 2 tokens, and 82 selectors came into view for every future
+component.
+
+Worth stating plainly: the generator had been reporting success the whole time. It wrote a page, the
+page had the right name, and the numbers inside it were zero.
+
+### A second gap, also found here
+
+The gate's frozen list of expected sections had never been extended for the last four sections:
+`Indicator`, `CheckboxInput` and `Switch` were all rendering without being named in it, so any of
+them could have vanished from the page without a single check noticing. `RadioList` was added to the
+list at the same time.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **332 / 0** |
+| Real-browser checks (Chromium, live showcase) | **146 / 0** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **32 of 103** ported, 71 not |
+| Showcase | 33 sections, 227 examples |

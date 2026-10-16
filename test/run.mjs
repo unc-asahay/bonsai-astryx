@@ -1202,6 +1202,66 @@ section("FieldLabel");
   check("required is said once", /Required/.test(root("rt-sw-required").textContent));
 }
 
+// ---------------------------------------------------------------- RadioList (M13)
+{
+  const group = (id) => document.querySelector(`#${id}`);
+  const items = (id) => [...group(id).querySelectorAll("input[type=radio]")];
+  section("RadioList");
+
+  const g = group("rt-rl-live");
+  check("the group is a radiogroup", g.getAttribute("role") === "radiogroup");
+  // A group label is a <span> that the group names itself from — a <label> names one control and
+  // cannot name a set. This is the group-label path's first real consumer.
+  const label = document.getElementById("rt-rl-live-label");
+  check("its label is a group label, not a <label for>",
+    !!label && label.tagName.toLowerCase() === "span"
+      && g.getAttribute("aria-labelledby") === "rt-rl-live-label");
+  const radios = items("rt-rl-live");
+  // The shared name is what gives the group its keyboard for free.
+  const names = new Set(radios.map((r) => r.getAttribute("name")));
+  check("its radios share one name, which is what makes them one group",
+    radios.length === 3 && names.size === 1, `names: ${[...names].join(",")}`);
+  check("exactly one radio is checked, the selected one",
+    radios.filter((r) => r.checked).length === 1
+      && radios.find((r) => r.checked).value === "express");
+  check("checked is a property, not an attribute",
+    radios.every((r) => r.hasAttribute("checked") === false));
+  check("and no aria-checked shadows it",
+    radios.every((r) => r.getAttribute("aria-checked") === null));
+  check("each item's label is a real <label for>, so clicking it chooses the radio",
+    radios.every((r) => r.labels.length === 1));
+  check("the selected radio's indicator is the filled one",
+    !!group("rt-rl-live").querySelectorAll(".astryx-radio-list__item")[1]
+      .querySelector(".astryx-indicator__dot")
+      && !group("rt-rl-live").querySelectorAll(".astryx-radio-list__item")[0]
+        .querySelector(".astryx-indicator__dot"));
+  check("an item description is linked from its radio",
+    (radios[1].getAttribute("aria-describedby") || "").includes("rt-rl-live-item-1-description"),
+    radios[1].getAttribute("aria-describedby"));
+
+  // Field renders the description and the status outside the group, so the group has to link them
+  // itself or a screen reader reading the radiogroup never reaches either.
+  const errGroup = group("rt-rl-status");
+  const errDescribed = errGroup.getAttribute("aria-describedby") || "";
+  check("the group links its status message", errDescribed.includes("rt-rl-status-status"), errDescribed);
+  check("and says it is invalid", errGroup.getAttribute("aria-invalid") === "true");
+
+  const required = items("rt-rl-required");
+  check("required is on every radio, and on the group as aria-required",
+    required.every((r) => r.hasAttribute("required"))
+      && group("rt-rl-required").getAttribute("aria-required") === "true");
+  check("a disabled group is on the element", group("rt-rl-disabled")
+    .classList.contains("astryx-radio-list__group--disabled"));
+  const mixed = group("rt-rl-disabled-item");
+  check("one disabled item disables only its own radio",
+    mixed.querySelectorAll(".astryx-radio-list__item")[1].querySelector("input").disabled === true
+      && mixed.querySelectorAll(".astryx-radio-list__item")[0].querySelector("input").disabled === false);
+  check("the orientation is on the element",
+    group("rt-rl-horizontal").classList.contains("astryx-radio-list__group--horizontal"));
+  check("a hidden label is clipped rather than removed",
+    document.getElementById("rt-rl-hidden-label").classList.contains("astryx-visually-hidden"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

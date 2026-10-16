@@ -1720,6 +1720,133 @@ let switch_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- radio list (state) *)
+
+(* The group is the first consumer of Indicator's radio kind — which has been ported and unrendered
+   since M12, the same position Indicator itself was in before CheckboxInput. The keyboard is the
+   interesting part and it is not this code's doing: radios sharing a name are one tab stop, the
+   arrows move between them *and* select, and the browser restores the last selection. The browser
+   gate presses those keys rather than believing the comment. *)
+let radio_list_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let row nodes = Vdom.Node.div ~attrs:(Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let item ?(description = None) ?(is_disabled = false) value label =
+    { Radio_list.value; label; description; is_disabled }
+  in
+  let shipping =
+    [ item "standard" "Standard"; item "express" "Express"; item "pickup" "Pick up in store" ]
+  in
+  let selected, set_selected = Bonsai.state "express" graph in
+  let live =
+    let group =
+      Radio_list.view
+        ~label:"Shipping"
+        ~id:"showcase-radio-list-live"
+        ~description:"Express is the default for this account."
+        ~items:shipping
+        ~value:selected
+        ~on_change:(Bonsai.map set_selected ~f:(fun set value -> set value))
+        ()
+    in
+    let readout =
+      Bonsai.map selected ~f:(fun value ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-radio-list-state" ]
+          [ Vdom.Node.text ("chosen: " ^ value) ])
+    in
+    Bonsai.map (join_all [ group; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let plain ?(is_disabled = false) ?(is_label_hidden = false) ?(is_optional = false)
+        ?(is_required = false) ?(orientation = Radio_list.Vertical) ?(size = Indicator.Md)
+        ?(value = "") ?status ~label ~id items =
+    Radio_list.view
+      ~label
+      ~id
+      ~items
+      ~is_disabled
+      ~is_label_hidden
+      ~is_optional
+      ~is_required
+      ~orientation
+      ~size
+      ?status
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let described =
+    [ item ~description:(Some "Arrives in 3–5 days.") "standard" "Standard"
+    ; item ~description:(Some "Arrives tomorrow, costs more.") "express" "Express"
+    ]
+  in
+  let with_disabled =
+    [ item "monthly" "Monthly"
+    ; item ~description:(Some "Not on your plan.") ~is_disabled:true "annual" "Annual"
+    ]
+  in
+  let sizes =
+    [ Radio_list.
+        { value = "a"; label = "Small"; description = None; is_disabled = false }
+    ; { value = "b"; label = "Medium"; description = None; is_disabled = false }
+    ]
+  in
+  let examples =
+    [ ex_tree "a live group: the choice prints beside it" live
+    ; ex_tree "horizontal" (plain ~orientation:Radio_list.Horizontal ~label:"Alignment" ~id:"showcase-radio-horizontal" [ item "start" "Start"; item "center" "Centre"; item "pin" "End" ])
+    ; ex_tree "an item with its own description"
+        (plain ~label:"Delivery" ~id:"showcase-radio-described" described)
+    ; ex_tree "one item disabled, the others not"
+        (plain ~value:"monthly" ~label:"Billing period" ~id:"showcase-radio-disabled-item" with_disabled)
+    ; ex_tree "the whole group disabled"
+        (plain ~is_disabled:true ~label:"Plan" ~id:"showcase-radio-disabled-group" [ item "free" "Free"; item "pro" "Pro" ])
+    ; ex_tree "required, and optional"
+        (Bonsai.map
+           (join_all
+              [ plain ~is_required:true ~label:"Contact method" ~id:"showcase-radio-required"
+                  [ item "email" "Email"; item "phone" "Phone" ]
+              ; plain ~is_optional:true ~label:"Preferred language"
+                  ~id:"showcase-radio-optional" [ item "en" "English"; item "fr" "French" ]
+              ])
+           ~f:row)
+    ; ex_tree "an error status below the group"
+        (plain ~label:"Warranty"
+           ~id:"showcase-radio-status"
+           ~status:{ Input_types.type_ = Input_types.Error; message = Some "Pick one to continue." }
+           [ item "one" "One year"; item "three" "Three years" ])
+    ; ex_tree "a hidden label still names the group"
+        (plain ~is_label_hidden:true ~label:"Theme" ~id:"showcase-radio-hidden" [ item "light" "Light"; item "dark" "Dark" ])
+    ; ex_tree "sm and md"
+        (Bonsai.map
+           (join_all
+              [ plain ~size:Indicator.Sm ~label:"Small" ~id:"showcase-radio-sm" sizes
+              ; plain ~size:Indicator.Md ~label:"Medium" ~id:"showcase-radio-md" sizes
+              ])
+           ~f:row)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"radiogroup"
+      ~title:"RadioList"
+      ~note:
+        "One choice out of several. Upstream composes Field here rather than FieldLabel — a radio \
+         group *is* a form field, so the label is a group label (a span the group names itself from \
+         with aria-labelledby) and the status sits below the whole set. The keyboard needs no code: \
+         radios sharing a name are one tab stop, the arrows move between them and select, and the \
+         browser restores the last selection, which is exactly what the browser gate presses keys to \
+         check. The one deliberate difference from upstream is written in the interface: upstream's \
+         item label is a plain span (its event delegation would make a real <label for> fire twice), \
+         and the port's is a real <label for> — which names the radio the same way and is also \
+         clickable."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -1763,6 +1890,7 @@ let nav_items =
   ; "indicator", "Indicator"
   ; "checkbox", "CheckboxInput"
   ; "switch", "Switch"
+  ; "radiogroup", "RadioList"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -1796,6 +1924,7 @@ let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
   let switch_section = switch_demo graph in
+  let radio_list_section = radio_list_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -1806,17 +1935,18 @@ let page (graph : Bonsai.graph) =
       (pair dropdown_section field_section)
   in
   let stateful = pair stateful switch_section in
+  let stateful = pair stateful radio_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((interactive, checkbox), (dropdown, field)), switch) text_area ->
+    ~f:(fun ((((interactive, checkbox), (dropdown, field)), switch), radio_list) text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; dropdown; interactive ])
       ])
 ;;
 

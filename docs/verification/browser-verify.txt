@@ -16,17 +16,27 @@ page
   ok   the app mounted in Chromium
   ok   every stylesheet parsed
 
+RadioList (live)
+  ok   the live group starts on the value the application holds
+  ok   clicking a radio chooses it, and the readout follows
+  ok   clicking the label chooses its radio — the port's labels are real <label for>s
+  ok   Down moves to the next radio *and* selects it, as a native group does
+  ok   Up comes back, and selects on the way
+  ok   Tab leaves the group in one press — three radios, one stop
+  ok   a disabled item cannot change the group — it holds its own selection
+  ok   the group's status message is rendered below it
+
 showcase sections
-  ok   32 sections
+  ok   33 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   218 examples across the page
+  ok   227 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 Switch:8 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Field + TextInput:10 TextArea:9 CheckboxInput:10 Switch:8 RadioList:9 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   32 nav links
+  ok   33 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -175,14 +185,14 @@ switch (real engine)
   ok   a disabled switch does not move
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 31 ported / 72 not / 103 total
-  ok   unported list rendered 72 entries
+  ok   coverage stats are 32 ported / 71 not / 103 total
+  ok   unported list rendered 71 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-138/138 checks passed, 0 failure(s)
+146/146 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
