@@ -33,17 +33,16 @@ const root = resolve(here, "../..");
 const url = process.argv[2] || "http://127.0.0.1:8791/examples/demo/index.html";
 const mode = url.includes("/site/") ? "showcase" : "demo";
 
-// playwright lives in the upstream clone's node_modules; the browsers in the
+// playwright is a declared devDependency of this repo (package.json). Nothing here reaches
+// outside it: a sibling checkout is not a dependency, and CI does not have one.
 // default cache. Find a usable chromium binary rather than assuming a revision.
 function playwright() {
   for (const p of [
     resolve(root, "node_modules/playwright"),
-    resolve(root, "../astryx/node_modules/playwright"),
-    "/home/noor/src/astryx/node_modules/playwright",
   ]) {
     if (existsSync(p)) return require(p);
   }
-  throw new Error("playwright not found (looked in node_modules of this repo and ../astryx)");
+  throw new Error("playwright not found in node_modules — run `pnpm install`");
 }
 
 function chromiumExecutable() {

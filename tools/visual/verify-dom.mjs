@@ -10,7 +10,8 @@
 //   node tools/visual/verify-dom.mjs          # assertions, non-zero exit on failure
 //   node tools/visual/verify-dom.mjs --dump    # full structural report as JSON
 //
-// jsdom is resolved from the upstream astryx checkout when the project has no
+// jsdom is a declared devDependency of this repo (package.json). Nothing here reaches
+// outside it: a sibling checkout is not a dependency, and CI does not have one.
 // node_modules of its own (see resolveJsdom below).
 
 import { createRequire } from "node:module";
@@ -26,8 +27,6 @@ const dump = process.argv.includes("--dump");
 function resolveJsdom() {
   const candidates = [
     resolve(root, "node_modules/jsdom"),
-    resolve(root, "../astryx/node_modules/jsdom"),
-    "/home/noor/src/astryx/node_modules/jsdom",
   ];
   for (const c of candidates) {
     if (existsSync(c)) return c;

@@ -29,10 +29,7 @@ function resolveFrom(candidates, what) {
 }
 
 export const jsdomPath = () =>
-  resolveFrom(
-    [resolve(root, "node_modules/jsdom"), resolve(root, "../astryx/node_modules/jsdom")],
-    "jsdom",
-  );
+  resolveFrom([resolve(root, "node_modules/jsdom")], "jsdom");
 
 export const temporalPath = () =>
   resolveFrom([resolve(root, "node_modules/@js-temporal/polyfill")], "@js-temporal/polyfill");

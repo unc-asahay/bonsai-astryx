@@ -66,12 +66,10 @@ mkdirSync(baseDir, { recursive: true });
 function playwright() {
   for (const p of [
     resolve(root, "node_modules/playwright"),
-    resolve(root, "../astryx/node_modules/playwright"),
-    "/home/noor/src/astryx/node_modules/playwright",
   ]) {
     if (existsSync(p)) return require(p);
   }
-  throw new Error("playwright not found (looked in node_modules of this repo and ../astryx)");
+  throw new Error("playwright not found in node_modules — run `pnpm install`");
 }
 
 function chromiumExecutable() {
@@ -88,13 +86,12 @@ function chromiumExecutable() {
   return candidates[0];
 }
 
-// pngjs is CJS and already present in the upstream clone's node_modules; the diff
+// pngjs is a declared devDependency of this repo (package.json). Nothing here reaches
+// outside it: a sibling checkout is not a dependency, and CI does not have one.
 // itself is a few lines, so there is no reason to take on pixelmatch's ESM shape.
 function pngjs() {
   for (const p of [
     resolve(root, "node_modules/pngjs"),
-    resolve(root, "../astryx/node_modules/pngjs"),
-    "/home/noor/src/astryx/node_modules/pngjs",
   ]) {
     if (existsSync(p)) return require(p);
   }

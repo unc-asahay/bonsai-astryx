@@ -1,6 +1,6 @@
-# Build the library and run the DOM/accessibility gate.
+# Build the library and run the structural gates the port is verified by.
 #
-# What this workflow actually needed, learned from its first two runs:
+# What this workflow needed, learned from its first three runs:
 #
 #   * The branch trigger must name the default branch. It listed only `main` while the
 #     repository's default branch is `master`, so the first push started nothing at all.
@@ -15,6 +15,12 @@
 #   * dune 3.24 breaks Jane Street's `include ./<module>__generated` expansion, hence the
 #     pinned 3.23.1; OCaml 5.3 makes `effect` a reserved keyword and virtual_dom uses it as
 #     an identifier, hence the pinned 5.2.1. See CONTRIBUTING.md.
+#
+# Why the responsive/visual-regression gate is NOT here: its baseline is a set of PNGs
+# captured on one machine, and font rasterisation differs between machines, so comparing
+# this runner against that baseline would fail for a reason that is not a regression. It
+# runs locally, where the baseline was captured. The gates here assert structure, ARIA,
+# measured sizes and keyboard/focus behaviour, which do not depend on the machine.
 
 name: ci
 
@@ -35,7 +41,7 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Install JS dev dependencies (jsdom, Temporal polyfill)
+      - name: Install JS dependencies (jsdom, playwright, the Temporal polyfill)
         run: corepack enable && pnpm install --frozen-lockfile
 
       - name: Set up OCaml 5.2.1
@@ -71,5 +77,20 @@ jobs:
       - name: Component gate (OCaml builds each component, node asserts on the DOM)
         run: opam exec -- node test/run.mjs
 
-      - name: DOM + accessibility gate
+      - name: DOM + accessibility gate (jsdom, the real js_of_ocaml bundle)
         run: opam exec -- node tools/visual/verify-dom.mjs
+
+      - name: Install the Chromium that playwright drives
+        run: opam exec -- pnpm exec playwright install --with-deps chromium
+
+      - name: Serve the repository (the browser gate needs HTTP, not file://)
+        run: |
+          python3 -m http.server 8791 --bind 127.0.0.1 &
+          for _ in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8791/site/index.html && exit 0
+            sleep 1
+          done
+          echo "the static server never served /site/index.html" && exit 1
+
+      - name: "Browser gate (Chromium: ARIA, measured sizes, keyboard and focus)"
+        run: opam exec -- node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html
