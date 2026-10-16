@@ -400,13 +400,21 @@ let s_visually_hidden () =
    sugar expects. Bonsai.map2 is the direct, type-checked way to combine them. *)
 let interactive (graph : Bonsai.graph) =
   let count, set_count = Bonsai.state 0 graph in
-  Bonsai.map2 count set_count ~f:(fun count set_count ->
+  let show_status, set_show_status = Bonsai.state false graph in
+  let counter = Bonsai.map2 count set_count ~f:(fun count set_count -> count, set_count) in
+  (* Both state values *and* both setters have to be unwrapped here: in this release
+     Bonsai.state returns each as a tree, so a setter used inside a map callback must be
+     mapped over like any other value. *)
+  let status = Bonsai.map2 show_status set_show_status ~f:(fun v set_v -> v, set_v) in
+  Bonsai.map2 counter status ~f:(fun (count, set_count) (show_status, set_show_status) ->
     section
       ~id:"interactive"
       ~title:"Interactive"
       ~note:
         "Stateful: the button's on_click increments a Bonsai state value. The browser gate \
-         clicks it and reads the counter back."
+         clicks it and reads the counter back. The second example mounts a FieldStatus on \
+         demand — that is the only way to observe the entry animation, since upstream \
+         deliberately does not animate anything present on the first paint."
       [ ex
           "increment"
           (Astryx.Stack.view
@@ -423,6 +431,29 @@ let interactive (graph : Bonsai.graph) =
                  ~type_:Text.Large
                  ~has_tabular_numbers:true
                  [ Vdom.Node.text (sprintf "count: %d" count) ]
+             ])
+      ; ex
+          "a status mounted after the first paint animates in"
+          (Astryx.Stack.view
+             ~direction:Astryx.Stack.Vertical
+             ~gap:S.S3
+             [ Astryx.Button.view
+                 ~label:"Show status"
+                 ~on_click:(fun _ -> set_show_status true)
+                 []
+             ; (if show_status
+                then
+                  Astryx.Field_status.view
+                    ~variant:Astryx.Field_status.Detached
+                    ~type_:Astryx.Field_status.Error
+                    ~message:"This appeared after the first paint, so it animates."
+                    ~attrs:[ Vdom.Attr.id "late-status" ]
+                    ()
+                else Vdom.Node.none)
+             ; Astryx.Button.view
+                 ~label:"Hide status"
+                 ~on_click:(fun _ -> set_show_status false)
+                 []
              ])
       ])
 ;;
@@ -730,13 +761,64 @@ let s_icon () =
     ]
 ;;
 
+(* --------------------------------------------------------------- FieldStatus *)
+
+let s_field_status () =
+  section
+    ~id:"fieldstatus"
+    ~title:"FieldStatus"
+    ~note:
+      "attached (the default) overlaps the control above it: a negative top margin, the \
+       bottom corners rounded, and pointer-events:none so the overlap cannot swallow a \
+       click meant for the control. It renders the message as bare text. detached sits \
+       below the control with the type's icon. The role carries the urgency: alert for an \
+       error, status otherwise — which is how upstream's announcer behaves. Nothing here \
+       animates, because everything on this page is present at the first paint."
+    [ ex "attached: warning / error / success"
+        (Astryx.Stack.view
+           ~direction:Astryx.Stack.Vertical
+           ~gap:S.S2
+           [ Astryx.Field_status.view
+               ~type_:Astryx.Field_status.Warning
+               ~message:"This will replace the existing file."
+               ()
+           ; Astryx.Field_status.view
+               ~type_:Astryx.Field_status.Error
+               ~message:"That email address is already in use."
+               ()
+           ; Astryx.Field_status.view
+               ~type_:Astryx.Field_status.Success
+               ~message:"Saved just now."
+               ()
+           ])
+    ; ex "detached: warning"
+        (Astryx.Field_status.view
+           ~variant:Astryx.Field_status.Detached
+           ~type_:Astryx.Field_status.Warning
+           ~message:"Changes apply to every project."
+           ())
+    ; ex "detached: error"
+        (Astryx.Field_status.view
+           ~variant:Astryx.Field_status.Detached
+           ~type_:Astryx.Field_status.Error
+           ~message:"Could not reach the server. Try again."
+           ())
+    ; ex "detached: success"
+        (Astryx.Field_status.view
+           ~variant:Astryx.Field_status.Detached
+           ~type_:Astryx.Field_status.Success
+           ~message:"Invitation sent."
+           ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
   ; s_hstack (); s_vstack (); s_aspect_ratio ()
   ; s_icon_button (); s_code (); s_blockquote ()
   ; s_nav_icon (); s_empty_state (); s_citation ()
-  ; s_icon ()
+  ; s_icon (); s_field_status ()
   ]
 ;;
 
@@ -768,6 +850,7 @@ let nav_items =
   ; "emptystate", "EmptyState"
   ; "citation", "Citation"
   ; "icon", "Icon"
+  ; "fieldstatus", "FieldStatus"
   ; "interactive", "Interactive"
   ]
 ;;

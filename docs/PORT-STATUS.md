@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **23 of 103** components.
+Ported: **24 of 103** components.
 
 ## Milestones
 
@@ -16,6 +16,7 @@ Ported: **23 of 103** components.
 - **M5 — component tests in OCaml**: complete. test/rt_test.ml builds each component in isolation and dispatches real events via Bonsai_web_test.Handle; test/run.mjs asserts on the DOM. Also the milestone for the HStack/VStack/AspectRatio trio.
 - **M7 — wayfinding + empty states**: complete. NavIcon, EmptyState and Citation — all Class A. NavIcon is a single styled span; EmptyState renders role=status with a real heading and a <div> description (a <p> cannot hold block children); Citation is the first port that carries a security control, porting upstream's safeUrl check literally (control characters stripped before inspection, javascript:/vbscript:/data:text/html refused) and rendering inert text rather than a link when a URL is refused.
 - **M8 — the icon set (generated)**: complete. Icon, with its glyph table generated from upstream's defaultIcons.tsx and globalIconRegistry.tsx by tools/extract-icons.mjs. 30 glyphs, 29 of them IconName. The generator refuses to write a partial table and refuses attributes outside an explicit allow-list, because a renamed attribute is silently ignored by the DOM rather than reported.
+- **M9 — field status + entry animations**: complete. FieldStatus (attached/detached, three types) plus Entry_animation, the port's first time-aware piece: upstream suppresses the entry animation for anything present on the first paint, which is reproduced with a requestAnimationFrame flag read when a view is built. The announcer becomes a role on the container (alert for an error, status otherwise).
 
 ## Infrastructure
 
@@ -51,9 +52,10 @@ Ported: **23 of 103** components.
 | `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
 | `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
 | `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
+| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
 
-## Not ported yet (80)
+## Not ported yet (79)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `Field`, `FieldStatus`, `FileInput`, `FormLayout`, `HoverCard`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`
+`AlertDialog`, `AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `ButtonGroup`, `Calendar`, `Carousel`, `Chat`, `CheckboxInput`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Dialog`, `DropdownMenu`, `Field`, `FileInput`, `FormLayout`, `HoverCard`, `Indicator`, `InputGroup`, `Item`, `Kbd`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `Popover`, `PowerSearch`, `ProgressBar`, `RadioList`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `Switch`, `TabList`, `Table`, `TextArea`, `TextInput`, `Thumbnail`, `TimeInput`, `Timer`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `Toolbar`, `Tooltip`, `TopNav`, `TreeList`, `Typeahead`

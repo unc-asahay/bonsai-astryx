@@ -457,6 +457,43 @@ let () =
 
 
 
+(* FieldStatus — three types, both variants, and the first-paint animation rule. *)
+let () =
+  mount
+    "field-status-all"
+    (Vdom.Node.div
+       ~attrs:[]
+       [ (* 0,1,2: attached (the default) — bare text, no icon, no wrapper *)
+         Astryx.Field_status.view
+           ~type_:Astryx.Field_status.Warning
+           ~message:"Careful: this cannot be undone."
+           ()
+       ; Astryx.Field_status.view
+           ~type_:Astryx.Field_status.Error
+           ~message:"That email is already in use."
+           ()
+       ; Astryx.Field_status.view ~type_:Astryx.Field_status.Success ~message:"Saved." ()
+       ; (* 3,4: detached — icon + message *)
+         Astryx.Field_status.view
+           ~variant:Astryx.Field_status.Detached
+           ~type_:Astryx.Field_status.Error
+           ~message:"Detached error"
+           ()
+       ; Astryx.Field_status.view
+           ~variant:Astryx.Field_status.Detached
+           ~type_:Astryx.Field_status.Success
+           ~message:"Detached success"
+           ()
+       ; (* 5: caller attrs are applied *)
+         Astryx.Field_status.view
+           ~type_:Astryx.Field_status.Warning
+           ~message:"With a custom id"
+           ~attrs:[ Vdom.Attr.id "status-custom" ]
+           ()
+       ])
+;;
+
+
 (* The part that has to be OCaml: a real event dispatched into the Bonsai graph.
    The rendered count goes into the DOM so run.mjs can assert on the component's
    own output rather than on internal state.

@@ -604,6 +604,58 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("an unknown icon renders no svg", svgs[8] === null);
 }
 
+// --- FieldStatus
+{
+  const svgData = JSON.parse(readFileSync(resolve(root, "assets/icons.json"), "utf8"));
+  const iconPath = (name) => {
+    const icon = svgData.icons.find((i) => i.name === name);
+    const first = icon.children.find((c) => c.tag === "path");
+    return first.attrs.find(([k]) => k === "d")[1];
+  };
+
+  const fs = inCaseOf("field-status-all", "FieldStatus");
+  check("six field statuses render", fs.length === 6, `${fs.length}`);
+  check("each carries its type class", [
+    hasClass(fs[0], /astryx-field-status--warning/),
+    hasClass(fs[1], /astryx-field-status--error/),
+    hasClass(fs[2], /astryx-field-status--success/),
+  ].every(Boolean), fs.slice(0, 3).map((e) => e.className).join(" | "));
+  check("attached is the default variant", hasClass(fs[0], /astryx-field-status--attached/));
+  check("detached is honoured", hasClass(fs[3], /astryx-field-status--detached/));
+
+  // Announcement urgency: an error interrupts, the others wait their turn.
+  check("an error is announced assertively (role=alert)", attr(fs[1], "role") === "alert");
+  check("warnings and successes are polite (role=status)",
+    attr(fs[0], "role") === "status" && attr(fs[2], "role") === "status");
+
+  // Attached: bare text. Upstream renders the message directly, with no icon and no
+  // wrapper — adding a wrapper here would be a visible divergence, not a detail.
+  check("attached renders the message as bare text",
+    fs[0].textContent === "Careful: this cannot be undone." && fs[0].children.length === 0,
+    `${fs[0].children.length} child element(s)`);
+  check("attached renders no icon", fs[0].querySelector("svg") === null);
+
+  // Detached: icon + message, with the icon for the type.
+  check("detached wraps its content", fs[3].querySelector(".astryx-field-status__content") !== null);
+  const dIcon = fs[3].querySelector(".astryx-field-status__icon svg");
+  check("detached error shows the error glyph",
+    dIcon !== null && attr(dIcon.querySelector("path"), "d") === iconPath("error"),
+    attr(dIcon?.querySelector("path"), "d"));
+  check("detached success shows the success glyph",
+    attr(fs[4].querySelector(".astryx-field-status__icon svg path"), "d") === iconPath("success"));
+  check("the detached icon is the sm size",
+    hasClass(fs[3].querySelector(".astryx-field-status__icon .astryx-icon"), /astryx-icon--sm/));
+  check("detached still shows its message", fs[3].textContent === "Detached error", fs[3].textContent);
+
+  // The first-paint rule: this tree is the first thing the page renders, so nothing here
+  // may carry an entry-animation class. Upstream suppresses the animation on first paint.
+  check("nothing animates on the first paint",
+    fs.every((e) => ![...e.classList].some((c) => c.startsWith("astryx-enter--"))),
+    fs.map((e) => e.className).join(" | "));
+
+  check("caller attributes are applied last", attr(fs[5], "id") === "status-custom");
+}
+
 // --- the interaction: a real event dispatched into the Bonsai graph
 section("interaction (OCaml dispatched the event)");
 {

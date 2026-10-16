@@ -398,6 +398,45 @@ its *glyph* is asserted to fill the box.
 - **An unknown name renders a marked empty span** (`data-astryx-icon-missing`) where upstream
   warns on the console. Assertable in tests, and documented in `src/icon.mli`.
 
+## Gate 11 — time-aware behaviour, and the first paint that must not animate
+
+Two components landed in M9: `FieldStatus` (attached/detached, three types) and
+`Entry_animation`, the port's first piece of behaviour that depends on *when* something
+happens rather than on its inputs.
+
+**The rule.** Upstream's `useEntryAnimation` sets a module-level flag inside a
+`requestAnimationFrame` and reads it once, when a component first renders. So anything
+present on the first paint is rendered with no entry animation at all, and anything mounted
+later animates in. Reproducing that needs a real frame boundary, which is why the port flips
+the flag from a `requestAnimationFrame` at module load rather than from a timer.
+
+**What is asserted, and where.**
+
+| Claim | Gate |
+| --- | --- |
+| Nothing in a first-paint tree carries an `astryx-enter--*` class | component gate (`field-status-all`) |
+| A status mounted *after* the first paint does carry it | real browser: the gate clicks **Show status** in the Interactive section and reads `#late-status` back |
+| The animation is neutralised under `prefers-reduced-motion`, class and all | real browser (the gate forces `reducedMotion: "reduce"`, so `animation-name` must be `none` while the class is present) |
+| An error is announced assertively, a warning/success politely | component gate (`role=alert` vs `role=status`) |
+| The attached variant's overlap is cosmetic only | real browser, measured: `pointer-events: none`, a **negative** `margin-top`, a compensating `padding-top`, and rounded bottom corners |
+| The detached variant is a flex row with a gap and the type's icon | component gate (icon `d` matched against `assets/icons.json`), real browser (gap) |
+
+**Why the attached variant is measured rather than eyeballed.** Its whole contract is that
+it overlaps the control above it *without* swallowing clicks meant for that control. A
+screenshot cannot show `pointer-events: none`, and jsdom has no cascade, so the claim is only
+checkable as a computed style in a real browser. The gate measures all four properties, and
+checks the padding actually compensates for the negative margin rather than merely being
+present.
+
+**A gate bug worth recording.** The first version of the flex-row check read `gap` from the
+outer `.astryx-field-status--detached` element and got `normal` — the flex row is the inner
+`__content` span. The component was right; the probe was pointed at the wrong element. That
+distinction is the whole reason the failure was investigated rather than "fixed" by adjusting
+the component.
+
+**Totals at this gate:** 179 component checks, 60 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440.
+
 ## Not yet verified — do not read these as claims
 
 - **Pixel parity against the React original.** `tools/visual/capture.mjs` captures
@@ -405,7 +444,7 @@ its *glyph* is asserted to fill the box.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M8.** 23 of 103 components are ported; the other 80 have
+- **Anything below M9.** 24 of 103 components are ported; the other 79 have
   reference text but no implementation.
 - **Keyboard and focus behaviour — partially verified.** What is now asserted: `Enter` on a
   focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
@@ -417,6 +456,6 @@ its *glyph* is asserted to fill the box.
   activation is the browser's job; the meaningful keyboard assertions belong in the real-browser
   gate, and the components with real key semantics (menus, dialogs, comboboxes) are not ported
   yet.
-- **The showcase covers the ported components only.** The 87 unported ones appear as
+- **The showcase covers the ported components only.** The 79 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

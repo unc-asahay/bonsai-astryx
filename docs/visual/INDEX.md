@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-20 ported component(s). Each page records the appearance the port
+21 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -11,24 +11,25 @@ for image generation.
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
 | Badge | 15 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 22 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 24 | 12 | 27 | 18 | [Button.md](Button.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
 | Citation | 6 | 4 | 25 | 16 | [Citation.md](Citation.md) |
 | Code | 5 | 5 | 10 | 8 | [Code.md](Code.md) |
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
+| FieldStatus | 6 | 6 | 14 | 13 | [FieldStatus.md](FieldStatus.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 6 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 43 | 11 | 9 | 6 | [Icon.md](Icon.md) |
+| Icon | 46 | 11 | 9 | 6 | [Icon.md](Icon.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | Section | 7 | 8 | 9 | 5 | [Section.md](Section.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
-| Stack | 30 | 10 | 7 | 0 | [Stack.md](Stack.md) |
+| Stack | 32 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Text | 44 | 14 | 8 | 25 | [Text.md](Text.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 83 components with no OCaml port. They
+Not listed: the 82 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

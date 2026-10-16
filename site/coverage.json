@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 23,
-    "unported": 80,
+    "ported": 24,
+    "unported": 79,
     "total": 103,
     "documented": 103
   },
@@ -70,6 +70,12 @@
       "module": "Astryx.EmptyState",
       "file": "src/empty_state.ml",
       "milestone": "M7"
+    },
+    {
+      "name": "FieldStatus",
+      "module": "Astryx.Field_status",
+      "file": "src/field_status.ml",
+      "milestone": "M9"
     },
     {
       "name": "Grid",
@@ -176,7 +182,6 @@
     "Dialog",
     "DropdownMenu",
     "Field",
-    "FieldStatus",
     "FileInput",
     "FormLayout",
     "HoverCard",

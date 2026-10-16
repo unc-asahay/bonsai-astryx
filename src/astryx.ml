@@ -42,4 +42,6 @@ module HStack = Hstack
 module VStack = Vstack
 module IconButton = Icon_button
 module Icon = Icon
+module Entry_animation = Entry_animation
+module Field_status = Field_status
 

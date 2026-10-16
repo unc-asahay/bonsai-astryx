@@ -233,11 +233,11 @@ if (mode === "showcase") {
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
-    "NavIcon", "EmptyState", "Citation", "Icon", "Interactive",
+    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "Interactive",
   ];
 
   console.log("\nshowcase sections");
-  check("24 sections", sections.length === 24, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("25 sections", sections.length === 25, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -253,10 +253,10 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    Interactive: 1,
+    FieldStatus: 4, Interactive: 2,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("155 examples across the page", totalExamples === 155, `got ${totalExamples}`);
+  check("160 examples across the page", totalExamples === 160, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -269,7 +269,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("24 nav links", nav.length === 24, `got ${nav.length}`);
+  check("25 nav links", nav.length === 25, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -428,6 +428,77 @@ if (mode === "showcase") {
   check("a colour class resolves to a real colour, not an inherited one",
     !!icons.colored && icons.colored !== "rgb(0, 0, 0)", String(icons.colored));
 
+  // --- FieldStatus: the parts only a real browser can settle ---------------------
+  // The attached variant's whole point is that the overlap is visual only. In jsdom there
+  // is no cascade, so these are measured here.
+  console.log("\nfield status (measured styles + the first-paint animation rule)");
+  const fstatus = await page.evaluate(() => {
+    const attached = document.querySelector("#fieldstatus .astryx-field-status--attached");
+    const detached = document.querySelector("#fieldstatus .astryx-field-status--detached");
+    // The flex row is the inner __content span, not the outer container.
+    const detachedContent = detached ? detached.querySelector(".astryx-field-status__content") : null;
+    const cs = (el) => (el ? getComputedStyle(el) : null);
+    const a = cs(attached);
+    const d = cs(detached);
+    const dc = cs(detachedContent);
+    return {
+      attachedPointerEvents: a ? a.pointerEvents : null,
+      attachedMarginTop: a ? a.marginTop : null,
+      attachedPadStart: a ? a.paddingTop : null,
+      attachedBottomRadius: a ? a.borderBottomLeftRadius : null,
+      attachedRole: attached ? attached.getAttribute("role") : null,
+      detachedGap: dc ? dc.gap : null,
+      detachedRadius: d ? d.borderRadius : null,
+      detachedIcon: detached ? !!detached.querySelector(".astryx-field-status__icon svg") : false,
+      animatedFirstPaint: [...document.querySelectorAll("#fieldstatus .astryx-field-status")]
+        .filter((e) => [...e.classList].some((c) => c.startsWith("astryx-enter--"))).length,
+    };
+  });
+  check("the attached overlay does not take pointer input",
+    fstatus.attachedPointerEvents === "none", String(fstatus.attachedPointerEvents));
+  check("the attached overlay really overlaps (negative top margin)",
+    parseFloat(fstatus.attachedMarginTop) < 0, String(fstatus.attachedMarginTop));
+  check("...and pads back the overlap so text is not clipped",
+    parseFloat(fstatus.attachedPadStart) > Math.abs(parseFloat(fstatus.attachedMarginTop || "0")),
+    `${fstatus.attachedPadStart} vs ${fstatus.attachedMarginTop}`);
+  check("only the bottom corners are rounded", parseFloat(fstatus.attachedBottomRadius) > 0,
+    String(fstatus.attachedBottomRadius));
+  check("an attached error is announced assertively", fstatus.attachedRole === null || fstatus.attachedRole === "alert" || fstatus.attachedRole === "status");
+  check("detached uses a flex row with a gap", fstatus.detachedGap !== "normal" && fstatus.detachedGap !== "0px", String(fstatus.detachedGap));
+  check("detached shows its type's icon", fstatus.detachedIcon);
+  check("nothing in the section animates on the first paint", fstatus.animatedFirstPaint === 0,
+    `${fstatus.animatedFirstPaint}`);
+
+  // The rule that makes the entry animation worth having: an element mounted AFTER the
+  // first frame animates, one present at the first paint does not.
+  const showedStatus = await page.evaluate(() => {
+    const sec = document.getElementById("interactive");
+    const btn = [...sec.querySelectorAll("button")].find((b) => /show status/i.test(b.textContent || ""));
+    if (!btn) return false;
+    btn.click();
+    return true;
+  });
+  await page.waitForTimeout(250);
+  const late = await page.evaluate(() => {
+    const el = document.getElementById("late-status");
+    if (!el) return null;
+    return {
+      classes: el.className,
+      animated: [...el.classList].some((c) => c.startsWith("astryx-enter--")),
+      role: el.getAttribute("role"),
+      // Reduced-motion is forced in this gate, so the CSS must have neutralised the
+      // animation name while the class is still present.
+      animationName: getComputedStyle(el).animationName,
+    };
+  });
+  check("the Show status button exists and was clicked", showedStatus);
+  check("a status mounted after the first paint carries the animation class",
+    !!late && late.animated, late ? late.classes : "no #late-status");
+  check("..and it is announced assertively, being an error",
+    !!late && late.role === "alert", late ? String(late.role) : "n/a");
+  check("the animation is neutralised under prefers-reduced-motion",
+    !!late && late.animationName === "none", late ? late.animationName : "n/a");
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -440,11 +511,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 23 ported / 80 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["23", "80", "103"]),
+    "coverage stats are 24 ported / 79 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["24", "79", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 80 entries", cov.unported === 80, `got ${cov.unported}`);
+  check("unported list rendered 79 entries", cov.unported === 79, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

@@ -56,6 +56,12 @@
       "name": "the icon set (generated)",
       "status": "complete",
       "note": "Icon, with its glyph table generated from upstream's defaultIcons.tsx and globalIconRegistry.tsx by tools/extract-icons.mjs. 30 glyphs, 29 of them IconName. The generator refuses to write a partial table and refuses attributes outside an explicit allow-list, because a renamed attribute is silently ignored by the DOM rather than reported."
+    },
+    {
+      "id": "M9",
+      "name": "field status + entry animations",
+      "status": "complete",
+      "note": "FieldStatus (attached/detached, three types) plus Entry_animation, the port's first time-aware piece: upstream suppresses the entry animation for anything present on the first paint, which is reproduced with a requestAnimationFrame flag read when a view is built. The announcer becomes a role on the container (alert for an error, status otherwise)."
     }
   ],
   "infrastructure": [
@@ -232,6 +238,13 @@
       "module": "Astryx.Icon",
       "file": "src/icon.ml",
       "milestone": "M8",
+      "class": "A"
+    },
+    {
+      "component": "FieldStatus",
+      "module": "Astryx.Field_status",
+      "file": "src/field_status.ml",
+      "milestone": "M9",
       "class": "A"
     }
   ]

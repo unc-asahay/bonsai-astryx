@@ -163,6 +163,21 @@ the ported components render in isolation
   ok   the caller's accessibility attributes win
   ok   an unknown icon name is marked in the DOM
   ok   an unknown icon renders no svg
+  ok   six field statuses render
+  ok   each carries its type class
+  ok   attached is the default variant
+  ok   detached is honoured
+  ok   an error is announced assertively (role=alert)
+  ok   warnings and successes are polite (role=status)
+  ok   attached renders the message as bare text
+  ok   attached renders no icon
+  ok   detached wraps its content
+  ok   detached error shows the error glyph
+  ok   detached success shows the success glyph
+  ok   the detached icon is the sm size
+  ok   detached still shows its message
+  ok   nothing animates on the first paint
+  ok   caller attributes are applied last
 
 interaction (OCaml dispatched the event)
   ok   the click target is a ported Button
@@ -170,5 +185,5 @@ interaction (OCaml dispatched the event)
   ok   one dispatched click moves the count to 1
   ok   a second click moves it to 2
 
-164 checks, 0 failure(s)
+179 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

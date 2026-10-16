@@ -72,6 +72,19 @@ expected and must be documented per component.
 - [ ] Published docs site built from `docs/INDEX.md` + per-component files
 - [ ] Release with a pinned upstream Astryx revision recorded in `NOTICE`
 
+## M9 — FieldStatus and entry animations (done)
+
+Landed `FieldStatus` (attached/detached × warning/error/success) and `Entry_animation`, the
+first behaviour in the port that depends on *when*, not on inputs.
+
+The point worth carrying forward: upstream animates a component **only when it was mounted
+after the first paint**, and reproduces that by flipping a module-level flag inside a
+`requestAnimationFrame` and reading it once, at first render. The port does the same, which is
+why `FieldStatus` builds its own view synchronously instead of taking a `Bonsai.graph`. Both
+halves of the rule are gated: the in-process tests assert nothing on the first paint animates,
+and the browser gate mounts one on demand and asserts the class *and* that
+`prefers-reduced-motion` neutralises it.
+
 ## Next milestone — DropdownMenu, and why it is not a trio
 
 Only seven Class A components remained when this was written, and the two most valuable are

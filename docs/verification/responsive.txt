@@ -20,7 +20,7 @@ showcase @ 320x568
   ok   [320x568] the button is hit-testable at its centre
   ok   [320x568] a real mouse click increments the counter (0 -> 1)
   ok   [320x568] no console errors
-  ok   [320x568] pixels match the baseline (0.00% differ)
+  FAIL [320x568] pixels match the baseline (Infinity% differ) — dimensions differ: 320x27186x320x28404
 
 showcase @ 375x667
   ok   [375x667] the page does not overflow horizontally
@@ -32,7 +32,7 @@ showcase @ 375x667
   ok   [375x667] the button is hit-testable at its centre
   ok   [375x667] a real mouse click increments the counter (0 -> 1)
   ok   [375x667] no console errors
-  ok   [375x667] pixels match the baseline (0.00% differ)
+  FAIL [375x667] pixels match the baseline (Infinity% differ) — dimensions differ: 375x26158x375x27246
 
 showcase @ 768x1024
   ok   [768x1024] the page does not overflow horizontally
@@ -44,7 +44,7 @@ showcase @ 768x1024
   ok   [768x1024] the button is hit-testable at its centre
   ok   [768x1024] a real mouse click increments the counter (0 -> 1)
   ok   [768x1024] no console errors
-  ok   [768x1024] pixels match the baseline (0.00% differ)
+  FAIL [768x1024] pixels match the baseline (Infinity% differ) — dimensions differ: 768x25749x768x26694
 
 showcase @ 1440x900
   ok   [1440x900] the page does not overflow horizontally
@@ -56,7 +56,7 @@ showcase @ 1440x900
   ok   [1440x900] the button is hit-testable at its centre
   ok   [1440x900] a real mouse click increments the counter (0 -> 1)
   ok   [1440x900] no console errors
-  ok   [1440x900] pixels match the baseline (0.00% differ)
+  FAIL [1440x900] pixels match the baseline (Infinity% differ) — dimensions differ: 1440x26259x1440x27173
 
 ========================================================================
 demo  http://127.0.0.1:8791/examples/demo/index.html
@@ -106,5 +106,10 @@ reflow (auto-fill grid: tracks per viewport)
   ok   the auto-fill grid fits more tracks on a wide viewport than on a narrow one
   ok   every grid on the page has a non-zero track count
 
-66 checks passed, 0 failure(s)
-RESPONSIVE CHECKS PASSED
+62 checks passed, 4 failure(s)
+failures:
+  - [320x568] pixels match the baseline (Infinity% differ)
+  - [375x667] pixels match the baseline (Infinity% differ)
+  - [768x1024] pixels match the baseline (Infinity% differ)
+  - [1440x900] pixels match the baseline (Infinity% differ)
+RESPONSIVE CHECKS FAILED

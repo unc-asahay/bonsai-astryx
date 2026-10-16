@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   24 sections
+  ok   25 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   155 examples across the page
+  ok   160 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 Interactive:1
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Interactive:2
 
 navigation
-  ok   24 nav links
+  ok   25 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -68,15 +68,29 @@ icon rendering (measured, not asserted from the markup)
   ok   the size class sets font-size too (the 1em trap)
   ok   a colour class resolves to a real colour, not an inherited one
 
+field status (measured styles + the first-paint animation rule)
+  ok   the attached overlay does not take pointer input
+  ok   the attached overlay really overlaps (negative top margin)
+  ok   ...and pads back the overlap so text is not clipped
+  ok   only the bottom corners are rounded
+  ok   an attached error is announced assertively
+  ok   detached uses a flex row with a gap
+  ok   detached shows its type's icon
+  ok   nothing in the section animates on the first paint
+  ok   the Show status button exists and was clicked
+  ok   a status mounted after the first paint carries the animation class
+  ok   ..and it is announced assertively, being an error
+  ok   the animation is neutralised under prefers-reduced-motion
+
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 23 ported / 80 not / 103 total
-  ok   unported list rendered 80 entries
+  ok   coverage stats are 24 ported / 79 not / 103 total
+  ok   unported list rendered 79 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-48/48 checks passed, 0 failure(s)
+60/60 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

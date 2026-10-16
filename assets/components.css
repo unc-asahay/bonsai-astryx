@@ -732,3 +732,106 @@
 .astryx-icon--green { color: var(--color-icon-green); }
 .astryx-icon--gray { color: var(--color-icon-gray); }
 .astryx-icon--cyan { color: var(--color-icon-cyan); }
+
+/* --------------------------------------------------------- entry animations */
+/* Upstream's useEntryAnimation keyframes. The class is only applied to elements that
+   mount after the first paint (see src/entry_animation.ml), and each preset disables
+   itself under reduced-motion — upstream does the same in its StyleX style. */
+
+@keyframes astryx-enter-slide-down {
+  from { opacity: 0; transform: translateY(calc(-1 * var(--spacing-2))); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes astryx-enter-slide-up {
+  from { opacity: 0; transform: translateY(var(--spacing-2)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes astryx-enter-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes astryx-enter-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.astryx-enter--slide-down,
+.astryx-enter--slide-up,
+.astryx-enter--fade-in,
+.astryx-enter--scale-in {
+  animation-duration: var(--duration-fast-max);
+  animation-timing-function: var(--ease-standard);
+  animation-fill-mode: backwards;
+}
+
+.astryx-enter--slide-down { animation-name: astryx-enter-slide-down; }
+.astryx-enter--slide-up { animation-name: astryx-enter-slide-up; }
+.astryx-enter--fade-in { animation-name: astryx-enter-fade-in; }
+.astryx-enter--scale-in { animation-name: astryx-enter-scale-in; }
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-enter--slide-down,
+  .astryx-enter--slide-up,
+  .astryx-enter--fade-in,
+  .astryx-enter--scale-in {
+    animation-name: none;
+  }
+}
+
+/* --------------------------------------------------------------- FieldStatus */
+
+.astryx-field-status {
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+/* The overlap is visual only: pointer-events:none lets a click reach the control
+   underneath instead of the status strip painted over its bottom edge. */
+.astryx-field-status--attached {
+  margin-top: calc(-1 * var(--_field-status-overlap, var(--spacing-1-5)));
+  padding-block-start: calc(var(--_field-status-overlap, var(--spacing-1-5)) + var(--spacing-2));
+  padding-block-end: var(--spacing-2);
+  padding-inline: var(--spacing-2);
+  border-end-start-radius: var(--radius-element);
+  border-end-end-radius: var(--radius-element);
+  pointer-events: none;
+}
+
+.astryx-field-status--detached {
+  margin-top: var(--spacing-1);
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-element);
+}
+
+.astryx-field-status__content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+}
+
+.astryx-field-status__icon {
+  display: inline-flex;
+  align-items: center;
+  height: calc(var(--text-supporting-size) * var(--text-supporting-leading));
+  flex-shrink: 0;
+}
+
+.astryx-field-status--warning {
+  background-color: var(--color-warning-muted);
+  color: var(--color-text-yellow);
+}
+
+.astryx-field-status--error {
+  background-color: var(--color-error-muted);
+  color: var(--color-text-red);
+}
+
+.astryx-field-status--success {
+  background-color: var(--color-success-muted);
+  color: var(--color-text-green);
+}

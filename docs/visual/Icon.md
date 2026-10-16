@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Icon` (`src/icon.ml`, M8)
-- rendered instances in the demo: 43
+- rendered instances in the demo: 46
 - classes: `astryx-icon`, `astryx-icon--accent`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`
 
 ## layout
