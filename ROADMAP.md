@@ -478,6 +478,26 @@ the component: the demo put two groups side by side in a flex row, and the page 
 375px. The fix was the layout, not the assertion.
 
 
+### M18 — Popover: a layer anchored to its trigger (done, 38 → 39 of 103)
+
+Mostly a wrapper, deliberately. The two mechanisms underneath it were ported and proven on their own first
+(Gates 29 and 30), and that is what made this milestone small: what is left in the component is the
+labelled surface, the generated close control, the focus rule and the width/padding seam.
+
+The focus rule is upstream's exactly — the first genuine control in the content, falling back to the
+labelled surface, with the generated close button excluded *structurally* rather than by a filter (it sits
+outside the content wrapper), and focus returning to the trigger only if it was inside. Focus is asked for
+on the next frame for the same reason the dialog focuses after `showModal`: the surface is `display:none`
+until the mechanism shows it, and two hooks after one DOM patch have no defined order.
+
+Named as missing rather than approximated: width clamping against the viewport (handed to CSS instead),
+the modal focus trap (`aria-modal` is announced and nothing is trapped), the render-prop and `anchorRef`
+trigger modes, and any way to want Escape without light dismiss — they are one `popover` attribute.
+
+**Next in the family:** `BottomSheet` (the other real consumer of these mechanisms) and `DropdownMenu`
+phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
+
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind

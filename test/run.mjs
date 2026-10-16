@@ -1609,6 +1609,33 @@ section("FieldLabel");
     members.map((b) => `${b.textContent}:${b.disabled}`).join(" "));
 }
 
+/* ---------------------------------------------------------------------- Popover (M18) */
+/* The platform's dismissal, the focus rule and the value being told are the browser gate's - a hook
+   writes them, and this harness does not pump mount effects (Gate 30). What belongs here is the
+   structure, including the one structural fact the focus rule rests on. */
+{
+  const surface = document.getElementById("popover-surface");
+  check("the surface is a named dialog",
+    surface?.getAttribute("role") === "dialog"
+      && surface?.getAttribute("aria-modal") === "true"
+      && surface?.getAttribute("aria-label") === "Share",
+    surface ? surface.outerHTML.slice(0, 140) : "no surface");
+  check("carrying the attribute a supporting browser acts on, not a class that means the same thing",
+    surface?.getAttribute("popover") === "auto",
+    String(surface?.getAttribute("popover")));
+  const content = surface?.querySelector(".astryx-popover__content");
+  const close = surface?.querySelector(".astryx-popover__close");
+  check("and a generated close control that is labelled for a screen reader",
+    !!close && close.getAttribute("aria-label") === "Close popover",
+    close ? close.outerHTML.slice(0, 90) : "no close control");
+  check("which sits *outside* the content wrapper — that is what keeps it out of initial focus",
+    !!close && !!content && !content.contains(close),
+    content ? `content: ${content.outerHTML.slice(0, 60)}` : "no content wrapper");
+  check("with the trigger inside the anchor wrapper the mechanism locates it in",
+    !!document.querySelector(".astryx-popover__anchor button"),
+    "the anchor wrapper is what the trigger ARIA is applied to");
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 process.exit(failures === 0 ? 0 : 1);

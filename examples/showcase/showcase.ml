@@ -2590,6 +2590,55 @@ let s_kbd () =
    is not a flag the port implements — it is what the attribute means to the browser — which is the whole
    point of asking the platform first. *)
 
+(* ------------------------------------------------------------------------------------ Popover *)
+let popover_demo (graph : Bonsai.graph) =
+  let is_open, set_is_open = Bonsai.state false graph in
+  let popover =
+    Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+      Astryx.Popover.view
+        ~id:"showcase-popover"
+        ~label:"Share"
+        ~trigger:
+          (Astryx.Button.view
+             ~label:"Share"
+             ~attrs:[ Vdom.Attr.create "id" "showcase-popover-trigger" ]
+             [])
+        ~content:
+          (Astryx.Stack.view
+             ~direction:Astryx.Stack.Vertical
+             ~gap:S.S2
+             [ Astryx.Button.view ~label:"Copy link" []
+             ; Astryx.Button.view ~label:"Copy as markdown" []
+             ])
+        ~is_open
+        ~on_open_change:(fun open_ -> set open_)
+        ())
+  in
+  Bonsai.map popover ~f:(fun popover ->
+    section
+      ~id:"popover"
+      ~title:"Popover"
+      ~note:
+        "A layer anchored to its trigger, opened and dismissed by the platform. Upstream does the same \
+         thing with the native Popover API — popover=auto and showPopover({source: trigger}) — so the \
+         browser owns the top layer, the outside click, Escape *and* the positioning; that is why this \
+         component contains no placement maths at all, and why the trigger is rendered inside a stable \
+         anchor wrapper (upstream's comment: a pressed-state transform on the trigger would make the \
+         surface jitter as it is placed). The trigger is wired by the mechanism rather than by the \
+         caller, because aria-expanded is state and an attribute passed in from outside could only be a \
+         snapshot. Focus enters the first genuine control in the content, falling back to the labelled \
+         surface when there is none, and the generated close button is not a candidate — it sits outside \
+         the content wrapper, which is exactly what keeps it out of initial focus while leaving it \
+         reachable by keyboard. Closing returns focus to the trigger, but only if focus was inside. Two \
+         things upstream has are named as missing rather than approximated: width is handed to CSS \
+         instead of being measured and clamped against the viewport, and there is no modal focus trap — \
+         isModal is announced with aria-modal and nothing is trapped."
+      [ ex
+          "click the trigger, press Escape, click outside: the value is told each time, which is the whole point"
+          popover
+      ])
+;;
+
 let layer_demo (graph : Bonsai.graph) =
   let join_all trees =
     List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
@@ -2597,9 +2646,9 @@ let layer_demo (graph : Bonsai.graph) =
   in
   let one ~id ~popover_kind ~label =
     let is_open, set_is_open = Bonsai.state false graph in
-    (* The trigger is an ordinary ported Button. Nothing about it knows it opens a layer: the ARIA
-       wiring Popover adds (aria-haspopup, aria-expanded, aria-controls) is the next milestone's job,
-       and leaving it out here is deliberate — this demonstrates the mechanism, not the component. *)
+    (* The trigger is an ordinary ported Button, and the ARIA wiring is here on purpose: this
+       demonstrates the *mechanism* under Popover, so the trigger is wired by hand rather than by the
+       component. Popover itself does this for its caller — see the Popover section. *)
     let trigger =
       Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
         Vdom.Node.span
@@ -2769,6 +2818,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "layer", "Layer"
+  ; "popover", "Popover"
   ; "field", "Field + TextInput"
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
@@ -2809,6 +2859,7 @@ let page (graph : Bonsai.graph) =
   let alert_dialog_section = alert_dialog_demo graph in
   let dialog_header_section = dialog_header_demo graph in
   let layer_section = layer_demo graph in
+  let popover_section = popover_demo graph in
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
@@ -2826,16 +2877,18 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful alert_dialog_section in
   let stateful = pair stateful dialog_header_section in
   let stateful = pair stateful layer_section in
+  let stateful = pair stateful popover_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
-                      , form_layout )
-                    , tooltip )
-                  , dialog )
-                , alert_dialog )
-              , dialog_header )
-            , layer )
+    ~f:(fun ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+                        , form_layout )
+                      , tooltip )
+                    , dialog )
+                  , alert_dialog )
+                , dialog_header )
+              , layer )
+            , popover )
           text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -2843,7 +2896,7 @@ let page (graph : Bonsai.graph) =
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive ])
       ])
 ;;
 

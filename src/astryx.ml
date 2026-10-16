@@ -6,6 +6,7 @@
    machine-readable docs). `Divergence` sections in each component file record
    where the port deliberately differs. *)
 
+module Popover = Popover
 module Common = Common
 module Tokens = Tokens
 module Stack = Stack

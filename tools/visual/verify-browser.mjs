@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("41 sections", sections.length === 41, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("42 sections", sections.length === 42, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,11 +616,11 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
-    ButtonGroup: 3,
+    ButtonGroup: 3, Popover: 1,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("263 examples across the page", totalExamples === 263, `got ${totalExamples}`);
+  check("264 examples across the page", totalExamples === 264, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -633,7 +633,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("41 nav links", nav.length === 41, `got ${nav.length}`);
+  check("42 nav links", nav.length === 42, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1612,6 +1612,80 @@ if (mode === "showcase") {
     parseFloat(edges.overlap) < 0, JSON.stringify(edges));
 }
 
+/* ------------------------------------------------------------------- Popover (M18) */
+/* The component is a wrapper around the layer mechanism, so the interesting assertions are the ones a
+   wrapper can get wrong: that the platform's own dismissal reaches the application, that focus lands
+   where upstream says it lands, and that the surface really was placed by the browser rather than
+   merely being present in the top layer. */
+{
+  const state = () => page.evaluate(() => {
+    const surface = document.getElementById("showcase-popover-surface");
+    const trigger = document.getElementById("showcase-popover-trigger");
+    const content = surface?.querySelector(".astryx-popover__content");
+    const active = document.activeElement;
+    return {
+      open: !!surface?.matches(":popover-open"),
+      expanded: trigger?.getAttribute("aria-expanded"),
+      controls: trigger?.getAttribute("aria-controls"),
+      focusedText: (active?.textContent || active?.tagName || "").trim().slice(0, 24),
+      focusInside: !!content?.contains(active),
+      triggerTop: trigger?.getBoundingClientRect().top ?? null,
+      surfaceTop: surface?.getBoundingClientRect().top ?? null,
+      positionArea: surface ? getComputedStyle(surface).positionArea : null,
+    };
+  });
+
+  await page.click("#showcase-popover-trigger");
+  await page.waitForTimeout(220);
+  let st = await state();
+  check("a click opens it, and the browser says so", st.open === true, JSON.stringify(st));
+  check("the trigger says what it opens and that it is showing", st.expanded === "true", JSON.stringify(st));
+  check("aria-controls names the surface, not a class that stands in for one",
+    st.controls === "showcase-popover-surface", String(st.controls));
+
+  /* Upstream's rule, exactly: focus enters the first genuine control in the content - not the generated
+     close button, which is outside the content wrapper for precisely this reason. */
+  check("focus enters the first control in the content, not the generated close button",
+    st.focusInside === true && st.focusedText === "Copy link",
+    JSON.stringify({ focusInside: st.focusInside, focusedText: st.focusedText }));
+
+  /* Placement is the platform's: if anchor positioning did not run, the surface would sit at the
+     viewport's origin rather than under its trigger. */
+  check("and the surface was placed below its trigger by the platform, not merely shown",
+    st.surfaceTop !== null && st.triggerTop !== null && st.surfaceTop > st.triggerTop,
+    JSON.stringify({ trigger: st.triggerTop, surface: st.surfaceTop, positionArea: st.positionArea }));
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(220);
+  st = await state();
+  check("Escape dismisses it, and the application is told - the value is not left saying open",
+    st.open === false && st.expanded === "false", JSON.stringify(st));
+  check("and focus went back to the trigger", st.focusedText.startsWith("Share"), String(st.focusedText));
+
+  await page.click("#showcase-popover-trigger");
+  await page.waitForTimeout(220);
+  await page.mouse.click(4, 4);
+  await page.waitForTimeout(220);
+  st = await state();
+  check("a real click outside dismisses it too, and the value is told again",
+    st.open === false && st.expanded === "false", JSON.stringify(st));
+
+  /* The generated close control: present, labelled, and able to close the thing it belongs to. */
+  await page.click("#showcase-popover-trigger");
+  await page.waitForTimeout(220);
+  const closedByButton = await page.evaluate(() => {
+    const button = document.querySelector(".astryx-popover__close");
+    if (!button) return "no close control";
+    button.click();
+    return button.getAttribute("aria-label");
+  });
+  await page.waitForTimeout(220);
+  st = await state();
+  check("the generated close control is labelled and closes the surface",
+    closedByButton === "Close popover" && st.open === false,
+    JSON.stringify({ label: closedByButton, open: st.open }));
+}
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -1645,11 +1719,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 38 ported / 65 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["38", "65", "103"]),
+    "coverage stats are 39 ported / 64 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["39", "64", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 65 entries", cov.unported === 65, `got ${cov.unported}`);
+  check("unported list rendered 64 entries", cov.unported === 64, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

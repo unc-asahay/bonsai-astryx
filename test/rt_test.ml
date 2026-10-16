@@ -1586,3 +1586,28 @@ let () =
     button_group_static
   |> fun handle -> mount "button-group" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------------------------- Popover (M18) *)
+(* State, because the component is controlled: a static value could never open, so a fixture without
+   state would pass here and mean nothing. The behaviour - the platform's dismissal, focus, and the
+   value being told - is the browser gate's; what belongs here is the structure, including the one
+   structural fact the focus rule rests on. *)
+let popover_static (graph : Bonsai.graph) =
+  let is_open, set_is_open = Bonsai.state false graph in
+  Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+    Astryx.Popover.view
+      ~id:"popover"
+      ~label:"Share"
+      ~trigger:(Astryx.Button.view ~label:"Share" [])
+      ~content:(Vdom.Node.text "popover content")
+      ~is_open
+      ~on_open_change:(fun open_ -> set open_)
+      ())
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    popover_static
+  |> fun handle -> mount "popover" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -1568,3 +1568,74 @@ is the weak-but-true position, not a false one.
 
 Transcript: `docs/verification/sweep-m17a.txt`.
 
+## Gate 32 — Popover (M18): a layer anchored to its trigger
+
+Coverage moves **38 → 39 of 103**. This component is mostly a wrapper — deliberately: two mechanisms were
+ported and proven on their own first (Gates 29 and 30), so what is left here is the labelled surface, the
+generated close control, the focus rule and the width/padding seam.
+
+### The rule this port took from upstream verbatim
+
+**Focus enters the first genuine control in the content; a popover with none falls back to its own labelled
+surface.** The surface is focusable (`tabindex="-1"`) for exactly that fallback. And the generated close
+button is **not** a candidate — not by a filter, but structurally: it sits outside the content wrapper, so
+the content query cannot reach it. That is what keeps it out of initial focus while leaving it reachable by
+keyboard, and it is the one structural fact the jsdom gate asserts so that the browser gate's behavioural
+check has something to rest on.
+
+**Closing returns focus to the trigger, but only if focus was inside.** A dismissal the person did not ask
+for must not yank focus out of wherever they had moved it to.
+
+**Focus is asked for on the next frame.** The surface is `display:none` until the layer mechanism shows it,
+and the two hooks run in unspecified order after the same DOM patch — so focusing immediately would
+silently do nothing whenever the focus hook ran first. Same ordering trap the dialog hit with `showModal`,
+arrived at from a different direction.
+
+### What the browser measured
+
+| Check | Evidence (real Chromium) |
+| --- | --- |
+| A click opens it, and the browser says so | it matches `:popover-open` |
+| The trigger says what it opens and that it is showing | `aria-expanded` true, `aria-controls` naming the surface |
+| Focus enters the first control in the content, not the close button | `document.activeElement` is "Copy link", inside the content wrapper |
+| The surface was placed **below its trigger** | its top is past the trigger's bottom — anchor positioning ran, it is not merely in the top layer |
+| Escape dismisses it and the application is told | closed, `aria-expanded` false — the value is not left saying open |
+| Focus went back to the trigger | the trigger holds focus again |
+| A real outside click dismisses it too, and the value is told again | closed, `aria-expanded` false |
+| The generated close control is labelled and closes it | activating it closes the surface |
+
+### Divergences, named rather than approximated
+
+- **Width is handed to CSS, not measured.** Upstream clamps against the viewport and flips or slides; this
+  port sets the width and stops. Width unset means "match the trigger", which native `anchor-size()` does
+  with no JavaScript at all.
+- **No modal focus trap.** `isModal` is announced with `aria-modal` and nothing is trapped: Tab can leave
+  the surface. The platform owns the top layer here, but it does not own the trap.
+- **The render-prop and `anchorRef` trigger modes are not ported** — a language without render props has no
+  equivalent for handing the caller the trigger props, and the automatic mode covers the case.
+- **Light dismiss and Escape are one `popover` attribute**, so asking for one without the other is not
+  expressible. The port takes the reading that keeps the surface alive until the application closes it, and
+  the `mli` says so rather than leaving a reader to discover it.
+
+### The gate caught a miss of mine again
+
+The first run of the browser gate after adding the section failed four frozen counters — and one of them
+was real: **`no section missing from the nav`**. I had added the section and not the nav entry. That check
+exists precisely for this, and it is the second time in two milestones that a hand-maintained list was the
+thing that broke rather than the code.
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **419 / 0** |
+| Real-browser checks (Chromium, live showcase) | **223 / 223** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **39 of 103** ported, 64 not |
+| Showcase | 42 sections, 264 examples |
+| Visual contract pages | 39 |
+| MCP layer | every ported component truthfully reachable |
+
+Transcript: `docs/verification/sweep-m18a.txt`.
+

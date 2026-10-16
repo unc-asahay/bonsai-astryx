@@ -128,6 +128,12 @@
       "name": "buttons joined into one surface",
       "note": "ButtonGroup. Two parts, and only one of them was expected. The connected look is drawn by CSS from the group rather than by a context the children read, because a child in this port is built before its container ever sees it - and the rule has to target the button *inside* each child, since a member that renders its own layer wraps its button, so `> .astryx-button` would miss it and the group would lose its end caps. Upstream hit the same wall and moved those rules out of the group and into Button.tsx; this arrives at the same place from the other side. The part that was not expected: a single tab stop with the arrows moving within it is behaviour, and unlike a radio group the platform does not provide it for buttons, so the group implements the APG roving tabindex itself, and every arrow movement rewrites tabindex on the members - the focused one becomes 0 and the rest -1, which is what makes the next Tab leave the group. Upstream's three useListFocus settings are copied verbatim because all three are load-bearing: the item selector must not key off a tabindex value (the roving stamps one on every item, so `[tabindex=\"0\"]` would drop each member the moment it is stamped -1), the ends wrap, and the nearest boundary above a key event has to be the group's own root, which is what keeps a member's open layer from losing its arrow keys and, in the other direction, keeps a group rendered inside a Popover working. One thing is not ported and is named rather than approximated: size does not propagate from the group to its members, because there is no context to carry it.",
       "status": "complete"
+    },
+    {
+      "id": "M18",
+      "name": "a layer anchored to its trigger",
+      "note": "Popover. This component is mostly a wrapper around two mechanisms that were ported and proven on their own first (Gates 29 and 30), which was the point of doing them separately: the surface's show/hide with the platform's dismissal reported back to the application, and the trigger's ARIA with its click. What is left in the component is the labelled surface, the generated close control, the focus rule, and the width/padding seam. The focus rule is upstream's exactly: focus enters the first genuine control in the content, falling back to the labelled surface when there is none, and the generated close button is deliberately not a candidate - it sits outside the content wrapper, which is what keeps it out of initial focus while leaving it reachable by keyboard. Closing returns focus to the trigger, but only if focus was inside, so a dismissal the person did not ask for cannot yank focus out of wherever they had moved it. Focus is asked for on the next frame because the surface is display:none until the layer mechanism shows it, and the two hooks run in unspecified order after the same DOM patch - the same ordering trap the dialog hit with showModal. Upstream's light dismiss and Escape are one popover attribute, so asking for one without the other is not expressible here and the port takes the reading that keeps the surface alive until the application closes it, which the mli states. Three things upstream has are named as missing rather than approximated: width is handed to CSS rather than measured and clamped against the viewport (so the surface flips or slides nowhere), there is no modal focus trap (isModal is announced with aria-modal and nothing is trapped), and the render-prop and anchorRef trigger modes have no equivalent in a language without render props - give the trigger a real button and the automatic mode is enough.",
+      "status": "complete"
     }
   ],
   "ported": [
@@ -397,6 +403,13 @@
       "file": "src/button_group.ml",
       "milestone": "M17",
       "module": "Astryx.Button_group"
+    },
+    {
+      "class": "A",
+      "component": "Popover",
+      "file": "src/popover.ml",
+      "milestone": "M18",
+      "module": "Astryx.Popover"
     }
   ],
   "schema": 1,
