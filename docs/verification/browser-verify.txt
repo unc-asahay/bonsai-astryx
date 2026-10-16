@@ -17,16 +17,16 @@ page
   ok   every stylesheet parsed
 
 showcase sections
-  ok   25 sections
+  ok   26 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   160 examples across the page
+  ok   162 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 DropdownMenu:2 Interactive:2
 
 navigation
-  ok   25 nav links
+  ok   26 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -52,6 +52,31 @@ keyboard
   ok   focus lands on the button itself, not a wrapper
   ok   no negative tabindex (so Tab reaches it)
   ok   Enter on the focused button activates it (count: 2 -> count: 3)
+
+dropdown menu (keyboard and focus)
+  ok   the menu is closed on the first paint
+  ok   no rows exist while closed
+  ok   nothing is selected yet
+  ok   the trigger takes focus
+  ok   Down on the trigger opens the menu
+  ok   opening focuses the first row
+  ok   Down moves to the next row
+  ok   End reaches the last row (an href row is focusable)
+  ok   Home returns to the first row
+  ok   Up from the first row wraps to the last
+  ok   hovering a row focuses it
+  ok   Down skips the disabled row
+  ok   typing "d" jumps to the next match after the current row (sort-date)
+  ok   typing "d" again cycles to the next match (docs)
+  ok   and wraps past the end, skipping the disabled row (delete)
+  ok   Enter chooses the focused row (selected: delete)
+  ok   choosing closes the menu
+  ok   choosing hands focus back to the trigger
+  ok   the menu reopens on Down
+  ok   Escape closes the menu
+  ok   Escape hands focus back to the trigger
+  ok   the selection survives the menu closing
+  ok   a click outside closes the menu
 
 accessibility (read from the live tree)
   ok   StatusDot exposes role=img
@@ -83,14 +108,14 @@ field status (measured styles + the first-paint animation rule)
   ok   the animation is neutralised under prefers-reduced-motion
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 24 ported / 79 not / 103 total
-  ok   unported list rendered 79 entries
+  ok   coverage stats are 25 ported / 78 not / 103 total
+  ok   unported list rendered 78 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-60/60 checks passed, 0 failure(s)
+83/83 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

@@ -167,13 +167,22 @@ const tools = {
     const c = findComponent(name);
     if (!c) return `No component named "${name}".`;
     const v = componentView(c);
+    // port.json stores the module under its public path ("Astryx.Field_status"), so do not
+    // prefix again — the component name and the module name can also differ.
+    const mod = (v.module ?? c.name).replace(/^Astryx\./, "");
     if (snippets[c.name]) {
-      return `Astryx.${c.name} — ported (${v.module ?? ""})\n\n\`\`\`ocaml\n${snippets[c.name]}\n\`\`\`\n\nThis exact call shape is compiled by dune build in examples/demo/demo.ml.`;
+      return `Astryx.${mod} — ported${v.milestone ? ` (milestone ${v.milestone})` : ""}\n\n\`\`\`ocaml\n${snippets[c.name]}\n\`\`\`\n\nThis exact call shape is compiled by dune build in examples/demo/demo.ml or examples/showcase/showcase.ml.`;
     }
     const contract = (c.props ?? [])
       .map((p) => (typeof p === "string" ? p : p.name))
       .slice(0, 12)
       .join(", ");
+    if (v.status === "ported") {
+      // Ported but unsnippeted is NOT the same as unported: say which one it is, name the
+      // real module (it can differ from the component name — DropdownMenu is
+      // Astryx.Dropdown_menu), and never invent a call.
+      return `${c.name} IS ported — but this build ships no compile-verified snippet for it, so I will not invent a call. Module: Astryx.${mod} (milestone ${v.milestone}). The call shape that is actually compiled is in examples/showcase/showcase.ml; the upstream props it answers to: ${contract}. See docs/components/${c.name}.md and docs/visual/${c.name}.md.`;
+    }
     return `${c.name} is NOT ported yet, so there is no call to give you — anything I emit would be invented. Upstream props to design against: ${contract}. See docs/components/${c.name}.md.`;
   },
 

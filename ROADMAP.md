@@ -72,6 +72,30 @@ expected and must be documented per component.
 - [ ] Published docs site built from `docs/INDEX.md` + per-component files
 - [ ] Release with a pinned upstream Astryx revision recorded in `NOTICE`
 
+## M10 — the menu-button core (DropdownMenu, phase 1) (done)
+
+Landed `DropdownMenu` phase 1 — the APG menu-button core — with `Menu_focus`, the navigation
+ported from upstream's `useListFocus`/`useTypeahead`.
+
+Three things worth carrying forward:
+
+1. **Navigation is DOM-driven, exactly as upstream's is.** The highlight *is* DOM focus, rows are
+   found by querying the container, and a disabled row is excluded *by the selector* — so no
+   index can ever name an unfocusable row. Phases built on an index into a model would drift the
+   moment a row is conditionally rendered.
+2. **`Effect.Focus.on_activate` does not do what it sounds like.** It fires when a *computation*
+   is activated, and a menu that renders its rows on a state change keeps that computation alive
+   from the first paint — so it fired once, with the menu closed, and neither opening nor closing
+   moved focus. `Menu_focus.focus_on_next_frame` focuses a frame later, which is the only moment
+   that works in both directions. jsdom no-ops focus, so only the real browser could show this.
+3. **The keyboard belongs in the browser gate.** The test harness's synthetic key event carries
+   an *empty* `key` and appends its own fields after any `extra_event_fields`, so a handler that
+   reads `event.key` (as upstream does) cannot be driven from jsdom at all. Rather than assert a
+   fiction there, the whole keyboard path is asserted in Chromium.
+
+Phase 2 — the inline-flyout system, the bottom sheet and the native `popover="auto"` press model
+— remains open, as does `MoreMenu`, which wraps this.
+
 ## M9 — FieldStatus and entry animations (done)
 
 Landed `FieldStatus` (attached/detached × warning/error/success) and `Entry_animation`, the

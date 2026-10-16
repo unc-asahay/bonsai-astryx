@@ -43,7 +43,19 @@ const dom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, 
   runScripts: "outside-only",
   pretendToBeVisual: true,
   url: "http://localhost/",
-  virtualConsole: new VirtualConsole(),
+  virtualConsole:
+    // Forward jsdom's console to the real one. A bare VirtualConsole swallows
+    // everything the bundle prints — including the message of an exception the
+    // OCaml side catches and reports — which turns a diagnosable failure into an
+    // opaque js_of_ocaml value.
+    (() => {
+      const vc = new VirtualConsole();
+      vc.on("error", (...args) => console.error(...args));
+      vc.on("warn", (...args) => console.warn(...args));
+      vc.on("log", (...args) => console.log(...args));
+      vc.on("jsdomError", (error) => console.error("[jsdom]", error.message));
+      return vc;
+    })(),
   beforeParse(window) {
     try {
       window.Intl = Intl;
@@ -674,6 +686,106 @@ section("interaction (OCaml dispatched the event)");
 }
 
 // --------------------------------------------------------------------- report
+
+// --- DropdownMenu
+section("DropdownMenu (the APG menu-button core)");
+
+{
+  const closed = inCaseOf("dropdown-menu-closed", "DropdownMenu")[0];
+  const open = inCaseOf("dropdown-menu-open", "DropdownMenu")[0];
+  const selected = inCaseOf("dropdown-menu-selected", "DropdownMenu")[0];
+
+  check("the menu mounts in all three states", Boolean(closed && open && selected),
+    `${Boolean(closed)}/${Boolean(open)}/${Boolean(selected)}`);
+
+  // Selected by class and attribute rather than by id on purpose: all three fixtures
+  // carry the same ids, and jsdom resolves a scoped "#id" query document-first, so a
+  // scoped id query returns null for every case but the first.
+  const trigger = (root) => root.querySelector('button[aria-haspopup="menu"]');
+  const popover = (root) => root.querySelector(".astryx-dropdown__popover");
+  const menu = (root) => root.querySelector(".astryx-dropdown__menu");
+  const rows = (root) => [...root.querySelectorAll("[data-astryx-menu-item]")];
+  const row = (root, id) => rows(root).find((r) => attr(r, "data-astryx-menu-item") === id);
+
+  // The trigger is the APG menu button: what it opens, whether it is open, and which
+  // element that is.
+  check("the trigger is a button with the menu-button ARIA",
+    trigger(open).tagName === "BUTTON" &&
+      attr(trigger(open), "aria-haspopup") === "menu" &&
+      attr(trigger(open), "aria-controls") === menu(open).id &&
+      menu(open).id !== "");
+  check("aria-expanded follows the state",
+    attr(trigger(closed), "aria-expanded") === "false" && attr(trigger(open), "aria-expanded") === "true",
+    `${attr(trigger(closed), "aria-expanded")}/${attr(trigger(open), "aria-expanded")}`);
+
+  // The surface is in the DOM even while closed, so aria-controls never dangles;
+  // [hidden] closes it rather than its absence, and the state is stated on it too.
+  check("the element aria-controls names exists while closed",
+    document.getElementById(menu(closed).id) === menu(closed));
+  check("closed hides the surface with [hidden]", popover(closed).hasAttribute("hidden"));
+  check("open removes [hidden]", !popover(open).hasAttribute("hidden"));
+  check("the surface states its own state",
+    attr(popover(closed), "data-astryx-state") === "closed" && attr(popover(open), "data-astryx-state") === "open");
+  check("the menu is a role=menu named by the trigger",
+    attr(menu(open), "role") === "menu" && attr(menu(open), "aria-labelledby") === trigger(open).id);
+  check("the menu is programmatically focusable", attr(menu(open), "tabindex") === "-1");
+  check("the surface caps its height", /^max-height:\d+px$/.test(menu(open).getAttribute("style") || ""),
+    `style=${menu(open).getAttribute("style")}`);
+
+  // Rows exist only while open, which keeps the closed menu out of the tab order and
+  // out of the accessibility tree entirely.
+  check("no rows render while closed", rows(closed).length === 0, `${rows(closed).length}`);
+  check("every row renders while open", rows(open).length === 8, `${rows(open).length}`);
+  check("every row is a programmatically focusable menuitem",
+    rows(open).every((r) => attr(r, "role") === "menuitem" && attr(r, "tabindex") === "-1"));
+
+  // A disabled row cannot take focus, so navigation has to skip it; the port excludes
+  // it by selector, which is why no index can ever point at an unfocusable row.
+  const disabled = row(open, "duplicate");
+  check("a disabled row says so and stays a menuitem",
+    attr(disabled, "aria-disabled") === "true" && attr(disabled, "role") === "menuitem");
+  check("a disabled row is not an anchor", attr(disabled, "href") === null);
+
+  // A row with an href *is* the anchor, so ⌘-click and middle-click keep working.
+  const link = row(open, "docs");
+  check("an href row is the anchor itself, with the menu role",
+    link.tagName === "A" && attr(link, "href") === "#menu-docs" && attr(link, "role") === "menuitem");
+  check("exactly one row is a link", rows(open).filter((r) => r.tagName === "A").length === 1,
+    rows(open).filter((r) => r.tagName === "A").map((r) => attr(r, "data-astryx-menu-item")).join(","));
+
+  const headings = [...open.querySelectorAll(".astryx-dropdown__heading")];
+  check("both section headings render", headings.length === 2,
+    headings.map((h) => h.textContent).join(" | "));
+  check("the divider is a separator", open.querySelectorAll('[role="separator"]').length === 1);
+
+  const groups = [...open.querySelectorAll('[role="group"]')];
+  check("both groups are role=group", groups.length === 2, `${groups.length}`);
+  check("a titled group is named by a heading that exists",
+    document.getElementById(attr(groups[0], "aria-labelledby") || "")?.textContent === "Sort by");
+  check("an untitled group is left unnamed rather than mislabelled",
+    attr(groups[1], "aria-labelledby") === null);
+
+  const first = row(open, "new");
+  check("a row's icon is decorative and wrapped",
+    first.querySelector('.astryx-dropdown__item-icon[aria-hidden="true"] svg') !== null);
+  check("a row renders label and description",
+    first.querySelector(".astryx-dropdown__item-label").textContent === "New file" &&
+      first.querySelector(".astryx-dropdown__item-description").textContent === "Create a file in this project");
+  check("end content renders after the body",
+    first.querySelector(".astryx-dropdown__item-end").textContent === "⌘N");
+  check("a destructive row is marked as one",
+    hasClass(row(open, "delete"), /astryx-dropdown__item--destructive/));
+  check("an ordinary row is not", !hasClass(row(open, "open"), /destructive/));
+
+  // The selection reached the consumer: [data-selected] is the case's own state,
+  // rendered by the component's parent, not something the menu wrote.
+  check("the consumer received the selection",
+    selected.parentElement.getAttribute("data-selected") === "open",
+    `data-selected=${selected.parentElement.getAttribute("data-selected")}`);
+  check("selecting a row closes the menu",
+    attr(trigger(selected), "aria-expanded") === "false" && popover(selected).hasAttribute("hidden"));
+  check("closing empties the surface again", rows(selected).length === 0, `${rows(selected).length}`);
+}
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");

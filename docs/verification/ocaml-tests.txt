@@ -185,5 +185,37 @@ interaction (OCaml dispatched the event)
   ok   one dispatched click moves the count to 1
   ok   a second click moves it to 2
 
-179 checks, 0 failure(s)
+DropdownMenu (the APG menu-button core)
+  ok   the menu mounts in all three states
+  ok   the trigger is a button with the menu-button ARIA
+  ok   aria-expanded follows the state
+  ok   the element aria-controls names exists while closed
+  ok   closed hides the surface with [hidden]
+  ok   open removes [hidden]
+  ok   the surface states its own state
+  ok   the menu is a role=menu named by the trigger
+  ok   the menu is programmatically focusable
+  ok   the surface caps its height
+  ok   no rows render while closed
+  ok   every row renders while open
+  ok   every row is a programmatically focusable menuitem
+  ok   a disabled row says so and stays a menuitem
+  ok   a disabled row is not an anchor
+  ok   an href row is the anchor itself, with the menu role
+  ok   exactly one row is a link
+  ok   both section headings render
+  ok   the divider is a separator
+  ok   both groups are role=group
+  ok   a titled group is named by a heading that exists
+  ok   an untitled group is left unnamed rather than mislabelled
+  ok   a row's icon is decorative and wrapped
+  ok   a row renders label and description
+  ok   end content renders after the body
+  ok   a destructive row is marked as one
+  ok   an ordinary row is not
+  ok   the consumer received the selection
+  ok   selecting a row closes the menu
+  ok   closing empties the surface again
+
+209 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

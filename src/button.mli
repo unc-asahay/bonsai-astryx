@@ -50,5 +50,6 @@ val view
   -> ?target:string
   -> ?rel:string
   -> ?on_click:(Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit Ui_effect.t)
+  -> ?attrs:Vdom.Attr.t list
   -> Vdom.Node.t list
   -> Vdom.Node.t

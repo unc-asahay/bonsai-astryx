@@ -233,11 +233,11 @@ if (mode === "showcase") {
     "Stack", "Text", "Heading", "Button", "Badge", "Card", "Divider", "StatusDot",
     "Skeleton", "Center", "Section", "Grid", "VisuallyHidden",
     "HStack", "VStack", "AspectRatio", "IconButton", "Code", "Blockquote",
-    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "Interactive",
+    "NavIcon", "EmptyState", "Citation", "Icon", "FieldStatus", "DropdownMenu", "Interactive",
   ];
 
   console.log("\nshowcase sections");
-  check("25 sections", sections.length === 25, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("26 sections", sections.length === 26, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -253,10 +253,10 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, Interactive: 2,
+    FieldStatus: 4, DropdownMenu: 2, Interactive: 2,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("160 examples across the page", totalExamples === 160, `got ${totalExamples}`);
+  check("162 examples across the page", totalExamples === 162, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -269,7 +269,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("25 nav links", nav.length === 25, `got ${nav.length}`);
+  check("26 nav links", nav.length === 26, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -350,6 +350,119 @@ if (mode === "showcase") {
     num(afterKey) === num(beforeKey) + 1,
     `${beforeKey} -> ${afterKey}`,
   );
+
+  // DropdownMenu: the behaviour that exists only in a real browser. The highlight is
+  // DOM focus, rows are found by querying the container, and the keyboard is what moves
+  // between them — none of which the jsdom harness can express, because its synthetic
+  // key event carries no `key`. So the keyboard, the typeahead, the disabled-row skip,
+  // the selection and the focus return are all asserted here.
+  console.log("\ndropdown menu (keyboard and focus)");
+  const menuState = () =>
+    page.evaluate(() => {
+      const trigger = document.querySelector("#menu-file-trigger");
+      const surface = document.querySelector(".astryx-dropdown__popover");
+      const active = document.activeElement;
+      const row = active && active.closest ? active.closest("[data-astryx-menu-item]") : null;
+      return {
+        exists: Boolean(trigger && surface),
+        expanded: trigger && trigger.getAttribute("aria-expanded"),
+        surfaceHidden: surface ? surface.hasAttribute("hidden") : null,
+        rowCount: document.querySelectorAll("#menu-file-menu [data-astryx-menu-item]").length,
+        focusedRow: row ? row.getAttribute("data-astryx-menu-item") : null,
+        focusOnTrigger: active === trigger,
+        selection: ((document.querySelector("#menu-selection") || {}).textContent || "").trim(),
+      };
+    });
+  const focusTrigger = () =>
+    page.evaluate(() => {
+      const t = document.querySelector("#menu-file-trigger");
+      if (!t) return false;
+      t.focus();
+      return document.activeElement === t;
+    });
+  const key = async (k) => {
+    await page.keyboard.press(k);
+    await page.waitForTimeout(90);
+  };
+
+  const dm0 = await menuState();
+  check("the menu is closed on the first paint",
+    dm0.exists && dm0.expanded === "false" && dm0.surfaceHidden === true, JSON.stringify(dm0));
+  check("no rows exist while closed", dm0.rowCount === 0, `${dm0.rowCount}`);
+  check("nothing is selected yet", dm0.selection === "selected: —", dm0.selection);
+  check("the trigger takes focus", (await focusTrigger()) === true);
+
+  await key("ArrowDown");
+  const dm1 = await menuState();
+  check("Down on the trigger opens the menu",
+    dm1.expanded === "true" && dm1.surfaceHidden === false, JSON.stringify(dm1));
+  check("opening focuses the first row", dm1.focusedRow === "new", String(dm1.focusedRow));
+
+  await key("ArrowDown");
+  check("Down moves to the next row", (await menuState()).focusedRow === "open", String((await menuState()).focusedRow));
+  await key("End");
+  check("End reaches the last row (an href row is focusable)",
+    (await menuState()).focusedRow === "docs", String((await menuState()).focusedRow));
+  await key("Home");
+  check("Home returns to the first row", (await menuState()).focusedRow === "new", String((await menuState()).focusedRow));
+  await key("ArrowUp");
+  check("Up from the first row wraps to the last",
+    (await menuState()).focusedRow === "docs", String((await menuState()).focusedRow));
+
+  // Moving the pointer onto a row focuses it, which is upstream's menuItemHover — the
+  // keyboard and the pointer drive one highlight rather than two.
+  await page.hover('#menu-file-menu [data-astryx-menu-item="save"]');
+  await page.waitForTimeout(90);
+  check("hovering a row focuses it", (await menuState()).focusedRow === "save", String((await menuState()).focusedRow));
+
+  // The disabled row cannot take focus, so it must be skipped rather than landed on.
+  await key("ArrowDown");
+  check("Down skips the disabled row",
+    (await menuState()).focusedRow === "delete", String((await menuState()).focusedRow));
+
+  // Typeahead: "d" matches Delete project, Date modified and Documentation; pressing the
+  // same character again inside the reset window cycles through them. The disabled
+  // "Duplicate" starts with the same letter and must not be a candidate.
+  await key("d");
+  const t1 = (await menuState()).focusedRow;
+  await key("d");
+  const t2 = (await menuState()).focusedRow;
+  await key("d");
+  const t3 = (await menuState()).focusedRow;
+  // The search starts after the current row, so the first "d" from "delete" is
+  // "sort-date"; wrapping past the end lands back on "delete", which is also what
+  // proves the disabled "Duplicate" — the earlier "d" in document order — is not a
+  // candidate.
+  check(`typing "d" jumps to the next match after the current row (${t1})`, t1 === "sort-date", String(t1));
+  check(`typing "d" again cycles to the next match (${t2})`, t2 === "docs", String(t2));
+  check(`and wraps past the end, skipping the disabled row (${t3})`, t3 === "delete", String(t3));
+
+  // Enter on the focused row: the consumer receives the selection — its own state, not
+  // the menu's — the menu closes, and focus goes back to the trigger.
+  await key("Enter");
+  const picked = await menuState();
+  check(`Enter chooses the focused row (${picked.selection})`, picked.selection === "selected: delete", picked.selection);
+  check("choosing closes the menu", picked.expanded === "false" && picked.surfaceHidden === true, JSON.stringify(picked));
+  check("choosing hands focus back to the trigger", picked.focusOnTrigger === true);
+
+  // Escape is the documented way out, and it must also return focus.
+  await focusTrigger();
+  await key("ArrowDown");
+  check("the menu reopens on Down", (await menuState()).expanded === "true");
+  await key("Escape");
+  const escaped = await menuState();
+  check("Escape closes the menu", escaped.expanded === "false" && escaped.surfaceHidden === true, JSON.stringify(escaped));
+  check("Escape hands focus back to the trigger", escaped.focusOnTrigger === true);
+  check("the selection survives the menu closing", escaped.selection === "selected: delete", escaped.selection);
+
+  // A click anywhere else closes it too.
+  await focusTrigger();
+  await key("ArrowDown");
+  await page.click(".sec-title");
+  await page.waitForTimeout(120);
+  const outside = await menuState();
+  check("a click outside closes the menu",
+    outside.expanded === "false" && outside.surfaceHidden === true, JSON.stringify(outside));
 
   console.log("\naccessibility (read from the live tree)");
   const aria = await page.evaluate(() => {
@@ -511,11 +624,11 @@ if (mode === "showcase") {
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 24 ported / 79 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["24", "79", "103"]),
+    "coverage stats are 25 ported / 78 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["25", "78", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 79 entries", cov.unported === 79, `got ${cov.unported}`);
+  check("unported list rendered 78 entries", cov.unported === 78, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

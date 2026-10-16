@@ -436,6 +436,75 @@ the component.
 
 **Totals at this gate:** 179 component checks, 60 real-browser checks, 25/25 demo checks,
 66 responsive checks at 0.00% drift across 320/375/768/1440.
+## Gate 12 — the menu-button core, and two focus bugs only a real browser could show
+
+`DropdownMenu` (phase 1) is the port's first component that is a *system* rather than a leaf:
+a trigger, a surface, and rows reached by pointer, keyboard and typeahead. It is also the
+first whose behaviour is mostly not a function of its props, and the first where the port's
+own test harness was the thing that had to change.
+
+**Navigation is DOM-driven, as upstream's is.** The highlight *is* DOM focus; rows are found
+by querying the container; a disabled row is excluded *by the selector*. That last point is
+not a detail — it means no index can ever name an unfocusable row, so the arrow keys cannot
+land on one. `Menu_focus` ports `useListFocus` and `useTypeahead`, including their less
+obvious rules: boundaries are scoped so an inline flyout's rows never enter the parent's
+order, typeahead resets after 750 ms, repeated same-character presses cycle through the
+matches instead of extending the buffer, and a search starts *after* the current row.
+
+**Two focus bugs, which jsdom could not have found.** Bonsai's documented way to focus a newly
+mounted element is `Effect.Focus.on_activate`, and that is what the port used first. It does
+not do this job: it fires when a *computation* is activated, and a menu that renders its rows
+on a state change keeps that computation alive from the first paint. So it fired once, while
+the menu was still closed:
+
+| Claim | Before | After |
+| --- | --- | --- |
+| Opening focuses the first row (the last, for ArrowUp) | ✗ focus stayed on the trigger | ✓ |
+| Escape returns focus to the trigger | ✗ | ✓ |
+| Choosing a row returns focus to the trigger | ✗ | ✓ |
+
+Both directions need the same trick, for opposite reasons: opening, because the row does not
+exist until the update that opens the menu has rendered; closing, because a browser hands
+focus to the body the moment the focused row is removed, which undoes a focus call made first.
+`Menu_focus.focus_on_next_frame` focuses one frame later, when the DOM has settled either way.
+jsdom no-ops focus entirely, so the component gate passed in both worlds — these three claims
+are only checkable in Chromium.
+
+**What the component gate does assert** (jsdom): the trigger's `aria-haspopup` /
+`aria-expanded` / `aria-controls`; that the element `aria-controls` names exists even while
+closed; `[hidden]` as the close mechanism; rows existing only while open; every row
+`role=menuitem` with `tabindex="-1"`; `aria-disabled` on the disabled row; an href row being
+the anchor itself; group naming (a titled group named by its heading, an untitled one left
+unnamed); the divider and the headings; the icon wrapper being decorative; end content; a
+destructive row's class; and the state transitions — open on click, a selection reaching the
+consumer's own state, close.
+
+**Why the keyboard is not asserted there.** It cannot be: the harness builds a keyboard event
+with an *empty* `key`, and it appends its own fields *after* any `extra_event_fields`, so a
+synthetic key never reaches a handler that reads `event.key` the way upstream's does. The
+honest choice was to assert the real thing where it is real. The whole keyboard path is
+asserted in the browser gate: ArrowDown opens and focuses, arrows/Home/End move and wrap,
+hovering focuses, ArrowDown skips the disabled row, typeahead cycles past it, Enter selects,
+and Escape and selection both return focus.
+
+**A harness gap this found.** The synthetic click provides `currentTarget` and the modifier
+keys but not `button`, and wraps events in a proxy that *raises* on any field a handler reads
+that it was not given — so the port's click handler could not be exercised at all until the
+test supplied `button` explicitly, which it now does. The rig also swallowed everything the
+bundle printed, including a caught exception's message; it now forwards its console, which is
+what made the next problem visible.
+
+**And a warning that was not the new component's fault.** The jsdom run reported
+`WARNING: not combining attributes (name aria-hidden)` once per process, no matter what was
+mounted. It came from the first milestone's `Icon` case, where the caller deliberately
+overrides the component's own `aria-hidden` to prove a caller's attributes win. virtual_dom
+sets the later attribute (the same result React's spread gives) but warns about the duplicate,
+and only the *incoming* attribute can silence it — so the override site marks it with
+`Attr.suppress_merge_warnings`. The dropdown itself was clean: a true positive about a
+deliberate duplicate, in a case whose whole point is the duplicate.
+
+**Totals at this gate:** 209 component checks, 83 real-browser checks, 25/25 demo checks,
+66 responsive checks at 0.00% drift across 320/375/768/1440, 23 appearance pages.
 
 ## Not yet verified — do not read these as claims
 
@@ -444,18 +513,20 @@ the component.
 - **Upstream screenshots / the upstream-side visual reference** — same dependency.
   (`docs/visual/` for the *port* is generated and described in Gate 5 above; what is
   missing is the upstream side to compare it against.)
-- **Anything below M9.** 24 of 103 components are ported; the other 79 have
+- **Anything below M10.** 25 of 103 components are ported; the other 78 have
   reference text but no implementation.
-- **Keyboard and focus behaviour — partially verified.** What is now asserted: `Enter` on a
-  focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
-  Gate 6 runs it at desktop), and every interactive port is a native `<button>` element with no
-  `tabindex="-1"`, so Tab reaches it. What is still **not** asserted: Tab-*order* traversal,
-  `Escape`, `Space`, focus trapping, and `:focus-visible` styling. The harness exists —
-  `test/rt_test.ml` dispatches events through `Bonsai_web_test.Handle`, which also has `keydown`,
-  `focus` and `blur` — but a synthetic key event would prove little for a native button, whose
-  activation is the browser's job; the meaningful keyboard assertions belong in the real-browser
-  gate, and the components with real key semantics (menus, dialogs, comboboxes) are not ported
-  yet.
-- **The showcase covers the ported components only.** The 79 unported ones appear as
+- **Keyboard and focus behaviour — mostly verified, for what is ported.** Asserted: `Enter` on
+  a focused ported button activates it in a real browser (Gate 8 runs it at all three viewports;
+  Gate 6 runs it at desktop); every interactive port is a native `<button>` element with no
+  `tabindex="-1"`, so Tab reaches it; and since M10 the whole menu path — ArrowDown/ArrowUp open
+  and move focus in, arrows/Home/End move with wrap, typeahead cycles, both the arrow keys and
+  typeahead skip the disabled row, Enter selects, Escape closes, and Escape, a selection and the
+  trigger all hand focus back (Gate 12). What is still **not** asserted: Tab-*order* traversal
+  between controls, focus *trapping* (nothing ported traps focus yet — a menu does not, a dialog
+  would), `Space` on a menu row, and `:focus-visible` styling.
+  `test/rt_test.ml` can dispatch `keydown`, `focus` and `blur` through `Bonsai_web_test.Handle`,
+  but a synthetic key event there carries no `key`, which is why keyboard claims live in the
+  real-browser gate instead.
+- **The showcase covers the ported components only.** The 78 unported ones appear as
   names in the coverage panel, deliberately with nothing rendered behind them.
 - **The published opam package** — does not exist yet.

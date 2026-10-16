@@ -32,11 +32,25 @@ let document : Dom_html.document Js.t = Dom_html.document
    [Dom.node Js.t] while appendChild wants the element type. The value really is an
    element at runtime — the types differ because the DOM class hierarchy is modelled
    as object types. *)
+(* [ONLY_CASE=name] mounts a single case. Each case mounts independently, so this is
+   how a warning or an exception that arrives without a stack — everything raised
+   inside js_of_ocaml does — gets attributed to the case that caused it. *)
+let case_filter =
+  (* Read from the JS global [ONLY_CASE]; js_of_ocaml's stdlib here has no
+     [getenv_opt] and matching [Not_found] trips Core's deprecation alert. *)
+  Js.Optdef.to_option
+    (Js.Unsafe.get Js.Unsafe.global "ONLY_CASE" : Js.js_string Js.t Js.Optdef.t)
+  |> Option.map ~f:Js.to_string
+;;
+
 let mount (case : string) (node : Vdom.Node.t) =
-  let host = document##createElement (Js.string "div") in
-  host##setAttribute (Js.string "data-case") (Js.string case);
-  ignore (document##.body##appendChild (Js.Unsafe.coerce host));
-  ignore (host##appendChild (Js.Unsafe.coerce (Vdom.Node.to_dom node)))
+  match case_filter with
+  | Some only when not (String.equal only case) -> ()
+  | _ ->
+    let host = document##createElement (Js.string "div") in
+    host##setAttribute (Js.string "data-case") (Js.string case);
+    ignore (document##.body##appendChild (Js.Unsafe.coerce host));
+    ignore (host##appendChild (Js.Unsafe.coerce (Vdom.Node.to_dom node)))
 ;;
 
 let icon () = Vdom.Node.span ~attrs:[] [ Vdom.Node.text "+" ]
@@ -441,11 +455,14 @@ let () =
          Astryx.Icon.view ~label:"" ~name:"close" ()
        ; (* 8: an unknown name is visible, not silent *)
          Astryx.Icon.view ~name:"noSuchIcon" ()
-       ; (* 9: the caller's own accessibility attributes win *)
+       ; (* 9: the caller's own accessibility attributes win. The override is a
+            duplicate name on one element — virtual_dom sets the later one (the
+            same result React's attribute spread gives) but warns about it, and
+            only the incoming attribute can silence it, so the caller's does. *)
          Astryx.Icon.view
            ~name:"close"
            ~attrs:
-             [ Vdom.Attr.create "aria-hidden" "false"
+             [ Vdom.Attr.suppress_merge_warnings (Vdom.Attr.create "aria-hidden" "false")
              ; Vdom.Attr.create "role" "presentation"
              ]
            ()
@@ -538,4 +555,99 @@ let () =
   Bonsai_web_test.Handle.recompute_view_until_stable handle;
   let after2 = Bonsai_web_test.Handle.last_result handle in
   mount "click-after-2" after2
+;;
+
+(* ------------------------------------------------------------- DropdownMenu --
+   The first ported component that is a system rather than a leaf: a trigger, a
+   surface, and rows reachable by pointer, keyboard and typeahead.
+
+   What is asserted here, and what deliberately is not. The port drives its menu
+   through the DOM exactly as upstream does — the highlight is DOM focus, and rows
+   are found by querying the container — so its two most interesting behaviours are
+   focus moves, and Bonsai's focus effects are no-ops under jsdom. Nor can the
+   keyboard cases be written here: the test harness builds a keyboard event with an
+   *empty* [key] (filling in only [keyCode]), and it appends its own fields after
+   any [extra_event_fields], so a synthetic key cannot reach a handler that reads
+   [event.key] the way upstream's does. Rather than assert a fiction, the keyboard
+   and focus behaviour is asserted in the browser gate, against real key events.
+
+   What is left is still the majority of the contract, and it is checked below:
+   the trigger's ARIA, the always-present menu element (so [aria-controls] never
+   dangles), rows that only exist while open, roles, the disabled row, the link
+   row that is the anchor itself, group naming, a divider, a heading, and every
+   state transition — open on click, a selection reaching the consumer, close. *)
+
+module Dm = Astryx.Dropdown_menu
+
+let dm_item
+      ?description
+      ?end_content
+      ?icon
+      ?(variant = Dm.Default)
+      ?(is_disabled = false)
+      ?href
+      (id : string)
+      (label : string)
+  : Dm.item
+  =
+  { Dm.id
+  ; label
+  ; description
+  ; end_content
+  ; icon
+  ; variant
+  ; is_disabled
+  ; href
+  ; has_close_on_select = None
+  }
+;;
+
+let dm_entries () : Dm.entry list =
+  [ Dm.Item (dm_item ~description:"Create a file in this project" ~end_content:(Vdom.Node.text "⌘N") ~icon:"info" "new" "New file")
+  ; Dm.Item (dm_item "open" "Open")
+  ; Dm.Item (dm_item ~is_disabled:true "duplicate" "Duplicate")
+  ; Dm.Divider
+  ; Dm.Heading "Danger zone"
+  ; Dm.Item (dm_item ~description:"This cannot be undone" ~icon:"error" ~variant:Dm.Destructive "delete" "Delete")
+  ; Dm.Group
+      { heading = Some "Sort by"
+      ; items = [ dm_item "sort-name" "Name"; dm_item "sort-date" "Date" ]
+      }
+  ; Dm.Group { heading = None; items = [ dm_item "loose" "Loose row" ] }
+  ; Dm.Item (dm_item ~href:"#menu-docs" "docs" "Documentation")
+  ]
+;;
+
+(* The menu plus a record of what was selected: the selection has to be visible in
+   the DOM, otherwise a passing test says nothing about the consumer receiving it. *)
+let menu_component graph =
+  let selected, set_selected = Bonsai.state (None : string option) graph in
+  let on_select =
+    Bonsai.map set_selected ~f:(fun set_selected (item : Dm.item) -> set_selected (Some item.id))
+  in
+  let menu = Dm.view ~id:"dm" ~trigger_label:"Actions" ~on_select ~entries:(dm_entries ()) graph in
+  Bonsai.map2 selected menu ~f:(fun selected menu ->
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.create "data-selected" (Option.value selected ~default:"-") ]
+      [ menu ])
+;;
+
+let () =
+  let handle = Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) menu_component in
+  let snapshot case = mount case (Bonsai_web_test.Handle.last_result handle) in
+  (* The harness's synthetic click provides [currentTarget] and the modifier keys but
+     not [button], and its event proxy raises on any field a handler reads that it was
+     not given — so the left button is supplied explicitly. *)
+  let left_click = [ "button", Js.Unsafe.inject (Js.number_of_float 0.) ] in
+  snapshot "dropdown-menu-closed";
+  Bonsai_web_test.Handle.click_on handle ~get_vdom:Fn.id ~selector:"#dm-trigger" ~extra_event_fields:left_click;
+  Bonsai_web_test.Handle.recompute_view_until_stable handle;
+  snapshot "dropdown-menu-open";
+  Bonsai_web_test.Handle.click_on
+    handle
+    ~get_vdom:Fn.id
+    ~selector:"[data-astryx-menu-item=open]"
+    ~extra_event_fields:left_click;
+  Bonsai_web_test.Handle.recompute_view_until_stable handle;
+  snapshot "dropdown-menu-selected"
 ;;

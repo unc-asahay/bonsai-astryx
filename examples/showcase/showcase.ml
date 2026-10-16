@@ -812,6 +812,101 @@ let s_field_status () =
     ]
 ;;
 
+module Dm = Astryx.Dropdown_menu
+
+let demo_menu_item
+      ?description
+      ?end_content
+      ?icon
+      ?(variant = Dm.Default)
+      ?(is_disabled = false)
+      ?href
+      (id : string)
+      (label : string)
+  : Dm.item
+  =
+  { Dm.id
+  ; label
+  ; description
+  ; end_content
+  ; icon
+  ; variant
+  ; is_disabled
+  ; href
+  ; has_close_on_select = None
+  }
+;;
+
+let demo_menu_entries : Dm.entry list =
+  [ Dm.Item
+      (demo_menu_item
+         ~description:"Create a file in this project"
+         ~end_content:(Vdom.Node.text "⌘N")
+         ~icon:"info"
+         "new"
+         "New file")
+  ; Dm.Item (demo_menu_item ~end_content:(Vdom.Node.text "⌘O") "open" "Open")
+  ; Dm.Item (demo_menu_item ~icon:"success" "save" "Save")
+  ; Dm.Divider
+  ; Dm.Item (demo_menu_item ~is_disabled:true "duplicate" "Duplicate")
+  ; Dm.Heading "Danger zone"
+  ; Dm.Item
+      (demo_menu_item
+         ~description:"This cannot be undone"
+         ~icon:"error"
+         ~variant:Dm.Destructive
+         "delete"
+         "Delete project")
+  ; Dm.Group
+      { heading = Some "Sort by"
+      ; items = [ demo_menu_item "sort-name" "Name"; demo_menu_item "sort-date" "Date modified" ]
+      }
+  ; Dm.Item (demo_menu_item ~href:"#dropdownmenu" "docs" "Documentation")
+  ]
+;;
+
+(* DropdownMenu is the first ported component whose behaviour is mostly not a function
+   of its props: the highlight is DOM focus, rows are found by querying the container,
+   and the keyboard is what moves between them. jsdom cannot express that — a synthetic
+   key event there carries no [key] — so this section is where the keyboard, the
+   typeahead and the focus return are asserted for real, by
+   tools/visual/verify-browser.mjs against Chromium.
+
+   The selection is the *consumer's* state (the menu hands the item to [on_select] and
+   the page renders it), which is why it is shown as a separate example. *)
+let dropdown_menu_demo (graph : Bonsai.graph) =
+  let selected, set_selected = Bonsai.state (None : string option) graph in
+  let on_select =
+    Bonsai.map set_selected ~f:(fun set_selected (item : Dm.item) -> set_selected (Some item.id))
+  in
+  let menu =
+    Dm.view ~id:"menu-file" ~trigger_label:"File" ~on_select ~entries:demo_menu_entries graph
+  in
+  Bonsai.map2 selected menu ~f:(fun selected menu ->
+    section
+      ~id:"dropdownmenu"
+      ~title:"DropdownMenu"
+      ~note:
+        "A menu button: click or press Down to open, Up/Down/Home/End to move, typing to \
+         jump to a row, Enter or Space to choose, Escape to close and hand focus back to \
+         the trigger. A row can carry an icon, a description and right-aligned end \
+         content, and a row with an href is the anchor itself, so ⌘-click still opens a \
+         tab. A disabled row cannot take focus, so the arrow keys skip it: the port \
+         excludes it by selector rather than testing it later, which is what upstream \
+         does."
+      [ ex "a menu button" menu
+      ; ex
+          "the selection reaches the consumer"
+          (Astryx.Text.view
+             ~id:"menu-selection"
+             [ Vdom.Node.text
+                 (match selected with
+                  | Some id -> sprintf "selected: %s" id
+                  | None -> "selected: —")
+             ])
+      ])
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -851,6 +946,7 @@ let nav_items =
   ; "citation", "Citation"
   ; "icon", "Icon"
   ; "fieldstatus", "FieldStatus"
+  ; "dropdownmenu", "DropdownMenu"
   ; "interactive", "Interactive"
   ]
 ;;
@@ -879,13 +975,14 @@ let nav () =
 
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
-  Bonsai.map interactive_section ~f:(fun interactive_section ->
+  let dropdown_section = dropdown_menu_demo graph in
+  Bonsai.map2 interactive_section dropdown_section ~f:(fun interactive_section dropdown_section ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ interactive_section ])
+          (specs @ [ dropdown_section; interactive_section ])
       ])
 ;;
 

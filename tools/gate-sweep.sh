@@ -51,6 +51,33 @@ echo "=== 6. agent-facing tool layer ==="
   echo "# command: node tools/mcp/astryx-mcp.mjs --cli status"
   echo
   timeout 120 node tools/mcp/astryx-mcp.mjs --cli status 2>&1
+  echo
+  echo "# every ported component must reach get_snippet truthfully"
+  echo "# (ported-but-unsnippeted must say so, never 'NOT ported yet')"
+  echo
+  python3 - <<'PY'
+import json, subprocess
+ported = json.load(open("port.json"))["ported"]
+bad, snippeted = [], []
+for e in ported:
+    out = subprocess.run(
+        ["node", "tools/mcp/astryx-mcp.mjs", "--cli", "snippet", e["component"]],
+        capture_output=True, text=True, timeout=120).stdout
+    if "NOT ported yet" in out:
+        bad.append(e["component"])
+    elif "Astryx.Astryx." in out:
+        # port.json stores the module under its public path ("Astryx.Dropdown_menu"), so a
+        # bare prefix produces "Astryx.Astryx.Dropdown_menu" — a real bug this caught once.
+        bad.append(e["component"] + " (module name double-prefixed)")
+    elif "IS ported" in out:
+        snippeted.append(f"{e['component']} (ported, no snippet — reported as such)")
+print(f"ported components: {len(ported)}; truthfully reachable: {len(ported) - len(bad)}")
+for line in snippeted:
+    print(f"  note  {line}")
+print("FAIL — reported as unported while ported: " + ", ".join(bad) if bad else
+      "ok    every ported component is reported as ported")
+raise SystemExit(1 if bad else 0)
+PY
 } > docs/verification/mcp-stdio.txt
 tail -3 docs/verification/mcp-stdio.txt
 

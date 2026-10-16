@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 24,
-    "unported": 79,
+    "ported": 25,
+    "unported": 78,
     "total": 103,
     "documented": 103
   },
@@ -64,6 +64,12 @@
       "module": "Astryx.Divider",
       "file": "src/divider.ml",
       "milestone": "M1"
+    },
+    {
+      "name": "DropdownMenu",
+      "module": "Astryx.Dropdown_menu",
+      "file": "src/dropdown_menu.ml",
+      "milestone": "M10"
     },
     {
       "name": "EmptyState",
@@ -180,7 +186,6 @@
     "DateRangeInput",
     "DateTimeInput",
     "Dialog",
-    "DropdownMenu",
     "Field",
     "FileInput",
     "FormLayout",

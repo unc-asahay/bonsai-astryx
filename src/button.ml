@@ -63,6 +63,7 @@ let view
   ?target
   ?rel
   ?on_click
+  ?attrs
   children
   =
   let classes =
@@ -139,6 +140,9 @@ let view
     @ (match on_click with
        | Some f -> [ Vdom.Attr.on_click f ]
        | None -> [])
+    (* Caller attributes last, so a consumer can override anything above — the same
+       precedence upstream gives host props (its Button extends BaseProps). *)
+    @ Option.value attrs ~default:[]
   in
   match href with
   | Some href ->

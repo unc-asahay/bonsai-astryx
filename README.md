@@ -43,16 +43,17 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
 | Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
 | Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
-| Component library (`src/`) | 🚧 24 of 103 ported (M1 + M2 + M5 + M6 + M7 + M8 + M9) | `dune build` |
+| Component library (`src/`) | 🚧 25 of 103 ported (M1 + M2 + M5 + M6 + M7 + M8 + M9 + M10) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
-| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 179 checks, 0 failures | `node test/run.mjs` |
-| **Real-browser gate** (Chromium over HTTP: a real click into Bonsai state, Enter on a focused button, measured icon sizes, and the entry-animation rule) | ✅ 60 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
+| **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 209 checks, 0 failures | `node test/run.mjs` |
+| **Real-browser gate** (Chromium over HTTP: a real click into Bonsai state, Enter on a focused button, measured icon sizes, the entry-animation rule, and the menu's whole keyboard path — open, arrows, Home/End, typeahead, Escape, focus return) | ✅ 83 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
 | **Responsive + visual-regression gate** (320/375/768/1440 wide, pixel diff vs stored baseline) | ✅ 66 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
-| Showcase site (`site/`, all 24 ported components, 160 examples, 25 sections) | ✅ live | serve the repo root, open `/site/index.html` |
-| Coverage panel (ported vs not, from `port.json`) | ✅ 24 / 79 / 103 | `node tools/site/gen-coverage.mjs` |
+| Showcase site (`site/`, all 25 ported components, 162 examples, 26 sections) | ✅ live | serve the repo root, open `/site/index.html` |
+| Coverage panel (ported vs not, from `port.json`) | ✅ 25 / 78 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
-| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 22 pages (HStack/VStack appear under Stack, IconButton under Button, which is what they render) | `node tools/gen-visual-contract.mjs` |
+| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 23 pages (HStack/VStack appear under Stack, IconButton under Button, which is what they render) | `node tools/gen-visual-contract.mjs` |
+| Agent-facing snippets (`snippets.json`, served by the MCP tool layer) | ✅ 14 entries, every one build-checked: verbatim copies are compiled in the demo/showcase, the rest are reproduced in `examples/snippetcheck/` | `dune build` |
 | Generated icon table (`src/icon_data.ml` ← upstream's `defaultIcons.tsx`) | ✅ 30 glyphs, refuses a partial or renamed table | `node tools/extract-icons.mjs` |
 | Upstream screenshot capture (`tools/visual/capture.mjs`) | ⏳ needs the upstream Storybook build | `node tools/visual/capture.mjs` |
 | Upstream-vs-port pixel parity | ⏳ not yet | — |

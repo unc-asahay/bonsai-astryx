@@ -44,4 +44,5 @@ module IconButton = Icon_button
 module Icon = Icon
 module Entry_animation = Entry_animation
 module Field_status = Field_status
+module Dropdown_menu = Dropdown_menu
 
