@@ -382,6 +382,27 @@ recorded in the porting skill: upstream applies the trigger's ARIA by querying i
 `button, [role="button"]`, and positions with CSS anchor positioning through `useLayer`, so a faithful
 port needs imperative DOM work at mount and on state change rather than a new trigger API.
 
+### What `Layer` actually is — read, not assumed
+
+`Layer/useLayer.tsx` is 46 KB, which reads as "reimplement a placement engine". Reading it says otherwise:
+upstream opens its layers with the **native Popover API** — `popover="auto"` plus
+`showPopover({source: trigger})` — and that single call hands the platform the top layer, light dismiss on
+pointer-down outside, `Escape`, and **CSS anchor positioning** against the trigger element. The placement
+maths is largely the *fallback* for browsers without `showPopover` (Firefox < 125), not the mechanism.
+
+Two consequences worth having on the record before the milestone starts:
+
+- **The structural divergence retires itself.** Since the Tooltip, this port has positioned overlays in
+  place, so an ancestor with `overflow: hidden` clips them — documented every time as a divergence. The
+  top layer is not clipped, so standing on the same API as upstream removes that divergence for the whole
+  family at once, rather than one component at a time.
+- **The cost estimate changes.** `Popover` and `BottomSheet` are not gated on reimplementing positioning.
+  They are gated on the same "ask the platform first" question that let `Dialog`, `AlertDialog` and
+  `DialogHeader` land together — and on two ordering rules the port inherits: `hidePopover()` fires a
+  `toggle` event (so clear the open state *before* hiding, as upstream does), and `showPopover()` throws
+  if it is called mid-toggle. jsdom has no Popover API at all, so the component gate will press a
+  feature-checked fallback while only Chromium exercises the native path — the same split `<dialog>` needed.
+
 ## M6 — second upstream: shadcn
 
 shadcn is harder than Astryx, not easier: it is Radix primitives plus Tailwind
