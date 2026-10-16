@@ -49,6 +49,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 209 checks, 0 failures | `node test/run.mjs` |
 | **Real-browser gate** (Chromium over HTTP: a real click into Bonsai state, Enter on a focused button, measured icon sizes, the entry-animation rule, and the menu's whole keyboard path — open, arrows, Home/End, typeahead, Escape, focus return) | ✅ 83 checks, 0 failures | `node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html` |
 | **Responsive + visual-regression gate** (320/375/768/1440 wide, pixel diff vs stored baseline) | ✅ 66 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
+| **CI on GitHub** (`.github/workflows/ci.yml`: compile, component, DOM and browser gates on a clean runner) | ✅ [run 38914492798](https://github.com/unc-asahay/bonsai-astryx/actions/runs/38914492798) — build, `209/0` component checks, DOM gate all pass, `83/83` in Chromium | `gh run list --repo unc-asahay/bonsai-astryx` |
 | Showcase site (`site/`, all 25 ported components, 162 examples, 26 sections) | ✅ live | serve the repo root, open `/site/index.html` |
 | Coverage panel (ported vs not, from `port.json`) | ✅ 25 / 78 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
@@ -61,7 +62,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 
 ## Quickstart
 
-Requires OCaml ≥ 5.2.1 with a switch that has the Jane Street preview packages (see [CONTRIBUTING.md](CONTRIBUTING.md) for the exact bootstrap, including the two upstream build traps we hit).
+Requires OCaml ≥ 5.2.1 with a switch that has the Jane Street preview packages (see [CONTRIBUTING.md](CONTRIBUTING.md) for the exact bootstrap, including the two upstream build traps we hit), and one `pnpm install` for the node side. The gates resolve `jsdom`, `playwright`, `pngjs` and `@js-temporal/polyfill` from **this repository's** `node_modules` and nowhere else — a sibling checkout is not a dependency, and a fresh clone needs that one command before any gate will run.
 
 ```sh
 # regenerate the reference corpus from a pinned upstream checkout
