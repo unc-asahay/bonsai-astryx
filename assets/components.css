@@ -2154,3 +2154,155 @@
 .astryx-metadata-list__toggle:is(:disabled, [aria-disabled="true"]) {
   cursor: default;
 }
+
+/* ProgressBar. The role sits on the track, not on the container, so the label above it names the bar through
+   aria-labelledby rather than wrapping it. The mark is a tick that stays outside that role and is focusable
+   on its own; each one is wrapped in a Tooltip, which is the only stateful thing here. */
+.astryx-progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  width: 100%;
+  min-width: 48px;
+}
+
+.astryx-progress-bar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.astryx-progress-bar__label {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.astryx-progress-bar__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.astryx-progress-bar__label--disabled {
+  color: var(--color-text-disabled);
+}
+
+.astryx-progress-bar__value {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+}
+
+.astryx-progress-bar__value--disabled {
+  color: var(--color-text-disabled);
+}
+
+.astryx-progress-bar__track-container {
+  position: relative;
+  width: 100%;
+}
+
+.astryx-progress-bar__track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-background-muted);
+  border-radius: var(--radius-full);
+}
+
+.astryx-progress-bar__track--clipped {
+  overflow: hidden;
+}
+
+.astryx-progress-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition-property: width;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-progress-bar__fill--accent {
+  background-color: var(--color-accent);
+}
+
+.astryx-progress-bar__fill--success {
+  background-color: var(--color-on-success);
+}
+
+.astryx-progress-bar__fill--warning {
+  background-color: var(--color-on-warning);
+}
+
+.astryx-progress-bar__fill--neutral {
+  background-color: var(--color-text-primary);
+}
+
+.astryx-progress-bar__fill--error {
+  background-color: var(--color-on-error);
+}
+
+.astryx-progress-bar__fill--disabled {
+  background-color: var(--color-text-secondary);
+}
+
+.astryx-progress-bar__fill--indeterminate {
+  width: 40%;
+  animation-name: astryx-progress-bar-slide;
+  animation-duration: calc(var(--duration-medium) * 4);
+  animation-iteration-count: infinite;
+  animation-timing-function: var(--ease-standard);
+}
+
+@keyframes astryx-progress-bar-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+[dir="rtl"] .astryx-progress-bar__fill--indeterminate {
+  animation-name: astryx-progress-bar-slide-rtl;
+}
+
+@keyframes astryx-progress-bar-slide-rtl {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-progress-bar__fill--indeterminate {
+    animation: none;
+  }
+}
+
+/* The tick: a small pill centred on the mark's position along the track. */
+.astryx-progress-bar__mark {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-text-primary);
+  transform: translate(-50%, -50%);
+}
+
+.astryx-progress-bar__mark--disabled {
+  background-color: var(--color-text-secondary);
+}

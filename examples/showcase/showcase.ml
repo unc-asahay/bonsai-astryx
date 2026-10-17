@@ -3006,7 +3006,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3181,6 +3181,74 @@ let more_menu_demo (graph : Bonsai.graph) =
         ; controlled_example
         ])
 ;;
+(* ProgressBar takes a graph because its marks are Tooltips, and a Tooltip owns its open state - the bar
+   without marks has nothing stateful in it, but the shape is the same either way. The consequence is the one
+   MetadataList has: the jsdom gate cannot render it, so its checks measure the fill in Chromium. *)
+let progress_bar_demo (graph : Bonsai.graph) =
+  let p = Astryx.Progress_bar.view in
+  let example ?value ?max ?has_value_label ?variant ?is_indeterminate ?is_disabled ?marks ~id label =
+    Bonsai.map
+      (p ?value ?max ?has_value_label ?variant ?is_indeterminate ?is_disabled ?marks ~id ~label graph)
+      ~f:(fun node -> ex label node)
+  in
+  let plain = example ~id:"progress-plain" ~value:60. "value 60 of 100, no value label" in
+  let labelled =
+    example
+      ~id:"progress-labelled"
+      ~value:60.
+      ~has_value_label:true
+      "the same bar reporting its value, formatted as a whole percent"
+  in
+  let marks : Astryx.Progress_bar.mark list =
+    [ { value = 25.; label = "25%: the first checkpoint" }
+    ; { value = 50.; label = "50%: half" }
+    ; { value = 90.; label = "90%: nearly there" }
+    ]
+  in
+  let marked =
+    example
+      ~id:"progress-marked"
+      ~value:60.
+      ~has_value_label:true
+      ~marks
+      "three marks, each a focusable tick with a Tooltip - Tab to one to read it"
+  in
+  let indeterminate =
+    example
+      ~id:"progress-indeterminate"
+      ~is_indeterminate:true
+      "indeterminate: no value to report, and the animation stops under prefers-reduced-motion"
+  in
+  let four =
+    Bonsai.map4
+      (Astryx.Progress_bar.view ~id:"progress-accent" ~value:45. ~label:"Accent" graph)
+      (Astryx.Progress_bar.view ~id:"progress-success" ~value:45. ~variant:Astryx.Progress_bar.Success ~label:"Success" graph)
+      (Astryx.Progress_bar.view ~id:"progress-warning" ~value:45. ~variant:Astryx.Progress_bar.Warning ~label:"Warning" graph)
+      (Astryx.Progress_bar.view
+         ~id:"progress-disabled"
+         ~value:40.
+         ~is_disabled:true
+         ~label:"Disabled"
+         graph)
+      ~f:(fun a b c d -> Vdom.Node.div [ a; b; c; d ])
+  in
+  let variants = Bonsai.map four ~f:(fun four -> ex "variants, and a disabled bar" four) in
+  let first = Bonsai.map2 plain labelled ~f:(fun plain labelled -> [ plain; labelled ]) in
+  let rest =
+    Bonsai.map3 marked indeterminate variants ~f:(fun marked indeterminate variants ->
+      [ marked; indeterminate; variants ])
+  in
+  Bonsai.map2 first rest ~f:(fun first rest ->
+      section
+      ~id:"progressbar"
+      ~title:"ProgressBar"
+      ~note:
+        "A bar with a value, a track and a fill. The role is on the track and the label sits outside it, \
+         pointing in with aria-labelledby, so a label hidden from view still names the bar. Marks are labelled \
+         points: each is a focusable tick outside the progressbar role, wrapped in the port's Tooltip, which \
+         is why the component takes a graph at all."
+      (first @ rest))
+;;
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -3198,6 +3266,7 @@ let page (graph : Bonsai.graph) =
   let text_area_section = text_area_demo graph in
   let metadata_list_section = metadata_list_demo graph in
   let more_menu_section = more_menu_demo graph in
+  let progress_bar_section = progress_bar_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3215,10 +3284,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful popover_section in
   let stateful = pair stateful metadata_list_section in
   let stateful = pair stateful more_menu_section in
+  let stateful = pair stateful progress_bar_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
                         , form_layout )
                       , tooltip )
                     , dialog )
@@ -3228,14 +3298,15 @@ let page (graph : Bonsai.graph) =
             , popover )
           , metadata_list )
         , more_menu )
-      text_area ->
+      , progress_bar )
+    text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar ])
       ])
 ;;
 

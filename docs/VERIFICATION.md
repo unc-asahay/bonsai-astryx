@@ -2026,3 +2026,59 @@ is the character `⋯` in an `aria-hidden` span, because this port's 30-icon set
 
 component **433/0** · browser **263/263** · demo 25/25 · responsive 66/0 · coverage **44 of 103** (59
 unported) · sweep exit 0, 0 FAILs, MCP layer truthful.
+
+## Gate 39 — ProgressBar (M24): a value on a track, and marks you can reach
+
+Coverage moves **44 → 45 of 103**. Chosen by measurement rather than by name: `Spinner` looked like the small
+one (647 lines) and turned out to be an SVG arc driven by the **Web Animations API** with `CSS.registerProperty`
+and a timeline-origin pinning trick — a mechanism, not a component. `AvatarGroup` (475) needs `Avatar` (1408).
+`ToggleButton` needs the layer-scoped context, `SegmentedControl` needs the press-feedback pillar, `Breadcrumbs`
+needs the Link family. `ProgressBar` is 667 lines whose only dependency is **Tooltip**, already ported.
+
+### The shape that matters
+
+The `role="progressbar"` sits on the **track**, not the container, and the label is *outside* it, naming the bar
+through `aria-labelledby`. That is upstream's shape and it has a consequence worth checking: a label hidden from
+view still names the bar. The numbers — `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, `aria-valuetext` —
+are omitted **entirely** when the bar is indeterminate, because a position on a track that has no position is
+not a position. The animation the bar uses instead stops under `prefers-reduced-motion`.
+
+Marks are labelled points: each is a focusable tick that stays **outside** the progressbar role, so a screen
+reader reaches each mark's label without the bar's own value being announced again — and each is wrapped in the
+port's Tooltip, which is the only stateful thing here and the reason the component takes a graph at all.
+
+### Checks (7, browser only)
+
+| what | how |
+|---|---|
+| the role is on the track, and is not on the root | DOM |
+| the numbers are the value, and the label names it | `aria-valuenow=60`, `valuetext="60%"`, `aria-labelledby` matches the label's id |
+| the fill is 60% of the track | **measured** width against the track's box, not a class |
+| the value label reads back the formatted value | DOM |
+| indeterminate reports no value and clips an animating band | reduced-motion aware (see below) |
+| every mark is a focusable tick, labelled, outside the role | `closest('[role="progressbar"]') === null` |
+| focusing a mark reveals **its own** label | the anchor's `aria-describedby` → the message element |
+
+### Four failures, and what each was
+
+1. **A real gap in the component: the `~id` never reached the root.** It named the label and the marks, so
+   nothing could find the bar by the name the caller gave it — the *exact* gap MetadataList had one milestone
+   ago, found the same way (a check that queries by id and gets `null`). Fixed in the component, and recorded
+   in the interface.
+2. **The animation check asked the wrong question.** This harness runs with `reducedMotion: "reduce"` — which is
+   in the gate's own launch options, three hundred lines above where I was reading — so `getAnimations()` is
+   empty *by design* and the CSS was right. The check now asserts both branches: animating when motion is
+   allowed, `animation-name: none` when it is not.
+3. **The tooltip check took the page's first `[role="tooltip"]`** and reported a browser message
+   ("Your administrator manages this setting") as if it were a mark label. It has to be scoped to the mark.
+4. **And even scoped to the mark, it read the wrong element**: `aria-describedby` lives on the Tooltip's own
+   wrapper, not on the node the caller passed in. Both are now asserted through the anchor.
+
+Three of the four were the check. That is four milestones running where a failing check was mine more often
+than the code's — and in every case the failure taught me a real fact about the component or the harness that I
+would otherwise have written down wrongly.
+
+### Counts (verified)
+
+component **433/0** · browser **271/271** · demo 25/25 · responsive 66/0 · coverage **45 of 103** (58 unported) ·
+sweep exit 0, 0 FAILs, MCP layer truthful.

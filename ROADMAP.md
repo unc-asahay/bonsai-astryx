@@ -528,6 +528,23 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M24 — ProgressBar: a value on a track, marks you can reach (done, 45 of 103)
+
+Chosen by measurement again, and the measurement earned its keep: `Spinner` (647 lines) is not a spinner but an
+SVG arc driven by the Web Animations API with `CSS.registerProperty` and a timeline-origin pinning trick, and
+`AvatarGroup` (475) needs `Avatar` (1408). `ProgressBar` is 667 lines whose only dependency is Tooltip.
+
+The role sits on the **track**, the label names it from outside through `aria-labelledby` (so a label hidden
+from view still names the bar), the numbers are omitted entirely when indeterminate, and the animation that
+replaces them stops under `prefers-reduced-motion`. Marks are focusable ticks that stay **outside** the
+progressbar role and are each wrapped in the port's Tooltip - which is why the component takes a graph.
+
+Four failures: one real gap in the component (the `~id` never reached the root, exactly as MetadataList's did
+one milestone earlier, found the same way and fixed in the component) and three bugs in my checks - the
+animation check did not know the harness runs with reduced motion, the tooltip check took the page's first
+tooltip instead of the mark's, and it then read `aria-describedby` off the wrong element, since it lives on the
+Tooltip's own wrapper.
+
 ### M23b — MoreMenu: a delegation with nothing of its own (done, 44 of 103)
 
 183 lines upstream that hold no behaviour: a `DropdownMenu` whose trigger is a ghost icon-only button and whose

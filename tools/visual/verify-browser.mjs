@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("47 sections", sections.length === 47, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("48 sections", sections.length === 48, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -609,7 +609,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -621,7 +621,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("283 examples across the page", totalExamples === 283, `got ${totalExamples}`);
+  check("288 examples across the page", totalExamples === 288, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -634,7 +634,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("47 nav links", nav.length === 47, `got ${nav.length}`);
+  check("48 nav links", nav.length === 48, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2087,6 +2087,133 @@ await page.click("#more-menu-controlled-toggle");
 await page.waitForFunction(() => document.querySelector("#more-menu-controlled-trigger").getAttribute("aria-expanded") === "true", null, { timeout: 3000 }).catch(() => {});
 check("and it is controllable, because the menu underneath is", (await moreControlled()) === "true", `${await moreControlled()}`);
 
+// ProgressBar: the fill is measured, the role is on the track, and the marks are reachable on their own.
+const progress = await page.evaluate(() => {
+  const root = document.getElementById("progress-labelled");
+  if (!root) return null;
+  const track = root.querySelector('[role="progressbar"]');
+  const fill = root.querySelector(".astryx-progress-bar__fill");
+  const trackBox = track.getBoundingClientRect();
+  const fillBox = fill.getBoundingClientRect();
+  const label = document.getElementById(root.id + "-label");
+  return {
+    roleIsOnTrack: !!track,
+    roleIsNotOnRoot: !root.hasAttribute("role"),
+    valueNow: track.getAttribute("aria-valuenow"),
+    valueMin: track.getAttribute("aria-valuemin"),
+    valueMax: track.getAttribute("aria-valuemax"),
+    valueText: track.getAttribute("aria-valuetext"),
+    labelPoints: track.getAttribute("aria-labelledby") === (label && label.id),
+    measuredPct: Math.round((fillBox.width / trackBox.width) * 100),
+    valueLabelText: (root.querySelector(".astryx-progress-bar__value") || {}).textContent,
+  };
+});
+check(
+  "the role is on the track and the numbers are the value",
+  progress && progress.roleIsOnTrack && progress.roleIsNotOnRoot && progress.valueNow === "60" && progress.valueMin === "0" && progress.valueMax === "100" && progress.valueText === "60%",
+  JSON.stringify(progress),
+);
+check("the label names it through aria-labelledby", progress && progress.labelPoints === true, JSON.stringify(progress));
+check(
+  "and the fill is 60% of the track, measured rather than read off a class",
+  progress && Math.abs(progress.measuredPct - 60) <= 2,
+  `measured ${progress && progress.measuredPct}%`,
+);
+check("the value label reports the value", progress && progress.valueLabelText === "60%", `${progress && progress.valueLabelText}`);
+
+const indeterminate = await page.evaluate(() => {
+  const root = document.getElementById("progress-indeterminate");
+  const track = root && root.querySelector('[role="progressbar"]');
+  const fill = root && root.querySelector(".astryx-progress-bar__fill");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return track
+    ? {
+        hasValueNow: track.hasAttribute("aria-valuenow"),
+        hasValueText: track.hasAttribute("aria-valuetext"),
+        clipped: !!root.querySelector(".astryx-progress-bar__track--clipped"),
+        reduced,
+        // Under reduced motion the animation is off *by design*, so "is it animating" is the wrong question
+        // to ask unconditionally: this harness runs with reduced motion, which is how the first version of
+        // this check failed while the CSS was right.
+        animating: fill ? fill.getAnimations().length > 0 : false,
+        declaredAnimation: fill ? getComputedStyle(fill).animationName : null,
+      }
+    : null;
+});
+check(
+  "an indeterminate bar reports no value, and clips a band that animates unless motion is reduced",
+  indeterminate &&
+    !indeterminate.hasValueNow &&
+    !indeterminate.hasValueText &&
+    indeterminate.clipped &&
+    (indeterminate.reduced ? indeterminate.declaredAnimation === "none" : indeterminate.animating),
+  JSON.stringify(indeterminate),
+);
+
+const marks = await page.evaluate(() => {
+  const root = document.getElementById("progress-marked");
+  if (!root) return null;
+  const ticks = [...root.querySelectorAll(".astryx-progress-bar__mark")];
+  const track = root.querySelector('[role="progressbar"]');
+  return {
+    count: ticks.length,
+    allFocusable: ticks.every((t) => t.getAttribute("tabindex") === "0"),
+    allLabelled: ticks.every((t) => (t.getAttribute("aria-label") || "").length > 0),
+    // The claim that matters: a tick is not inside the progressbar role, so a screen reader reaches each
+    // mark's label without re-announcing the bar's value.
+    outsideTheRole: ticks.every((t) => t.closest('[role="progressbar"]') === null),
+    trackIsAncestor: !!track && !!root.querySelector(".astryx-progress-bar__track-container"),
+  };
+});
+check(
+  "every mark is a focusable tick with a label, outside the progressbar role",
+  marks && marks.count === 3 && marks.allFocusable && marks.allLabelled && marks.outsideTheRole,
+  JSON.stringify(marks),
+);
+
+// Scoped to the mark's own tooltip: the page has dozens, and asking for the first [role=tooltip] found
+// another section's - which is how this check first failed, reporting a browser message instead of a label.
+await page.focus("#progress-marked .astryx-progress-bar__mark");
+// aria-describedby sits on the Tooltip's own wrapper - the anchor - not on the node the caller passed in,
+// which is the second thing this check got wrong before it got it right.
+const readMarkTip = () =>
+  page.evaluate(() => {
+    const tick = document.querySelector("#progress-marked .astryx-progress-bar__mark");
+    const anchor = tick && tick.closest(".astryx-tooltip-anchor");
+    const id = anchor && anchor.getAttribute("aria-describedby");
+    const tip = id ? document.getElementById(id) : null;
+    return { id, text: tip ? tip.textContent.trim() : null };
+  });
+await page
+  .waitForFunction(
+    () => {
+      const tick = document.querySelector("#progress-marked .astryx-progress-bar__mark");
+      const anchor = tick && tick.closest(".astryx-tooltip-anchor");
+      const id = anchor && anchor.getAttribute("aria-describedby");
+      return !!(id && document.getElementById(id));
+    },
+    null,
+    { timeout: 2000 },
+  )
+  .catch(() => {});
+const markTip = await readMarkTip();
+check(
+  "focusing a mark reveals its own label through the tooltip",
+  !!markTip.text && markTip.text.includes("checkpoint"),
+  JSON.stringify(markTip),
+);
+
+const disabledBar = await page.evaluate(() => {
+  const root = document.getElementById("progress-disabled");
+  const fill = root && root.querySelector(".astryx-progress-bar__fill");
+  return fill ? { cls: fill.className, bg: getComputedStyle(fill).backgroundColor } : null;
+});
+check(
+  "a disabled bar paints its fill muted rather than in a variant colour",
+  disabledBar && disabledBar.cls.includes("--disabled") && disabledBar.bg !== "rgba(0, 0, 0, 0)",
+  JSON.stringify(disabledBar),
+);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -2120,11 +2247,11 @@ check("and it is controllable, because the menu underneath is", (await moreContr
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 44 ported / 59 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["44", "59", "103"]),
+    "coverage stats are 45 ported / 58 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["45", "58", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 59 entries", cov.unported === 59, `got ${cov.unported}`);
+  check("unported list rendered 58 entries", cov.unported === 58, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

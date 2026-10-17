@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Tooltip` (`src/tooltip.ml`, M13)
-- rendered instances in the demo: 10
+- rendered instances in the demo: 13
 - classes: `astryx-tooltip`, `astryx-tooltip--above`, `astryx-tooltip--align-center`, `astryx-tooltip-anchor`
 
 ## layout
