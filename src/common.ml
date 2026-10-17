@@ -564,6 +564,11 @@ module Layer_trigger_hook = struct
   ;;
 end
 
+(* The first consumer's values, and the defaults. Named rather than written twice, because "ButtonGroup's
+   item set" is a fact about ButtonGroup that happens to be the default here. *)
+let button_group_item_selector = "button, a[href], [tabindex]"
+let button_group_boundary_selector = "[popover], [role=\"group\"]"
+
 module List_focus = struct
   (* The mechanism's own axis. A consumer whose own type is this shape re-exports it destructively so the
      two are the same type rather than convertible - Button_group is one. *)
@@ -581,19 +586,49 @@ module List_focus = struct
         { (* Read when a key arrives, not when the listener was attached: the orientation is an input
              and can change under a mounted group. *)
           mutable orientation : orientation
+        ; mutable item_selector : string
+        ; mutable boundary_selector : string
+        ; mutable caret_guard : bool
         ; mutable key_listener : Js.Unsafe.any option
         ; mutable focus_listener : Js.Unsafe.any option
         }
 
       let create () =
-        { orientation = Horizontal; key_listener = None; focus_listener = None }
+        { orientation = Horizontal
+        ; item_selector = button_group_item_selector
+        ; boundary_selector = button_group_boundary_selector
+        ; caret_guard = false
+        ; key_listener = None
+        ; focus_listener = None
+        }
       ;;
     end
 
     module Input = struct
-      type t = { orientation : orientation }
+      type t =
+        { orientation : orientation
+        ; (* Which descendants are members. ButtonGroup's set and a toolbar's differ, and neither can be
+             inferred from the container. *)
+          item_selector : string
+        ; (* What counts as "inside this widget" when a key is pressed: the nearest ancestor matching this,
+             walking up from the event target, must be the element this hook is attached to. It is how a
+             member's own open layer keeps its arrow keys, and how a toolbar inside a toolbar behaves. *)
+          boundary_selector : string
+        ; (* True to leave a text input's arrow keys to its caret unless the caret is at the edge the key
+             moves toward. A toolbar can contain inputs; a button group cannot, which is why this defaults
+             off and why the default is what keeps the first consumer's behaviour intact. *)
+          caret_guard : bool
+        }
 
-      let sexp_of_t { orientation } = sexp_of_orientation orientation
+      let sexp_of_t { orientation; item_selector; boundary_selector; caret_guard } =
+        Sexp.List
+          [ sexp_of_orientation orientation
+          ; Sexp.Atom item_selector
+          ; Sexp.Atom boundary_selector
+          ; Sexp.Atom (Bool.to_string caret_guard)
+          ]
+      ;;
+
       let combine left _ = left
     end
 
@@ -638,9 +673,21 @@ module List_focus = struct
 
     (* True when the nearest boundary above the event target is the group's own root - upstream's
        boundary rule, and the thing that keeps a member's open layer from losing its arrow keys. *)
-    let owns_key : Dom_html.element Js.t -> Dom_html.element Js.t -> bool =
-      Js.Unsafe.eval_string
-        "(function (root, target) { return target.closest('[popover], [role=\"group\"]') === root; })"
+    (* The selector is an argument rather than baked into the JS: evaluating a built string per key event
+       would be the cost of a dynamic selector, and `closest` takes one as an argument anyway. The
+       comparison is made in JS and handed back as a bool, because this Js_of_ocaml does not expose Js.Opt
+       and a boxed option is not worth reaching for. *)
+    let owns_key (state : State.t) (root : Dom_html.element Js.t) (target : Dom_html.element Js.t) : bool =
+      let js =
+        Js.Unsafe.eval_string
+          "(function (target, root, selector) { return target.closest(selector) === root; })"
+      in
+      Js.Unsafe.fun_call
+        js
+        [| Js.Unsafe.inject target
+         ; Js.Unsafe.inject root
+         ; Js.Unsafe.inject (Js.string state.boundary_selector)
+        |]
     ;;
 
     let active_element () : Dom_html.element Js.t =
@@ -653,12 +700,12 @@ module List_focus = struct
 
     let focus (el : Dom_html.element Js.t) = ignore (Js.Unsafe.meth_call el "focus" [||])
 
-    let items (el : Dom_html.element Js.t) : Dom_html.element Js.t list =
+    let items (state : State.t) (el : Dom_html.element Js.t) : Dom_html.element Js.t list =
       let nodes =
         Js.Unsafe.meth_call
           el
           "querySelectorAll"
-          [| Js.Unsafe.inject (Js.string "button, a[href], [tabindex]") |]
+          [| Js.Unsafe.inject (Js.string state.item_selector) |]
       in
       let array =
         Js.Unsafe.meth_call
@@ -670,17 +717,17 @@ module List_focus = struct
       List.init length ~f:(fun i -> Js.Unsafe.get array i)
     ;;
 
-    let enabled el = List.filter (items el) ~f:(fun item -> not (is_disabled item))
+    let enabled state el = List.filter (items state el) ~f:(fun item -> not (is_disabled item))
 
-    let move_tab_stop (el : Dom_html.element Js.t) (stop : Dom_html.element Js.t) =
-      List.iter (items el) ~f:(fun item ->
+    let move_tab_stop (state : State.t) (el : Dom_html.element Js.t) (stop : Dom_html.element Js.t) =
+      List.iter (items state el) ~f:(fun item ->
         set_attr item "tabindex" (if same item stop then "0" else "-1"))
     ;;
 
     (* Which member is the tab stop. The focused member wins if there is one, so a re-render cannot
        drag the stop back to the first item while the person is standing on the third. *)
-    let stamp (el : Dom_html.element Js.t) =
-      let candidates = items el in
+    let stamp (state : State.t) (el : Dom_html.element Js.t) =
+      let candidates = items state el in
       let active = active_element () in
       let stop =
         match List.find candidates ~f:(fun item -> same item active) with
@@ -689,12 +736,27 @@ module List_focus = struct
       in
       match stop with
       | None -> ()
-      | Some stop -> move_tab_stop el stop
+      | Some stop -> move_tab_stop state el stop
     ;;
 
     let keys = function
       | Horizontal -> "ArrowRight", "ArrowLeft"
       | Vertical -> "ArrowDown", "ArrowUp"
+    ;;
+
+    (* True when the key belongs to a caret rather than to the widget. An input inside a toolbar is the case
+       this exists for: an arrow at the end of the text should leave the input, an arrow in the middle of it
+       should move the caret. Only inputs and contenteditable regions are considered - a textarea keeps its
+       own arrows for its own lines, and a checkbox has no caret to guard. *)
+    let caret_keeps_key (state : State.t) ~(forward : bool) (target : Dom_html.element Js.t) : bool =
+      if not state.caret_guard
+      then false
+      else (
+        let js =
+          Js.Unsafe.eval_string
+            "(function (el, forward) { var tag = el.tagName; if (tag !== 'INPUT' && el.isContentEditable !== true) { return false; } if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'range') { return false; } var start = el.selectionStart; var end = el.selectionEnd; if (start === null || end === null) { return false; } if (start !== end) { return true; } var length = (el.value || '').length; return forward ? start < length : start > 0; })"
+        in
+        (Js.Unsafe.fun_call js [| Js.Unsafe.inject target; Js.Unsafe.inject (Js.bool forward) |] : bool))
     ;;
 
     let move (el : Dom_html.element Js.t) (state : State.t) (event : Dom_html.event Js.t) =
@@ -704,9 +766,11 @@ module List_focus = struct
       if is forward || is backward || is "Home" || is "End"
       then (
         let target : Dom_html.element Js.t = Js.Unsafe.get event "target" in
-        if owns_key el target
+        if caret_keeps_key state ~forward:(is forward) target
+        then ()
+        else if owns_key state el target
         then (
-          match enabled el with
+          match enabled state el with
           | [] -> ()
           | candidates ->
             let active = active_element () in
@@ -733,7 +797,7 @@ module List_focus = struct
              | Some item ->
                ignore (Js.Unsafe.meth_call event "preventDefault" [||]);
                focus item;
-               move_tab_stop el item)))
+               move_tab_stop state el item)))
     ;;
 
     let listen (state : State.t) (el : Dom_html.element Js.t) =
@@ -749,7 +813,7 @@ module List_focus = struct
         let on_focus =
           Js.wrap_callback (fun (event : Dom_html.event Js.t) ->
             let target : Dom_html.element Js.t = Js.Unsafe.get event "target" in
-            if not (is_disabled target) then move_tab_stop el target)
+            if not (is_disabled target) then move_tab_stop state el target)
         in
         state.focus_listener <- Some (Js.Unsafe.inject on_focus);
         add_listener el "focusin" (Js.Unsafe.inject on_focus)
@@ -757,7 +821,10 @@ module List_focus = struct
 
     let apply (state : State.t) (input : Input.t) (el : Dom_html.element Js.t) =
       state.orientation <- input.orientation;
-      stamp el;
+      state.item_selector <- input.item_selector;
+      state.boundary_selector <- input.boundary_selector;
+      state.caret_guard <- input.caret_guard;
+      stamp state el;
       listen state el
     ;;
 
@@ -780,7 +847,15 @@ module List_focus = struct
 
   module Hook = Vdom.Attr.Hooks.Make (T)
 
-  let attr ~orientation () =
-    Vdom.Attr.create_hook "astryx-list-focus" (Hook.create { T.Input.orientation })
+  let attr
+    ~orientation
+    ?(item_selector = button_group_item_selector)
+    ?(boundary_selector = button_group_boundary_selector)
+    ?(caret_guard = false)
+    ()
+    =
+    Vdom.Attr.create_hook
+      "astryx-list-focus"
+      (Hook.create { T.Input.orientation; item_selector; boundary_selector; caret_guard })
   ;;
 end
