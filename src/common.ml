@@ -926,3 +926,163 @@ module Clickable_container = struct
     Js.Unsafe.fun_call js [| Js.Unsafe.inject el |]
   ;;
 end
+
+
+(* ------------------------------------------------- measuring a container's children for overflow *)
+
+(* Upstream's useOverflow measures the container and each child and hands plain numbers to
+   Overflow_math. This is the port's half of that: same measurement, same arithmetic, one observer of its
+   own rather than upstream's shared registry - see ROADMAP for why (one consumer here, not two).
+
+   Two details are load-bearing.
+
+   First, the hook reports ONLY when the answer changes. The report is a state write, the state write
+   re-renders its component, the re-render runs [update], and [update] measures and would report again -
+   so an unconditional report is a render loop, not merely a redundant write.
+
+   Second, the observer is feature-detected (as upstream's is: jsdom and older browsers have none), and
+   the measurement is taken immediately on mount regardless. So the initial layout is correct everywhere
+   and only LIVE resizing depends on the API - which is why the jsdom gate can cover the first and the
+   browser gate has to cover the second. *)
+module Overflow_hook = struct
+  module T = struct
+    module State = struct
+      type t =
+        { mutable observer : Js.Unsafe.any option
+        ; (* The last answer reported, which is what makes the report conditional. *)
+          mutable last : (int * int) option
+        }
+
+      let create () = { observer = None; last = None }
+    end
+
+    module Input = struct
+      type t =
+        { selector : string
+        ; gap : int
+        ; indicator_width : int
+        ; min_visible_items : int
+        ; max_visible_items : int option
+        ; max_rows : int option
+        ; collapse_from : Overflow_math.collapse_from
+        ; on_measured : ((int * int) -> unit Effect.t[@sexp.opaque])
+        }
+
+      (* Hand-written: this project's ppx set has no sexp deriver, and the interface wants one. Only the
+         parts worth reading in a log are shown - an effect cannot be printed. *)
+      let sexp_of_t { selector; gap; min_visible_items; _ } =
+        Sexp.List
+          [ Sexp.Atom selector; Sexp.Atom (Int.to_string gap); Sexp.Atom (Int.to_string min_visible_items) ]
+      ;;
+
+      let combine left right =
+        { left with
+          on_measured =
+            (fun value -> Effect.Many [ left.on_measured value; right.on_measured value ])
+        }
+      ;;
+    end
+
+    let width_of (el : Dom_html.element Js.t) : int =
+      (* One JS call: this Js_of_ocaml does not coerce a boxed number for us, and offsetWidth is the
+         border-box width, which is the measurement the arithmetic expects. *)
+      let js = Js.Unsafe.eval_string "(function (el) { return el.offsetWidth; })" in
+      (Js.Unsafe.fun_call js [| Js.Unsafe.inject el |] : int)
+    ;;
+
+    let children_of (container : Dom_html.element Js.t) (selector : string) : Dom_html.element Js.t list =
+      (* querySelectorAll gives a NodeList, which has no list conversion here, so the slice happens in JS. *)
+      let js =
+        Js.Unsafe.eval_string
+          "(function (el, selector) { return Array.prototype.slice.call(el.querySelectorAll(selector)); })"
+      in
+      (Js.Unsafe.fun_call js [| Js.Unsafe.inject container; Js.Unsafe.inject (Js.string selector) |]
+        : Dom_html.element Js.t list)
+    ;;
+
+    let measure (input : Input.t) node =
+      let container : Dom_html.element Js.t = Js.Unsafe.coerce node in
+      let widths = List.map (children_of container input.selector) ~f:width_of in
+      Overflow_math.compute
+        ~widths
+        ~gap:input.gap
+        ~available_width:(width_of container)
+        ~indicator_width:input.indicator_width
+        ~min_visible_items:input.min_visible_items
+        ?max_visible_items:input.max_visible_items
+        ?max_rows:input.max_rows
+        ~collapse_from:input.collapse_from
+        ()
+    ;;
+
+    let report (input : Input.t) state value =
+      match state.State.last with
+      | Some last when Poly.equal last value -> ()
+      | _ ->
+        state.last <- Some value;
+        Effect.Expert.handle_non_dom_event_exn (input.on_measured value)
+    ;;
+
+    let measure_and_report (input : Input.t) state node =
+      let result = measure input node in
+      report input state (result.Overflow_math.visible_count, result.Overflow_math.rows)
+    ;;
+
+    let init _ _ = State.create ()
+
+    let on_mount input state node =
+      measure_and_report input state node;
+      (* Its own observer. Built once, kept in the state, and torn down in [destroy]. *)
+      let js =
+        Js.Unsafe.eval_string
+          "(function (el, fire) { if (typeof ResizeObserver === 'undefined') return null; \
+           var observer = new ResizeObserver(function () { fire(); }); \
+           observer.observe(el); return observer; })"
+      in
+      let fire = Js.wrap_callback (fun () -> measure_and_report input state node) in
+      state.State.observer
+        <- Some (Js.Unsafe.fun_call js [| Js.Unsafe.inject (Js.Unsafe.coerce node); Js.Unsafe.inject fire |])
+    ;;
+
+    let on_mount = `Schedule_immediately_after_this_dom_patch_completes on_mount
+    let update ~old_input:_ ~new_input state node = measure_and_report new_input state node
+
+    let destroy _ state _ =
+      (match state.State.observer with
+       | None -> ()
+       | Some observer ->
+         let js = Js.Unsafe.eval_string "(function (o) { o.disconnect(); })" in
+         let (_ : unit) = Js.Unsafe.fun_call js [| Js.Unsafe.inject observer |] in
+         ());
+      state.State.observer <- None
+    ;;
+  end
+
+  module Hook = Vdom.Attr.Hooks.Make (T)
+
+  (* The hook is attached to the element it measures, so the element is the node the hook is handed. *)
+  let attr
+    ~selector
+    ~gap
+    ~indicator_width
+    ~min_visible_items
+    ?max_visible_items
+    ?max_rows
+    ~collapse_from
+    ~on_measured
+    ()
+    =
+    Vdom.Attr.create_hook
+      "astryx-overflow"
+      (Hook.create
+         { T.Input.selector
+         ; gap
+         ; indicator_width
+         ; min_visible_items
+         ; max_visible_items
+         ; max_rows
+         ; collapse_from
+         ; on_measured
+         })
+  ;;
+end
