@@ -568,6 +568,18 @@ Two smaller decisions, both already taken:
 - `role`, `aria-label` and `aria-orientation` are **stripped from the incoming props** and set by the
   component (`role="toolbar"`), so `Toolbar` cannot be handed a role that contradicts the behaviour inside it.
 
+**Status of the generalisation itself:** done (`af81ecd`). The mechanism now takes the item selector, the
+boundary selector and the caret guard as inputs, defaulted to ButtonGroup's values, and ButtonGroup's
+unchanged suites are the proof that nothing moved (428/0 component, 237/237 browser, on a freshly built
+bundle).
+
+**One branch of it is unexercised and cannot be exercised yet.** The caret guard defaults off, and the only
+consumer that would set it is Toolbar — so nothing in the suite reaches it. That is the cost of generalising
+on a second consumer's behalf, and the payment is a requirement on the next milestone rather than a note:
+**the Toolbar checks must cover the caret guard**, or the port ships a mechanism with a branch no test has
+ever entered. Concretely, from both ends: an arrow at the end of an input's text leaves the toolbar and moves
+focus, an arrow with the caret mid-text moves the caret and does not move focus.
+
 ### M19 — Timer: a duration that stays readable without re-rendering (done, 39 → 40 of 103)
 
 One reading, two numbers, and they are deliberately not always the same number: a real `<time>` carries an
