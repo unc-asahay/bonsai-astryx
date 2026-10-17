@@ -95,3 +95,4 @@ module Linkify = Linkify
 module Link_destination = Link_destination
 module Interactive_role = Interactive_role
 module Target_and_rel = Target_and_rel
+module Link = Link

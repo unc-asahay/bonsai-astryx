@@ -579,6 +579,13 @@
       "file": "src/overflow_list.ml",
       "milestone": "M30",
       "module": "Astryx.Overflow_list"
+    },
+    {
+      "class": "A",
+      "component": "Link",
+      "file": "src/link.ml",
+      "milestone": "M31",
+      "module": "Astryx.Link"
     }
   ],
   "schema": 1,

@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **51 of 103** components.
+Ported: **52 of 103** components.
 
 ## Milestones
 
@@ -105,9 +105,10 @@ Ported: **51 of 103** components.
 | `SelectableCard` | `Astryx.Selectable_card` | `src/selectable_card.ml` | M28 | A |
 | `ClickableCard` | `Astryx.Clickable_card` | `src/clickable_card.ml` | M29 | A |
 | `OverflowList` | `Astryx.Overflow_list` | `src/overflow_list.ml` | M30 | A |
+| `Link` | `Astryx.Link` | `src/link.ml` | M31 | A |
 
-## Not ported yet (52)
+## Not ported yet (51)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`

@@ -3284,6 +3284,35 @@ let s_clickable_card () =
     ]
 ;;
 
+let s_link () =
+  let link ?(label = None) ?attrs children =
+    Astryx.Link.view ?label ?attrs children
+  in
+  section
+    ~id:"link"
+    ~title:"Link"
+    ~note:
+      "A styled link that is sometimes not a link at all. Three rendering branches, in this order: a \
+       button when the resolved role is button, then a disabled anchor with NO href, then the anchor. \
+       The order is why the second branch exists — a disabled link with an on_click is still a button, \
+       and only a disabled link with nothing to click becomes inert. The disabled anchor has no href on \
+       purpose: an anchor without one is not focusable and exposes no link affordance, so neither \
+       programmatic focus plus Enter, nor assistive-technology activation, nor middle-click can navigate. \
+       A refused destination takes the same route — one unsafe destination rejects the whole handoff, \
+       including a perfectly good href — so the link still renders and simply goes nowhere. External \
+       links gain target=_blank with noopener and noreferrer appended to whatever rel the caller passed, \
+       preserving its order, and a visually-hidden note that the new tab opened, because the icon is \
+       decorative and an unannounced new tab is a surprise."
+    [ ex "Default" (link [ Vdom.Node.text "A link to nowhere in particular" ])
+    ; ex "Always underlined" (Astryx.Link.view ~has_underline:true [ Vdom.Node.text "Underlined" ])
+    ; ex "External" (Astryx.Link.view ~is_external_link:true ~href:"https://example.com" [ Vdom.Node.text "example.com" ])
+    ; ex "Disabled" (Astryx.Link.view ~is_disabled:true ~href:"https://example.com" [ Vdom.Node.text "Disabled" ])
+    ; ex
+        "No destination, so a button"
+        (Astryx.Link.view ~on_click:(fun _ -> Effect.Ignore) [ Vdom.Node.text "Does something" ])
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3297,6 +3326,7 @@ let specs =
   ; s_input_group ()
   ; s_toolbar ()
   ; s_clickable_card ()
+  ; s_link ()
   ]
 ;;
 
@@ -3342,7 +3372,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

@@ -2619,3 +2619,16 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   color: var(--color-text-secondary, #555);
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------------------- link */
+
+/* The colour comes from Text's own variant class (astryx-text--color-*), which the component composes,
+   so there is no per-variant rule here - only the link's own behaviour. */
+.astryx-link { text-decoration: none; cursor: pointer; }
+.astryx-link:hover { text-decoration: underline; }
+.astryx-link--underline { text-decoration: underline; }
+/* A disabled link is a plain anchor with no href: it cannot be focused or activated, so the only thing
+   left to say is that it is not going anywhere. */
+.astryx-link--disabled { cursor: not-allowed; }
+.astryx-link--standalone { text-decoration: underline; }
+.astryx-link__icon { display: inline-flex; align-items: center; margin-left: 0.25em; vertical-align: -0.125em; }

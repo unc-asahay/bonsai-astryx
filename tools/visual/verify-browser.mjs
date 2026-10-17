@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("54 sections", sections.length === 54, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("55 sections", sections.length === 55, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -627,9 +627,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
+    Link: 5,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("312 examples across the page", totalExamples === 312, `got ${totalExamples}`);
+  check("317 examples across the page", totalExamples === 317, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -642,7 +643,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("54 nav links", nav.length === 54, `got ${nav.length}`);
+  check("55 nav links", nav.length === 55, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2749,10 +2750,10 @@ check(
   }));
   check(
     "coverage stats are 50 ported / 53 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["50", "53", "103"]),
+    JSON.stringify(cov.stats) === JSON.stringify(["52", "51", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 53 entries", cov.unported === 53, `got ${cov.unported}`);
+  check("unported list rendered 51 entries", cov.unported === 51, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
