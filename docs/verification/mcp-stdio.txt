@@ -3,10 +3,10 @@
 
 upstream: facebook/astryx @ b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e (MIT)
 ported: 51 of 103
-by milestone: M14=2, M5=3, M25=1, M26=1, M1=9, M6=3, M17=1, M2=4, M12=4, M7=3, M10=1, M11=2, M9=1, M13=3, M8=1, M20=1, M15=1, M22=1, M23=1, M18=1, M24=1, M19=1, M27=1, M21=1, M28=1, M29=2
+by milestone: M14=2, M5=3, M25=1, M26=1, M1=9, M6=3, M17=1, M2=4, M12=4, M7=3, M10=1, M11=2, M9=1, M13=3, M8=1, M20=1, M15=1, M22=1, M23=1, M18=1, M24=1, M19=1, M27=1, M21=1, M28=1, M29=1, M30=1
 milestones: M1 (complete), M2 (complete), M3 (complete), M4 (complete), M5 (complete), M6 (complete), M7 (complete), M8 (complete), M9 (complete), M10 (complete), M11 (complete), M12 (complete), M13 (complete), M14 (complete), M15 (complete), M17 (complete), M18 (complete), M19 (complete), M20 (complete), M21 (complete), M22 (complete), M23 (complete), M24 (complete), M25 (complete), M26 (complete), M27 (complete), M28 (complete), M29 (complete)
 
-ported modules: Astryx.Alert_dialog, Astryx.AspectRatio, Astryx.Avatar, Astryx.Avatar_group, Astryx.Badge, Astryx.Blockquote, Astryx.Button, Astryx.Button_group, Astryx.Card, Astryx.Center, Astryx.Checkbox_input, Astryx.Citation, Astryx.Code, Astryx.Dialog, Astryx.Divider, Astryx.Dropdown_menu, Astryx.EmptyState, Astryx.Field, Astryx.Field_status, Astryx.Form_layout, Astryx.Grid, Astryx.HStack, Astryx.Heading, Astryx.Icon, Astryx.IconButton, Astryx.Indicator, Astryx.Input_group, Astryx.Kbd, Astryx.MetadataList, Astryx.More_menu, Astryx.NavIcon, Astryx.Popover, Astryx.Progress_bar, Astryx.Radio_list, Astryx.Section, Astryx.Skeleton, Astryx.Stack, Astryx.StatusDot, Astryx.Switch, Astryx.Text, Astryx.Text_area, Astryx.Text_input, Astryx.Timer, Astryx.Toggle_button, Astryx.Toolbar, Astryx.Tooltip, Astryx.VStack, Astryx.VisuallyHidden, Astryx.Selectable_card, Astryx.Clickable_card, Astryx.Clickable_card
+ported modules: Astryx.Alert_dialog, Astryx.AspectRatio, Astryx.Avatar, Astryx.Avatar_group, Astryx.Badge, Astryx.Blockquote, Astryx.Button, Astryx.Button_group, Astryx.Card, Astryx.Center, Astryx.Checkbox_input, Astryx.Citation, Astryx.Code, Astryx.Dialog, Astryx.Divider, Astryx.Dropdown_menu, Astryx.EmptyState, Astryx.Field, Astryx.Field_status, Astryx.Form_layout, Astryx.Grid, Astryx.HStack, Astryx.Heading, Astryx.Icon, Astryx.IconButton, Astryx.Indicator, Astryx.Input_group, Astryx.Kbd, Astryx.MetadataList, Astryx.More_menu, Astryx.NavIcon, Astryx.Popover, Astryx.Progress_bar, Astryx.Radio_list, Astryx.Section, Astryx.Skeleton, Astryx.Stack, Astryx.StatusDot, Astryx.Switch, Astryx.Text, Astryx.Text_area, Astryx.Text_input, Astryx.Timer, Astryx.Toggle_button, Astryx.Toolbar, Astryx.Tooltip, Astryx.VStack, Astryx.VisuallyHidden, Astryx.Selectable_card, Astryx.Clickable_card, Astryx.Overflow_list
 
 # every ported component must reach get_snippet truthfully
 # (ported-but-unsnippeted must say so, never 'NOT ported yet')
@@ -44,3 +44,14 @@ ported components: 51; truthfully reachable: 51
   note  ClickableCard (ported, no snippet — reported as such)
   note  OverflowList (ported, no snippet — reported as such)
 ok    every ported component is reported as ported
+
+# every ported entry must be attributed to itself: its file must exist, and its module must be
+# the one its own component name implies. This is here because an entry was once created by
+# copying its neighbour and substituting strings, which left OverflowList pointing at
+# ClickableCard's file, module and milestone - and the check above passed it, because that
+# check only asks whether a ported component is REPORTED as ported, never whether it is
+# attributed correctly. Underscores are stripped before comparing, since the umbrella names some
+# modules without them (Astryx.AspectRatio over aspect_ratio.ml).
+
+ported entries: 51; correctly attributed: 51
+ok    every ported entry names its own file and module

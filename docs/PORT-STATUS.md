@@ -104,7 +104,7 @@ Ported: **51 of 103** components.
 | `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
 | `SelectableCard` | `Astryx.Selectable_card` | `src/selectable_card.ml` | M28 | A |
 | `ClickableCard` | `Astryx.Clickable_card` | `src/clickable_card.ml` | M29 | A |
-| `OverflowList` | `Astryx.Clickable_card` | `src/clickable_card.ml` | M29 | A |
+| `OverflowList` | `Astryx.Overflow_list` | `src/overflow_list.ml` | M30 | A |
 
 ## Not ported yet (52)
 

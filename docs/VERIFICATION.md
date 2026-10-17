@@ -2635,3 +2635,37 @@ keeps the other end at the same count. And two of them prove the **observer** ra
 window resize with no reload must show more, and the indicator must still tell the truth afterwards.
 Loading the page at a wider viewport would have measured on mount and proved nothing.
 
+### Correction to Gate 47: the coverage artifact was misattributed, and no gate could see it
+
+This gate recorded "MCP layer truthful" — which was true of the check that exists. The artifact was not.
+
+`port.json`'s `OverflowList` entry was created by copying its neighbour and substituting strings, and the
+guard on that substitution was `if "ClickableCard" in value`. The lowercase fields never matched it, so the
+entry claimed:
+
+```
+"component": "OverflowList",  "file": "src/clickable_card.ml",
+"module": "Astryx.Clickable_card",  "milestone": "M29"
+```
+
+and `gen-port-status.py` faithfully propagated it into the generated `docs/PORT-STATUS.md`, where line 107
+read `OverflowList | Astryx.Clickable_card | src/clickable_card.ml | M29`. A false claim in a generated
+document is the exact thing this project keeps gates to prevent, and it got in through the one door with no
+gate on it: the **source data**.
+
+**Why every gate passed it.** The MCP truthfulness check asks whether each ported component is *reported*
+as ported — it never asks whether an entry is attributed to itself. A check that cannot fail for the
+reason the data is wrong is not covering that data. The browser, responsive, component and jsdom gates
+read the DOM and the source; none of them reads `port.json`'s fields.
+
+**Fixed three ways.** The entry now names its own file, module and milestone. The artifacts were
+regenerated, and the doc line is correct. And the sweep gained a permanent check: every ported entry's
+file must exist, and its module must be the one its own component name implies — underscores stripped
+first, because the umbrella names some modules without them (`Astryx.AspectRatio` over `aspect_ratio.ml`).
+That rule was run against the entry that shipped, and it catches it.
+
+**The lesson worth keeping.** Do not derive a metadata entry by copying a neighbour and substituting
+strings: write the fields from knowledge, and make the harness verify the parts that are facts. It was
+caught by reading the output of the background job that made the edit — not by any gate — which is the
+weakest possible way for a wrong claim to be found, and only luck made it happen at all.
+

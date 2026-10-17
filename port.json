@@ -576,9 +576,9 @@
     {
       "class": "A",
       "component": "OverflowList",
-      "file": "src/clickable_card.ml",
-      "milestone": "M29",
-      "module": "Astryx.Clickable_card"
+      "file": "src/overflow_list.ml",
+      "milestone": "M30",
+      "module": "Astryx.Overflow_list"
     }
   ],
   "schema": 1,

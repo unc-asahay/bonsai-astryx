@@ -129,6 +129,36 @@ print("FAIL — reported as unported while ported: " + ", ".join(bad) if bad els
 raise SystemExit(1 if bad else 0)
 PY
 rc_mcp_truth=$?
+{
+  echo
+  echo "# every ported entry must be attributed to itself: its file must exist, and its module must be"
+  echo "# the one its own component name implies. This is here because an entry was once created by"
+  echo "# copying its neighbour and substituting strings, which left OverflowList pointing at"
+  echo "# ClickableCard's file, module and milestone - and the check above passed it, because that"
+  echo "# check only asks whether a ported component is REPORTED as ported, never whether it is"
+  echo "# attributed correctly. Underscores are stripped before comparing, since the umbrella names some"
+  echo "# modules without them (Astryx.AspectRatio over aspect_ratio.ml)."
+  echo
+} >> docs/verification/mcp-stdio.txt
+python3 - >> docs/verification/mcp-stdio.txt 2>&1 <<'PY'
+import json, os, re
+d = json.load(open("port.json"))
+norm = lambda s: re.sub(r"[^a-z]", "", s.lower())
+bad = []
+for e in d["ported"]:
+    f, mod = e.get("file", ""), e.get("module", "")
+    if not os.path.exists(f):
+        bad.append(f"{e['component']}: no such file {f}")
+    elif norm(mod.split(".")[-1]) != norm(e["component"]):
+        bad.append(f"{e['component']}: module {mod} belongs to a different component")
+print(f"ported entries: {len(d['ported'])}; correctly attributed: {len(d['ported']) - len(bad)}")
+for b in bad:
+    print(f"  FAIL {b}")
+print("FAIL — misattributed entries: " + "; ".join(bad) if bad else
+      "ok    every ported entry names its own file and module")
+raise SystemExit(1 if bad else 0)
+PY
+rc_mcp_attr=$?
 tail -3 docs/verification/mcp-stdio.txt
 
 echo
@@ -140,6 +170,7 @@ note "$rc_demo" "real browser, demo (verify-browser.mjs)"
 note "$rc_responsive" "responsive + visual regression (verify-responsive.mjs)"
 note "$rc_mcp_status" "MCP layer (--cli status)"
 note "$rc_mcp_truth" "MCP layer (every ported component truthfully reachable)"
+note "$rc_mcp_attr" "port.json (every entry names its own file and module)"
 
 echo
 echo "=== transcript line counts ==="

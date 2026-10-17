@@ -15,7 +15,7 @@ union over the demo's instances, not a single snapshot of one element.
 Themed colours are shown as `light (light) / dark (dark)`: upstream stores them as
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
-- module: `Astryx.Clickable_card` (`src/clickable_card.ml`, M29)
+- module: `Astryx.Overflow_list` (`src/overflow_list.ml`, M30)
 - rendered instances in the demo: 3
 - classes: `astryx-overflow-list`
 
