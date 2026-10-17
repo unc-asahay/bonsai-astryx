@@ -1764,6 +1764,16 @@ let () =
   mount "overflow-math" (Vdom.Node.div rows)
 ;;
 
+(* Rendered here rather than by a deriver, because this project's ppx set has none: a segment prints as
+   T(text) or L(href|label|is_external), which is readable in a failure and comparable as a string. *)
+let render_segments segs =
+  List.map segs ~f:(function
+    | Astryx.Linkify.Text text -> "T(" ^ text ^ ")"
+    | Astryx.Linkify.Link { href; label; is_external } ->
+      "L(" ^ href ^ "|" ^ label ^ "|" ^ Bool.to_string is_external ^ ")")
+  |> String.concat ~sep:" "
+;;
+
 (* The linkify walk, driven as rows carrying both the expectation and the answer - the safe-url matrix's
    shape. It is a pure function of the text and the matches, so it needs no browser at all, and the cases
    pin the RULES rather than the happy path: the sort's stability, which decides ties by collection order,
@@ -1805,24 +1815,53 @@ let () =
     ; ( "a match that swallows everything leaves one segment", "https://a.dev", [ m 0 13 "u" "u" true ], [ l "u" "u" true ] )
     ]
   in
-  (* Rendered here rather than by a deriver, because there is none to use: a segment prints as T(text)
-     or L(href|label|is_external), which is readable in a failure and comparable as a string. *)
-  let render segs =
-    List.map segs ~f:(function
-      | Text text -> "T(" ^ text ^ ")"
-      | Link { href; label; is_external } ->
-        "L(" ^ href ^ "|" ^ label ^ "|" ^ Bool.to_string is_external ^ ")")
-    |> String.concat ~sep:" "
-  in
   let rows =
     List.map cases ~f:(fun (label, text, matches, expect) ->
       let got = segments_of_matches ~text matches in
       Vdom.Node.div
         ~attrs:
           (Astryx.Common.Attr.data "label" label
-           @ Astryx.Common.Attr.data "expect" (render expect)
-           @ Astryx.Common.Attr.data "got" (render got))
+           @ Astryx.Common.Attr.data "expect" (render_segments expect)
+           @ Astryx.Common.Attr.data "got" (render_segments got))
         [])
   in
   mount "linkify" (Vdom.Node.div rows)
+;;
+
+
+(* The scanner and the walk TOGETHER, driven by the built-in patterns on real text. The cases above feed
+   hand-made matches to prove the cutting; these prove the finding, which needs the regex engine and so
+   runs under node rather than a browser. *)
+let () =
+  let open Astryx.Linkify in
+  let run text = segments_of_matches ~text (find_matches ~text ~patterns:builtins) |> render_segments in
+  let cases : (string * string * string) list =
+    [ ( "a url in a sentence"
+      , "see https://x.dev/a now"
+      , "T(see ) L(https://x.dev/a|https://x.dev/a|true) T( now)" )
+    ; ( "an email becomes a mailto link", "mail hi@x.dev please"
+      , "T(mail ) L(mailto:hi@x.dev|hi@x.dev|false) T( please)" )
+    ; ( "both builtins, in the order they appear"
+      , "a https://x.dev then b@y.dev"
+      , "T(a ) L(https://x.dev|https://x.dev|true) T( then ) L(mailto:b@y.dev|b@y.dev|false)" )
+    ; ( "a url at the very end leaves no trailing text", "x https://a.dev"
+      , "T(x ) L(https://a.dev|https://a.dev|true)" )
+    ; ( "a url in brackets stops before the closing one", "(https://x.dev/a)"
+      , "T(() L(https://x.dev/a|https://x.dev/a|true) T())" )
+    ; ( "no matches gives the text back whole", "nothing to see", "T(nothing to see)" )
+    ; ( "two urls with text between them"
+      , "https://a.dev and https://b.dev"
+      , "L(https://a.dev|https://a.dev|true) T( and ) L(https://b.dev|https://b.dev|true)" )
+    ]
+  in
+  let rows =
+    List.map cases ~f:(fun (label, text, expect) ->
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "expect" expect
+           @ Astryx.Common.Attr.data "got" (run text))
+        [])
+  in
+  mount "linkify-builtins" (Vdom.Node.div rows)
 ;;

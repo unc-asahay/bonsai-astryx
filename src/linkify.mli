@@ -39,6 +39,41 @@ type match_ =
 
 val segments_of_matches : text:string -> match_ list -> segment list
 
+(** A pattern to look for in text, and what to turn a hit into.
+
+    [source] and [flags] are a JavaScript regular expression, deliberately: upstream's patterns are JS
+    regexes and this port renders in a browser, so borrowing the engine keeps the matching identical
+    rather than nearly identical. The component gate runs under node, so this is testable without a
+    browser. *)
+type pattern =
+  { source : string
+  ; flags : string
+  ; (* The whole match first, then the capture groups, in order - so a pattern with groups can build its
+       href from them, exactly as upstream's [href: (match) => ...] does. *)
+    href : string list -> string
+  ; label : (string list -> string) option
+  ; is_external : bool
+  }
+
+(** Detects http(s) URLs. External by default. *)
+val url_pattern : pattern
+
+(** Detects email addresses, and links them as [mailto:]. *)
+val email_pattern : pattern
+
+(** The two above, in the order upstream collects them. *)
+val builtins : pattern list
+
+(** Every match in [text] for every pattern, in the order the patterns were given and then by position
+    within the text. NOT sorted or de-overlapped: that is [segments_of_matches]'s job, and keeping the
+    collection order intact is what makes the tie-break there meaningful.
+
+    A zero-length match is skipped and the scan resumed past it. Upstream's two built-ins cannot match
+    empty, but a caller's pattern can, and a global regex that matches empty makes [exec] loop forever at
+    the same index - so this is a guard against a caller's pattern, not against ours. *)
+val find_matches : text:string -> patterns:pattern list -> match_ list
+
+
 (* No [sexp_of] here, deliberately: this project's ppx set has no sexp deriver, so an
    [@@deriving sexp_of] attribute is silently ignored rather than refused. Anything needing to print a
    segment writes it out where it is needed. *)

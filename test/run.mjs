@@ -1773,6 +1773,24 @@ check("a disabled group says so once, on the box", (() => {
   );
 }
 
+// ---------------------------------------------------------------- linkify, scanner + walk together
+{
+  const rows = [...document.querySelectorAll('[data-case="linkify-builtins"] [data-astryx-label]')];
+  check(
+    "the linkify scanner rendered its cases",
+    rows.length === 7,
+    `got ${rows.length}`,
+  );
+  const wrong = rows.filter(
+    (r) => r.getAttribute("data-astryx-expect") !== r.getAttribute("data-astryx-got"),
+  );
+  check(
+    "the built-in patterns find and cut real text the agreed way",
+    wrong.length === 0 && rows.length === 7,
+    wrong.map((r) => `${r.getAttribute("data-astryx-label")}: ${r.getAttribute("data-astryx-got")}`).join(" | ") || "all correct",
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 
