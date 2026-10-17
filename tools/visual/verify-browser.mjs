@@ -2739,6 +2739,81 @@ check(
 
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
+  // ------------------------------------------------------------------ Link (M31)
+  //
+  // Gathered inside one evaluate and asserted in node scope, which is how every other check in this file
+  // works. Two earlier attempts at this put the block where `document` does not exist - beside a comment
+  // rather than inside the evaluation - and failed with "document is not defined" instead of a check.
+  {
+    const lf = await page.evaluate(() => {
+      const sec = document.querySelector('[data-showcase-component="Link"]');
+      const ex = [...(sec?.querySelectorAll("[data-example]") ?? [])];
+      const disabled = ex[3]?.querySelector("a");
+      // The point of the missing href: an href-less anchor takes no focus, so programmatic focus plus
+      // Enter cannot follow it anywhere. Focusing it and asking the document is the only way to check it.
+      if (disabled) disabled.focus();
+      const external = ex[2]?.querySelector("a");
+      const asButton = ex[4]?.querySelector("button");
+      return {
+        found: !!sec,
+        examples: ex.length,
+        disabledHasHref: disabled ? disabled.hasAttribute("href") : null,
+        disabledAria: disabled?.getAttribute("aria-disabled") ?? null,
+        disabledTab: disabled?.getAttribute("tabindex") ?? null,
+        disabledTookFocus: !!disabled && document.activeElement === disabled,
+        externalTarget: external?.getAttribute("target") ?? null,
+        externalRel: external?.getAttribute("rel") ?? null,
+        externalText: external?.textContent ?? "",
+        buttonType: asButton?.getAttribute("type") ?? null,
+        buttonIsAnchor: !!ex[4]?.querySelector("a"),
+      };
+    });
+    check("the Link section rendered", lf.found, "not found");
+    check("the Link section has five examples", lf.examples === 5, `got ${lf.examples}`);
+    check(
+      "a disabled link is an anchor with NO href",
+      lf.disabledHasHref === false,
+      `has an href attribute: ${lf.disabledHasHref}`,
+    );
+    check(
+      "a disabled link announces itself and leaves the tab order",
+      lf.disabledAria === "true" && lf.disabledTab === "-1",
+      `aria-disabled=${lf.disabledAria} tabindex=${lf.disabledTab}`,
+    );
+    // NOT "cannot take focus": upstream renders tabIndex={-1}, which is focusable-but-not-tabbable, so
+    // focusing it programmatically works and the first version of this check was simply wrong. Its own
+    // comment overstates it ("cannot be focused"); the code is tabIndex={-1}. The claim that matters is
+    // the other half of that comment - focusing it and activating it cannot navigate, which is what the
+    // missing href buys. Assert that by clicking it.
+    const url_before = page.url();
+    await page.evaluate(() => {
+      const ex = [...document.querySelectorAll('[data-showcase-component="Link"] [data-example]')];
+      ex[3]?.querySelector("a")?.click();
+    });
+    check(
+      "clicking a disabled link does not navigate",
+      page.url() === url_before,
+      `url went from ${url_before} to ${page.url()}`,
+    );
+    check(
+      "an external link opens in a new tab with noopener and noreferrer",
+      lf.externalTarget === "_blank" &&
+        /\bnoopener\b/.test(lf.externalRel ?? "") &&
+        /\bnoreferrer\b/.test(lf.externalRel ?? ""),
+      `target=${lf.externalTarget} rel=${lf.externalRel}`,
+    );
+    check(
+      "an external link announces the new tab instead of leaving it to the icon",
+      lf.externalText.includes("(opens in new tab)"),
+      JSON.stringify(lf.externalText),
+    );
+    check(
+      "a link with no destination renders as a button",
+      lf.buttonType === "button" && !lf.buttonIsAnchor,
+      `type=${lf.buttonType} anchor=${lf.buttonIsAnchor}`,
+    );
+  }
+
   const cov = await page.evaluate(() => ({
     // Read the stat numbers themselves: textContent on the container concatenates
     // without separators ("13ported90not yet…"), which no word-boundary regex can
@@ -2749,7 +2824,7 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 50 ported / 53 not / 103 total",
+    "coverage stats are 52 ported / 51 not / 103 total",
     JSON.stringify(cov.stats) === JSON.stringify(["52", "51", "103"]),
     cov.stats.join(" | "),
   );

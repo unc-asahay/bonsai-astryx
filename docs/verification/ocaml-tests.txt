@@ -490,6 +490,12 @@ DialogHeader
   ok   every linkify case cuts the text the agreed way
   ok   the linkify scanner rendered its cases
   ok   the built-in patterns find and cut real text the agreed way
+  ok   the destination handoff rendered its cases
+  ok   every destination resolves to the branch upstream would take
+  ok   the interactive-role fixture rendered its cases
+  ok   every interactive-role case matches upstream's priority order
+  ok   the target/rel fixture rendered its cases
+  ok   every target/rel case is normalized the way upstream normalizes it
 
-439 checks, 0 failure(s)
+445 checks, 0 failure(s)
 COMPONENT CHECKS PASSED
