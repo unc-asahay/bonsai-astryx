@@ -1753,6 +1753,26 @@ check("a disabled group says so once, on the box", (() => {
     wrong.map((r) => `${r.label}: expected ${r.expected}, got ${r.got}`).join(" | "));
 }
 
+// ---------------------------------------------------------------- linkify (pure)
+// Rows carry both the expectation and the computed answer, so the gate compares two sexps it can both
+// see. The count assertion is not decoration: a selector that matches nothing would otherwise pass.
+{
+  const rows = [...document.querySelectorAll('[data-case="linkify"] [data-astryx-label]')];
+  check(
+    "the linkify walk rendered its cases",
+    rows.length === 9,
+    `got ${rows.length}`,
+  );
+  const wrong = rows.filter(
+    (r) => r.getAttribute("data-astryx-expect") !== r.getAttribute("data-astryx-got"),
+  );
+  check(
+    "every linkify case cuts the text the agreed way",
+    wrong.length === 0 && rows.length === 9,
+    wrong.map((r) => r.getAttribute("data-astryx-label")).join("; ") || "all correct",
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

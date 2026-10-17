@@ -1763,3 +1763,66 @@ let () =
   in
   mount "overflow-math" (Vdom.Node.div rows)
 ;;
+
+(* The linkify walk, driven as rows carrying both the expectation and the answer - the safe-url matrix's
+   shape. It is a pure function of the text and the matches, so it needs no browser at all, and the cases
+   pin the RULES rather than the happy path: the sort's stability, which decides ties by collection order,
+   and the overlap rule that lets the first match win. *)
+let () =
+  let open Astryx.Linkify in
+  let m start stop href label is_external = { start; stop; href; label; is_external } in
+  let l href label is_external = Link { href; label; is_external } in
+  let cases : (string * string * match_ list * segment list) list =
+    [ ( "a url in the middle of a sentence"
+      , "see https://x.dev/a now"
+      , [ m 4 19 "https://x.dev/a" "https://x.dev/a" true ]
+      , [ Text "see "; l "https://x.dev/a" "https://x.dev/a" true; Text " now" ] )
+    ; ( "a match at position 0 emits NO empty leading text"
+      , "hi@x.dev wrote"
+      , [ m 0 8 "mailto:hi@x.dev" "hi@x.dev" false ]
+      , [ l "mailto:hi@x.dev" "hi@x.dev" false; Text " wrote" ] )
+    ; ( "adjacent matches are both kept, with nothing between them"
+      , "a.t b.c"
+      , [ m 0 3 "A" "A" false; m 4 7 "B" "B" false ]
+      , [ l "A" "A" false; Text " "; l "B" "B" false ] )
+    ; ( "overlapping ranges: the FIRST match wins, not the longer one"
+      , "0123456789abcde"
+      , [ m 0 10 "A" "A" false; m 5 15 "B" "B" false ]
+      , [ l "A" "A" false; Text "abcde" ] )
+    ; ( "equal starts: the earlier one in the INPUT wins - the sort must be stable"
+      , "0123456789"
+      , [ m 2 5 "A" "A" false; m 2 9 "B" "B" false ]
+      , [ Text "01"; l "A" "A" false; Text "56789" ] )
+    ; ( "a match ending at the last character emits NO trailing empty text"
+      , "x https://a.dev"
+      , [ m 2 15 "https://a.dev" "https://a.dev" true ]
+      , [ Text "x "; l "https://a.dev" "https://a.dev" true ] )
+    ; ( "no matches at all gives the whole text back", "nothing here", [], [ Text "nothing here" ] )
+    ; ( "unsorted input is ordered by position"
+      , "aa bb"
+      , [ m 3 5 "B" "B" false; m 0 2 "A" "A" false ]
+      , [ l "A" "A" false; Text " "; l "B" "B" false ] )
+    ; ( "a match that swallows everything leaves one segment", "https://a.dev", [ m 0 13 "u" "u" true ], [ l "u" "u" true ] )
+    ]
+  in
+  (* Rendered here rather than by a deriver, because there is none to use: a segment prints as T(text)
+     or L(href|label|is_external), which is readable in a failure and comparable as a string. *)
+  let render segs =
+    List.map segs ~f:(function
+      | Text text -> "T(" ^ text ^ ")"
+      | Link { href; label; is_external } ->
+        "L(" ^ href ^ "|" ^ label ^ "|" ^ Bool.to_string is_external ^ ")")
+    |> String.concat ~sep:" "
+  in
+  let rows =
+    List.map cases ~f:(fun (label, text, matches, expect) ->
+      let got = segments_of_matches ~text matches in
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "expect" (render expect)
+           @ Astryx.Common.Attr.data "got" (render got))
+        [])
+  in
+  mount "linkify" (Vdom.Node.div rows)
+;;

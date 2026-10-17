@@ -91,3 +91,4 @@ module Clickable_card = Clickable_card
 module ClickableCard = Clickable_card
 module Overflow_math = Overflow_math
 module Overflow_list = Overflow_list
+module Linkify = Linkify
