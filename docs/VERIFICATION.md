@@ -2562,3 +2562,76 @@ notifications that had in fact passed every gate — a failed *grep*, not a fail
 exit codes meaning two different things is how a project learns to stop trusting exit codes; both are now
 explicit in the script's own output rather than left to be inferred.
 
+---
+
+## Gate 47 — OverflowList (M30, coverage 50 → 51)
+
+A list that shows what fits and collapses the rest behind an indicator. Three parts, in the order this
+project's rule requires — the mechanism before the component that wraps it:
+
+1. `Overflow_math` (Gate 45) — the fit arithmetic, ported as a pure function with eleven cases in the
+   component gate. No DOM, no state, no browser.
+2. `Common.Overflow_hook` — the measurement. It measures the element it is attached to and that element's
+   children and hands the numbers to the arithmetic.
+3. `Overflow_list` — the component, built on upstream's two-container shape.
+
+### The design decision, settled with evidence rather than preference
+
+Upstream's measurement stands on a module-level, ref-counted `ResizeObserver` registry shared between
+every observed element. **Not ported, deliberately.** The decider was whether a second consumer lands in
+this port, and it does not: the port's `Text` contains no truncation or measurement code at all, where
+upstream's `Text` is the registry's other consumer. With one consumer, porting a ref-counted singleton is
+the pre-abstraction this project's rules forbid, so the hook owns an observer and the sharing is recorded
+as the browser-performance divergence it is.
+
+### The shape, which is not the obvious one
+
+The items are rendered into a **hidden measurement container** — `visibility: hidden`, never `display:
+none`, because a `display: none` element has an `offsetWidth` of 0 and every item measured through it
+would read as zero, collapsing the count to nothing. The visible row renders only the slice. The
+indicator is measured too, and is measured in that container with **every** item hidden, which is the
+widest label it can ever carry, so the reserved room is never too little. The gap is read back off the
+element's computed style rather than passed as a number, because upstream's gap is a spacing-scale token
+whose pixel value lives in a theme this port does not have — so the applied gap and the measured gap
+cannot disagree.
+
+### Seven mistakes of mine, and what caught each
+
+Recorded because the catching is the interesting part; six were caught by gates rather than by me.
+
+- **The JS array was never converted to an OCaml list.** Returning an array through `fun_call` and typing
+  it as `_ list` reads the array's first slot as the head and its second as the tail, so the second
+  element is `undefined` and measuring it throws on `offsetWidth`. The browser gate's console-error check
+  printed the stack, which pointed straight at it. Fixed with `Dom.list_of_nodeList`.
+- **My checks ran against the demo page too.** They were inserted outside the `mode === "showcase"`
+  branch, so ten of them failed against a page with no such section. Caught by **the harness fix from
+  earlier in this same session** — the sweep reporting red per gate instead of exiting 0. Before that fix
+  this would have shipped as a green-looking run.
+- **The live-resize check found the example was not responsive.** A percentage width follows the *parent*,
+  and the showcase's column is width-constrained, so a 700px wider viewport moved nothing. `vw` fixed
+  that — and then the same check found `50vw` was vacuous, because all six items fitted at both widths so
+  nothing collapsed and there was nothing to observe. A vacuous pass is worse than a failure, so the width
+  now sits between the two answers.
+- **A name collision**: `narrow` was already declared in that scope, so moving the block in produced a
+  SyntaxError. Renaming then rewrote the string literals too, because a hyphen is a word boundary and
+  `\bnarrow\b` matches inside `"overflow-list-narrow"`.
+- **Three frozen counters**, not one: the section count (53 → 54), the example total (309 → 312) and the
+  nav-link count (53 → 54). I had claimed no per-section count map existed; it does, and its comment
+  explains why — "a total alone would not notice one section losing an example while another gained one".
+- **A build failure reported as success**: `dune build 2>&1 | head -8 && echo BUILD OK` prints `head`'s
+  status, so it announced success over an unused-variable error while the gate ran against a stale page.
+  The same exit-code trap this project has now hit from both directions.
+
+### What ran
+
+`sweep-m30b.txt`, on the committed tree: **SWEEP GREEN: every gate passed, exit 0.** Build 0 · component
+**435/0** · jsdom ALL PASSED · showcase browser **322/322** (ten of them this component's) · demo 25/25 ·
+responsive **66/66 at 0.00%** · MCP layer truthful · coverage **51 of 103**.
+
+The ten checks are not a formality. They assert the marker, that the measurement container is hidden **and
+still has width**, that every item is in it *including* the ones that will not be shown, that the kept
+items actually fit inside the row, that the indicator's count is exact, and that `collapse_from: Start`
+keeps the other end at the same count. And two of them prove the **observer** rather than assuming it: a
+window resize with no reload must show more, and the indicator must still tell the truth afterwards.
+Loading the page at a wider viewport would have measured on mount and proved nothing.
+

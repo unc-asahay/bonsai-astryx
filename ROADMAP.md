@@ -903,7 +903,7 @@ Two things fall out of that table and neither was guessable from the sizes I fir
 started at the end of a session. The next milestone should be chosen as *which mechanism to build next*,
 with its first consumer as the component — the arrangement that made Popover small.
 
-## Next up: OverflowList, in three parts (recon done, not started)
+## OverflowList, in three parts (all three now done — see Gate 47; the recon below is kept because it is what made the parts writable)
 
 Chosen because it is the only unported candidate with **no unported component dependency**. Everything else
 is blocked on a real pillar — `Thumbnail` and `FileInput` on `Spinner`, `Token` on `Link`,

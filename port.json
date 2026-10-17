@@ -572,6 +572,13 @@
       "file": "src/clickable_card.ml",
       "milestone": "M29",
       "module": "Astryx.Clickable_card"
+    },
+    {
+      "class": "A",
+      "component": "OverflowList",
+      "file": "src/clickable_card.ml",
+      "milestone": "M29",
+      "module": "Astryx.Clickable_card"
     }
   ],
   "schema": 1,

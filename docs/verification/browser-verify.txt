@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   53 sections
+  ok   54 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   309 examples across the page
+  ok   312 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3
 
 navigation
-  ok   53 nav links
+  ok   54 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -376,9 +376,21 @@ coverage panel (fetched from coverage.json at runtime)
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
+OverflowList (live)
+  ok   the wrapper stamps its own marker, not the one it wraps
+  ok   the measurement container is hidden but still MEASURABLE
+  ok   every item is in the hidden container, even the ones that will not be shown
+  ok   something did collapse, and not everything did
+  ok   the items it kept actually fit inside the row
+  ok   the indicator says how many are hidden - exactly
+  ok   collapse_from: Start keeps the other end, at the same count
+  ok   with room for all six, nothing is hidden and there is no indicator
+  ok   resizing the window re-measures and shows more, with no reload
+  ok   and the indicator keeps telling the truth after it
+
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-312/312 checks passed, 0 failure(s)
+322/322 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

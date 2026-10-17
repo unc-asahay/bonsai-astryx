@@ -2575,3 +2575,47 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-clickable-card:not(.astryx-clickable-card--disabled):active {
   background-color: var(--color-overlay-pressed);
 }
+
+/* ----------------------------------------------------------------- OverflowList
+
+   The measurement container is the whole design and it has one load-bearing property: `visibility:
+   hidden`, NOT `display: none`. A display:none element has an offsetWidth of 0, so every item measured
+   through it would read as zero and the count would collapse to nothing. It is absolutely positioned so
+   it never takes part in the layout, and stretched left-to-right so its width is the row's width -
+   which is the width its contents are measured against. */
+.astryx-overflow-list {
+  position: relative;
+  display: block;
+  max-width: 100%;
+}
+
+.astryx-overflow-list__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  visibility: hidden; /* measured, never seen - and measurable precisely because it is not display:none */
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.astryx-overflow-list__row {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.astryx-overflow-list__item {
+  flex: 0 0 auto;
+}
+
+.astryx-overflow-list__indicator {
+  flex: 0 0 auto;
+  margin-inline-start: var(--spacing-2, 8px);
+  color: var(--color-text-secondary, #555);
+  white-space: nowrap;
+}

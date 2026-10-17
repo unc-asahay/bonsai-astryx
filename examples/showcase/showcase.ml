@@ -3349,6 +3349,7 @@ let nav_items =
   ; "textarea", "TextArea"
   ; "dropdownmenu", "DropdownMenu"
   ; "interactive", "Interactive"
+  ; "overflow-list", "OverflowList"
   ]
 ;;
 
@@ -3585,6 +3586,87 @@ let progress_bar_demo (graph : Bonsai.graph) =
          is why the component takes a graph at all."
       (first @ rest))
 ;;
+let overflow_list_demo (graph : Bonsai.graph) =
+  (* The items carry fixed widths so the arithmetic is observable from outside: a row of known widths
+     collapses at a predictable count, which is what the browser gate measures. A caller's items need no
+     width at all - they just have to be measurable. *)
+  let item ~label ~px =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.create "style" ("width: " ^ Int.to_string px ^ "px") ]
+      [ Vdom.Node.text label ]
+  in
+  let items =
+    [ item ~label:"one" ~px:90
+    ; item ~label:"two" ~px:90
+    ; item ~label:"three" ~px:110
+    ; item ~label:"four" ~px:70
+    ; item ~label:"five" ~px:120
+    ; item ~label:"six" ~px:80
+    ]
+  in
+  (* A width the items cannot all fit into, so something always has to collapse. *)
+  let _fixed_width = "width: 320px" in
+  (* And one whose width follows the window. This is not decoration: with a fixed width, resizing the
+     browser changes nothing, so the observer would never fire and the live-resize path would never be
+     exercised. A percentage width makes the count a function of the viewport, which is what the
+     responsive gate can then assert across its four viewports. *)
+  (* [vw], not a percentage. A percentage follows the PARENT, and the showcase's content column is
+     width-constrained, so a percentage example does not change when the window does - the gate caught
+     exactly that: a 700px wider viewport left the row at 438px and the count unmoved. [vw] follows the
+     viewport, which is the thing the resize check actually changes. *)
+  (* A third of the viewport, chosen so the example is genuinely BETWEEN the two answers: at the gate's
+     width it overflows and at a wider one everything fits. At 50vw all six fitted at both widths, so
+     nothing collapsed and the resize had nothing to change - the count was right and the check was
+     vacuous, which is worse than a failure. *)
+  let responsive_width = "width: 33vw; min-width: 160px" in
+  let narrow =
+    Astryx.Overflow_list.view
+      ~gap:S.S2
+      ~items
+      ~attrs:[ Vdom.Attr.id "overflow-list-narrow"; Vdom.Attr.create "style" responsive_width ]
+      graph
+      ()
+  in
+  let from_start =
+    Astryx.Overflow_list.view
+      ~gap:S.S2
+      ~collapse_from:Astryx.Overflow_list.Start
+      ~items
+      ~attrs:[ Vdom.Attr.id "overflow-list-start"; Vdom.Attr.create "style" responsive_width ]
+      graph
+      ()
+  in
+  let roomy =
+    Astryx.Overflow_list.view
+      ~gap:S.S2
+      ~items
+      ~attrs:[ Vdom.Attr.id "overflow-list-roomy"; Vdom.Attr.create "style" "width: 1400px" ]
+      graph
+      ()
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map narrow
+          ~f:
+            (ex
+               "half the window's width, so the count follows the window: what fits, and the rest behind \
+               an indicator")
+      ; Bonsai.map from_start
+          ~f:
+            (ex
+               "collapse_from: Start keeps the other end instead - same width, same count, opposite end")
+      ; Bonsai.map roomy ~f:(ex "room for all of them: no indicator at all")
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"overflow-list"
+      ~title:"OverflowList"
+      ~note:
+        "Two containers: one hidden and measured with every item in it, one visible with only the slice. The count follows the real layout, so resizing the window changes it."
+      examples)
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -3607,6 +3689,7 @@ let page (graph : Bonsai.graph) =
   let avatar_group_section = avatar_group_demo graph in
   let toggle_button_section = toggle_button_demo graph in
   let selectable_card_section = selectable_card_demo graph in
+  let overflow_list_section = overflow_list_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3629,10 +3712,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful avatar_group_section in
   let stateful = pair stateful toggle_button_section in
   let stateful = pair stateful selectable_card_section in
+  let stateful = pair stateful overflow_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card)
+    ~f:(fun (((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3640,7 +3724,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list ])
       ])
 ;;
 

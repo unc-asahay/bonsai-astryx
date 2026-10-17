@@ -243,7 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
-    "SelectableCard", "ClickableCard",
+    "SelectableCard", "ClickableCard", "OverflowList",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("53 sections", sections.length === 53, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("54 sections", sections.length === 54, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -617,7 +617,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3, ClickableCard: 4,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3, ClickableCard: 4, OverflowList: 3,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -629,7 +629,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("309 examples across the page", totalExamples === 309, `got ${totalExamples}`);
+  check("312 examples across the page", totalExamples === 312, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -642,7 +642,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("53 nav links", nav.length === 53, `got ${nav.length}`);
+  check("54 nav links", nav.length === 54, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2755,6 +2755,93 @@ check(
   check("unported list rendered 53 entries", cov.unported === 53, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
+
+  // ---------------------------------------------------------------- OverflowList (M30)
+  //
+  // The component's whole design is the pair of containers, so the checks read both: the hidden one that
+  // is measured, and the visible one that shows the slice. Two traps in particular. The measurement
+  // container must be hidden AND still have width - a display:none element has none, and every item
+  // measured through it would read as zero. And the visible items must actually FIT: a count is only
+  // right if the widths it kept, plus the gaps between them, are inside the row.
+  console.log("\nOverflowList (live)");
+  const olState = (rootId) =>
+    page.evaluate((id) => {
+      const root = document.getElementById(id);
+      if (!root) return null;
+      const measure = root.querySelector(".astryx-overflow-list__measure");
+      const row = root.querySelector(".astryx-overflow-list__row");
+      const items = [...row.querySelectorAll(".astryx-overflow-list__item")];
+      const indicator = row.querySelector(".astryx-overflow-list__indicator");
+      const gap = row ? Math.round(parseFloat(getComputedStyle(row).columnGap) || 0) : 0;
+      const widths = items.map((i) => i.offsetWidth);
+      return {
+        marker: root.getAttribute("data-astryx-component"),
+        measureVisibility: measure ? getComputedStyle(measure).visibility : null,
+        measureWidth: measure ? measure.offsetWidth : 0,
+        measureChildren: measure ? measure.children.length : 0,
+        rowWidth: row ? row.offsetWidth : 0,
+        visible: items.length,
+        visibleLabels: items.map((i) => i.textContent.trim()),
+        widths,
+        gap,
+        fits: widths.reduce((a, b) => a + b, 0) + gap * Math.max(0, widths.length - 1) <= (row ? row.offsetWidth : 0),
+        indicator: indicator ? indicator.textContent.trim() : null,
+      };
+    }, rootId);
+
+  const olNarrow = await olState("overflow-list-narrow");
+  const olFromStart = await olState("overflow-list-start");
+  const olRoomy = await olState("overflow-list-roomy");
+
+  check("the wrapper stamps its own marker, not the one it wraps",
+    olNarrow?.marker === "OverflowList", String(olNarrow?.marker));
+
+  check("the measurement container is hidden but still MEASURABLE",
+    olNarrow?.measureVisibility === "hidden" && olNarrow?.measureWidth > 0,
+    `visibility=${olNarrow?.measureVisibility} width=${olNarrow?.measureWidth}`);
+
+  check("every item is in the hidden container, even the ones that will not be shown",
+    olNarrow?.measureChildren === 7, String(olNarrow?.measureChildren) + " children (6 items + the indicator)");
+
+  check("something did collapse, and not everything did",
+    olNarrow !== null && olNarrow.visible > 0 && olNarrow.visible < 6, `${olNarrow?.visible} of 6 visible`);
+
+  check("the items it kept actually fit inside the row",
+    olNarrow?.fits === true,
+    `widths=${JSON.stringify(olNarrow?.widths)} gap=${olNarrow?.gap} row=${olNarrow?.rowWidth}`);
+
+  check("the indicator says how many are hidden - exactly",
+    olNarrow?.indicator === "+" + String(6 - (olNarrow?.visible ?? 0)), String(olNarrow?.indicator));
+
+  check("collapse_from: Start keeps the other end, at the same count",
+    olFromStart !== null &&
+      olFromStart.visible === olNarrow?.visible &&
+      olFromStart.visibleLabels.join(",") !== olNarrow?.visibleLabels.join(",") &&
+      olFromStart.visibleLabels[olFromStart.visibleLabels.length - 1] === "six",
+    `start=[${olFromStart?.visibleLabels.join(",")}] end=[${olNarrow?.visibleLabels.join(",")}]`);
+
+  check("with room for all six, nothing is hidden and there is no indicator",
+    olRoomy?.visible === 6 && olRoomy?.indicator === null,
+    `${olRoomy?.visible} visible, indicator=${String(olRoomy?.indicator)}`);
+
+  // The observer, proved rather than assumed. Loading the page at a wider viewport would measure on
+  // mount and prove nothing about it - the only evidence that live resizing works is a WINDOW RESIZE
+  // with no reload, and the count following it.
+  const olViewportBefore = page.viewportSize();
+  const olBefore = await olState("overflow-list-narrow");
+  await page.setViewportSize({
+    width: (olViewportBefore?.width ?? 1280) + 700,
+    height: olViewportBefore?.height ?? 900,
+  });
+  await page.waitForTimeout(500); // a frame for the observer, and one for the re-render
+  const olAfter = await olState("overflow-list-narrow");
+  check("resizing the window re-measures and shows more, with no reload",
+    (olAfter?.visible ?? 0) > (olBefore?.visible ?? 0),
+    `${olBefore?.visible} -> ${olAfter?.visible} visible, row ${olBefore?.rowWidth} -> ${olAfter?.rowWidth}px`);
+  check("and the indicator keeps telling the truth after it",
+    olAfter?.indicator === (olAfter?.visible === 6 ? null : "+" + String(6 - (olAfter?.visible ?? 0))),
+    String(olAfter?.indicator));
+  if (olViewportBefore) await page.setViewportSize(olViewportBefore);
 }
 
 // ---------------------------------------------------------------- screenshot

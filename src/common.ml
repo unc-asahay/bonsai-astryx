@@ -1003,13 +1003,15 @@ module Overflow_hook = struct
     ;;
 
     let children_of (container : Dom_html.element Js.t) (selector : string) : Dom_html.element Js.t list =
-      (* querySelectorAll gives a NodeList, which has no list conversion here, so the slice happens in JS. *)
-      let js =
-        Js.Unsafe.eval_string
-          "(function (el, selector) { return Array.prototype.slice.call(el.querySelectorAll(selector)); })"
+      (* [Dom.list_of_nodeList] is the conversion, not a hand-rolled one. Returning a JS array through
+         fun_call and typing it as an OCaml list does NOT convert it: the list reads the array's first
+         element as its head and its SECOND SLOT as the tail, so the next element is undefined and
+         measuring it throws on offsetWidth. That cost a full browser run to find, and the stack
+         pointed straight at it. *)
+      let node_list =
+        Js.Unsafe.meth_call container "querySelectorAll" [| Js.Unsafe.inject (Js.string selector) |]
       in
-      (Js.Unsafe.fun_call js [| Js.Unsafe.inject container; Js.Unsafe.inject (Js.string selector) |]
-        : Dom_html.element Js.t list)
+      Dom.list_of_nodeList (Js.Unsafe.coerce node_list) |> List.map ~f:Js.Unsafe.coerce
     ;;
 
     let indicator_width (input : Input.t) (container : Dom_html.element Js.t) : int =

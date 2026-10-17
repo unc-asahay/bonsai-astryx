@@ -43,7 +43,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
 | Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
 | Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
-| Component library (`src/`) | 🚧 50 of 103 ported (M1 + M2 + M5–M15 + M17–M29) | `dune build` |
+| Component library (`src/`) | 🚧 51 of 103 ported (M1 + M2 + M5–M15 + M17–M30) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
 | **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph; plus the overflow arithmetic, which is pure and needs no browser at all) | ✅ 435 checks, 0 failures | `node test/run.mjs` |
