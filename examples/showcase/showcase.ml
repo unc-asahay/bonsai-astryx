@@ -2949,6 +2949,96 @@ let s_toolbar () =
     ]
 ;;
 
+(* A 48x48 inline SVG, so the "image that loads" example genuinely loads without reaching the network - which
+   matters in a gate that must not depend on one. The other examples point at sources that cannot load, which
+   is the point of them. *)
+let avatar_data_uri =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' \
+   height='48' fill='%237c5cff'/%3E%3C/svg%3E"
+;;
+
+(* Avatar takes a graph because its image fallback chain is state: a source that failed is remembered so the
+   next one can be tried, and the initials are what is left when even that fails. The jsdom harness renders
+   static nodes, so this component's checks live in the browser gate - where an image error can actually be
+   fired. *)
+let avatar_demo (graph : Bonsai.graph) =
+  let showcase_row = Vdom.Attr.class_ "showcase-row" in
+  let sizes =
+    unwrap_all
+      [ Astryx.Avatar.view ~size:Astryx.Avatar.Xsm ~name:"Ada Lovelace" graph ()
+      ; Astryx.Avatar.view ~size:Astryx.Avatar.Sm ~name:"Ada Lovelace" graph ()
+      ; Astryx.Avatar.view ~size:Astryx.Avatar.Md ~name:"Ada Lovelace" graph ()
+      ; Astryx.Avatar.view ~size:Astryx.Avatar.Lg ~name:"Ada Lovelace" graph ()
+      ; Astryx.Avatar.view ~size:Astryx.Avatar.Xl ~name:"Ada Lovelace" graph ()
+      ]
+  in
+  let shapes =
+    unwrap_all
+      [ Astryx.Avatar.view ~id:"avatar-circle" ~shape:Astryx.Avatar.Circle ~size:Astryx.Avatar.Lg ~name:"A B" graph ()
+      ; Astryx.Avatar.view ~id:"avatar-rounded" ~shape:Astryx.Avatar.Rounded ~size:Astryx.Avatar.Lg ~name:"A B" graph ()
+      ; Astryx.Avatar.view ~id:"avatar-square" ~shape:Astryx.Avatar.Square ~size:Astryx.Avatar.Lg ~name:"A B" graph ()
+      ]
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map (Astryx.Avatar.view ~id:"avatar-initials" ~name:"Ada Lovelace" graph ()) ~f:(ex "initials from a name")
+      ; Bonsai.map
+          (Astryx.Avatar.view ~id:"avatar-image" ~src:avatar_data_uri ~name:"Grace Hopper" graph ())
+          ~f:(ex "an image that loads, with the initials waiting behind it")
+      ; Bonsai.map
+          (Astryx.Avatar.view
+             ~id:"avatar-fallback"
+             (* Paths that genuinely 404. A data URI is the wrong tool here: it always loads, and a
+                malformed payload merely fails to parse - which fires no error event at all, as the first
+                version of this example discovered by never falling back. *)
+             ~src:"/site/this-source-does-not-exist.png"
+             ~fallback_src:"/site/neither-does-this-one.png"
+             ~name:"Grace Hopper"
+             graph
+             ())
+          ~f:(ex "both sources fail, so the initials follow")
+      ; Bonsai.map
+          (Astryx.Avatar.view
+             ~id:"avatar-status"
+             ~name:"Ada Lovelace"
+             (* The dot carries no label of its own here, and that is the point: the avatar's own name
+                already composes the status in, and a labelled dot inside would announce it twice. *)
+             ~status:(Astryx.Avatar_status_dot.view ~variant:Astryx.Avatar_status_dot.Success ())
+             ~status_label:"Online"
+             graph
+             ())
+          ~f:(ex "a status dot, composed into the name as \"Ada Lovelace, Online\"")
+      ; Bonsai.map
+          (Astryx.Avatar.view ~id:"avatar-decorative" ~src:avatar_data_uri graph ())
+          ~f:(ex "decorative: no name and no label, so nothing is announced")
+      ; Bonsai.map
+          (Astryx.Avatar.view ~id:"avatar-link" ~name:"Grace Hopper" ~href:"#avatars" graph ())
+          ~f:(ex "a link, when given an href")
+      ; Bonsai.map
+          (Astryx.Avatar.view ~id:"avatar-button" ~name:"Grace Hopper" ~on_click:Effect.Ignore graph ())
+          ~f:(ex "a button, when given a click handler and no href")
+      ; Bonsai.map2 sizes shapes ~f:(fun sizes shapes ->
+          ex
+            "five sizes, three shapes"
+            (Vdom.Node.div
+               ~attrs:[ showcase_row ]
+               [ Vdom.Node.div ~attrs:[ showcase_row ] sizes
+               ; Vdom.Node.div ~attrs:[ showcase_row ] shapes
+               ]))
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"avatar"
+      ~title:"Avatar"
+      ~note:
+        "A picture with a fallback, and a status that has to stay reachable even though a role=\"img\" root \
+         prunes its descendants. Four states, in order: the image, then the fallback source once the first has \
+         failed, then the initials from the name, and finally the default icon - not an empty plate, which is \
+         what a name with no letters would otherwise render."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3006,7 +3096,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3267,6 +3357,7 @@ let page (graph : Bonsai.graph) =
   let metadata_list_section = metadata_list_demo graph in
   let more_menu_section = more_menu_demo graph in
   let progress_bar_section = progress_bar_demo graph in
+  let avatar_section = avatar_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3285,28 +3376,19 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful metadata_list_section in
   let stateful = pair stateful more_menu_section in
   let stateful = pair stateful progress_bar_section in
+  let stateful = pair stateful avatar_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
-                        , form_layout )
-                      , tooltip )
-                    , dialog )
-                  , alert_dialog )
-                , dialog_header )
-              , layer )
-            , popover )
-          , metadata_list )
-        , more_menu )
-      , progress_bar )
+    ~f:(fun (((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar)
     text_area ->
-    Vdom.Node.div
+Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar ])
       ])
 ;;
 

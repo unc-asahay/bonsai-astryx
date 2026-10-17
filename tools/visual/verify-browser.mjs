@@ -124,9 +124,16 @@ const check = (label, ok, detail = "") => {
 console.log("\npage");
 check("HTTP 200 from the local server", response.status() === 200, `got ${response.status()}`);
 check("no failed requests", failedRequests.length === 0, failedRequests.join("; "));
-check("no 4xx/5xx responses", badResponses.length === 0, badResponses.join("; "));
+// The avatar's fallback example points deliberately at two sources that cannot load - that *is* the
+// behaviour under test - so those two are allowed by name and everything else still fails the gate.
+const deliberate = ["this-source-does-not-exist.png", "neither-does-this-one.png"];
+const unexpectedResponses = badResponses.filter((r) => !deliberate.some((d) => r.includes(d)));
+check("no unexpected 4xx/5xx responses", unexpectedResponses.length === 0, unexpectedResponses.join("; "));
 check("no uncaught page errors", pageErrors.length === 0, pageErrors.join("; "));
-check("no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join("; "));
+// A deliberately failing image logs a resource error, which the check above already accounts for; this check
+// is about the port's own code. Anything that is not a resource load still fails here.
+const unexpectedConsoleErrors = consoleErrors.filter((e) => !/Failed to load resource/.test(e));
+check("no console errors", unexpectedConsoleErrors.length === 0, unexpectedConsoleErrors.slice(0, 3).join("; "));
 check("the app mounted in Chromium", mounted, "no [data-astryx-component] appeared");
 
 const sheets = await page.evaluate(() =>
@@ -598,7 +605,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("48 sections", sections.length === 48, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("49 sections", sections.length === 49, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -609,7 +616,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -621,7 +628,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("288 examples across the page", totalExamples === 288, `got ${totalExamples}`);
+  check("296 examples across the page", totalExamples === 296, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -634,7 +641,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("48 nav links", nav.length === 48, `got ${nav.length}`);
+  check("49 nav links", nav.length === 49, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2214,6 +2221,156 @@ check(
   JSON.stringify(disabledBar),
 );
 
+// Avatar: the four display states in order, and the ARIA that a role="img" root forces.
+const avatarInitials = await page.evaluate(() => {
+  const root = document.getElementById("avatar-initials");
+  return root
+    ? {
+        text: (root.querySelector(".astryx-avatar__initials") || {}).textContent,
+        role: root.getAttribute("role"),
+        label: root.getAttribute("aria-label"),
+        tag: root.tagName,
+      }
+    : null;
+});
+check(
+  "an avatar with a name derives initials and announces the name",
+  avatarInitials && avatarInitials.text === "AL" && avatarInitials.role === "img" && avatarInitials.label === "Ada Lovelace" && avatarInitials.tag === "DIV",
+  JSON.stringify(avatarInitials),
+);
+
+// The chain is the behaviour: two sources that cannot load, then the initials. A real image error has to fire,
+// which is exactly what this gate can do and the jsdom harness cannot.
+await page
+  .waitForFunction(
+    () => {
+      const root = document.getElementById("avatar-fallback");
+      const initials = root && root.querySelector(".astryx-avatar__initials");
+      return !!initials && initials.textContent === "GH";
+    },
+    null,
+    { timeout: 4000 },
+  )
+  .catch(() => {});
+const avatarChain = await page.evaluate(() => {
+  const root = document.getElementById("avatar-fallback");
+  return root
+    ? {
+        initials: (root.querySelector(".astryx-avatar__initials") || {}).textContent,
+        images: root.querySelectorAll("img").length,
+        label: root.getAttribute("aria-label"),
+      }
+    : null;
+});
+check(
+  "both sources fail, and the initials take over",
+  avatarChain && avatarChain.initials === "GH" && avatarChain.images === 0,
+  JSON.stringify(avatarChain),
+);
+
+const avatarImage = await page.evaluate(() => {
+  const root = document.getElementById("avatar-image");
+  const img = root && root.querySelector("img");
+  return root
+    ? {
+        hasImage: !!img,
+        src: img ? img.getAttribute("src") : null,
+        initials: root.querySelectorAll(".astryx-avatar__initials").length,
+        label: root.getAttribute("aria-label"),
+      }
+    : null;
+});
+check(
+  "a source that loads is the image, with no initials behind it",
+  avatarImage && avatarImage.hasImage && (avatarImage.src || "").startsWith("data:image/svg+xml") && avatarImage.initials === 0,
+  JSON.stringify(avatarImage),
+);
+
+const avatarStatus = await page.evaluate(() => {
+  const root = document.getElementById("avatar-status");
+  const dot = root && root.querySelector(".astryx-avatar-status-dot");
+  return root
+    ? {
+        label: root.getAttribute("aria-label"),
+        hasDot: !!dot,
+        dotHidden: dot ? dot.getAttribute("aria-hidden") === "true" : false,
+        dotLabelled: dot ? dot.hasAttribute("aria-label") : false,
+        dotInsideContent: !!root.querySelector(".astryx-avatar__content .astryx-avatar-status-dot"),
+      }
+    : null;
+});
+check(
+  "the status is composed into the avatar's own name",
+  avatarStatus && avatarStatus.label === "Ada Lovelace, Online" && avatarStatus.hasDot,
+  JSON.stringify(avatarStatus),
+);
+check(
+  "and the dot stays decorative, so the status is announced once",
+  avatarStatus && avatarStatus.dotHidden && !avatarStatus.dotLabelled && !avatarStatus.dotInsideContent,
+  JSON.stringify(avatarStatus),
+);
+
+const avatarDecorative = await page.evaluate(() => {
+  const root = document.getElementById("avatar-decorative");
+  return root
+    ? { role: root.getAttribute("role"), hidden: root.getAttribute("aria-hidden") }
+    : null;
+});
+check(
+  "an avatar with no name and no labelled status is decorative rather than a generic \"Avatar\"",
+  avatarDecorative && avatarDecorative.role === "presentation" && avatarDecorative.hidden === "true",
+  JSON.stringify(avatarDecorative),
+);
+
+const avatarElement = await page.evaluate(() => {
+  const link = document.getElementById("avatar-link");
+  const button = document.getElementById("avatar-button");
+  return {
+    linkTag: link ? link.tagName : null,
+    linkHref: link ? link.getAttribute("href") : null,
+    linkLabel: link ? link.getAttribute("aria-label") : null,
+    linkRole: link ? link.getAttribute("role") : null,
+    buttonTag: button ? button.tagName : null,
+    buttonType: button ? button.getAttribute("type") : null,
+    buttonLabel: button ? button.getAttribute("aria-label") : null,
+  };
+});
+check(
+  "a link is an <a> and a click handler is a <button type=button>, and neither takes role=img",
+  avatarElement.linkTag === "A" &&
+    avatarElement.linkHref === "#avatars" &&
+    avatarElement.linkLabel === "Grace Hopper" &&
+    avatarElement.linkRole === null &&
+    avatarElement.buttonTag === "BUTTON" &&
+    avatarElement.buttonType === "button" &&
+    avatarElement.buttonLabel === "Grace Hopper",
+  JSON.stringify(avatarElement),
+);
+
+const avatarGeometry = await page.evaluate(() => {
+  const circle = document.getElementById("avatar-circle");
+  const square = document.getElementById("avatar-square");
+  const md = document.querySelector(".astryx-avatar--md");
+  const xl = document.querySelector(".astryx-avatar--xl");
+  const radius = (el) => (el ? parseFloat(getComputedStyle(el).borderTopLeftRadius) : null);
+  return {
+    circleRadius: radius(circle),
+    circleWidth: circle ? circle.getBoundingClientRect().width : null,
+    squareRadius: radius(square),
+    mdWidth: md ? md.getBoundingClientRect().width : null,
+    xlWidth: xl ? xl.getBoundingClientRect().width : null,
+  };
+});
+check(
+  "the shapes differ by radius, and the named sizes are upstream's ladder",
+  avatarGeometry &&
+    avatarGeometry.circleRadius >= avatarGeometry.circleWidth / 2 &&
+    avatarGeometry.squareRadius <= 0.5 &&
+    Math.round(avatarGeometry.mdWidth) === 36 &&
+    Math.round(avatarGeometry.xlWidth) === 128,
+  JSON.stringify(avatarGeometry),
+);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -2247,11 +2404,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 45 ported / 58 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["45", "58", "103"]),
+    "coverage stats are 46 ported / 57 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["46", "57", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 58 entries", cov.unported === 58, `got ${cov.unported}`);
+  check("unported list rendered 57 entries", cov.unported === 57, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

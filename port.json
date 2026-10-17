@@ -183,6 +183,12 @@
       "name": "a value on a track, with marks that are reachable on their own",
       "note": "ProgressBar. The role sits on the *track* rather than the container, with the label outside it pointing in through aria-labelledby, so a label hidden from view still names the bar; the numbers (aria-valuenow/min/max and valuetext) are omitted entirely when the bar is indeterminate, because a point on a track with no position is not a point. Marks are labelled positions on the track: each is a focusable tick that stays *outside* the progressbar role, wrapped in the port's Tooltip (which is why the component takes a graph at all). Named divergences: upstream loads the mark tooltip lazily behind Suspense, which the port has no equivalent of; themeProps has no counterpart; and because the port cannot ask for a graph conditionally, a bar with no marks still takes one - so the jsdom gate cannot render this component and its checks live in the browser gate, where the fill's width is measured rather than read off a class.",
       "status": "complete"
+    },
+    {
+      "id": "M25",
+      "name": "a picture with a fallback, and a status a root role cannot prune away",
+      "note": "Avatar, with AvatarStatusDot in the same directory (one coverage entry: the directory is the unit). Four display states in order - image, fallback source once the first failed, initials from the name, and the default icon when the name yields none, because the alternative is an empty plate. The accessible name is alt-or-name composed with the status's label, \"Ada Lovelace, Online\", because a role=img root prunes its descendants and the status would otherwise be unreachable. Upstream reads that label off the status element's props; OCaml cannot inspect a built node, so the port takes it as status_label. Named divergences: the hover tooltip is a title attribute, because the port's Tooltip takes a static trigger and this root is computed from the image state; the status's circle-mode edge offset is upstream's exact (1 - 1/sqrt 2)/2; the link-component seam is absent; and the image error chain is why this component takes a graph, so its checks live in the browser gate.",
+      "status": "complete"
     }
   ],
   "ported": [
@@ -199,6 +205,13 @@
       "file": "src/aspect_ratio.ml",
       "milestone": "M5",
       "module": "Astryx.AspectRatio"
+    },
+    {
+      "class": "A",
+      "component": "Avatar",
+      "file": "src/avatar.ml",
+      "milestone": "M25",
+      "module": "Astryx.Avatar"
     },
     {
       "class": "A",

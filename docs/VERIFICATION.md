@@ -2082,3 +2082,67 @@ would otherwise have written down wrongly.
 
 component **433/0** · browser **271/271** · demo 25/25 · responsive 66/0 · coverage **45 of 103** (58 unported) ·
 sweep exit 0, 0 FAILs, MCP layer truthful.
+
+## Gate 40 — Avatar (M25): a picture with a fallback, and a status the role cannot prune away
+
+Coverage moves **45 → 46 of 103**. The directory is the unit: `AvatarStatusDot` is a file inside `Avatar/`, not a
+directory of its own, so the milestone is one component however many files it is made of — the same rule that
+made `Breadcrumbs` thin and its sibling heavy, and `Overlay` four files wide.
+
+### The shape that matters
+
+Four display states, in order: the image; the **fallback source** once the first has failed; the **initials** from
+the name; and the **default icon** when the name yields no initials at all — because the alternative is an empty
+plate. Each attempt reports into its *own* cell.
+
+The status is the interesting part. A `role="img"` root prunes its descendants, so a status dot inside an avatar
+is unreadable on its own — which is why the avatar composes the status's label into its own accessible name,
+`"Ada Lovelace, Online"`. That is upstream's WCAG 4.1.2 justification, in upstream's own comment, and it is the
+reason the dot is deliberately unlabelled in the showcase: a labelled dot inside a labelled avatar announces the
+same thing twice.
+
+### The bug, which the gate found and I had argued against
+
+I simplified upstream's two error cells into one — "the most recent source that failed" — and wrote in a comment
+that the two were equivalent for the only question being asked. **They are not.** With one cell the chain loops:
+the first source fails, the fallback fails, the cell now names the fallback, the first source therefore looks
+healthy again and is rendered a second time. Round and round, with the initials never reached.
+
+The gate caught it as `{"images":1}` on a check that waits four seconds for initials that were never coming.
+Upstream keeps one cell per attempt, and each cell holds *that source's own value* rather than a flag, which is
+also what gives a changed source a fresh try. Restored, with `Bonsai.both` pairing each value with its setter.
+
+I had also reasoned my way into a second error and the gate caught that too: **a data URI always loads.** A
+malformed one merely fails to *parse*, and a parse failure fires no `error` event at all — so the example's first
+version could never fall back, no matter how long the check waited. The sources are real 404s now.
+
+### And the gate's own checks needed a carve-out
+
+A component whose behaviour *is* "these two sources fail" makes the gate's own "no 4xx/5xx" and "no console
+errors" checks fail by design. The 4xx check now allows those two paths **by name** and still fails on any other;
+the console check defers to it, since a resource error is the one thing a deliberately failing source is supposed
+to produce. A check that cannot express "this failure is the point" would have forced the example to be deleted.
+
+### Also corrected
+
+- **Five named sizes, not three.** Upstream's ladder is `xsm` 20, `sm` 24, `md` 36, `lg` 48, `xl` 128. My first
+  draft guessed three.
+- **The initials' font is 40% of the avatar's size** — upstream documents the ratio and the arithmetic
+  (24px → 9.6px, 48px → 19.2px, 128px → 51.2px).
+- **The circle-mode status offset is exact**: `(1 - 1/√2) / 2` = 14.6447%, which puts the dot's centre on the
+  circle's edge at 45°, mirrored under RTL because the inset it hangs off mirrors.
+- **`Avatar_status_dot` never reached the entry point.** My insert script's condition matched nothing useful, and
+  the build caught it — not the registration script's cheerful "registered".
+
+### Named divergences
+
+The hover tooltip is a `title` attribute rather than the Tooltip component, because the port's Tooltip takes a
+**static** trigger and this root is computed from its image state; widening Tooltip's interface to take a
+computation is a real job and is not hidden here. The link-component seam (`as`) is absent. The i18n separator is
+a literal `", "`. `themeProps` has no counterpart. The image error chain is why the component takes a graph, so
+its checks live in the browser gate — where an image error can actually be fired.
+
+### Counts (verified)
+
+component **433/0** · browser **279/279** · demo 25/25 · responsive 66/0 · coverage **46 of 103** (57 unported) ·
+sweep exit 0, 0 FAILs, MCP layer truthful.

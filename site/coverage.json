@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 45,
-    "unported": 58,
+    "ported": 46,
+    "unported": 57,
     "total": 103,
     "documented": 103
   },
@@ -22,6 +22,12 @@
       "module": "Astryx.AspectRatio",
       "file": "src/aspect_ratio.ml",
       "milestone": "M5"
+    },
+    {
+      "name": "Avatar",
+      "module": "Astryx.Avatar",
+      "file": "src/avatar.ml",
+      "milestone": "M25"
     },
     {
       "name": "Badge",
@@ -284,7 +290,6 @@
   ],
   "unported": [
     "AppShell",
-    "Avatar",
     "AvatarGroup",
     "Banner",
     "BottomSheet",

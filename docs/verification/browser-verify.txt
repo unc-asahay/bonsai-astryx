@@ -10,7 +10,7 @@ url:      http://127.0.0.1:8791/site/index.html
 page
   ok   HTTP 200 from the local server
   ok   no failed requests
-  ok   no 4xx/5xx responses
+  ok   no unexpected 4xx/5xx responses
   ok   no uncaught page errors
   ok   no console errors
   ok   the app mounted in Chromium
@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   48 sections
+  ok   49 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   288 examples across the page
+  ok   296 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8
 
 navigation
-  ok   48 nav links
+  ok   49 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -320,20 +320,28 @@ Layer (the native popover API)
   ok   every mark is a focusable tick with a label, outside the progressbar role
   ok   focusing a mark reveals its own label through the tooltip
   ok   a disabled bar paints its fill muted rather than in a variant colour
+  ok   an avatar with a name derives initials and announces the name
+  ok   both sources fail, and the initials take over
+  ok   a source that loads is the image, with no initials behind it
+  ok   the status is composed into the avatar's own name
+  ok   and the dot stays decorative, so the status is announced once
+  ok   an avatar with no name and no labelled status is decorative rather than a generic "Avatar"
+  ok   a link is an <a> and a click handler is a <button type=button>, and neither takes role=img
+  ok   the shapes differ by radius, and the named sizes are upstream's ladder
   ok   a manual layer opens
   ok   Escape does not touch it — the platform was never asked to dismiss this one
   ok   nor does a real click outside
   ok   only the application closes it, and the value follows
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 45 ported / 58 not / 103 total
-  ok   unported list rendered 58 entries
+  ok   coverage stats are 46 ported / 57 not / 103 total
+  ok   unported list rendered 57 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-271/271 checks passed, 0 failure(s)
+279/279 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
@@ -344,7 +352,7 @@ url:      http://127.0.0.1:8791/examples/demo/index.html
 page
   ok   HTTP 200 from the local server
   ok   no failed requests
-  ok   no 4xx/5xx responses
+  ok   no unexpected 4xx/5xx responses
   ok   no uncaught page errors
   ok   no console errors
   ok   the app mounted in Chromium

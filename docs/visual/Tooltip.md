@@ -17,23 +17,26 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 - module: `Astryx.Tooltip` (`src/tooltip.ml`, M13)
 - rendered instances in the demo: 13
-- classes: `astryx-tooltip`, `astryx-tooltip--above`, `astryx-tooltip--align-center`, `astryx-tooltip-anchor`
+- classes: `astryx-progress-bar__mark-anchor`, `astryx-tooltip`, `astryx-tooltip--above`, `astryx-tooltip--align-center`, `astryx-tooltip-anchor`
 
 ## layout
 
 | property | value | source class |
 | --- | --- | --- |
-| `align-items` | `center` | `.astryx-tooltip-anchor` |
-| `display` | `inline-flex` | `.astryx-tooltip-anchor` |
-| `position` | `relative`<br>`absolute` | `.astryx-tooltip-anchor`<br>`.astryx-tooltip` |
+| `align-items` | `center`<br>`center` | `.astryx-tooltip-anchor`<br>`.astryx-progress-bar__mark-anchor` |
+| `display` | `inline-flex`<br>`flex` | `.astryx-tooltip-anchor`<br>`.astryx-progress-bar__mark-anchor` |
+| `position` | `relative`<br>`absolute`<br>`absolute` | `.astryx-tooltip-anchor`<br>`.astryx-tooltip`<br>`.astryx-progress-bar__mark-anchor` |
 
 ## other
 
 | property | value | source class |
 | --- | --- | --- |
 | `bottom` | `calc(100% + 0.25rem)` _(from `calc(100% + var(--spacing-1))`)_ | `.astryx-tooltip--above` |
+| `height` | `100%` | `.astryx-progress-bar__mark-anchor` |
 | `max-width` | `16rem` | `.astryx-tooltip` |
 | `pointer-events` | `none` | `.astryx-tooltip` |
+| `top` | `0` | `.astryx-progress-bar__mark-anchor` |
+| `transform` | `translateX(-50%)` | `.astryx-progress-bar__mark-anchor` |
 | `z-index` | `50` | `.astryx-tooltip` |
 
 ## spacing

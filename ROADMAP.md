@@ -528,6 +528,22 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M25 — Avatar: a picture with a fallback, a status a role cannot prune (done, 46 of 103)
+
+The directory is the unit: `AvatarStatusDot` is a file inside `Avatar/`, so this is one coverage entry however
+many files it is made of. Four display states in order - image, fallback source, initials, default icon (the
+empty plate being the alternative upstream avoids). The accessible name composes the status's label in, because
+a `role="img"` root prunes its descendants and the status would otherwise be unreachable.
+
+Two errors, and the gate caught both. I simplified upstream's two error cells into one and argued in a comment
+that they were equivalent; with one cell the chain *loops*, because the cell ends up naming the fallback and the
+first source therefore looks healthy again. And a data URI always loads - a malformed one merely fails to parse,
+which fires no error event, so the first version of the example could never fall back however long the check
+waited. Both are in Gate 40.
+
+Also corrected by measurement rather than assumption: five named sizes (20/24/36/48/128, not three), the
+initials' font at 40% of the size, and the circle-mode status offset at upstream's exact `(1 - 1/sqrt 2)/2`.
+
 ### M24 — ProgressBar: a value on a track, marks you can reach (done, 45 of 103)
 
 Chosen by measurement again, and the measurement earned its keep: `Spinner` (647 lines) is not a spinner but an

@@ -2314,3 +2314,109 @@
 .astryx-progress-bar__mark--disabled {
   background-color: var(--color-text-secondary);
 }
+
+/* ---- Avatar -------------------------------------------------------------------------------------------- */
+
+.astryx-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  flex-shrink: 0;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-muted);
+  text-decoration: none;
+  cursor: default;
+}
+
+a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
+
+.astryx-avatar__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.astryx-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.astryx-avatar__initials {
+  line-height: 1;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.astryx-avatar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60%;
+  height: 60%;
+  color: var(--color-text-secondary);
+}
+
+.astryx-avatar--circle { border-radius: var(--radius-full); }
+.astryx-avatar--rounded { border-radius: var(--radius-element); }
+.astryx-avatar--square { border-radius: var(--radius-none, 0); }
+
+/* Upstream's ladder: 20, 24, 36, 48, 128 - and the initials' font is 40% of the size, which is the ratio
+   upstream documents as the one that fits two letters with padding. */
+.astryx-avatar--xsm { width: 20px; height: 20px; font-size: 8px; }
+.astryx-avatar--sm { width: 24px; height: 24px; font-size: 9.6px; }
+.astryx-avatar--md { width: 36px; height: 36px; font-size: 14.4px; }
+.astryx-avatar--lg { width: 48px; height: 48px; font-size: 19.2px; }
+.astryx-avatar--xl { width: 128px; height: 128px; font-size: 51.2px; }
+
+/* The status sits on the edge in circle mode and in the corner otherwise. The circle offset is upstream's
+   CIRCLE_EDGE_OFFSET_RATIO, (1 - 1/sqrt 2) / 2 = 14.6447%, which puts the dot's centre on the circle's edge
+   at 45 degrees; the transform pushes it outward, and mirrors under RTL because the inset does. */
+.astryx-avatar__status {
+  position: absolute;
+  display: flex;
+  line-height: 0;
+}
+
+.astryx-avatar--circle .astryx-avatar__status {
+  inset-inline-end: 14.6447%;
+  bottom: 14.6447%;
+  transform: translate(50%, 50%);
+}
+
+[dir="rtl"] .astryx-avatar--circle .astryx-avatar__status { transform: translate(-50%, 50%); }
+
+.astryx-avatar--rounded .astryx-avatar__status,
+.astryx-avatar--square .astryx-avatar__status {
+  inset-inline-end: 0;
+  bottom: 0;
+  transform: translate(25%, 25%);
+}
+
+/* ---- Avatar status dot --------------------------------------------------------------------------------- */
+
+.astryx-avatar-status-dot {
+  display: block;
+  box-sizing: border-box;
+  border-style: solid;
+  border-color: var(--color-background-primary, var(--color-background-muted));
+  border-radius: var(--radius-full);
+  color: var(--color-on-accent, #fff);
+}
+
+.astryx-avatar-status-dot--success { background-color: var(--color-on-success); }
+.astryx-avatar-status-dot--neutral { background-color: var(--color-text-secondary); }
+.astryx-avatar-status-dot--error { background-color: var(--color-on-error); }
+
+.astryx-avatar-status-dot svg { display: block; }

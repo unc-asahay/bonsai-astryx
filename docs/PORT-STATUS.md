@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **45 of 103** components.
+Ported: **46 of 103** components.
 
 ## Milestones
 
@@ -31,6 +31,7 @@ Ported: **45 of 103** components.
 - **M22 — terms and values whose layout belongs to the list**: complete. MetadataList + MetadataListItem. A real <dl> whose layout is chosen on the list and reaches the items as their container: the item renders the dt/dd pair as a fragment, so a single-column grid puts them on two rows (stacked) and a two-column grid puts them side by side, and no context travels between the two - the same resolution as InputGroup and ButtonGroup, for the same reason (a child is built before its container sees it). Six grids come out of columns x label position: auto minmax(0, 1fr), a responsive auto-fill at 280px, a 1fr single column when stacked, a wrapping flex row when horizontal, and an explicit repeat(N, ...) when columns is a number. Named divergences: no themeProps hook; the show-all toggle takes its two labels as arguments with English defaults and does not interpolate a hidden count the way upstream's i18n catalogue does; the id becomes the root's name as well as the content's. One difference follows from the fragment and is recorded rather than left to be discovered: upstream wraps a stacked pair in a flex column with a half-step gap, while a grid row gap is a full step, so a stacked pair sits slightly further apart here. A consequence worth knowing: the component is stateful whether or not anything truncates (upstream creates the state unconditionally and so does the port), so the jsdom harness cannot render it at all and its checks live in the browser gate, where the toggle can be clicked.
 - **M23 — a delegation with nothing of its own**: complete. MoreMenu. 183 lines upstream that hold no behaviour: it is a DropdownMenu whose trigger is a ghost icon-only button, so it could only arrive after M23a made the menu configurable and controllable, and the port's version is that delegation with nothing invented in between. Divergences named: the label defaults to the English string the i18n catalogue holds; the default icon is the character because this port's icon set has no moreHorizontal glyph; hasChevron has no counterpart since the port's trigger renders no chevron at all; placement/alignment/presentation remain unported. The marker is passed down as the trigger's component_name, so the button the user sees says MoreMenu - a delegating component that did not name itself would be invisible to every tool here.
 - **M24 — a value on a track, with marks that are reachable on their own**: complete. ProgressBar. The role sits on the *track* rather than the container, with the label outside it pointing in through aria-labelledby, so a label hidden from view still names the bar; the numbers (aria-valuenow/min/max and valuetext) are omitted entirely when the bar is indeterminate, because a point on a track with no position is not a point. Marks are labelled positions on the track: each is a focusable tick that stays *outside* the progressbar role, wrapped in the port's Tooltip (which is why the component takes a graph at all). Named divergences: upstream loads the mark tooltip lazily behind Suspense, which the port has no equivalent of; themeProps has no counterpart; and because the port cannot ask for a graph conditionally, a bar with no marks still takes one - so the jsdom gate cannot render this component and its checks live in the browser gate, where the fill's width is measured rather than read off a class.
+- **M25 — a picture with a fallback, and a status a root role cannot prune away**: complete. Avatar, with AvatarStatusDot in the same directory (one coverage entry: the directory is the unit). Four display states in order - image, fallback source once the first failed, initials from the name, and the default icon when the name yields none, because the alternative is an empty plate. The accessible name is alt-or-name composed with the status's label, "Ada Lovelace, Online", because a role=img root prunes its descendants and the status would otherwise be unreachable. Upstream reads that label off the status element's props; OCaml cannot inspect a built node, so the port takes it as status_label. Named divergences: the hover tooltip is a title attribute, because the port's Tooltip takes a static trigger and this root is computed from the image state; the status's circle-mode edge offset is upstream's exact (1 - 1/sqrt 2)/2; the link-component seam is absent; and the image error chain is why this component takes a graph, so its checks live in the browser gate.
 
 ## Infrastructure
 
@@ -50,6 +51,7 @@ Ported: **45 of 103** components.
 | --- | --- | --- | --- | --- |
 | `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
 | `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
+| `Avatar` | `Astryx.Avatar` | `src/avatar.ml` | M25 | A |
 | `Badge` | `Astryx.Badge` | `src/badge.ml` | M1 | A |
 | `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
 | `Button` | `Astryx.Button` | `src/button.ml` | M1 | B |
@@ -94,8 +96,8 @@ Ported: **45 of 103** components.
 | `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
 | `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
 
-## Not ported yet (58)
+## Not ported yet (57)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
