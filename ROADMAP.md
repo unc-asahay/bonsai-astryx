@@ -915,6 +915,33 @@ eleven cases in the component gate.
 
 Part two is the measurement hook — upstream's `useOverflow`, 274 lines — and part three is the component.
 
+### Part three, read before writing it: the component's shape is decided by what can be measured
+
+Upstream's `OverflowList.tsx` settles two things that would otherwise be guessed wrong.
+
+**It renders a separate hidden measurement container**, not the visible row. Its style is
+`visibility: hidden` with `display: flex` and `overflow: hidden` — where `visibility` is load-bearing and
+`display: none` would be a bug: a `display: none` element has an `offsetWidth` of 0, so every item measured
+through it would read as zero and the count would collapse. So the container holds **all** the items (plus
+the indicator placeholder), the hook measures that container and its children, and the *visible* container
+renders `items.slice(0, visibleCount)` with the indicator only while something overflows. The docstring
+says why in one line: "to avoid flickering" — measuring the real row would mean rendering everything,
+measuring, then collapsing.
+
+**The indicator's width is measured, not passed in.** `useOverflow` returns it after measuring an
+indicator rendered in a hidden container of its own, because the "+N" label's width depends on content and
+on the count it is given. This is a correction to `Overflow_hook` as written: its `indicator_width` input
+is wrong for the real component and should be measured from an element the same way items are. The hook's
+arithmetic is unaffected — `Overflow_math` takes the width as a plain number either way — so this is an
+API correction, not a redesign, and it is recorded here rather than left to be rediscovered mid-component.
+
+Also from the same file, worth keeping: the component supports a render-prop for the overflow indicator,
+receives `visibleCount` *and* `hasOverflow` *and* `rowHeight` from the hook, and exposes a
+`onOverflowChange` that fires **once measurement has collapsed something, and again with an empty set when
+it no longer has** — with a stated reason: an "always an empty set" callback before measurement is
+indistinguishable from a genuinely empty set.
+
+
 **Settled: the hook gets its own observer, and the sharing is a named divergence.** The decider was
 whether a second consumer lands in this port, and the answer is no — the port's `Text` contains no
 truncation or measurement code at all (its truncation is CSS), where upstream's `Text` is the shared
