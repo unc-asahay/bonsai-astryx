@@ -498,6 +498,36 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### MetadataList: the design decision, taken before writing the files
+
+The list and the item disagree about who knows the layout, and upstream answers it with a context:
+
+- the **list** computes everything: `columns` is `'single' | 'multi' | <number>`, the label position
+  defaults to `top` when multi-column and `start` otherwise (and is forced to `top` when horizontal),
+  `maxNumOfItems` is ignored when horizontal, and the *grid* is chosen from those three —
+  `auto minmax(0, 1fr)` for single-column inline labels, `repeat(auto-fill, minmax(280px, 1fr))` for multi, a
+  `1fr` single column when the labels are stacked, a wrapping flex row when horizontal, and an explicit
+  `repeat(N, auto minmax(0, 1fr))` (or `repeat(N, 1fr)` stacked) when `columns` is a number, plus
+  `<width> minmax(0, 1fr)` when the label has a width;
+- the **item** renders a `<dt>` and a `<dd>` and has to know whether they sit side by side or stacked, which
+  it learns from the context.
+
+**The decision:** the item renders the `<dt>`/`<dd>` pair as a fragment and lets the *grid* decide. A
+single-column grid puts them on two rows — that is what stacked means — and a two-column grid puts them side
+by side, so the layout the list already computes is the styling the item needs, and no context travels
+between them. This is the same resolution as InputGroup's and ButtonGroup's: the child is built before the
+container sees it, so what the container would have told it has to be CSS or the caller's own decision.
+
+One named difference follows from it and should be stated rather than discovered later: upstream's stacked
+item wraps its pair in a flex column with a half-step gap, while a grid row gap is a full step. The port's
+stacked labels will therefore be a hair further apart than upstream's. That is a real difference in output,
+recorded here so nobody reads it as a bug in the grid.
+
+The rest of the port's shape, settled from the same reading: `view` takes a graph (the show-all toggle is
+state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls` pointing at the `<dl>`'s id),
+`columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
+infrastructure because it is not one of the 103.
+
 ### MetadataList, reconnoitred — the next milestone, and its shape
 
 `MetadataList` (325) + `MetadataListItem` (206) + `MetadataListContext` (26) = 557 lines, three files, and
