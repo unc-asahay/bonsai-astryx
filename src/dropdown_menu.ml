@@ -219,17 +219,38 @@ let group_node ~(heading_id : string) ~(heading : string option) ~(rows : Vdom.N
 
 (* ------------------------------------------------------------------ view ---- *)
 
+(* [is_open] and [on_open_change] are what make the menu controllable, and they come as a pair or not at
+   all. With neither, the menu owns its state exactly as before; with both, the caller does. Half a pair is
+   worth raising rather than quietly filling in: a caller who passes only [is_open] means to control the
+   menu, and would otherwise get one that ignores what they passed. *)
 let view
       ?(attrs = [])
       ?(id = "astryx-dropdown-menu")
       ?(is_disabled = false)
       ?(menu_max_height = 300)
+      ?variant
+      ?size
+      ?icon
+      ?is_icon_only
+      ?(trigger_component_name = "Button")
+      ?is_open
+      ?on_open_change
       ~trigger_label
       ~on_select
       ~entries
       (graph : Bonsai.graph)
   =
-  let open_, set_open = Bonsai.state false graph in
+  let open_, set_open =
+    match is_open, on_open_change with
+    | Some is_open, Some on_open_change -> is_open, on_open_change
+    | None, None ->
+      let is_open, set_open = Bonsai.state false graph in
+      is_open, set_open
+    | Some _, None | None, Some _ ->
+      raise_s
+        (Sexp.Atom
+           "Dropdown_menu.view: is_open and on_open_change control the menu together - pass both or             neither")
+  in
   (* One typeahead buffer per component, cleared whenever the menu closes. *)
   let typeahead = Menu_focus.create_typeahead () in
   let trigger_id = id ^ "-trigger" in
@@ -376,6 +397,13 @@ let view
       Button.view
         ~label:trigger_label
         ~is_disabled
+        ?variant
+        ?size
+        ?icon
+        ?is_icon_only
+        (* A menu that delegates its trigger names itself, the same way IconButton does: the marker is how
+           every tool here finds a component, so a wrapper that could not name itself would be invisible. *)
+        ~component_name:trigger_component_name
         ~attrs:
           [ Vdom.Attr.id trigger_id
           ; Vdom.Attr.create "aria-haspopup" "menu"

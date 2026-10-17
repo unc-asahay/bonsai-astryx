@@ -1933,3 +1933,54 @@ navigation count moved to 46.
 component **433/0** · browser **253/253** · demo **25/25** · responsive **66/0** at 0.00% across
 320/375/768/1440 · coverage **43 of 103** (unported 60) · 43 appearance pages + `INDEX.md` · sweep exit 0,
 0 FAILs, MCP layer truthful.
+
+## Gate 37 — M23a: a controllable DropdownMenu (no new component)
+
+Coverage **stays 43 of 103**, deliberately. This milestone moves a *mechanism* into an existing port, and a
+count that moved for a mechanism would be counting the wrong thing — the same rule that left `897e39b` and
+`af81ecd` at 41.
+
+### What MoreMenu needs, and what it got
+
+`MoreMenu` is 183 lines with nothing of its own: it is a `DropdownMenu` whose trigger is a specific Button, and
+whose open state the *caller* may own. The port's `DropdownMenu` took a `trigger_label` and owned its state, so
+MoreMenu could not be a thin delegation — it would have been a second implementation. This milestone removes
+that reason, in two directions:
+
+- **The trigger is configured, not hardcoded.** `?variant ?size ?icon ?is_icon_only` go to the trigger's
+  `Button`, which already took all four (and `?component_name`, which is exactly what a delegating wrapper
+  needs to keep naming itself — the IconButton rule).
+- **The open state can be the caller's.** `?is_open` and `?on_open_change` come as a pair or not at all:
+  neither, and the menu owns its state exactly as before; both, and the caller does. Passing exactly one
+  **raises**, because a caller who passes `is_open` alone intends to control the menu and would otherwise get
+  one that silently ignores it.
+
+The refactor underneath is three lines: the only place the body touched the graph was `Bonsai.state`, so the
+open state became an argument and the body never learned it changed.
+
+### Verified: the first consumer is untouched
+
+The proof that an extension is safe is the suite that already existed and was not edited — **433/0** component
+and the whole dropdown keyboard path in the browser gate, unchanged. The new capability is proven separately,
+and by the only method that can prove *control*: **the demo's own button opens and closes the menu**, and the
+trigger's `aria-expanded` follows. If the menu still owned its state, that button could not move it.
+
+### Named, not filled in
+
+Upstream's trigger also takes a **tooltip** (MoreMenu passes the label) and renders a **chevron** unless
+`hasChevron` is false; upstream's `placement`/`alignment`/`presentation` choose where the surface sits. The
+port's trigger renders no chevron, no tooltip, and positions from CSS — all three named in the interface,
+because a gap that is written down is a decision and a gap that is not is a bug waiting to be found.
+
+### The failure was mine, and it taught me the component
+
+My icon-only check asserted a *visually hidden label*; the trigger's `textContent` came back as the glyph with
+no label node at all. The port makes the label the **accessible name** (`aria-label`) instead of rendering it
+hidden — a different and better implementation, and the check now asserts that: named for a screen reader,
+nothing painted. Third milestone in a row where the check was wrong and the component was right. That ratio is
+the reason the checks are written to print what they saw.
+
+### Counts (verified)
+
+component **433/0** · browser **257/257** · demo 25/25 · responsive 66/0 · coverage **43 of 103** · sweep exit
+0, 0 FAILs, MCP layer truthful. **M23b (`MoreMenu` itself) is now a thin wrapper.**

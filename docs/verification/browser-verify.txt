@@ -82,9 +82,9 @@ showcase sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   278 examples across the page
+  ok   280 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:2 Interactive:2 MetadataList:5
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5
 
 navigation
   ok   46 nav links
@@ -292,6 +292,10 @@ Layer (the native popover API)
   ok   an arrow at the end of the text leaves the field and moves focus
   ok   a centre slot is centred against the bar, not against its neighbours
   ok   the gap reaches the slots from the box
+  ok   a controlled menu starts closed
+  ok   the button outside it opens it, and the trigger reports that it is open
+  ok   and closes it again
+  ok   an icon-only trigger names itself for a screen reader and paints no label text
   ok   the list renders a real <dl>
   ok   every term has its value: six dt and six dd
   ok   inline labels: two tracks, and the label ends where the value begins
@@ -315,7 +319,7 @@ coverage panel (fetched from coverage.json at runtime)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-253/253 checks passed, 0 failure(s)
+257/257 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

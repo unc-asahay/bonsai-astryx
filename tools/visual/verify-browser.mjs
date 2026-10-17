@@ -615,13 +615,13 @@ if (mode === "showcase") {
     HStack: 4, VStack: 4, AspectRatio: 6,
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
+    FieldStatus: 4, DropdownMenu: 4, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("278 examples across the page", totalExamples === 278, `got ${totalExamples}`);
+  check("280 examples across the page", totalExamples === 280, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -1892,6 +1892,43 @@ const tbGap = await page.evaluate(() => {
 });
 
 check("the gap reaches the slots from the box", tbGap === "4px", String(tbGap));
+
+// A controlled menu: the demo's own button - not the trigger - opens and closes it, and the trigger's
+// aria-expanded follows, which is only true if the state the caller owns is the state the menu reads.
+const menuRows = () => page.evaluate(() => document.querySelectorAll("#menu-controlled-menu [role='menuitem']").length);
+const menuExpanded = () => page.getAttribute("#menu-controlled-trigger", "aria-expanded");
+check("a controlled menu starts closed", (await menuRows()) === 0 && (await menuExpanded()) === "false");
+await page.click("#menu-controlled-toggle");
+await page.waitForFunction(() => document.querySelector("#menu-controlled-trigger").getAttribute("aria-expanded") === "true", null, { timeout: 3000 }).catch(() => {});
+const openedFromOutside = (await menuRows()) > 0 && (await menuExpanded()) === "true";
+check("the button outside it opens it, and the trigger reports that it is open", openedFromOutside, `rows=${await menuRows()} expanded=${await menuExpanded()}`);
+await page.click("#menu-controlled-toggle");
+await page.waitForFunction(() => document.querySelector("#menu-controlled-trigger").getAttribute("aria-expanded") === "false", null, { timeout: 3000 }).catch(() => {});
+check("and closes it again", (await menuRows()) === 0 && (await menuExpanded()) === "false");
+
+// An icon-only trigger: the label is still the accessible name, but it is not what is painted.
+const iconOnly = await page.evaluate(() => {
+  const button = document.querySelector("#menu-icon-only-trigger");
+  if (!button) return null;
+  // What an icon-only button does with its label: it becomes the accessible name, and nothing is painted.
+  // (My first version of this check asserted a visually hidden label and failed - the component is right,
+  // and the failure is the only reason I know which of the two it does.)
+  const text = [...button.childNodes]
+    .filter((n) => n.nodeType === 3)
+    .map((n) => n.textContent.trim())
+    .join("");
+  return {
+    innerText: button.textContent.trim(),
+    ariaLabel: button.getAttribute("aria-label"),
+    hasGlyph: !!button.querySelector(".demo-glyph"),
+    bareText: text,
+  };
+});
+check(
+  "an icon-only trigger names itself for a screen reader and paints no label text",
+  iconOnly && iconOnly.ariaLabel === "More" && iconOnly.hasGlyph && iconOnly.bareText === "",
+  JSON.stringify(iconOnly),
+);
 
 // MetadataList: the layout belongs to the list, so the list is what a check reads - and because the
 // component is stateful it is here rather than in the jsdom gate, which cannot render it at all.

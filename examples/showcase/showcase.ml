@@ -892,30 +892,81 @@ let dropdown_menu_demo (graph : Bonsai.graph) =
   let menu =
     Dm.view ~id:"menu-file" ~trigger_label:"File" ~on_select ~entries:demo_menu_entries graph
   in
-  Bonsai.map2 selected menu ~f:(fun selected menu ->
-    section
-      ~id:"dropdownmenu"
-      ~title:"DropdownMenu"
-      ~note:
-        "A menu button: click or press Down to open, Up/Down/Home/End to move, typing to \
-         jump to a row, Enter or Space to choose, Escape to close and hand focus back to \
-         the trigger. A row can carry an icon, a description and right-aligned end \
-         content, and a row with an href is the anchor itself, so ⌘-click still opens a \
-         tab. A disabled row cannot take focus, so the arrow keys skip it: the port \
-         excludes it by selector rather than testing it later, which is what upstream \
-         does."
-      [ ex "a menu button" menu
-      ; ex
-          "the selection reaches the consumer"
-          (Astryx.Text.view
-             ~id:"menu-selection"
-             [ Vdom.Node.text
-                 (match selected with
-                  | Some id -> sprintf "selected: %s" id
-                  | None -> "selected: —")
-             ])
-      ])
+  (* Controlled: the open state lives out here, so the button below opens the menu without touching its
+     trigger. That is the whole difference between a menu that owns its state and one whose owner does, and
+     the only way to prove it is to open it from somewhere else. *)
+  let controlled_open, set_controlled_open = Bonsai.state false graph in
+  let controlled_state =
+    Bonsai.map2 controlled_open set_controlled_open ~f:(fun value setter -> value, setter)
+  in
+  let controlled =
+    Dm.view
+      ~id:"menu-controlled"
+      ~trigger_label:"Controlled"
+      ~is_open:controlled_open
+      ~on_open_change:set_controlled_open
+      ~on_select
+      ~entries:demo_menu_entries
+      graph
+  in
+  let controlled_example =
+    Bonsai.map2 controlled_state controlled ~f:(fun (is_open, set_is_open) controlled ->
+      ex
+        "a controlled menu, opened from outside its trigger"
+        (Vdom.Node.div
+           [ Astryx.Button.view
+               ~label:(sprintf "Turn it %s from here" (if is_open then "off" else "on"))
+               ~attrs:[ Vdom.Attr.id "menu-controlled-toggle" ]
+               ~on_click:(fun _ -> set_is_open (not is_open))
+               []
+           ; controlled
+           ]))
+  in
+  (* And the trigger is a Button all the way down, so an icon-only ghost button is configuration. *)
+  let icon_only =
+    Dm.view
+      ~id:"menu-icon-only"
+      ~trigger_label:"More"
+      ~variant:Astryx.Button.Ghost
+      ~is_icon_only:true
+      ~icon:(Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "demo-glyph" ] [ Vdom.Node.text "\xe2\x8b\xaf" ])
+      ~on_select
+      ~entries:demo_menu_entries
+      graph
+  in
+  let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
+  Bonsai.map2
+    (pair selected menu)
+    (pair controlled_example icon_only)
+    ~f:(fun (selected, menu) (controlled_example, icon_only) ->
+      section
+        ~id:"dropdownmenu"
+        ~title:"DropdownMenu"
+        ~note:
+          "A menu button: click or press Down to open, Up/Down/Home/End to move, typing to \
+           jump to a row, Enter or Space to choose, Escape to close and hand focus back to \
+           the trigger. A row can carry an icon, a description and right-aligned end \
+           content, and a row with an href is the anchor itself, so ⌘-click still opens a \
+           tab. A disabled row cannot take focus, so the arrow keys skip it: the port \
+           excludes it by selector rather than testing it later, which is what upstream \
+           does. The menu can also be controlled - the caller owns the open state and hears \
+           about every change through one callback - and its trigger is a Button, so an \
+           icon-only ghost trigger is configuration rather than a second component."
+        [ ex "a menu button" menu
+        ; controlled_example
+        ; ex "an icon-only ghost trigger" icon_only
+        ; ex
+            "the selection reaches the consumer"
+            (Astryx.Text.view
+               ~id:"menu-selection"
+               [ Vdom.Node.text
+                   (match selected with
+                    | Some id -> sprintf "selected: %s" id
+                    | None -> "selected: —")
+               ])
+        ])
 ;;
+
 
 (* Field + TextInput are demonstrated together because that is how they are used: TextInput
    renders the control, and Field owns the label, the description and the status around it. *)

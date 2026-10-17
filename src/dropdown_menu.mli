@@ -63,12 +63,43 @@ val view
   -> ?id:string
   -> ?is_disabled:bool
   -> ?menu_max_height:int
+  -> ?variant:Button.variant
+  -> ?size:Button.size
+  -> ?icon:Vdom.Node.t
+  -> ?is_icon_only:bool
+  -> ?trigger_component_name:string
+  -> ?is_open:bool Bonsai.t
+  -> ?on_open_change:(bool -> unit Bonsai.Effect.t) Bonsai.t
   -> trigger_label:string
   -> on_select:(item -> unit Bonsai.Effect.t) Bonsai.t
   -> entries:entry list
   -> Bonsai.graph
   -> Vdom.Node.t Bonsai.t
 (** [view ~trigger_label ~on_select ~entries graph].
+
+    {2 The trigger is a ported Button, configured here}
+
+    [variant], [size], [icon] and [is_icon_only] are handed to the trigger's Button, so a menu whose
+    trigger is a bare icon glyph needs nothing but those. [trigger_component_name] is for a component that
+    *delegates* to this one: the marker names the thing the user sees, so a wrapper passes its own name and
+    stays visible to the tools that look for markers, exactly as IconButton does.
+
+    {2 Controlled and uncontrolled}
+
+    [is_open] and [on_open_change] come as a pair or not at all. Pass both and the caller owns the state -
+    opening, closing and everything the menu does in response report through [on_open_change]; pass neither
+    and the menu owns it, which is what it has always done. Passing exactly one raises, because a caller
+    who passes [is_open] alone means to control the menu and would otherwise get one that ignores it.
+
+    {2 Not ported, and named here}
+
+    - upstream's trigger takes a **tooltip** (MoreMenu hands it the same string as the label). The port's
+      Tooltip is a separate component a caller can wrap around this one; nothing here renders one.
+    - upstream's trigger renders a **chevron** unless [hasChevron] is false. The port's trigger renders
+      none, in either case. Every menu currently built here wants no chevron, so the gap is named rather
+      than filled with a glyph nobody asked for.
+    - upstream's [placement], [alignment] and [presentation] choose where the layer surface sits. The port
+      positions the menu from CSS on its own class.
 
     [on_select] is a *tree* rather than a plain function, because selecting a row
     normally updates the consumer's state: the setter is itself a tree in this

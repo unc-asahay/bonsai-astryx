@@ -528,6 +528,25 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M23a — DropdownMenu becomes controllable (done, coverage unchanged)
+
+**43 of 103, deliberately.** No new component: this moves a capability into an existing port. `MoreMenu` is a
+`DropdownMenu` with a Button-shaped trigger and an open state its caller may own, so it could not be a thin
+delegation until the port's menu could be configured and controlled. Now it can:
+
+- `?variant ?size ?icon ?is_icon_only` reach the trigger's Button, plus `?component_name` for a wrapper that
+  has to keep naming itself (the IconButton rule);
+- `?is_open` + `?on_open_change` are a pair or nothing — both and the caller owns the state, neither and the
+  menu does, exactly one and it raises, because a caller passing `is_open` alone means to control the menu and
+  should not silently get one that ignores it.
+
+Verified by the suite that was *not* edited (433/0, and the whole keyboard path in the browser) plus the one
+check that can prove control: the demo's own button opens the menu with no trigger click, and the trigger's
+`aria-expanded` follows. Named and unported: the trigger's tooltip and chevron, and
+`placement`/`alignment`/`presentation` (the port positions from CSS).
+
+**M23b is now a thin wrapper.**
+
 ### M22 — MetadataList: the layout belongs to the list (done)
 
 **43 of 103.** A real `<dl>` in which the *list* owns the layout and the items own nothing: an item renders
