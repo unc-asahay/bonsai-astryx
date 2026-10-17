@@ -93,3 +93,4 @@ module Overflow_math = Overflow_math
 module Overflow_list = Overflow_list
 module Linkify = Linkify
 module Link_destination = Link_destination
+module Interactive_role = Interactive_role

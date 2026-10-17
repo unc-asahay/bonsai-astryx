@@ -1807,6 +1807,34 @@ check("a disabled group says so once, on the box", (() => {
   );
 }
 
+// ---------------------------------------------------------------- the interactive role
+{
+  const rows = [...document.querySelectorAll('[data-case="interactive-role"] [data-astryx-label]')];
+  check("the interactive-role fixture rendered its cases", rows.length === 8, `got ${rows.length}`);
+  const expected = {
+    "an href with no click is a link": "link",
+    "no href but a click is a button": "button",
+    "neither is inert": "inert",
+    "a DISABLED href is not a link - it resolves through the remaining steps": "inert",
+    "a disabled href WITH a click is still a button": "button",
+    "href outranks a click": "link",
+    "an inert thing with no href still renders as a button": "button",
+    "but an inert thing WITH an href renders as a plain anchor": "inert",
+  };
+  let wrong = 0;
+  for (const row of rows) {
+    const label = row.getAttribute("data-astryx-label");
+    const got = row.getAttribute("data-astryx-got");
+    if (!(label in expected)) { wrong++; continue; }
+    if (!got.startsWith(expected[label])) wrong++;
+  }
+  check(
+    "every interactive-role case matches upstream's priority order",
+    wrong === 0 && rows.length === 8,
+    wrong ? `${wrong} of ${rows.length} wrong` : "all correct",
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

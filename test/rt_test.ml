@@ -1933,3 +1933,56 @@ let () =
   in
   mount "link-destination" (Vdom.Node.div rows)
 ;;
+
+
+(* Which element a polymorphic component renders as: the four-step priority order, and the rule that a
+   disabled href is excluded at step 1 rather than downgraded afterwards. *)
+let () =
+  let open Astryx.Interactive_role in
+  (* `name` lived here and the role is rendered by `show` instead, which also reports whether an inert
+     thing still renders as a button - removing it is one fewer way to render a role two ways. *)
+  let cases : (string * string option * bool * bool * string) list =
+    [ ( "an href with no click is a link", Some "/x", false, false, "link" )
+    ; ( "no href but a click is a button", None, true, false, "button" )
+    ; ( "neither is inert", None, false, false, "inert" )
+    ; ( "a DISABLED href is not a link - it resolves through the remaining steps"
+      , Some "/x"
+      , false
+      , true
+      , "inert" )
+    ; ( "a disabled href WITH a click is still a button", Some "/x", true, true, "button" )
+    ; ( "href outranks a click", Some "/x", true, false, "link" )
+    ; ( "an inert thing with no href still renders as a button"
+      , None
+      , true
+      , false
+      , "button (renders_as_button)" )
+    ; ( "but an inert thing WITH an href renders as a plain anchor"
+      , Some "/x"
+      , false
+      , true
+      , "inert (plain anchor)" )
+    ]
+  in
+  let show href has_click is_disabled =
+    let role = of_inputs ~href ~has_on_click:has_click ~is_disabled in
+    match role with
+    | Link -> "link"
+    | Button -> "button"
+    | Inert ->
+      if renders_as_button role ~href
+      then "inert (plain anchor)"
+      else if Option.is_some href
+      then "inert (anchor, no href)"
+      else "inert"
+  in
+  let rows =
+    List.map cases ~f:(fun (label, href, has_click, is_disabled, _) ->
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "got" (show href has_click is_disabled))
+        [])
+  in
+  mount "interactive-role" (Vdom.Node.div rows)
+;;
