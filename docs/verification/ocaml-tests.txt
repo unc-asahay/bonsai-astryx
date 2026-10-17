@@ -488,6 +488,8 @@ DialogHeader
   ok   every overflow case computes the agreed answer
   ok   the linkify walk rendered its cases
   ok   every linkify case cuts the text the agreed way
+  ok   the linkify scanner rendered its cases
+  ok   the built-in patterns find and cut real text the agreed way
 
-437 checks, 0 failure(s)
+439 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

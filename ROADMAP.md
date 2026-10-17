@@ -1026,3 +1026,33 @@ Being a pure function of `(text, patterns)`, it can be verified the way `Overflo
 carrying both the expectation and the answer — which is why it goes first: the mechanism is proved before
 the component that renders it.
 
+### The safe-link contract, read in full (and the rule that would invert silently)
+
+`createSafeLink` checks BOTH destination props and rejects the WHOLE handoff on one failure - upstream's
+comment says "not just one prop or a fallback value". The rejected branch renders an anchor with **no href
+at all**, so nothing reaches a router. A consequence that is easy to get backwards: when it rejects, it
+drops a perfectly good `href` too. It is the handoff that is rejected, not the offending prop.
+
+And the detail that decides whether plain links work at all: `isSafeDestination(null)` is **true** ("Absent
+destinations remain absent"). A native `<Link href="/x">` passes no `to`, so if absent meant unsafe, every
+ordinary link in the library would render inert. Read this before writing the wrapper, not after.
+
+Three more things in that predicate, and one of them is a security note rather than a detail:
+
+- non-strings that are not objects (numbers, booleans) are **rejected**, not coerced. In this port `?href`
+  is a `string option`, so those shapes are unrepresentable rather than rejected - a difference in kind,
+  not in coverage, and the good kind.
+- `URL` objects, React Router paths and Next.js URL objects are inspected field by field, and then
+  `protocol + host/hostname + pathname` is **assembled and checked too**, with the reasoning that a URL
+  formatter can build a `data:text/html` out of the parts. Per-field checks would pass that. The port has
+  no structured destinations to accept, so there is nothing to assemble - but the reason is worth keeping,
+  because it is the kind of hole a per-prop check leaves.
+- accepted structured values are **not rewritten** ("without serializing or replacing the object handed to
+  the router"). For strings this is invisible; for the port it means no divergence to record.
+
+This is why `Citation.safe_href` is NOT the helper `Link` can call. It is per-prop: it returns `None` for an
+unsafe url and its caller renders the rest regardless. `Link` needs the other rule - one unsafe prop
+rejects the entire handoff, and the element still renders, without a destination. Same predicate, opposite
+granularity, so reusing the helper unexamined would produce a link that quietly keeps a href it should have
+dropped.
+

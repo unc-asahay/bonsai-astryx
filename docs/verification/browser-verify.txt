@@ -375,6 +375,7 @@ coverage panel (fetched from coverage.json at runtime)
   ok   unported list rendered 53 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
+  ok   the README's showcase row matches the page it describes
 
 OverflowList (live)
   ok   the wrapper stamps its own marker, not the one it wraps
@@ -390,7 +391,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-322/322 checks passed, 0 failure(s)
+323/323 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
