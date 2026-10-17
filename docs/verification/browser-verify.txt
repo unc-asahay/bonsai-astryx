@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   45 sections
+  ok   46 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   273 examples across the page
+  ok   278 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:2 Interactive:2
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:2 Interactive:2 MetadataList:5
 
 navigation
-  ok   45 nav links
+  ok   46 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -292,20 +292,30 @@ Layer (the native popover API)
   ok   an arrow at the end of the text leaves the field and moves focus
   ok   a centre slot is centred against the bar, not against its neighbours
   ok   the gap reaches the slots from the box
+  ok   the list renders a real <dl>
+  ok   every term has its value: six dt and six dd
+  ok   inline labels: two tracks, and the label ends where the value begins
+  ok   a multi-column list stacks its labels, because there is no term column to align to
+  ok   an explicit column count reaches the grid as a template (three columns, labels stacked by default)
+  ok   truncation renders only the first N, and a toggle that points at the <dl>
+  ok   both markers are present, on the list and on the item
+  ok   a horizontal list is a wrapping row, not a grid
+  ok   clicking the toggle shows all six
+  ok   clicking it again puts them back
   ok   a manual layer opens
   ok   Escape does not touch it — the platform was never asked to dismiss this one
   ok   nor does a real click outside
   ok   only the application closes it, and the value follows
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 42 ported / 61 not / 103 total
-  ok   unported list rendered 61 entries
+  ok   coverage stats are 43 ported / 60 not / 103 total
+  ok   unported list rendered 60 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-243/243 checks passed, 0 failure(s)
+253/253 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

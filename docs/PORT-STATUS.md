@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **42 of 103** components.
+Ported: **43 of 103** components.
 
 ## Milestones
 
@@ -28,67 +28,70 @@ Ported: **42 of 103** components.
 - **M19 — a duration that stays readable without re-rendering**: complete. Timer. Two numbers come out of one reading and they are deliberately not always the same number: a real <time> element carries an ISO 8601 duration in datetime and the human reading as its text, and past an hour the elapsed text stops showing seconds - at which point the duration follows the *text* rather than the raw elapsed time, because a duration that disagrees with its own visible reading is worse than none. The showcase renders two timers from the same start time to make that visible: the elapsed one reports a whole number of minutes while the clock one reports the true seconds. Nothing re-renders to keep the reading current - the hook owns the <time> node and writes only what changed, which the browser gate proves the only way it can be proven: it holds the node across a second and checks it is still the same node, since a re-render would have replaced it. The wait until the next change is computed against the precision the reading actually has, so past an hour this does not ask the clock every second to discover nothing moved. The discovery of this milestone is a platform one and it took the whole showcase page down: under js_of_ocaml an int is 32 bits, so milliseconds since 1970 do not fit in one and converting raises Invalid_argument. A JS number is a double and an OCaml float is a double, so start_time and the internal clock are floats - which is the faithful type on both sides, not a workaround. Core's Time_ns is unusable on this target for the same reason. The browser gate's 'the app mounted in Chromium' check is what caught it, from a page that had gone blank. Not ported: the theme seam, upstream's themeProps('timer') target - a theme can style the component's classes but cannot retarget its props.
 - **M20 — a group of controls that reads as one field**: complete. InputGroup + InputGroupText. A labelled group: the label names the group rather than a control, so the port's Field omits the label's `for` (is_group_label, a parameter that existed before this milestone because FieldLabel was built with the group case in mind), and the status message is Detached, below the group, since there is no single control's edge for it to sit against. The size needs no plumbing: the group is inline-flex stretched to a step of the shared size scale, so its children fill the height. The two things upstream threads through React context are named divergences here rather than reproduced. InputGroupContext tells a nested input to render without its own label; this port's TextInput *requires* a label, so a control inside a group carries a visually hidden empty one - the caller's substitute, not an equivalent. SizeProvider is the same story from the other side: the caller knows the size it wants for its children, and the group's own box is CSS. React's ambient context re-enters through the DOM here - aria-* on the container and CSS on the box - and nowhere else, the same shape as ButtonGroup's connected look. Also not ported and named in the mli: labelTooltip, and the aria-describedby upstream puts on the group element (this port's Field does not hand back its description element's id, and inventing an id no element carries would be worse than its absence). Two build traps worth recording: Core defines a module named Field, so a sibling module must alias it as Field_ before the opens - text_area.ml and radio_list.ml already document this - and Vdom.Attr.class_ is variadic strings while Bonsai_web.Attr.class_ takes a list, which is the opposite of the lesson the earlier milestones recorded.
 - **M21 — one tab stop for a bar of controls**: complete. Toolbar. A role=toolbar named by its label, navigated by the same roving tab stop ButtonGroup uses - now Common.List_focus, generalised with this component as its second consumer - and with the caret guard on, which is what lets a toolbar contain a text field: an arrow at the end of the input's text leaves the field and moves focus, an arrow with the caret mid-text moves the caret and leaves focus alone. Two slots layout in a flex row (start, end) and a centre slot switching the box to a three-column grid, so the middle is centred against the bar rather than against its neighbours. The gap reaches the slots through a variable on the box; role, aria-label and aria-orientation are stripped from the incoming props and set by the component, so a Toolbar cannot be handed a role that contradicts the behaviour inside it. Named divergences rather than approximations: the size is not passed down (no SizeContext here; the box takes the size scale's height and the caller builds its children knowing the size it wants - the same as InputGroup), useKeyboardHint (upstream's ephemeral arrow-key hint for sighted keyboard users, which would be a small self-contained follow-up since Kbd and the layer mechanism are already ported), and edge compensation (which lets a ghost button at an end sit flush against a container's edge).
+- **M22 — terms and values whose layout belongs to the list**: complete. MetadataList + MetadataListItem. A real <dl> whose layout is chosen on the list and reaches the items as their container: the item renders the dt/dd pair as a fragment, so a single-column grid puts them on two rows (stacked) and a two-column grid puts them side by side, and no context travels between the two - the same resolution as InputGroup and ButtonGroup, for the same reason (a child is built before its container sees it). Six grids come out of columns x label position: auto minmax(0, 1fr), a responsive auto-fill at 280px, a 1fr single column when stacked, a wrapping flex row when horizontal, and an explicit repeat(N, ...) when columns is a number. Named divergences: no themeProps hook; the show-all toggle takes its two labels as arguments with English defaults and does not interpolate a hidden count the way upstream's i18n catalogue does; the id becomes the root's name as well as the content's. One difference follows from the fragment and is recorded rather than left to be discovered: upstream wraps a stacked pair in a flex column with a half-step gap, while a grid row gap is a full step, so a stacked pair sits slightly further apart here. A consequence worth knowing: the component is stateful whether or not anything truncates (upstream creates the state unconditionally and so does the port), so the jsdom harness cannot render it at all and its checks live in the browser gate, where the toggle can be clicked.
 
 ## Infrastructure
 
 | Module | File | What it holds |
 | --- | --- | --- |
 | `Astryx.Common` | `src/common.ml` | spacing scale, size values, alignment, shared attrs |
-| `Astryx.Tokens` | `src/tokens.ml` | generated by tools/gen-ocaml-tokens.py from upstream tokens.stylex.ts |
-| `Astryx.Menu_focus` | `src/menu_focus.ml` | the DOM-driven menu navigation ported from upstream's useListFocus/useTypeahead: item selector with boundary scoping, wrap and disabled-skipping, typeahead with a 750 ms reset and same-character cycling, activation carrying the key's modifiers, and the one-frame focus move |
-| `Astryx.Field_label` | `src/field_label.ml` | the label and description group, rendered by Field and used on its own by the controls that want the label beside their control rather than above it. It is not one of the extracted 103: upstream's Field/index.ts exports it as part of Field, and the component extraction that gives FieldStatus its own page does not list it (the same extraction merges HStack and VStack into Stack). It is therefore not counted in the coverage numbers, and the coverage generator would flag it as an inconsistency if it were claimed there. |
 | `Astryx.Dialog_header` | `src/dialog_header.ml` | the component that names a dialog: a focusable h2 carrying the id the dialog is told to name itself from, an optional subtitle, start/end slots, an optional divider and a close button rendered only when there is an on_open_change to report to. Not one of registry.json's 103 extracted components, so it does not move the coverage count — it is counted here, with a reason, exactly as registry.json requires. |
+| `Astryx.Field_label` | `src/field_label.ml` | the label and description group, rendered by Field and used on its own by the controls that want the label beside their control rather than above it. It is not one of the extracted 103: upstream's Field/index.ts exports it as part of Field, and the component extraction that gives FieldStatus its own page does not list it (the same extraction merges HStack and VStack into Stack). It is therefore not counted in the coverage numbers, and the coverage generator would flag it as an inconsistency if it were claimed there. |
 | `Astryx.Input_group_text` | `src/input_group_text.ml` | Not one of the 103: a text adornment for InputGroup, registered like DialogHeader because it is a rendered component the appearance contract should account for but the coverage denominator should not. |
+| `Astryx.Menu_focus` | `src/menu_focus.ml` | the DOM-driven menu navigation ported from upstream's useListFocus/useTypeahead: item selector with boundary scoping, wrap and disabled-skipping, typeahead with a 750 ms reset and same-character cycling, activation carrying the key's modifiers, and the one-frame focus move |
+| `Astryx.MetadataListItem` | `src/metadata_list_item.ml` | one term and its value; renders the pair as a fragment so the list grid decides whether they sit side by side or stacked |
+| `Astryx.Tokens` | `src/tokens.ml` | generated by tools/gen-ocaml-tokens.py from upstream tokens.stylex.ts |
 
 ## Ported components
 
 | Component | Module | File | Milestone | Upstream class |
 | --- | --- | --- | --- | --- |
+| `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
+| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
 | `Badge` | `Astryx.Badge` | `src/badge.ml` | M1 | A |
+| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
 | `Button` | `Astryx.Button` | `src/button.ml` | M1 | B |
+| `ButtonGroup` | `Astryx.Button_group` | `src/button_group.ml` | M17 | A |
 | `Card` | `Astryx.Card` | `src/card.ml` | M1 | A |
+| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
+| `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
+| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
+| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
+| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
 | `Divider` | `Astryx.Divider` | `src/divider.ml` | M1 | A |
+| `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
+| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
+| `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
+| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
+| `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
+| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
+| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
 | `Heading` | `Astryx.Heading` | `src/heading.ml` | M1 | A |
+| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
+| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
+| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
+| `InputGroup` | `Astryx.Input_group` | `src/input_group.ml` | M20 | A |
+| `Kbd` | `Astryx.Kbd` | `src/kbd.ml` | M15 | A |
+| `MetadataList` | `Astryx.MetadataList` | `src/metadata_list.ml` | M22 | A |
+| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
+| `Popover` | `Astryx.Popover` | `src/popover.ml` | M18 | A |
+| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
+| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
 | `Skeleton` | `Astryx.Skeleton` | `src/skeleton.ml` | M1 | A |
 | `Stack` | `Astryx.Stack` | `src/stack.ml` | M1 | A |
 | `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
-| `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
-| `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
-| `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
-| `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
-| `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
-| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
 | `Switch` | `Astryx.Switch` | `src/switch.ml` | M12 | B |
+| `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
 | `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
-| `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
-| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
-| `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
-| `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
-| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
-| `Kbd` | `Astryx.Kbd` | `src/kbd.ml` | M15 | A |
-| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
-| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
-| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
-| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
-| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
-| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
-| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
-| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
-| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
-| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
-| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
-| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
-| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
-| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
-| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
-| `ButtonGroup` | `Astryx.Button_group` | `src/button_group.ml` | M17 | A |
-| `Popover` | `Astryx.Popover` | `src/popover.ml` | M18 | A |
+| `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
 | `Timer` | `Astryx.Timer` | `src/timer.ml` | M19 | A |
-| `InputGroup` | `Astryx.Input_group` | `src/input_group.ml` | M20 | A |
 | `Toolbar` | `Astryx.Toolbar` | `src/toolbar.ml` | M21 | A |
+| `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
+| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
+| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
 
-## Not ported yet (61)
+## Not ported yet (60)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MetadataList`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Avatar`, `AvatarGroup`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `ClickableCard`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `Link`, `List`, `Markdown`, `MobileNav`, `MoreMenu`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `OverflowList`, `Overlay`, `Pagination`, `PowerSearch`, `ProgressBar`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `SelectableCard`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `ToggleButton`, `Token`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`

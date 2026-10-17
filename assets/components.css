@@ -2053,3 +2053,104 @@
 .astryx-toolbar__slot--end { justify-content: flex-end; }
 .astryx-toolbar__slot--start-only { flex: 1 1 0%; }
 .astryx-toolbar__slot--end-only { margin-inline-start: auto; }
+
+/* MetadataList: the layout is chosen on the list and reaches the items as their container, so the grid
+   classes below are the whole of the item styling's placement half. Single-column grids put the dt/dd pair
+   on two rows, which is what a stacked label means; two-column grids put them side by side. */
+.astryx-metadata-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.astryx-metadata-list__title {
+  margin-bottom: var(--spacing-3);
+}
+
+.astryx-metadata-list__grid {
+  margin: 0;
+  padding: 0;
+}
+
+.astryx-metadata-list__grid--single {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-2) var(--spacing-4);
+  align-items: baseline;
+}
+
+.astryx-metadata-list__grid--multi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.astryx-metadata-list__grid--stacked-single {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3);
+}
+
+.astryx-metadata-list__grid--stacked-multi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.astryx-metadata-list__grid--horizontal {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.astryx-metadata-list__label {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  min-height: 24px;
+  word-break: break-word;
+}
+
+.astryx-metadata-list__value {
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  margin: 0;
+  padding: 0;
+  min-height: 24px;
+  word-break: break-word;
+}
+
+.astryx-metadata-list__icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+/* The toggle is the one control the list renders itself. */
+.astryx-metadata-list__toggle {
+  appearance: none;
+  background-color: transparent;
+  border-width: 0;
+  border-style: none;
+  padding: var(--spacing-2) 0;
+  cursor: pointer;
+  color: var(--color-accent);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  text-align: start;
+  align-self: flex-start;
+}
+
+.astryx-metadata-list__toggle:is(:disabled, [aria-disabled="true"]) {
+  cursor: default;
+}

@@ -6,6 +6,9 @@
    machine-readable docs). `Divergence` sections in each component file record
    where the port deliberately differs. *)
 
+module Metadata_list = Metadata_list
+module Metadata_list_item = Metadata_list_item
+
 module Popover = Popover
 module Common = Common
 module Tokens = Tokens

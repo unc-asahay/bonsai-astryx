@@ -1862,3 +1862,74 @@ it wants — the same divergence as InputGroup).
 | Showcase | 45 sections, 273 examples |
 | MCP layer | every ported component truthfully reachable |
 
+## Gate 36 — MetadataList (M22): the layout belongs to the list
+
+Coverage moves **42 → 43 of 103**. This is the first component in the port that is *stateful by construction*
+whether or not anything uses the state — upstream creates the show-all state unconditionally and the port
+keeps that — and that has a consequence worth stating plainly rather than discovering later: **the jsdom
+harness cannot render it at all.** That harness renders static nodes; a component that needs the Bonsai
+runtime is out of its reach. All of this component's checks are therefore in the browser gate, including the
+structural ones the jsdom gate usually carries.
+
+### The decision that made it small
+
+An item renders its term and its value as a **fragment**, so the *grid on the list* decides whether they sit
+side by side (two columns) or stacked (one column, two rows). Upstream instead tells each item, through a
+React context, which layout the list chose. The port lets CSS do it, so nothing travels between the two — the
+same resolution as InputGroup and ButtonGroup, for the same reason: a child is built before its container
+sees it, so what the container would have said has to be CSS or the caller's decision.
+
+The consequence is named in the interface rather than left to be found: upstream wraps a stacked pair in a
+flex column with a half-step gap, and a grid row gap is a full step, so a stacked pair sits a *hair* further
+apart here. A real difference in output, recorded as one.
+
+### The bug the browser gate caught, and what it changed
+
+Truncation. Upstream slices React *children*, so its `maxNumOfItems` cuts between items by construction. The
+port's children are nodes, and an item is two of them — so slicing the flattened list at 3 rendered **3
+`<dt>` against 6 `<dd>`**: a pair cut in half, which is not a truncation but a corrupted list.
+
+The fix is in the type, not in the arithmetic. `view` takes `items:Vdom.Node.t list list` — each item is the
+nodes it contributes — so the boundary truncation must respect is where it cannot be missed, and a caller
+cannot accidentally pass a flat list. This is the first time in this port that a check failure changed an
+API rather than an implementation, and it is the right kind of change: the constraint moved into the type.
+
+### Checks (9, all in the browser gate)
+
+| what | why it is here and not in jsdom |
+|---|---|
+| a real `<dl>`, six `dt` and six `dd` | the component needs the runtime to render at all |
+| inline: two tracks, the label ends where the value begins | computed grid, which jsdom does not cascade |
+| multi-column stacks (`6` of `6` values below their labels) | same |
+| a fixed column count reaches the grid as a template | the inline style is the assertion |
+| truncation renders the first N, with a toggle pointing at the `<dl>` | `aria-controls` is structural but the component is not renderable |
+| both markers, on the list and on the item | the appearance contract finds components by marker |
+| horizontal is a wrapping row, not a grid | computed `display` |
+| **clicking the toggle shows all six; clicking again puts them back** | behaviour — this is the check the jsdom gate cannot make |
+
+### What the failures were
+
+Six failures across three runs, and **four were my checks, not the component**:
+
+1. **The click checks raced the re-render.** They read the DOM immediately after clicking, saw three terms,
+   and called a working toggle broken — the *next* read showed six. Fixed by waiting for the DOM to change
+   and then asserting, so a genuine failure reports a mismatch instead of a timeout.
+2. **The geometry check compared tops.** `align-items: baseline` means a pair's `dt` and `dd` tops legitimately
+   differ by more than the tolerance. "Side by side" is `dt.left < dd.left`; "stacked" is `dd.top > dt.top`.
+   Those are the claims, so those are what the check now asserts.
+3. **The fixed-column expectation was the inline form.** Three columns makes the list multi-column, which
+   defaults its labels to the top, so the template is `repeat(3, 1fr)` and not
+   `repeat(3, auto minmax(0, 1fr))`. The component was right.
+4. **And the counter I had just "fixed" was still failing** — because I had changed the check's *label* from
+   61 to 60 and left its comparison at `=== 61`. That is the exact mistake recorded earlier in this project,
+   made again in a different check. The lesson is not "be careful"; it is that a frozen counter has two
+   halves and updating one is not updating it.
+
+The other two were the counters themselves: the per-section example map needed `MetadataList: 5`, and the
+navigation count moved to 46.
+
+### Counts (verified, not asserted)
+
+component **433/0** · browser **253/253** · demo **25/25** · responsive **66/0** at 0.00% across
+320/375/768/1440 · coverage **43 of 103** (unported 60) · 43 appearance pages + `INDEX.md` · sweep exit 0,
+0 FAILs, MCP layer truthful.

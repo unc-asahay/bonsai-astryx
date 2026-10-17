@@ -2955,6 +2955,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
+  ; "metadata-list", "MetadataList"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -2986,6 +2987,85 @@ let nav () =
     ]
 ;;
 
+(* MetadataList takes a graph even when nothing is truncated: upstream creates its show-all state
+   unconditionally, and the port keeps that shape. The consequence is the same one the overlay family has -
+   a stateful component cannot be rendered by the jsdom harness at all, because that harness renders static
+   nodes and this needs the Bonsai runtime. Its structural and behavioural checks therefore live in the
+   browser gate, which is where the toggle can actually be clicked. *)
+let metadata_list_demo (graph : Bonsai.graph) =
+  let item label value =
+    Astryx.Metadata_list_item.view ~label ~children:[ Vdom.Node.text value ] ()
+  in
+  (* Each item is the *list* of nodes it contributes - the term and the value, separate children of the
+     list grid. Keeping them as items rather than flattening is what lets truncation cut between them. *)
+  let rows =
+    [ item "Account" "northwind-logistics"
+    ; item "Region" "us-west-2"
+    ; item "Plan" "Enterprise"
+    ; item "Seats" "240"
+    ; item "Renewal" "2027-03-01"
+    ; item "Owner" "ops@northwind.example"
+    ]
+  in
+  let example ?title ?columns ?label_position ?label_width ?orientation ?max_num_of_items ~id label =
+    Bonsai.map
+      (Astryx.Metadata_list.view
+         ?title
+         ?columns
+         ?label_position
+         ?label_width
+         ?orientation
+         ?max_num_of_items
+         ~id
+         ~items:(Bonsai.return rows)
+         graph)
+      ~f:(fun node -> ex label node)
+  in
+  let single = example ~id:"showcase-metadata-single" "single column, labels inline" in
+  let multi =
+    example
+      ~id:"showcase-metadata-multi"
+      ~columns:Astryx.Metadata_list.Multi
+      "multi-column: the labels stack, since there is no term column to align to"
+  in
+  let fixed =
+    example
+      ~id:"showcase-metadata-fixed"
+      ~columns:(Astryx.Metadata_list.Fixed 3)
+      "an explicit three columns, whether or not the box is wide enough for them"
+  in
+  let truncated =
+    example
+      ~id:"showcase-metadata-truncated"
+      ~max_num_of_items:3
+      "truncated at three, with the show-all toggle the state exists for"
+  in
+  let horizontal =
+    example
+      ~id:"showcase-metadata-horizontal"
+      ~orientation:Astryx.Metadata_list.Horizontal
+      "horizontal: pairs in a wrapping row, where the label is stacked whatever is asked for"
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    Bonsai.map2
+      (Bonsai.map2 single multi ~f:(fun a b -> [ a; b ]))
+      (Bonsai.map2 fixed (Bonsai.map2 truncated horizontal ~f:(fun c d -> [ c; d ])) ~f:(fun c d ->
+         c :: d))
+      ~f:(fun ab cd -> ab @ cd)
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+        ~id:"metadata-list"
+        ~title:"MetadataList"
+        ~note:
+          "Terms and values as a real <dl>. Two things are worth knowing. The layout belongs to the list, \
+           not to the items: a single-column grid puts each term and value on a row of their own (stacked), \
+           a two-column grid puts them side by side, and the item renders the pair as a fragment so either \
+           works. And a stacked pair sits slightly further apart here than upstream, because upstream wraps \
+           the pair in a flex column with a half-step gap while a grid row gap is a full step."
+      examples)
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -3001,6 +3081,7 @@ let page (graph : Bonsai.graph) =
   let dropdown_section = dropdown_menu_demo graph in
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
+  let metadata_list_section = metadata_list_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3016,10 +3097,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful dialog_header_section in
   let stateful = pair stateful layer_section in
   let stateful = pair stateful popover_section in
+  let stateful = pair stateful metadata_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
                         , form_layout )
                       , tooltip )
                     , dialog )
@@ -3027,14 +3109,15 @@ let page (graph : Bonsai.graph) =
                 , dialog_header )
               , layer )
             , popover )
-          text_area ->
+          , metadata_list )
+        text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list ])
       ])
 ;;
 

@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("45 sections", sections.length === 45, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("46 sections", sections.length === 46, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -609,6 +609,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
+    MetadataList: 5,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -620,7 +621,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("273 examples across the page", totalExamples === 273, `got ${totalExamples}`);
+  check("278 examples across the page", totalExamples === 278, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -633,7 +634,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("45 nav links", nav.length === 45, `got ${nav.length}`);
+  check("46 nav links", nav.length === 46, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1892,6 +1893,124 @@ const tbGap = await page.evaluate(() => {
 
 check("the gap reaches the slots from the box", tbGap === "4px", String(tbGap));
 
+// MetadataList: the layout belongs to the list, so the list is what a check reads - and because the
+// component is stateful it is here rather than in the jsdom gate, which cannot render it at all.
+const readList = (id) =>
+  page.evaluate((id) => {
+    const root = document.getElementById(id);
+    if (!root) return null;
+    const dl = root.querySelector("dl");
+    if (!dl) return { root: true, dl: false };
+    const dts = [...dl.querySelectorAll("dt")];
+    const dds = [...dl.querySelectorAll("dd")];
+    const cs = getComputedStyle(dl);
+    const rows = dts.map((dt, i) => ({
+      dtTop: Math.round(dt.getBoundingClientRect().top),
+      ddTop: Math.round(dds[i].getBoundingClientRect().top),
+      dtLeft: Math.round(dt.getBoundingClientRect().left),
+      ddLeft: Math.round(dds[i].getBoundingClientRect().left),
+    }));
+    const toggle = root.querySelector(".astryx-metadata-list__toggle");
+    return {
+      root: true,
+      marker: root.getAttribute("data-astryx-component"),
+      dl: true,
+      dlId: dl.id,
+      gridClass: dl.className,
+      display: cs.display,
+      tracks: cs.gridTemplateColumns,
+      inlineStyle: dl.getAttribute("style"),
+      dts: dts.length,
+      dds: dds.length,
+      itemMarker: dts[0] ? dts[0].getAttribute("data-astryx-component") : null,
+      sideBySide: rows.filter((r) => r.dtLeft < r.ddLeft).length,
+      stacked: rows.filter((r) => r.ddTop > r.dtTop).length,
+      toggle: toggle
+        ? {
+            label: toggle.textContent.trim(),
+            controls: toggle.getAttribute("aria-controls"),
+            type: toggle.getAttribute("type"),
+          }
+        : null,
+    };
+  }, id);
+
+const single = await readList("showcase-metadata-single");
+const multi = await readList("showcase-metadata-multi");
+const fixed = await readList("showcase-metadata-fixed");
+const truncated = await readList("showcase-metadata-truncated");
+const horizontal = await readList("showcase-metadata-horizontal");
+
+check("the list renders a real <dl>", single && single.dl === true);
+check(
+  "every term has its value: six dt and six dd",
+  single && single.dts === 6 && single.dds === 6,
+  `got ${single && single.dts} dt / ${single && single.dds} dd`,
+);
+check(
+  "inline labels: two tracks, and the label ends where the value begins",
+  single && single.tracks.split(" ").length === 2 && single.sideBySide === 6,
+  `tracks=${single && single.tracks} sideBySide=${single && single.sideBySide}`,
+);
+check(
+  "a multi-column list stacks its labels, because there is no term column to align to",
+  multi && multi.gridClass.includes("stacked-multi") && multi.stacked === 6,
+  `${multi && multi.gridClass} stacked=${multi && multi.stacked}`,
+);
+check(
+  "an explicit column count reaches the grid as a template (three columns, labels stacked by default)",
+  fixed && (fixed.inlineStyle || "").includes("repeat(3, 1fr)"),
+  `${fixed && fixed.inlineStyle}`,
+);
+check(
+  "truncation renders only the first N, and a toggle that points at the <dl>",
+  truncated &&
+    truncated.dts === 3 &&
+    truncated.toggle &&
+    truncated.toggle.controls === truncated.dlId &&
+    truncated.toggle.type === "button",
+  `${truncated && truncated.dts} dt, toggle=${JSON.stringify(truncated && truncated.toggle)}, dlId=${truncated && truncated.dlId}`,
+);
+check(
+  "both markers are present, on the list and on the item",
+  single && single.marker === "MetadataList" && single.itemMarker === "MetadataListItem",
+  `list=${single && single.marker} item=${single && single.itemMarker}`,
+);
+check(
+  "a horizontal list is a wrapping row, not a grid",
+  horizontal && horizontal.gridClass.includes("horizontal") && horizontal.display === "flex",
+  `${horizontal && horizontal.gridClass} display=${horizontal && horizontal.display}`,
+);
+
+// The behaviour the state exists for: clicking the toggle shows the rest, and clicking it again puts them
+// back. This is the check the jsdom gate cannot make.
+await page.click("#showcase-metadata-truncated .astryx-metadata-list__toggle");
+// The click schedules the update and the read would otherwise beat the re-render - which is how this check
+// first failed: it read three terms and called a working toggle broken. Wait for the DOM, then assert.
+await page
+  .waitForFunction(() => document.querySelectorAll("#showcase-metadata-truncated dl dt").length === 6, null, {
+    timeout: 3000,
+  })
+  .catch(() => {});
+const expanded = await readList("showcase-metadata-truncated");
+check(
+  "clicking the toggle shows all six",
+  expanded && expanded.dts === 6 && expanded.toggle.label === "Show less",
+  `${expanded && expanded.dts} dt, label=${expanded && expanded.toggle.label}`,
+);
+await page.click("#showcase-metadata-truncated .astryx-metadata-list__toggle");
+await page
+  .waitForFunction(() => document.querySelectorAll("#showcase-metadata-truncated dl dt").length === 3, null, {
+    timeout: 3000,
+  })
+  .catch(() => {});
+const collapsed = await readList("showcase-metadata-truncated");
+check(
+  "clicking it again puts them back",
+  collapsed && collapsed.dts === 3 && collapsed.toggle.label === "Show all",
+  `${collapsed && collapsed.dts} dt, label=${collapsed && collapsed.toggle.label}`,
+);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -1925,11 +2044,11 @@ check("the gap reaches the slots from the box", tbGap === "4px", String(tbGap));
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 42 ported / 61 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["42", "61", "103"]),
+    "coverage stats are 43 ported / 60 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["43", "60", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 61 entries", cov.unported === 61, `got ${cov.unported}`);
+  check("unported list rendered 60 entries", cov.unported === 60, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

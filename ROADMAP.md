@@ -528,6 +528,25 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M22 — MetadataList: the layout belongs to the list (done)
+
+**43 of 103.** A real `<dl>` in which the *list* owns the layout and the items own nothing: an item renders
+its term and its value as a fragment, so a two-column grid puts them side by side and a one-column grid
+stacks them. Upstream instead tells each item through a React context; the port lets CSS decide, which is the
+same resolution as InputGroup and ButtonGroup.
+
+The milestone's bug changed an **API**: upstream slices React children, so truncation cuts between items, but
+a fragment means an item is *two* nodes - slicing the flattened list at 3 rendered three `<dt>` against six
+`<dd>`. `view` therefore takes `items:Vdom.Node.t list list`, and the boundary truncation must respect is in
+the type rather than in arithmetic a caller can get wrong.
+
+Stateful by construction (upstream creates the show-all state unconditionally and the port keeps that), so
+the jsdom harness cannot render it at all and its nine checks live in the browser gate — including the ones
+that would normally be structural. Named divergences: no `themeProps` hook; the toggle's two labels are
+arguments with English defaults and no interpolated count; the id names the root as well as the content. One
+real difference in output, recorded: a stacked pair sits a hair further apart than upstream's, because
+upstream wraps it in a flex column with a half-step gap where a grid row gap is a full step.
+
 ### MetadataList, reconnoitred — the next milestone, and its shape
 
 `MetadataList` (325) + `MetadataListItem` (206) + `MetadataListContext` (26) = 557 lines, three files, and

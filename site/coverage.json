@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 42,
-    "unported": 61,
+    "ported": 43,
+    "unported": 60,
     "total": 103,
     "documented": 103
   },
@@ -168,6 +168,12 @@
       "milestone": "M15"
     },
     {
+      "name": "MetadataList",
+      "module": "Astryx.MetadataList",
+      "file": "src/metadata_list.ml",
+      "milestone": "M22"
+    },
+    {
       "name": "NavIcon",
       "module": "Astryx.NavIcon",
       "file": "src/nav_icon.ml",
@@ -293,7 +299,6 @@
     "Link",
     "List",
     "Markdown",
-    "MetadataList",
     "MobileNav",
     "MoreMenu",
     "MultiSelector",
