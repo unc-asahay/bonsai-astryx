@@ -915,7 +915,30 @@ eleven cases in the component gate.
 
 Part two is the measurement hook — upstream's `useOverflow`, 274 lines — and part three is the component.
 
-**The one open design question, to settle before writing part two.** Upstream stands on
+**Settled: the hook gets its own observer, and the sharing is a named divergence.** The decider was
+whether a second consumer lands in this port, and the answer is no — the port's `Text` contains no
+truncation or measurement code at all (its truncation is CSS), where upstream's `Text` is the shared
+registry's other consumer. With one consumer, porting a ref-counted singleton is exactly the
+pre-abstraction this project's rule forbids: extract a mechanism when a second consumer appears, not in
+anticipation. Upstream's sharing is a browser performance decision (one callback dispatch per frame rather
+than one per observed element), and the divergence is recorded as that.
+
+**What is load-bearing in the observer, and must be ported rather than simplified away** — four details,
+each of which is a bug if dropped:
+
+- **Registering fires the callback once, synchronously, with a synthetic entry carrying only `target`** — so
+  callers need no separate initial-measurement path. This is also what makes the hook verifiable in jsdom:
+  `getObserver()` returns null where the API is missing, and the one-shot still fires, so only *live*
+  resizing belongs in the browser gate.
+- **Unsubscribing removes only that registration**, not every callback on the element; upstream's
+  `unobserveResize(element)` with no callback drops them *all* and "silences peers that are still mounted",
+  which it documents as correct only for a caller that owns the element outright.
+- **Registrations are reference-counted** — one callback may be registered more than once for one element,
+  and each registration is removed independently.
+- **Dispatch iterates a copy of the callback list**, because a callback may unsubscribe while dispatch is in
+  progress.
+
+ Upstream stands on
 `utils/sharedResizeObserver.ts` (142 lines): a module-level singleton `ResizeObserver` with a
 ref-counted `Map<Element, Map<callback, count>>`, so thousands of observed elements cost one callback
 dispatch per frame instead of one per element. That sharing is a *browser performance* decision, not a
