@@ -13,7 +13,7 @@ showcase  http://127.0.0.1:8791/site/index.html
 showcase @ 320x568
   ok   [320x568] the page does not overflow horizontally
   ok   [320x568] no component escapes the viewport
-  FAIL [320x568] no component collapsed to zero size — Tooltip, Tooltip, Tooltip
+  ok   [320x568] no component collapsed to zero size
   ok   [320x568] ported components are on the page
   ok   [320x568] the responsive grid fills its container (238px of 238px, 1 track(s))
   ok   [320x568] the nav does not overflow
@@ -25,7 +25,7 @@ showcase @ 320x568
 showcase @ 375x667
   ok   [375x667] the page does not overflow horizontally
   ok   [375x667] no component escapes the viewport
-  FAIL [375x667] no component collapsed to zero size — Tooltip, Tooltip, Tooltip
+  ok   [375x667] no component collapsed to zero size
   ok   [375x667] ported components are on the page
   ok   [375x667] the responsive grid fills its container (293px of 293px, 1 track(s))
   ok   [375x667] the nav does not overflow
@@ -37,7 +37,7 @@ showcase @ 375x667
 showcase @ 768x1024
   ok   [768x1024] the page does not overflow horizontally
   ok   [768x1024] no component escapes the viewport
-  FAIL [768x1024] no component collapsed to zero size — Tooltip, Tooltip, Tooltip
+  ok   [768x1024] no component collapsed to zero size
   ok   [768x1024] ported components are on the page
   ok   [768x1024] the responsive grid fills its container (686px of 686px, 3 track(s))
   ok   [768x1024] the nav does not overflow
@@ -49,7 +49,7 @@ showcase @ 768x1024
 showcase @ 1440x900
   ok   [1440x900] the page does not overflow horizontally
   ok   [1440x900] no component escapes the viewport
-  FAIL [1440x900] no component collapsed to zero size — Tooltip, Tooltip, Tooltip
+  ok   [1440x900] no component collapsed to zero size
   ok   [1440x900] ported components are on the page
   ok   [1440x900] the responsive grid fills its container (876px of 876px, 4 track(s))
   ok   [1440x900] the nav does not overflow
@@ -106,10 +106,5 @@ reflow (auto-fill grid: tracks per viewport)
   ok   the auto-fill grid fits more tracks on a wide viewport than on a narrow one
   ok   every grid on the page has a non-zero track count
 
-62 checks passed, 4 failure(s)
-failures:
-  - [320x568] no component collapsed to zero size
-  - [375x667] no component collapsed to zero size
-  - [768x1024] no component collapsed to zero size
-  - [1440x900] no component collapsed to zero size
-RESPONSIVE CHECKS FAILED
+66 checks passed, 0 failure(s)
+RESPONSIVE CHECKS PASSED

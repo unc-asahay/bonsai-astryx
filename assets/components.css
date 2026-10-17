@@ -2292,15 +2292,23 @@
   }
 }
 
-/* The tick: a small pill centred on the mark's position along the track. */
-.astryx-progress-bar__mark {
+/* The mark: its anchor is positioned along the track (the inline start comes from the component, since it is
+   a percentage of the value) and sized to the track, and the tick is a plain box inside it. Positioning the
+   tick itself leaves the anchor with no height, which is exactly what the responsive gate reported. */
+.astryx-progress-bar__mark-anchor {
   position: absolute;
-  top: 50%;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.astryx-progress-bar__mark {
   width: 4px;
   height: 12px;
   border-radius: var(--radius-full);
   background-color: var(--color-text-primary);
-  transform: translate(-50%, -50%);
 }
 
 .astryx-progress-bar__mark--disabled {

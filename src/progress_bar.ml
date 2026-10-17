@@ -106,6 +106,10 @@ let view
   let marks_trees =
     List.map resolved_marks ~f:(fun (index, mark, mark_pct) ->
       let on_fill = Float.(percentage > 0. && mark_pct <= percentage) in
+      (* The *anchor* is what gets positioned, not the tick. The Tooltip wraps its trigger in a node of its
+         own, and an anchor whose only child is absolutely positioned collapses to zero height - which the
+         responsive gate caught as three zero-sized Tooltips at every viewport. So the anchor carries the
+         position through the Tooltip's own [attrs], and the tick is an ordinary sized box inside it. *)
       let tick =
         Vdom.Node.div
           ~attrs:
@@ -115,7 +119,6 @@ let view
                    ([ "astryx-progress-bar__mark" ]
                     @ [ (if on_fill then "astryx-progress-bar__mark--on-fill" else "astryx-progress-bar__mark--off-fill") ]
                     @ [ (if is_disabled then "astryx-progress-bar__mark--disabled" else "") ]))
-            ; Vdom.Attr.create "style" (sprintf "inset-inline-start:%.4f%%" mark_pct)
             ; Vdom.Attr.create "tabindex" "0"
             ; Vdom.Attr.create "aria-label" mark.label
             ]
@@ -125,6 +128,10 @@ let view
         ~placement:Tooltip.Above
         ~id:(sprintf "%s-mark-%d" id index)
         ~content:mark.label
+        ~attrs:
+          [ Vdom.Attr.class_ "astryx-progress-bar__mark-anchor"
+          ; Vdom.Attr.create "style" (sprintf "inset-inline-start:%.4f%%" mark_pct)
+          ]
         ~trigger:tick
         graph)
   in
