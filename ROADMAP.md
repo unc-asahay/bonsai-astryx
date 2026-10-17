@@ -903,4 +903,33 @@ Two things fall out of that table and neither was guessable from the sizes I fir
 started at the end of a session. The next milestone should be chosen as *which mechanism to build next*,
 with its first consumer as the component — the arrangement that made Popover small.
 
+## Next up: OverflowList, in three parts (recon done, not started)
+
+Chosen because it is the only unported candidate with **no unported component dependency**. Everything else
+is blocked on a real pillar — `Thumbnail` and `FileInput` on `Spinner`, `Token` on `Link`,
+`List`/`SegmentedControl`/`Lightbox` on `Layer`, `Pagination` on `NumberInput` + `Selector`, `Banner` on
+`Collapsible` + `Layout`. Its own weight is not the 421-line component but the measurement under it.
+
+Part one is **done** (Gate 45): the fit arithmetic, `src/overflow_math.ml`, ported as a pure function with
+eleven cases in the component gate.
+
+Part two is the measurement hook — upstream's `useOverflow`, 274 lines — and part three is the component.
+
+**The one open design question, to settle before writing part two.** Upstream stands on
+`utils/sharedResizeObserver.ts` (142 lines): a module-level singleton `ResizeObserver` with a
+ref-counted `Map<Element, Map<callback, count>>`, so thousands of observed elements cost one callback
+dispatch per frame instead of one per element. That sharing is a *browser performance* decision, not a
+correctness one — and it is the kind of thing this port deliberately does not copy when the honest version
+is simpler (a context, the touch press model). So the choice is: port the shared registry as a mechanism, or
+give the hook its own observer and name the divergence. What decides it is whether a second consumer of the
+shared registry lands in this port — `Text`'s truncation is the other consumer upstream, and `Text` is
+already ported here with a different truncation mechanism.
+
+The property that matters either way, and the reason part two is verifiable without much ceremony:
+`getObserver()` returns **null where the ResizeObserver API does not exist** (jsdom, old browsers) and
+callers **still get the one-shot measurement fired on registration** — only *live* resize updates need the
+API. So the initial-layout path can be asserted in the jsdom gate and only live resizing belongs in the
+browser gate, which is exactly the split this port uses everywhere else.
+
+
 
