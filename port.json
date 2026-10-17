@@ -207,6 +207,12 @@
       "name": "the card that carries its own checkbox, and what is not in it",
       "note": "SelectableCard: a Card with selection on top, and a visually-hidden <input type=checkbox> inside carrying the role, the accessible name and the checked state, so the card surface is a plain <div> with no role and no tabindex. The click rules are ported literally, because they are the mechanism: a surface click toggles, a click on a nested interactive element is left alone (upstream's INTERACTIVE_SELECTORS list, ported as a shared constant), and a click that ends a text selection is ignored so dragging to select a card's text never changes the selection. Enter is added by hand and Space is not, because a native checkbox already answers Space and adding it would toggle twice. Card gained ?component_name and ?attrs, mirroring Button's delegation marker: upstream stamps 'selectable-card' rather than inheriting Card's, and every tool in this repo identifies a component by that marker, so a wrapper that keeps its delegate's name is invisible to all of them. NOT ported, and named: the touch press model (utils/pressFeedback.ts, 461 lines plus its gesture module and CSS arms) - the contract attribute is emitted and the mouse press paints through :active, and a touch press does not, because that model is a campaign on the scale of Layer, not a milestone.",
       "status": "complete"
+    },
+    {
+      "id": "M29",
+      "status": "complete",
+      "name": "a card whose whole surface is the action, and the second consumer that proved the mechanism",
+      "note": "ClickableCard: a Card plus one visually-hidden interactive element - an <a> when there is an href, a <button> when there is not - carrying the accessible name, so the surface needs no role of its own and the card is operable as a link or a button. Its click rules are the same mechanism SelectableCard was carrying, which made this the second consumer and moved the interactive-target test, the text-selection rule and the selector list into Common.Clickable_container - a mechanism move, proved by the existing suites passing unchanged and moving no coverage number (committed separately, 3da85f8). One substantive difference from copying the JSX: the href ATTRIBUTE is gated by the port's safe-url predicate, not only the navigation. Upstream hands its href to a framework link component and React vets the hrefs it writes as attributes; nothing here passes through React, so an unvetted attribute would be a live sink even though this component's own click path refuses it. A refused value renders inert - no href, role=link, aria-disabled, tabindex=-1 - which is the rule the rest of the port already follows. Navigation picks the safe-url predicate up from Citation, where the port put its security control. Named divergences: the touch press model (as SelectableCard), and a native <a> in place of a framework link component, so navigation is a real document navigation rather than a client-side transition."
     }
   ],
   "ported": [
@@ -553,6 +559,13 @@
       "file": "src/selectable_card.ml",
       "milestone": "M28",
       "module": "Astryx.Selectable_card"
+    },
+    {
+      "class": "A",
+      "component": "ClickableCard",
+      "file": "src/clickable_card.ml",
+      "milestone": "M29",
+      "module": "Astryx.Clickable_card"
     }
   ],
   "schema": 1,

@@ -2540,3 +2540,38 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-selectable-card--disabled {
   opacity: 0.6;
 }
+
+
+/* ============================================================
+   ClickableCard (M29) - a Card whose whole surface is the action.
+   Card draws a transparent 1px border on every variant to avoid
+   layout jitter; upstream drops it here except for the default
+   variant, so the hover overlay covers the full box with no
+   untinted ring.
+   ============================================================ */
+.astryx-clickable-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.astryx-clickable-card--borderless {
+  border-color: transparent;
+}
+
+.astryx-clickable-card--disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* The hover arm is guarded so a touch device cannot show a stuck hover
+   state; the press here is the mouse arm only (:active) - the touch arm
+   is the document-level press model, which this port does not have. */
+@media (hover: hover) {
+  .astryx-clickable-card:not(.astryx-clickable-card--disabled):hover {
+    background-color: var(--color-overlay-hover);
+  }
+}
+
+.astryx-clickable-card:not(.astryx-clickable-card--disabled):active {
+  background-color: var(--color-overlay-pressed);
+}

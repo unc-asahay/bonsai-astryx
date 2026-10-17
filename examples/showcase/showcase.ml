@@ -3250,6 +3250,40 @@ let selectable_card_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+let s_clickable_card () =
+  let card ?(variant = Astryx.Card.Default) ~label ?href ?target ?is_disabled children =
+    Astryx.Clickable_card.view ~label ?href ?target ?is_disabled ~variant children
+  in
+  section
+    ~id:"clickable-card"
+    ~title:"ClickableCard"
+    ~note:
+      "A Card whose whole surface is the action. The surface is a plain div; a visually-hidden link - or a \
+       button, when there is no href - carries the accessible name, so the card is operable as a link or a \
+       button by assistive technology while looking like a card. The click rules are the same mechanism \
+       SelectableCard uses, extracted into Common when this component became its second consumer: a surface \
+       click acts, a click on a nested control is left to that control, and a click that ends a text \
+       selection does nothing. The last card asks for a javascript: href and renders inert - no href, \
+       role=link, aria-disabled - because unlike upstream there is no framework here to vet the attribute."
+    [ ex
+        "a link card: the whole surface navigates"
+        (card ~label:"Open the report" ~href:"https://example.com/report" [ Vdom.Node.text "A link card" ])
+    ; ex
+        "no href: the surface is a button and runs the handler"
+        (card ~label:"Run the action" [ Vdom.Node.text "An action card" ])
+    ; ex
+        "disabled: the link drops out of the tab order and its clicks are cancelled"
+        (card
+           ~label:"Unavailable"
+           ~href:"https://example.com/unavailable"
+           ~is_disabled:true
+           [ Vdom.Node.text "A disabled card" ])
+    ; ex
+        "a refused href renders inert rather than navigating"
+        (card ~label:"Refused" ~href:"javascript:alert(1)" [ Vdom.Node.text "A refused href" ])
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3262,6 +3296,7 @@ let specs =
   ; s_timer ()
   ; s_input_group ()
   ; s_toolbar ()
+  ; s_clickable_card ()
   ]
 ;;
 
@@ -3307,7 +3342,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

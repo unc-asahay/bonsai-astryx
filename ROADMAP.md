@@ -528,6 +528,25 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M29 — ClickableCard: a card whose whole surface is the action (done, 50 of 103)
+
+`Card` plus one visually-hidden interactive element — an `<a>` when there is an `href`, a `<button>` when
+there is not — carrying the accessible name, so the surface stays a plain `div` and the card is operable as
+a link or a button. Its click rules are the mechanism `SelectableCard` was carrying, which made this the
+**second consumer** and moved the interactive-target test, the text-selection rule and the selector list
+into `Common.Clickable_container` — **committed on its own (`3da85f8`) because a mechanism move changes no
+number**, and proved a move rather than a rewrite by the pre-existing suites passing unchanged (433/0,
+jsdom ALL PASSED, 306/306).
+
+Two things worth carrying forward. First, a real bug the gate found by **reading the DOM back rather than
+checking structure**: the anchor had no `aria-label`, so the card's only interactive node was an unnamed,
+empty, visually-hidden link — the element a screen reader announces is the hidden one, not the `div` around
+it. Second, a deliberate difference from copying the JSX: upstream hands its `href` to a framework link
+component and **React vets the hrefs it writes as attributes**; nothing here passes through React, so the
+port gates the attribute as well as the navigation (`Citation.is_safe_url`) and a refused value **renders
+inert** — no `href`, `role="link"`, `aria-disabled`, `tabindex="-1"`. A browser check asserts a
+`javascript:` href reaches the DOM with no `href` attribute at all.
+
 ### M28 — SelectableCard: the card that carries its own checkbox (done, 49 of 103)
 
 A `Card` with selection on top. The accessible design is upstream's and is kept: the surface is a plain

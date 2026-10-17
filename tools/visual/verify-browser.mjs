@@ -243,7 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
-    "SelectableCard",
+    "SelectableCard", "ClickableCard",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("52 sections", sections.length === 52, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("53 sections", sections.length === 53, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -617,7 +617,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3, ClickableCard: 4,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -629,7 +629,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("305 examples across the page", totalExamples === 305, `got ${totalExamples}`);
+  check("309 examples across the page", totalExamples === 309, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -642,7 +642,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("52 nav links", nav.length === 52, `got ${nav.length}`);
+  check("53 nav links", nav.length === 53, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2695,6 +2695,47 @@ check(
     await page.evaluate(() => window.getSelection().removeAllRanges());
   }
 
+  // --------------------------------------------------------- ClickableCard (M29)
+  console.log("\nClickableCard (live)");
+  {
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll('#clickable-card [data-astryx-component="ClickableCard"]')].map((c) => {
+        const a = c.querySelector("a");
+        const b = c.querySelector("button");
+        const el = a || b;
+        return {
+          marker: c.getAttribute("data-astryx-component"),
+          href: a ? a.getAttribute("href") : null,
+          role: a ? a.getAttribute("role") : null,
+          ariaDisabled: el ? el.getAttribute("aria-disabled") : null,
+          tabindex: el ? el.getAttribute("tabindex") : null,
+          label: el ? el.getAttribute("aria-label") : null,
+          hidden: el ? el.classList.contains("astryx-visually-hidden") : null,
+          isButton: !!b,
+        };
+      }));
+    check("four clickable cards render", cards.length === 4, `got ${cards.length}`);
+    check("each stamps its OWN marker, not Card's",
+      cards.length === 4 && cards.every((c) => c.marker === "ClickableCard"),
+      JSON.stringify(cards.map((c) => c.marker)));
+    check("the link card carries its href, its accessible name and the visually-hidden class",
+      cards[0] && cards[0].href === "https://example.com/report" && cards[0].label === "Open the report"
+        && cards[0].hidden === true,
+      JSON.stringify(cards[0]));
+    check("with no href the action is a button, not a link", cards[1] && cards[1].isButton === true,
+      JSON.stringify(cards[1]));
+    check("disabled: no href, role=link, aria-disabled, and out of the tab order",
+      cards[2] && cards[2].href === null && cards[2].role === "link"
+        && cards[2].ariaDisabled === "true" && cards[2].tabindex === "-1",
+      JSON.stringify(cards[2]));
+    // A security assertion rather than a structural one: unlike upstream - which hands the href to a
+    // framework link component that vets it - nothing here passes through React, so the ATTRIBUTE has to
+    // be gated too. No href at all is the only safe rendering of a refused value.
+    check("a javascript: href renders INERT - no href attribute reaches the DOM",
+      cards[3] && cards[3].href === null && cards[3].ariaDisabled === "true",
+      JSON.stringify(cards[3]));
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -2707,11 +2748,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 49 ported / 54 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["49", "54", "103"]),
+    "coverage stats are 50 ported / 53 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["50", "53", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 54 entries", cov.unported === 54, `got ${cov.unported}`);
+  check("unported list rendered 53 entries", cov.unported === 53, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

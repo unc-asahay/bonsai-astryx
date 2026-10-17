@@ -2359,3 +2359,103 @@ the coverage panel's text is part of every screenshot. That is a re-baseline, no
 from the run *after* the update, which is the run that can detect a regression.
 
 Coverage is **49 of 103** with **54 unported**; 49 component appearance pages plus `INDEX.md`.
+
+---
+
+## Gate 44 — ClickableCard (M29): the second consumer, and the name the gate found missing
+
+Coverage moves **49 → 50 of 103**. This milestone has two halves, and the first was committed on its own.
+
+## Half one: the mechanism moved, and the move was proved by not changing anything
+
+`ClickableCard` needs exactly the logic `SelectableCard` was carrying: the interactive-target test, the
+text-selection rule and the canonical selector list. That is the **second consumer** — the condition this
+port names for a helper becoming a mechanism — so all three moved into `Common.Clickable_container`.
+
+The move was made by *slicing the region out of the file and re-indenting it*, not by retyping it, because a
+transcription error in a JS predicate would be invisible to every structural check. `Selectable_card` then
+re-binds the two names it uses (`let is_interactive_target = Clickable_container.is_interactive_target`), so
+**no call site changed** — and that is the point: the evidence that this was a move rather than a rewrite is
+that the suites that already existed pass *unchanged*.
+
+They do: component **433/0**, jsdom **ALL CHECKS PASSED**, browser **306/306** — the same numbers as before
+the extraction, on the same tree. Committed separately as `3da85f8`, `Extract the clickable-container rules
+into Common (no coverage change)`, because **a milestone that moves a mechanism moves no number**. Keeping it
+in its own commit is what makes the proof checkable later: that commit's tree can be re-run and the same
+numbers have to come back.
+
+## Half two: the component
+
+`ClickableCard` is `Card` plus **one visually-hidden interactive element** — an `<a>` when there is an
+`href`, a `<button>` when there is not — which carries the accessible name. The surface stays a plain
+`<div>`, so the card is operable as a link or a button by assistive technology while looking like a card.
+Its clicks run through the extracted mechanism.
+
+### A real bug, caught by reading the DOM back rather than by a structural check
+
+The first browser run failed on the link card with `label: null`: **the anchor had no `aria-label`.** The
+class list was right, the `href` was right, `tabindex="0"` was right, the visually-hidden class was right,
+the marker was right — and the card's only interactive node was an **unnamed, empty, visually-hidden
+link**. A screen reader would have announced nothing.
+
+The lesson is the one this port keeps re-learning in different costumes: **the element a screen reader
+announces is the hidden one, not the `div` around it** — so the name, the role and the state all belong on
+that element, and a check that reads the container's attributes proves none of them. It was found by
+asserting the *value* of the label rather than its presence, and fixed by putting `aria-label` on the anchor
+unconditionally, which is what upstream does.
+
+### A deliberate difference from copying the JSX: the attribute is gated, not only the navigation
+
+Upstream hands its `href` to a framework link component and lets **React vet the hrefs it writes as
+attributes** — its own comment says so, in the place where it explains that nothing *below* passes through
+React. The port has no framework link component and no React, so copying the JSX would have written an
+unvetted `href` into the DOM: a `javascript:` href would be a **live sink** even though this component's own
+click path refuses it.
+
+So the port gates the attribute as well as the navigation, using the same predicate the rest of the port
+already uses (`Citation.is_safe_url`, where the port put its security control). A refused value **renders
+inert** — no `href`, `role="link"`, `aria-disabled="true"`, `tabindex="-1"` — which is this port's existing
+rule for a refused value: it renders inert rather than disappearing. The gate asserts it directly:
+
+> a `javascript: href` renders INERT — no href attribute reaches the DOM
+
+This is a change to upstream's *behaviour* and is recorded as one in the interface, not hidden as an
+implementation detail.
+
+### Named divergences
+
+- The touch press model is not ported, on the same terms as `Selectable_card`: the contract attribute is
+  emitted and the mouse press paints through `:active`; a touch press does not paint.
+- A native `<a>` in place of a framework link component, so navigation is a real document navigation rather
+  than a client-side transition.
+
+### Two mistakes of mine in the checks themselves
+
+Both are the ordinary kind and both were caught by the gate rather than by me:
+
+- I asserted the *disabled* card would render a link with `tabindex="-1"`, but the demo's disabled card had
+  no `href` — so it correctly rendered a **button**. The check was wrong, not the component. The demo now
+  gives the disabled card an `href`, which exercises the interesting path (the disabled *link* treatment:
+  no `href`, `role="link"`, `aria-disabled`, out of the tab order).
+- One check read `cards.every(...)` and therefore **passed vacuously on an empty array** — the exact failure
+  the earlier gates were built to avoid. It now requires the length too.
+
+## What ran
+
+`sweep-m29a.txt`, on the committed tree:
+
+- compile — `dune build: exit 0`
+- component gate — **433 checks, 0 failures** (unchanged, and that is the point)
+- jsdom gate — ALL CHECKS PASSED
+- real browser, showcase — **312/312, 0 failures**
+- real browser, demo — **25/25, 0 failures**
+- responsive + visual regression — **66/66**, 0.00% differ on all 8 page/viewport pairs (320×568, 375×667,
+  768×1024, 1440×900)
+- MCP layer — every ported component reported truthfully
+- **sweep exit 0, 0 FAILs**
+
+The responsive baseline was re-baselined deliberately before this run (a section was added, and the coverage
+panel's text is part of every screenshot), and the 0.00% above is from the run *after* the update — the run
+that can detect a regression.
+
+Coverage is **50 of 103** with **53 unported**.
