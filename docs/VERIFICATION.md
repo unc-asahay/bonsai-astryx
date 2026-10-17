@@ -2669,3 +2669,61 @@ strings: write the fields from knowledge, and make the harness verify the parts 
 caught by reading the output of the background job that made the edit — not by any gate — which is the
 weakest possible way for a wrong claim to be found, and only luck made it happen at all.
 
+---
+
+## Gate 48 — the linkify walk (a mechanism; coverage stays 51)
+
+The first piece of `Link`, and the first thing in this project that a *pure* function could be carved out
+of before any browser was involved. It moves no coverage number, deliberately: the scanner that produces
+the matches and the component that renders them are both still to write, so nothing is registered in
+`port.json` and the count stays at 51.
+
+### Why this half, in this order
+
+`useLinkify` splits in two and upstream's split is the useful part: **finding matches needs a regex engine,
+but cutting the text around them does not.** `segments_of_matches` is the second half, a pure function of
+the text and the matches, so it is verified the way `Overflow_math` is — rows carrying both the expectation
+and the computed answer, compared by the gate as two strings it can both display. No browser, no DOM, no
+state.
+
+### The three rules, which are the reason this is worth a gate
+
+- **Matches sort by start position only**, and equal starts are decided by the order they were collected
+  in — custom patterns before built-in ones. Upstream's comment says "sort by start position, then by
+  earlier pattern priority (stable sort)" while its comparator compares nothing but `start`: the priority
+  tie-break *is* the collection order, held in place by the sort being stable. Depending on stability
+  deliberately means making the stability deliberate here, so it is `List.stable_sort`, and a case feeds
+  two matches with the same start and asserts the earlier one wins.
+- **The first match wins for overlapping ranges, and adjacency is not overlap.** A match beginning exactly
+  where the previous ended is kept; `>=`, not `>`.
+- **Nothing is emitted for a zero-length gap.** A match at position 0 produces no empty leading segment,
+  and one ending at the last character produces no trailing one. Both are cases, because both are easy to
+  get wrong and invisible when you do.
+
+### The mistakes, which were all mine
+
+Four, and three of them were things this repo had already written down.
+
+- An unused `open Bonsai_web` in the interface — the module has no DOM in it at all.
+- **`[@@deriving sexp_of]` is silently ignored in this project**, because the ppx set has no sexp deriver
+  and an unknown attribute is not an error. This is exactly why `Overflow_hook`'s `sexp_of_t` is
+  hand-written, a fact already recorded in the port's own notes, which I applied to that module and then
+  forgot here. The fixture now renders each segment itself and the interface says why there is no deriver.
+- **Two stop indices off by one**, from doing character arithmetic in my head: `"https://x.dev/a"` is 15
+  characters from index 4, so its stop is 19, not 18; `"https://a.dev"` is 13 from index 2, so 15, not 14.
+  The gate caught both by showing the two rendered strings side by side. This is the third time this
+  session that a gate has caught my arithmetic rather than a defect in the code — which is the argument for
+  comparing two values the harness can display.
+- And the interface hid the derived functions, which is not a mistake but the `.mli` doing its job: an
+  interface exports nothing it does not name, which is why the sexp functions were unbound from the test
+  gate even after they were generated. Moot once the deriver turned out not to exist.
+
+### What ran
+
+`tests: 437 checks, 0 failures` — 435 plus these two — and then the full sweep on the committed tree:
+**SWEEP GREEN, every gate passed, exit 0**, with all nine gates ok including the `port.json` attribution
+check added after the M30 misattribution.
+
+Next, in the order already recorded: the scanner, using JS `RegExp` for fidelity (testable in the component
+gate, which runs under node), then the safe-link wrapper, then `Link` itself.
+

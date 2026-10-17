@@ -486,6 +486,8 @@ DialogHeader
   ok   with the tabular-figure treatment applied, so the numbers do not jump
   ok   the overflow arithmetic rendered its cases
   ok   every overflow case computes the agreed answer
+  ok   the linkify walk rendered its cases
+  ok   every linkify case cuts the text the agreed way
 
-435 checks, 0 failure(s)
+437 checks, 0 failure(s)
 COMPONENT CHECKS PASSED
