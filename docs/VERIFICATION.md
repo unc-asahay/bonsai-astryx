@@ -2257,3 +2257,105 @@ hover text · the icon swap · a vertical group saying so in ARIA *and* in compu
 
 component **433/0** · browser **293/293** · demo 25/25 · responsive 66/0 · coverage **48 of 103** (55 unported) ·
 sweep exit 0, 0 FAILs, MCP layer truthful.
+
+---
+
+## Gate 43 — SelectableCard (M28): the card that carries its own checkbox, and the process error that came first
+
+Coverage moves **48 → 49 of 103**. The directory is the unit: `SelectableCard` is one entry, and its
+upstream dependencies (`useClickableContainer`, `useMergedRefs`) are mechanisms rather than components.
+
+## First, the mistake — because the fix is the interesting part
+
+I picked this milestone by measuring **upstream's** component directories and choosing the smallest that
+was not blocked, landing on `TextArea` (713 lines, one file, reusing the port's own `Field`). I then wrote
+a fresh `src/text_area.ml` and its `.mli`.
+
+**TextArea had been ported at M12.** It was in `port.json.ported`, in the port's own coverage count, and
+already exported from `src/astryx.ml` — twice, as `Astryx.Text_area` *and* `Astryx.TextArea`. My
+registration script's idempotence guard printed nothing because the name was already there, and I read that
+silence as a no-op instead of as the signal it was. The overwrite replaced a 157-line working component
+with a 109-line one that dropped the `size` type the showcase demo had been using since M12.
+
+What caught it was a **consumer**: `dune build` failed on `Astryx.TextArea.Sm`, unbound, from the showcase —
+not from the component's own gates, which were perfectly happy with the replacement because the module
+still compiled, still stamped its marker and still rendered. Recovery was `git checkout -- src/text_area.ml
+src/text_area.mli`: the damage was confined to uncommitted work, and `port.json`, the generators and `HEAD`
+were all untouched because I commit each milestone before starting the next.
+
+The rule this earns (now step 0 of the port's ritual, in the skill): **ask what the port already has before
+measuring what upstream has.** `port.json.ported` is the authority, and it is a diff against
+`registry.json` — so the selection question is answered by a set difference, not by a line count. Measuring
+upstream answers "what is small upstream?", which is not the question.
+
+The vetted list is now generated rather than eyeballed:
+
+- registry **103**, ported **49**, unported **54** — and 49 + 54 = 103, the arithmetic the coverage panel
+  displays.
+- Sizes from the new method are a **lower bound**: it walks the component's own directory, and
+  `ScrollableArea` reads as 286 lines when its mechanism actually lives in five modules under shared
+  `hooks/` (1,330 lines). A component whose weight is in shared machinery will always look cheap this way.
+
+## The component
+
+`SelectableCard` is a `Card` with selection on top, and its accessible design is the elegant part: **the
+card surface is a plain `<div>` with no role and no tabindex**, and a visually-hidden
+`<input type="checkbox">` inside carries the role, the accessible name and the checked state. Native
+checkbox behaviour (Space, the focus ring, the form association) then comes for free, and the container has
+no semantics of its own to get wrong.
+
+The click rules are the mechanism, and they are ported literally:
+
+- A click on the surface toggles the selection.
+- A click on a **nested interactive element** is left alone, so it does not fire twice. Upstream's
+  `INTERACTIVE_SELECTORS` list is ported as a constant. The root carries `data-pressable-container`, and
+  that attribute is *in* the list — so a child's `closest()` finds the root, which is exactly why the
+  comparison against the root is not decoration: it is what keeps the surface's own clicks from counting as
+  interactive, while a genuinely nested clickable container still does.
+- A click that **ends a text selection** is ignored, so dragging to select a card's text never changes the
+  selection. Only a non-collapsed selection anchored inside the element counts.
+
+`Enter` is added by hand and `Space` is not: a native checkbox already answers Space, and adding it here
+would toggle twice. That asymmetry is upstream's, and it is the reason its keydown handler exists at all.
+
+**`Card` gained `?component_name` and `?attrs`** — Button's delegation marker, verbatim. Upstream stamps
+`selectable-card` rather than inheriting Card's name, and every tool in this repo identifies a component by
+that marker, so a wrapper that keeps its delegate's name is invisible to all of them. Passing the attribute
+through `attrs` does not work: two attributes of one name meet and one silently wins. A check in the browser
+gate now asserts the marker is `SelectableCard` and *not* `Card`.
+
+## Named, not faked: the touch press model
+
+`usePressFeedback` looks like a 52-line hook and is not: it stands on `utils/pressFeedback.ts` — **461
+lines** — plus a gesture module and the CSS arms that read it. It installs one document-level controller
+with six listeners, writes `data-astryx-press="on"`/`["fading"]` on the innermost pressable surface, and
+carries a real state machine: an onset delay, cancels for travel and for scroll, a "brake, not a press"
+heuristic for a finger landing on a list it set moving, a second-finger rule, pointer-type gating and
+three seconds of gesture memory.
+
+This port emits the contract attribute (`data-astryx-pressable`) and paints the **mouse** press through
+`:active`; a touch press does not paint. That is the same shape of divergence the overlay family carries for
+`Layer`: the markup contract is honest, the platform-backed half works, and the missing half is named in the
+interface rather than approximated. Porting the model is a campaign on the scale of `Layer`, not a milestone.
+
+## What ran
+
+`sweep-m28a.txt`, on the committed tree:
+
+- compile — `dune build: exit 0`
+- component gate — **433 checks, 0 failures**
+- jsdom gate — ALL CHECKS PASSED (unchanged: this component has no jsdom fixture, and the last several
+  milestones are browser-gated for the same reason — its behaviour is DOM interaction, which jsdom has no
+  click-to-toggle for and no keyboard for)
+- real browser, showcase — **306/306, 0 failures** (up from 293; the additions include the eight new
+  SelectableCard checks)
+- real browser, demo — **25/25, 0 failures**
+- responsive + visual regression — **66/66** at 0.00% differ on 320×568, 375×667, 768×1024 and 1440×900
+- MCP layer — every ported component reported truthfully
+- **sweep exit 0, 0 FAILs**
+
+The responsive baseline was **re-baselined deliberately** before this run, because one section was added and
+the coverage panel's text is part of every screenshot. That is a re-baseline, not a pass: the 0.00% above is
+from the run *after* the update, which is the run that can detect a regression.
+
+Coverage is **49 of 103** with **54 unported**; 49 component appearance pages plus `INDEX.md`.

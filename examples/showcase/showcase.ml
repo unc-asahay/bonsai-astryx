@@ -3170,6 +3170,86 @@ let toggle_button_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+let selectable_card_demo (graph : Bonsai.graph) =
+  (* Selection is the caller's, exactly as upstream's composition hint says: a set for multi-select, and the
+     card keeps nothing of its own. The set is keyed by the card's id, so the label stays free for the
+     accessible name. *)
+  let state, set_state = Bonsai.state (Set.empty (module String)) graph in
+  let card ?(variant = Astryx.Card.Default) ~id ~label children =
+    Bonsai.map2 state set_state ~f:(fun state set_state ->
+      let is_selected = Set.mem state id in
+      Astryx.Selectable_card.view
+        ~variant
+        ~is_selected
+        ~label
+        ~attrs:[ Vdom.Attr.id id ]
+        ~on_change:(fun next ->
+          set_state (if next then Set.add state id else Set.remove state id))
+        children)
+  in
+  let multi_select =
+    unwrap_all
+      [ card ~id:"sc-blue" ~variant:Astryx.Card.Blue ~label:"Blue" [ Vdom.Node.text "Blue" ]
+      ; card ~id:"sc-green" ~variant:Astryx.Card.Green ~label:"Green" [ Vdom.Node.text "Green" ]
+      ; card ~id:"sc-purple" ~variant:Astryx.Card.Purple ~label:"Purple" [ Vdom.Node.text "Purple" ]
+      ]
+    |> Bonsai.map ~f:(fun cards -> Astryx.HStack.view ~gap:S.S2 cards)
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map multi_select ~f:(ex "three cards, one set: click to select more than one")
+      ; Bonsai.return
+          (ex
+             "selected, and a disabled card that still explains itself"
+             (Astryx.HStack.view
+                ~gap:S.S2
+                [ Astryx.Selectable_card.view
+                    ~is_selected:true
+                    ~label:"Selected"
+                    ~attrs:[ Vdom.Attr.id "sc-selected" ]
+                    ~on_change:(fun _ -> Effect.Ignore)
+                    [ Vdom.Node.text "Selected" ]
+                ; Astryx.Selectable_card.view
+                    ~is_disabled:true
+                    ~is_selected:false
+                    ~label:"Unavailable"
+                    ~attrs:[ Vdom.Attr.id "sc-disabled" ]
+                    ~on_change:(fun _ -> Effect.Ignore)
+                    [ Vdom.Node.text "Unavailable" ]
+                ]))
+      ; Bonsai.return
+          (ex
+             "a nested button: clicking it does NOT select the card"
+             (Astryx.Selectable_card.view
+                ~is_selected:false
+                ~label:"With a nested control"
+                ~attrs:[ Vdom.Attr.id "sc-nested" ]
+                ~on_change:(fun _ -> Effect.Ignore)
+                [ Vdom.Node.text "Card body"
+                ; Astryx.Button.view
+                    ~label:"Inner"
+                    ~variant:Astryx.Button.Secondary
+                    ~on_click:(fun _ -> Effect.Ignore)
+                    []
+                ]))
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"selectable-card"
+      ~title:"SelectableCard"
+      ~note:
+        "A Card that toggles between selected and unselected. The surface is a plain div with no role and \
+         no tabindex; a visually-hidden checkbox inside carries the role, the accessible name and the \
+         checked state, so native checkbox behaviour comes for free and the container has no semantics of \
+         its own to get wrong. Selection is controlled - the set above lives in the caller, exactly as the \
+         composition hint says. The click rules are the mechanism: a surface click selects, a click on a \
+         nested button is left to the button, and a click that ends a text selection is ignored. Named as a \
+         divergence: the touch press model (a 461-line document-level controller) is not ported, so a finger \
+         press does not paint while a mouse press does."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3227,7 +3307,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3491,6 +3571,7 @@ let page (graph : Bonsai.graph) =
   let avatar_section = avatar_demo graph in
   let avatar_group_section = avatar_group_demo graph in
   let toggle_button_section = toggle_button_demo graph in
+  let selectable_card_section = selectable_card_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3512,10 +3593,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful avatar_section in
   let stateful = pair stateful avatar_group_section in
   let stateful = pair stateful toggle_button_section in
+  let stateful = pair stateful selectable_card_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button)
+    ~f:(fun ((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3523,7 +3605,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card ])
       ])
 ;;
 

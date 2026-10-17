@@ -1,0 +1,31 @@
+=== 1. compile ===
+dune build: exit 0
+=== 2. component tests (OCaml builds each component, node asserts on the DOM) ===
+
+433 checks, 0 failure(s)
+COMPONENT CHECKS PASSED
+=== 3. DOM + accessibility (jsdom, real js_of_ocaml bundle) ===
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED
+=== 4. real browser (Chromium over HTTP) ===
+306/306 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+25/25 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+=== 5. responsive + visual regression (mobile / tablet / desktop) ===
+
+66 checks passed, 0 failure(s)
+RESPONSIVE CHECKS PASSED
+=== 6. agent-facing tool layer ===
+  note  VStack (ported, no snippet — reported as such)
+  note  SelectableCard (ported, no snippet — reported as such)
+ok    every ported component is reported as ported
+
+=== transcript line counts ===
+  489 docs/verification/ocaml-tests.txt
+   92 docs/verification/verify-dom.txt
+  415 docs/verification/browser-verify.txt
+  110 docs/verification/responsive.txt
+ 1106 total
+sweep exit 0

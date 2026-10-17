@@ -528,6 +528,33 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M28 — SelectableCard: the card that carries its own checkbox (done, 49 of 103)
+
+A `Card` with selection on top. The accessible design is upstream's and is kept: the surface is a plain
+`<div>` with no role and no tabindex, and a visually-hidden `<input type="checkbox">` inside carries the
+role, the name and the checked state — so native checkbox behaviour comes free and the container has no
+semantics to get wrong. The click rules are ported literally, because they *are* the mechanism: a surface
+click toggles; a click on a nested interactive element is left alone (upstream's `INTERACTIVE_SELECTORS`,
+ported as a constant — the root is in that list, which is why comparing against the root is load-bearing);
+and a click that ends a text selection is ignored, so dragging over a card's text never changes the
+selection. `Enter` is added by hand and `Space` is not, because a checkbox already answers Space.
+
+`Card` gained `?component_name` and `?attrs`, mirroring `Button`'s delegation marker: upstream stamps
+`selectable-card` rather than inheriting Card's, and a wrapper that keeps its delegate's name is invisible
+to every tool here. A browser check now asserts the marker is `SelectableCard` and not `Card`.
+
+**Named, not faked:** the touch press model. `usePressFeedback` is a 52-line hook standing on
+`utils/pressFeedback.ts` — 461 lines — plus a gesture module and CSS arms: a document-level controller with
+an onset delay, cancels for travel and scroll, a "brake, not a press" heuristic and gesture memory. This
+port emits the contract attribute and paints the *mouse* press through `:active`; a touch press does not
+paint. A campaign on the scale of `Layer`, not a milestone.
+
+Recon was measured with the **vetted** method — `registry.json` (103) minus `port.json.ported` (49) = 54
+unported — after the method that preceded it caused a real error, recorded in Gate 43 and now step 0 of the
+port's ritual: measuring upstream's directories answers "what is small upstream?", never "does the port
+already have it?". Note that sizes from the directory walk are a **lower bound**: `ScrollableArea` reads as
+286 lines when its mechanism lives in five modules under shared `hooks/` (1,330 lines).
+
 ### M27 — ToggleButton: a button that stays down (done, 48 of 103)
 
 The design decision fell out of two facts that cannot both hold: the port's Tooltip needs a graph, and

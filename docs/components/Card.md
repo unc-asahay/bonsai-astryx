@@ -84,6 +84,8 @@ val view
   -> ?height:Common.Size_value.t
   -> ?max_width:Common.Size_value.t
   -> ?min_height:Common.Size_value.t
+  -> ?component_name:string
+  -> ?attrs:Vdom.Attr.t list
   -> Vdom.Node.t list
   -> Vdom.Node.t
 ```

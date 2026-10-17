@@ -57,6 +57,8 @@ let view
   ?height
   ?max_width
   ?min_height
+  ?(component_name = "Card")
+  ?(attrs = [])
   children
   =
   let elevation_class =
@@ -84,7 +86,8 @@ let view
   Vdom.Node.div
     ~attrs:
       (Common.Attr.class_ classes
-       @ Common.Attr.data "component" "Card"
-       @ Common.Attr.style styles)
+       @ Common.Attr.data "component" component_name
+       @ Common.Attr.style styles
+       @ attrs)
     children
 ;;

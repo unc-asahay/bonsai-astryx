@@ -85,4 +85,5 @@ module Text_input = Text_input
 module TextInput = Text_input
 module Text_area = Text_area
 module TextArea = Text_area
-
+module Selectable_card = Selectable_card
+module SelectableCard = Selectable_card

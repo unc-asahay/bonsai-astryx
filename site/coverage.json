@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 48,
-    "unported": 55,
+    "ported": 49,
+    "unported": 54,
     "total": 103,
     "documented": 103
   },
@@ -222,6 +222,12 @@
       "milestone": "M2"
     },
     {
+      "name": "SelectableCard",
+      "module": "Astryx.Selectable_card",
+      "file": "src/selectable_card.ml",
+      "milestone": "M28"
+    },
+    {
       "name": "Skeleton",
       "module": "Astryx.Skeleton",
       "file": "src/skeleton.ml",
@@ -339,7 +345,6 @@
     "Resizable",
     "ScrollableArea",
     "SegmentedControl",
-    "SelectableCard",
     "Selector",
     "SideNav",
     "Slider",

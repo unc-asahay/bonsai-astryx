@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-48 ported component(s). Each page records the appearance the port
+50 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -14,7 +14,7 @@ for image generation.
 | AvatarGroup | 3 | 1 | 2 | 0 | [AvatarGroup.md](AvatarGroup.md) |
 | Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 66 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 67 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
@@ -45,18 +45,20 @@ for image generation.
 | ProgressBar | 8 | 1 | 5 | 1 | [ProgressBar.md](ProgressBar.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
 | Section | 10 | 8 | 9 | 5 | [Section.md](Section.md) |
+| SelectableCard | 6 | 7 | 17 | 15 | [SelectableCard.md](SelectableCard.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
-| Stack | 57 | 10 | 7 | 0 | [Stack.md](Stack.md) |
+| Stack | 59 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
 | Text | 65 | 15 | 8 | 26 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
 | Timer | 3 | 0 | 0 | 0 | [Timer.md](Timer.md) |
+| ToggleButton | 6 | 5 | 25 | 11 | [ToggleButton.md](ToggleButton.md) |
 | Toolbar | 3 | 4 | 6 | 1 | [Toolbar.md](Toolbar.md) |
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 55 components with no OCaml port. They
+Not listed: the 53 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

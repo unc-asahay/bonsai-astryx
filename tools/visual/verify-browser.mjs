@@ -243,6 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
+    "SelectableCard",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -605,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("51 sections", sections.length === 51, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("52 sections", sections.length === 52, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,7 +617,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -628,7 +629,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("302 examples across the page", totalExamples === 302, `got ${totalExamples}`);
+  check("305 examples across the page", totalExamples === 305, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -641,7 +642,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("51 nav links", nav.length === 51, `got ${nav.length}`);
+  check("52 nav links", nav.length === 52, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2601,6 +2602,99 @@ check(
       JSON.stringify(manualClosed));
   }
 
+  // -------------------------------------------------------- SelectableCard (M28)
+  console.log("\nSelectableCard (live)");
+  const scState = (id) =>
+    page.evaluate((sel) => {
+      const el = document.getElementById(sel);
+      if (!el) return null;
+      const input = el.querySelector('input[type="checkbox"]');
+      return {
+        marker: el.getAttribute("data-astryx-component"),
+        selected: el.getAttribute("data-astryx-selected"),
+        checked: input ? input.checked : null,
+        label: input ? input.getAttribute("aria-label") : null,
+        ariaDisabled: input ? input.getAttribute("aria-disabled") : null,
+        hidden: input ? input.classList.contains("astryx-visually-hidden") : null,
+      };
+    }, id);
+  {
+    const first = await scState("sc-blue");
+    // The marker is the whole point of Card's ?component_name: a wrapper that inherited "Card"
+    // would be invisible to the appearance contract and to this gate.
+    check("a selectable card stamps its OWN marker, not Card's",
+      first && first.marker === "SelectableCard", JSON.stringify(first));
+    check("its state is announced as an attribute the CSS can read",
+      first && first.selected === "false", String(first && first.selected));
+    check("the visually-hidden checkbox carries the accessible name",
+      first && first.label === "Blue" && first.hidden === true, JSON.stringify(first));
+
+    await page.click("#sc-blue");
+    await page.waitForFunction(
+      () => document.getElementById("sc-blue")?.getAttribute("data-astryx-selected") === "true",
+    ).catch(() => {});
+    const selected = await scState("sc-blue");
+    check("clicking the surface selects it, and the checkbox follows",
+      selected && selected.selected === "true" && selected.checked === true, JSON.stringify(selected));
+
+    await page.click("#sc-green");
+    await page.waitForTimeout(200);
+    const [still, green] = [await scState("sc-blue"), await scState("sc-green")];
+    check("a second card selects too - the set is the caller's, so the first stays",
+      still.selected === "true" && green.selected === "true", JSON.stringify([still.selected, green.selected]));
+
+    await page.click("#sc-blue");
+    await page.waitForTimeout(200);
+    check("clicking a selected card deselects it",
+      (await scState("sc-blue")).selected === "false");
+
+    check("the nested-control card really does contain a button",
+      await page.evaluate(() => !!document.querySelector("#sc-nested button")) === true);
+    await page.click("#sc-nested button");
+    await page.waitForTimeout(250);
+    check("clicking the nested button does NOT select the card",
+      (await scState("sc-nested")).selected === "false");
+
+    const disabled = await scState("sc-disabled");
+    check("a disabled card still names itself and reports aria-disabled",
+      disabled && disabled.ariaDisabled === "true" && disabled.label === "Unavailable",
+      JSON.stringify(disabled));
+    await page.click("#sc-disabled", { force: true }).catch(() => {});
+    await page.waitForTimeout(250);
+    check("clicking a disabled card changes nothing",
+      (await scState("sc-disabled")).selected === "false");
+
+    // Space is native on a checkbox; Enter is not, which is why upstream adds it by hand.
+    await page.evaluate(() => {
+      document.querySelector('#sc-purple input[type="checkbox"]').focus();
+    });
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(250);
+    check("Enter selects, because a native checkbox does not answer Enter",
+      (await scState("sc-purple")).selected === "true");
+
+    // The rule that is easy to lose: a click that ends a text selection is a selection, not a click.
+    // sc-purple is selected now, so a handler that ignored this rule would deselect it.
+    const dragged = await page.evaluate(() => {
+      const card = document.getElementById("sc-purple");
+      const range = document.createRange();
+      range.selectNodeContents(card);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      const nonCollapsed = sel.isCollapsed === false;
+      // dispatched directly, so nothing collapses the selection before the handler reads it
+      card.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      return nonCollapsed;
+    });
+    check("the selection is genuinely non-collapsed before the synthetic click", dragged === true);
+    await page.waitForTimeout(250);
+    check("a click that ends a text selection does not change the selection",
+      (await scState("sc-purple")).selected === "true",
+      `selected=${(await scState("sc-purple")).selected}`);
+    await page.evaluate(() => window.getSelection().removeAllRanges());
+  }
+
   console.log("\ncoverage panel (fetched from coverage.json at runtime)");
   await page.waitForTimeout(500);
   const cov = await page.evaluate(() => ({
@@ -2613,11 +2707,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 48 ported / 55 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["48", "55", "103"]),
+    "coverage stats are 49 ported / 54 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["49", "54", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 55 entries", cov.unported === 55, `got ${cov.unported}`);
+  check("unported list rendered 54 entries", cov.unported === 54, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

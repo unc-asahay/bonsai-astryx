@@ -2482,3 +2482,61 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 
 .astryx-toggle-button-group--horizontal { flex-direction: row; align-items: center; }
 .astryx-toggle-button-group--vertical { flex-direction: column; align-items: stretch; }
+
+
+/* ============================================================
+   SelectableCard (M28) - a Card that toggles between selected
+   and unselected. Upstream paints selection as an inset ring
+   (zero layout jitter versus a plain Card) reading a custom
+   property declared on the element, so a theme can override it.
+   That seam is kept: --selectable-card-ring-color.
+   ============================================================ */
+.astryx-selectable-card {
+  --selectable-card-ring-color: var(--color-accent);
+  position: relative;
+  cursor: pointer;
+  transition-property: box-shadow, border-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-selectable-card--disabled {
+  cursor: default;
+}
+
+/* The ring itself. border-color as well as the inset shadow, because the ring
+   sits inside the border and a coloured variant looks wrong without both. */
+.astryx-selectable-card--selected {
+  border-color: var(--selectable-card-ring-color);
+  box-shadow: inset 0 0 0 2px var(--selectable-card-ring-color);
+}
+
+/* Upstream maps the selected colour off the Card variant, one arm per colour. */
+.astryx-selectable-card.astryx-card--blue { --selectable-card-ring-color: var(--color-border-blue); }
+.astryx-selectable-card.astryx-card--cyan { --selectable-card-ring-color: var(--color-border-cyan); }
+.astryx-selectable-card.astryx-card--gray { --selectable-card-ring-color: var(--color-border-gray); }
+.astryx-selectable-card.astryx-card--green { --selectable-card-ring-color: var(--color-border-green); }
+.astryx-selectable-card.astryx-card--orange { --selectable-card-ring-color: var(--color-border-orange); }
+.astryx-selectable-card.astryx-card--pink { --selectable-card-ring-color: var(--color-border-pink); }
+.astryx-selectable-card.astryx-card--purple { --selectable-card-ring-color: var(--color-border-purple); }
+.astryx-selectable-card.astryx-card--red { --selectable-card-ring-color: var(--color-border-red); }
+.astryx-selectable-card.astryx-card--teal { --selectable-card-ring-color: var(--color-border-teal); }
+.astryx-selectable-card.astryx-card--yellow { --selectable-card-ring-color: var(--color-border-yellow); }
+
+/* Hover and press. The hover arm is guarded so a touch device cannot show a
+   stuck hover state. The press here is the MOUSE arm only (:active): the touch
+   arm is the document-level press model, which this port does not have - see
+   selectable_card.mli. */
+@media (hover: hover) {
+  .astryx-selectable-card:not(.astryx-selectable-card--disabled):hover {
+    background-color: var(--color-overlay-hover);
+  }
+}
+
+.astryx-selectable-card:not(.astryx-selectable-card--disabled):active {
+  background-color: var(--color-overlay-pressed);
+}
+
+.astryx-selectable-card--disabled {
+  opacity: 0.6;
+}
