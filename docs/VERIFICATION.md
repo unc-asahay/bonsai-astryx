@@ -2513,3 +2513,52 @@ now the number of checks that actually ran.
 
 Next: the resize hook that measures for it, then the component.
 
+---
+
+## Gate 46 — the gate sweep now fails when a gate fails (a harness fix, no coverage change)
+
+Not a component, and it moves no number. It is recorded because it was a **defect in this project's own
+harness**, and because a harness that reports green when red is worse than no harness at all: it makes
+`exit 0` mean nothing, and `exit 0` is the kind of clean-looking evidence a claim gets built on.
+
+### The defect
+
+`tools/gate-sweep.sh` could only ever fail on **step 1**. Every later gate wrote its transcript and had its
+status discarded, and the last thing the script did was `wc -l`, which always succeeds. So a red browser,
+responsive, component or MCP gate still ended at `sweep exit 0`.
+
+It was found by reading a stale sweep notification from M24 — whose responsive gate genuinely *did* fail at
+the time — and noticing that the transcript's last line said `sweep exit 0` directly under
+`RESPONSIVE CHECKS FAILED`. Every green claim this session was in fact resting on the **FAIL count**, which
+I was grepping by hand each time. That is exactly the manual work a harness exists to remove, and the
+manual check is the only reason nothing was ever reported red as green.
+
+### The fix
+
+Each gate's status is captured immediately after it runs; a result block prints one line per gate; the
+script exits 1 if any failed, naming them. Step 1 remains a hard stop, because if the build fails nothing
+downstream can mean anything — the sweep ends there rather than writing six transcripts of consequences.
+
+**The subtle part:** the showcase and demo browser runs share one transcript, so a group-level status would
+have come from whichever ran last — a showcase that failed while the demo passed would have been red-then-
+green, i.e. invisible. Their statuses are captured separately and both reported.
+
+### The verification: the harness was tested by making it fail
+
+A fix to "the harness lies" is worth nothing unless the failure path is demonstrated, so it was: with the
+showcase HTTP server on :8791 stopped on purpose, the sweep was run and had to produce a red result
+**attributed per gate** — not blanket red. It did. Exactly the three gates that need the server failed; the
+four that do not passed; exit 1. That output is kept verbatim as
+`docs/verification/sweep-red-verification.txt`, because a claim about the harness's behaviour should be
+backed by a transcript the same way a component claim is.
+
+The server was then restarted and the real sweep re-run: **SWEEP GREEN: every gate passed, exit 0**, with
+the counts above.
+
+### The related trap, worth knowing
+
+`grep -c "FAIL"` exits **1 on zero matches**. That is what produced the "exit code 1" on several stale sweep
+notifications that had in fact passed every gate — a failed *grep*, not a failed sweep. Two different
+exit codes meaning two different things is how a project learns to stop trusting exit codes; both are now
+explicit in the script's own output rather than left to be inferred.
+

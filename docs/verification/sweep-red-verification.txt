@@ -1,0 +1,47 @@
+# Gate-sweep RED verification — the harness tested by making it fail
+# command: bash tools/gate-sweep.sh   (with the showcase HTTP server on :8791 stopped on purpose)
+# why this is kept: the sweep used to exit 0 even when a gate failed, because only the build could
+# fail it and the last thing it ran (wc -l) always succeeds. A harness that reports green when red
+# makes 'exit 0' meaningless, so the fix is only worth anything if the red path is demonstrated.
+# expected: the three gates that need the server fail, the four that do not still pass, exit 1.
+
+=== 1. compile ===
+dune build: exit 0
+=== 2. component tests (OCaml builds each component, node asserts on the DOM) ===
+
+435 checks, 0 failure(s)
+COMPONENT CHECKS PASSED
+=== 3. DOM + accessibility (jsdom, real js_of_ocaml bundle) ===
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED
+=== 4. real browser (Chromium over HTTP) ===
+=== 5. responsive + visual regression (mobile / tablet / desktop) ===
+}
+
+Node.js v24.21.0
+=== 6. agent-facing tool layer ===
+  note  SelectableCard (ported, no snippet — reported as such)
+  note  ClickableCard (ported, no snippet — reported as such)
+ok    every ported component is reported as ported
+
+=== sweep result ===
+  ok      component tests (test/run.mjs)
+  ok      DOM + accessibility (verify-dom.mjs)
+  FAILED  real browser, showcase (verify-browser.mjs) (exit 1)
+  FAILED  real browser, demo (verify-browser.mjs) (exit 1)
+  FAILED  responsive + visual regression (verify-responsive.mjs) (exit 1)
+  ok      MCP layer (--cli status)
+  ok      MCP layer (every ported component truthfully reachable)
+
+=== transcript line counts ===
+  491 docs/verification/ocaml-tests.txt
+   92 docs/verification/verify-dom.txt
+   21 docs/verification/browser-verify.txt
+   29 docs/verification/responsive.txt
+  633 total
+
+SWEEP RED: 3 gate(s) failed
+  - real browser, showcase (verify-browser.mjs) (exit 1)
+  - real browser, demo (verify-browser.mjs) (exit 1)
+  - responsive + visual regression (verify-responsive.mjs) (exit 1)
