@@ -1865,3 +1865,71 @@ let () =
   in
   mount "linkify-builtins" (Vdom.Node.div rows)
 ;;
+
+
+(* The destination handoff: which of upstream's three branches a pair of props resolves to, and the rules
+   that decide it. Every case here describes a link that would compile and look right while doing the
+   wrong thing, which is why they are pinned rather than reasoned about. *)
+let () =
+  let open Astryx.Link_destination in
+  let show = function
+    | Rejected -> "Rejected"
+    | Native None -> "Native(no href)"
+    | Native (Some h) -> "Native(" ^ h ^ ")"
+    | Routed { href; to_ } ->
+      "Routed(href="
+      ^ Option.value href ~default:"-"
+      ^ ",to="
+      ^ Option.value to_ ~default:"-"
+      ^ ")"
+  in
+  let cases : (string * component * string option * string option * string) list =
+    [ ( "a plain native link is NOT rejected by its absent `to`"
+      , Anchor
+      , Some "/x"
+      , None
+      , "Native(/x)" )
+    ; ( "an unsafe href is rejected", Anchor, Some "javascript:alert(1)", None, "Rejected" )
+    ; ( "one unsafe `to` rejects the WHOLE handoff, good href included"
+      , Custom
+      , Some "/x"
+      , Some "javascript:alert(1)"
+      , "Rejected" )
+    ; ( "both absent is still a native anchor, with no destination"
+      , Anchor
+      , None
+      , None
+      , "Native(no href)" )
+    ; ( "a custom component is handed both props"
+      , Custom
+      , Some "https://x.dev"
+      , Some "/docs"
+      , "Routed(href=https://x.dev,to=/docs)" )
+    ; ( "a custom component's `to` defaults to its href"
+      , Custom
+      , Some "/docs"
+      , None
+      , "Routed(href=/docs,to=/docs)" )
+    ; ( "a data:text/html destination is rejected"
+      , Anchor
+      , Some "data:text/html,<script>alert(1)</script>"
+      , None
+      , "Rejected" )
+    ; ( "a custom component with neither prop is routed with neither"
+      , Custom
+      , None
+      , None
+      , "Routed(href=-,to=-)" )
+    ]
+  in
+  let rows =
+    List.map cases ~f:(fun (label, component, href, to_, expect) ->
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "expect" expect
+           @ Astryx.Common.Attr.data "got" (show (resolve ~component ~href ~to_)))
+        [])
+  in
+  mount "link-destination" (Vdom.Node.div rows)
+;;

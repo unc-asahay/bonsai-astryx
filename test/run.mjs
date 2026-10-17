@@ -1791,6 +1791,22 @@ check("a disabled group says so once, on the box", (() => {
   );
 }
 
+// ---------------------------------------------------------------- the destination handoff
+{
+  const rows = [...document.querySelectorAll('[data-case="link-destination"] [data-astryx-label]')];
+  check("the destination handoff rendered its cases", rows.length === 8, `got ${rows.length}`);
+  const wrong = rows.filter(
+    (r) => r.getAttribute("data-astryx-expect") !== r.getAttribute("data-astryx-got"),
+  );
+  check(
+    "every destination resolves to the branch upstream would take",
+    wrong.length === 0 && rows.length === 8,
+    wrong
+      .map((r) => `${r.getAttribute("data-astryx-label")}: ${r.getAttribute("data-astryx-got")}`)
+      .join(" | ") || "all correct",
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 
