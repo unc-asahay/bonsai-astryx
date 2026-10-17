@@ -498,6 +498,29 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### MetadataList, reconnoitred — the next milestone, and its shape
+
+`MetadataList` (325) + `MetadataListItem` (206) + `MetadataListContext` (26) = 557 lines, three files, and
+**no shared machinery at all** — tokens, `themeProps` and i18n, exactly as the measurement said. So it is the
+next milestone, and this is what it will take:
+
+- **It is stateful.** `maxNumOfItems` truncates the list and renders a show-all toggle (`appearance: none`,
+  accent-coloured, `align-self: flex-start`), so `view` takes a graph argument rather than being static like
+  `Toolbar`'s.
+- **The layout is chosen on the list and applied to the items**, through the context: `columns` is
+  `'single' | 'multi' | <number>`, `label` is a position (`start` or `top`) defaulting to start for single /
+  top otherwise, and `orientation` switches a grid for a wrapping flex row. The item reads the context to
+  decide its own grid placement — which is the same "a child is built before its container sees it" problem
+  as InputGroup's, so it will be the same kind of named divergence: the caller builds the items, and the
+  list's layout reaches them as CSS.
+- **The markup is a real `<dl>`** — term/value — with `title` above it, which is the part worth checking in
+  jsdom; the grids (`auto minmax(0, 1fr)`, `repeat(auto-fill, minmax(280px, 1fr))`) and the truncation are
+  the browser gate's.
+
+Not started here, deliberately: it is a full milestone and this session had already landed its increments
+(InputGroup, the `List_focus` extraction, the generalisation, Toolbar) plus two tooling fixes. Starting a
+three-file stateful component at the end of a long session is how a green tree becomes a broken one.
+
 ### What the measurement says is next, after M21
 
 - **`Overlay` is not the cheap one it looked like.** Its main file is 132 lines, and its directory is four
