@@ -484,6 +484,8 @@ DialogHeader
   ok   carrying a machine-readable duration beside the human one
   ok   and the clock format differs in exactly the way it should at zero
   ok   with the tabular-figure treatment applied, so the numbers do not jump
+  ok   the overflow arithmetic rendered its cases
+  ok   every overflow case computes the agreed answer
 
-433 checks, 0 failure(s)
+435 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

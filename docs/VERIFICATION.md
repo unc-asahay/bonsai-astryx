@@ -2459,3 +2459,57 @@ panel's text is part of every screenshot), and the 0.00% above is from the run *
 that can detect a regression.
 
 Coverage is **50 of 103** with **53 unported**.
+
+---
+
+## Gate 45 — the fit arithmetic behind an overflowing list (a mechanism, no coverage change)
+
+**50 of 103 still**, deliberately: this is a mechanism, and a milestone that moves a mechanism moves no
+number. It is recorded because it is verified, not because it changed the count.
+
+`OverflowList` is the next component by the vetted list, and it is the only unported candidate with **no
+unported component dependency** — everything else is blocked on a real pillar (`Thumbnail` and `FileInput`
+on `Spinner`, `Token` on `Link`, `List`/`SegmentedControl`/`Lightbox` on `Layer`, `Pagination` on
+`NumberInput` + `Selector`, `Banner` on `Collapsible` + `Layout`). Its weight is not the 421-line component
+but the measurement engine under it: a 274-line `useOverflow` hook over a shared `ResizeObserver`.
+
+So this is the mechanism before the component, which is this port's ordering rule. Upstream keeps the fit
+arithmetic in a file of its own **with no DOM and no React**, for a stated reason — it can be reasoned about
+and tested in isolation — and that split is exactly what makes a bounded slice possible: `src/overflow_math.ml`
+is that file, ported whole, and it needs no browser to verify.
+
+### What it decides, and the two rules worth porting rather than approximating
+
+One source of truth: `visible_count = clamp (fit_count, min_visible_items, max_visible_items ?? item_count)`.
+
+- **The floor wins.** When the ceiling is below the floor, the final clamp takes the floor. Upstream's hook
+  warns about the contradiction in development; the arithmetic resolves it. A case has a ceiling of 1, a
+  floor of 2 and room for nothing — and the answer is 2.
+- **The indicator is reserved for every non-final admitted item**, not merely the last one: a line that fits
+  without room for the "+N" marker is not a line that fits. Two cases differ only in the marker's width, the
+  narrower answer being one item *more*.
+
+### How it is verified without a browser
+
+It is a pure function of plain measurements, so the gate drives it as **rows carrying both the expectation
+and the port's answer**, and compares two numbers it can both see — the same shape the safe-url matrix uses.
+Eleven cases, chosen to pin rules rather than the happy path: the floor beating the ceiling, the reserved
+marker changing the answer, a ceiling above the item count as a no-op, the multi-row packing (including the
+last row reserving room), `collapse_from` keeping the opposite end (`[500; 10; 10]` at 100px gives 0 items
+from the end and 2 from the start — asymmetric on purpose), and the empty list.
+
+**Two mistakes of mine, both caught by the gate rather than by me.** The rows rendered but the selector
+matched none of them, because `Common.Attr.data` writes `data-astryx-…` rather than `data-…`; the check that
+compared expectations then **passed vacuously on an empty list** — the same trap this port fixed in the
+ClickableCard checks one milestone earlier. The count assertion is what caught it. And the first version
+inserted the checks *after* the gate's summary line, so they ran and reported but were missing from the
+tally the docs cite: 435 checks were happening while the transcript said 433. Both are fixed; the tally is
+now the number of checks that actually ran.
+
+### What ran
+
+`sweep-m29b.txt`, on the committed tree: build 0 · component **435/0** · jsdom ALL PASSED · browser
+**312/312** showcase and 25/25 demo · responsive **66/66** at 0.00% · MCP layer truthful · **exit 0, 0 FAILs**.
+
+Next: the resize hook that measures for it, then the component.
+

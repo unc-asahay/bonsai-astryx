@@ -1732,6 +1732,28 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 
+// ---------------------------------------------------------------- overflow arithmetic (pure)
+// One row per case: the expectation and the port's answer both live in the DOM, so this compares two
+// numbers rather than trusting a hand-copied one. It is the only part of the overflow mechanism that needs
+// no browser, which is why it is checked here and not in the browser gate.
+{
+  // Common.Attr.data prefixes with data-astryx-, so the attribute names are not what a bare
+  // Attr.create would have produced - and a selector that matches nothing makes the check below pass
+  // vacuously, which is why the count is asserted first.
+  const rows = [...document.querySelectorAll('[data-case="overflow-math"] [data-astryx-label]')];
+  check("the overflow arithmetic rendered its cases", rows.length === 11, `got ${rows.length}`);
+  const wrong = rows
+    .map((r) => ({
+      label: r.getAttribute("data-astryx-label"),
+      expected: `${r.getAttribute("data-astryx-expect-visible")}/${r.getAttribute("data-astryx-expect-rows")}`,
+      got: `${r.getAttribute("data-astryx-got-visible")}/${r.getAttribute("data-astryx-got-rows")}`,
+    }))
+    .filter((r) => r.expected !== r.got);
+  check("every overflow case computes the agreed answer", rows.length === 11 && wrong.length === 0,
+    wrong.map((r) => `${r.label}: expected ${r.expected}, got ${r.got}`).join(" | "));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
+
 process.exit(failures === 0 ? 0 : 1);

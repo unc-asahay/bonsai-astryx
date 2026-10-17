@@ -1709,3 +1709,57 @@ let () =
   Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) toolbar_static
   |> fun handle -> mount "toolbar" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------ overflow arithmetic
+
+   The fit math behind an overflowing list, driven as rows. It is a pure function of plain measurements, so
+   it is the one part of that mechanism a gate can check without a browser at all - which is the reason
+   upstream keeps it in a file of its own, and the reason this port ported it before the component.
+
+   The expectation lives in a data attribute rather than in the assertion, so the gate compares two numbers
+   it can both see. Cases are chosen to pin the RULES, not the happy path: the floor winning over a lower
+   ceiling, the reserved indicator changing the answer, a cap larger than the list being a no-op, the
+   multi-row packing, and collapse-from-start reversing which end is kept. *)
+let overflow_math_cases : (string * int list * int * int * int * int * int option * int option * Astryx.Overflow_math.collapse_from * int * int) list =
+  let open Astryx.Overflow_math in
+  [ (* label, widths, gap, available, indicator, min, max, maxRows, from, expected count, expected rows *)
+    "everything fits", [ 50; 50; 50 ], 8, 500, 40, 0, None, None, End, 3, 1
+  ; "one item too many, with a marker to reserve for", [ 100; 100; 100 ], 8, 250, 40, 0, None, None, End, 1, 1
+  ; "same widths with no marker: one more item fits", [ 100; 100; 100 ], 8, 250, 0, 0, None, None, End, 2, 1
+  ; "the floor wins when the ceiling is below it", [ 100; 100 ], 8, 0, 0, 2, Some 1, None, End, 2, 1
+  ; "a ceiling below the item count caps it", [ 10; 10; 10; 10 ], 0, 1000, 0, 0, Some 2, None, End, 2, 1
+  ; "a ceiling above the item count is a no-op", [ 10; 10; 10; 10 ], 0, 1000, 0, 0, Some 99, None, End, 4, 1
+  ; "multi-row: everything fits in two rows, so nothing collapses", [ 100; 100; 100; 100 ], 10, 250, 40, 0, None, Some 2, End, 4, 2
+  ; "multi-row: the last row reserves room for the marker", [ 100; 100; 100; 100 ], 10, 150, 40, 0, None, Some 2, End, 2, 2
+  ; "collapsing from the end keeps the first item that fits", [ 500; 10; 10 ], 0, 100, 0, 0, None, None, End, 0, 0
+  ; "collapsing from the start keeps the other end instead", [ 500; 10; 10 ], 0, 100, 0, 0, None, None, Start, 2, 1
+  ; "no items at all", [], 8, 500, 40, 0, None, None, End, 0, 0
+  ]
+;;
+
+let () =
+  let rows =
+    List.map overflow_math_cases ~f:(fun (label, widths, gap, available, indicator, min_v, max_v, max_rows, from, expect_count, expect_rows) ->
+      let got =
+        Astryx.Overflow_math.compute
+          ~widths
+          ~gap
+          ~available_width:available
+          ~indicator_width:indicator
+          ~min_visible_items:min_v
+          ?max_visible_items:max_v
+          ?max_rows
+          ~collapse_from:from
+          ()
+      in
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "expect-visible" (Int.to_string expect_count)
+           @ Astryx.Common.Attr.data "expect-rows" (Int.to_string expect_rows)
+           @ Astryx.Common.Attr.data "got-visible" (Int.to_string got.Astryx.Overflow_math.visible_count)
+           @ Astryx.Common.Attr.data "got-rows" (Int.to_string got.Astryx.Overflow_math.rows))
+        [])
+  in
+  mount "overflow-math" (Vdom.Node.div rows)
+;;
