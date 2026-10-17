@@ -981,5 +981,48 @@ callers **still get the one-shot measurement fired on registration** — only *l
 API. So the initial-layout path can be asserted in the jsdom gate and only live resizing belongs in the
 browser gate, which is exactly the split this port uses everywhere else.
 
+## Next up: Link (recon done, and the architectural question is already answered)
 
+Picked on measurement, and corrected twice in the process. `Spinner` looked cheapest by line count and is
+not: 628 lines of mechanism with document-level consequences. `Link` looked expensive at 2,132 lines and is
+not: **1,161 of those are upstream's own tests**, and the source is about 811 lines across four small
+modules with no unported component dependency. It also unblocks `Token`.
+
+### The provider cannot be a context here, and the port has already written down why
+
+`LinkProvider` exists so that every link in a subtree can be replaced with a framework's link component.
+The obvious port is `Bonsai.Dynamic_scope`, and `form_layout.mli` records that it does not work: a dynamic
+scope applies to computations built *inside* it, while `children` here arrive as trees the caller already
+built, so the value would reach nothing. Its own words for the failure mode are the reason to respect it —
+"an argument that looks load-bearing and is not". So:
+
+- **`LinkProvider` is a named divergence, not a port.** The resolved link component is passed explicitly.
+- **`useLinkComponent` becomes an explicit `?as_` on `Link.view`.** What it does is the part that matters,
+  and it ports whole: resolve `as_`, then the default, then a native anchor.
+- **`useLinkify` is portable and pure**, and that is the part to build first.
+
+### The load-bearing half of `useLinkComponent`: the safe-link wrapper
+
+It checks **both** destination props and rejects the **whole handoff**, not one prop and not with a
+fallback — because "an undefined destination can crash a router or resolve to the current route". A
+rejected destination renders a bare anchor **with no `href` at all**, so no router is invoked. That is the
+same doctrine this port applied to `ClickableCard` at M29, and the predicate already exists here as
+`is_safe_url` in `Citation`. A custom component receives `to = href` unless an explicit `to` is supplied.
+
+### `useLinkify`, and its one JS subtlety
+
+It detects URLs, emails and caller-supplied patterns in plain text and returns a mix of strings and links.
+Three things to carry over rather than approximate:
+
+- **Patterns are matched in order, custom first, and the first match wins for overlapping ranges.** The
+  ordering is the behaviour, not an optimisation.
+- **Each pattern's regex is re-constructed per scan to reset `lastIndex`.** A shared global regex carries
+  state between scans, so the second call starts where the first stopped. In OCaml this is a non-issue if
+  the scanner is written over a fresh cursor, but the *behaviour* has to be identical, so it is worth a case
+  either way.
+- `isExternal` on the URL pattern (and the `mailto:` href for emails) ride into the rendered link.
+
+Being a pure function of `(text, patterns)`, it can be verified the way `Overflow_math` was — as rows
+carrying both the expectation and the answer — which is why it goes first: the mechanism is proved before
+the component that renders it.
 
