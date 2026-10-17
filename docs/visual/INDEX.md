@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-47 ported component(s). Each page records the appearance the port
+48 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -10,7 +10,8 @@ for image generation.
 | --- | --- | --- | --- | --- | --- |
 | AlertDialog | 3 | 1 | 3 | 1 | [AlertDialog.md](AlertDialog.md) |
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
-| Avatar | 15 | 9 | 18 | 6 | [Avatar.md](Avatar.md) |
+| Avatar | 20 | 9 | 18 | 6 | [Avatar.md](Avatar.md) |
+| AvatarGroup | 3 | 1 | 2 | 0 | [AvatarGroup.md](AvatarGroup.md) |
 | Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
 | Button | 66 | 12 | 27 | 18 | [Button.md](Button.md) |
@@ -56,6 +57,6 @@ for image generation.
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 56 components with no OCaml port. They
+Not listed: the 55 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

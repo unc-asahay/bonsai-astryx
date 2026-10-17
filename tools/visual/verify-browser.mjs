@@ -605,7 +605,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("49 sections", sections.length === 49, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("50 sections", sections.length === 50, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,7 +616,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -628,7 +628,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("296 examples across the page", totalExamples === 296, `got ${totalExamples}`);
+  check("299 examples across the page", totalExamples === 299, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -641,7 +641,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("49 nav links", nav.length === 49, `got ${nav.length}`);
+  check("50 nav links", nav.length === 50, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2371,6 +2371,99 @@ check(
   JSON.stringify(avatarGeometry),
 );
 
+// AvatarGroup: the group's ARIA, the chip, and an overlap that can be measured rather than eyeballed.
+const avatarGroup = await page.evaluate(() => {
+  const root = document.querySelector("#avatar-group .astryx-avatar-group");
+  if (!root) return null;
+  const hintId = root.getAttribute("aria-describedby");
+  const hint = hintId ? document.getElementById(hintId) : null;
+  const member = (k) => document.getElementById("avatar-group-member-" + k);
+  const a = member("a");
+  const b = member("b");
+  const chip = document.getElementById("avatar-group-overflow");
+  return {
+    role: root.getAttribute("role"),
+    label: root.getAttribute("aria-label"),
+    hint: hint ? hint.textContent.trim() : null,
+    // The measurement that matters: adjacent members overlap by round(36 * 0.25) = 9px.
+    overlap: a && b ? Math.round(b.getBoundingClientRect().left - a.getBoundingClientRect().right) : null,
+    chipTag: chip ? chip.tagName : null,
+    chipText: chip ? chip.textContent.trim() : null,
+    chipLabel: chip ? chip.getAttribute("aria-label") : null,
+    chipSize: chip ? Math.round(chip.getBoundingClientRect().height) : null,
+  };
+});
+check(
+  "the group is a named group, and tells a screen reader it is navigable",
+  avatarGroup && avatarGroup.role === "group" && avatarGroup.label === "Team" && !!avatarGroup.hint,
+  JSON.stringify(avatarGroup),
+);
+check(
+  "adjacent avatars overlap by round(size * 0.25), measured",
+  avatarGroup && avatarGroup.overlap === -9,
+  `overlap ${avatarGroup && avatarGroup.overlap}px`,
+);
+check(
+  "the chip is a button the size of an avatar plus its border, labelled with the count",
+  avatarGroup &&
+    avatarGroup.chipTag === "BUTTON" &&
+    avatarGroup.chipText === "+7" &&
+    avatarGroup.chipLabel === "7 more" &&
+    avatarGroup.chipSize === 40,
+  JSON.stringify(avatarGroup),
+);
+
+const avatarGroupLarge = await page.evaluate(() => {
+  const a = document.getElementById("avatar-group-large-member-a");
+  const b = document.getElementById("avatar-group-large-member-b");
+  const chip = document.getElementById("avatar-group-large-overflow");
+  return {
+    overlap: a && b ? Math.round(b.getBoundingClientRect().left - a.getBoundingClientRect().right) : null,
+    chipSize: chip ? Math.round(chip.getBoundingClientRect().height) : null,
+  };
+});
+check(
+  "and the overlap is a ratio, so a large group overlaps further",
+  avatarGroupLarge.overlap === -12 && avatarGroupLarge.chipSize === 52,
+  JSON.stringify(avatarGroupLarge),
+);
+
+const avatarGroupCustom = await page.evaluate(() => {
+  const chip = document.getElementById("avatar-group-custom-overflow");
+  return chip ? { text: chip.textContent.trim(), label: chip.getAttribute("aria-label") } : null;
+});
+check(
+  "a caller-supplied chip says what the caller wants and still names the count",
+  avatarGroupCustom && avatarGroupCustom.text === "see all" && avatarGroupCustom.label === "99 more",
+  JSON.stringify(avatarGroupCustom),
+);
+
+// One tab stop, arrows between members - which is the mechanism's behaviour, checked from the outside.
+const roving = await page.evaluate(() => {
+  const tabs = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.getAttribute("tabindex") : "__missing__";
+  };
+  return {
+    first: tabs("avatar-group-member-a"),
+    second: tabs("avatar-group-member-b"),
+    third: tabs("avatar-group-member-c"),
+  };
+});
+check(
+  "a group is one tab stop, with the members behind it",
+  roving.first === "0" && roving.second === "-1" && roving.third === "-1",
+  JSON.stringify(roving),
+);
+
+await page.focus("#avatar-group-member-a");
+await page.keyboard.press("ArrowRight");
+const afterArrow = await page.evaluate(() => {
+  const active = document.activeElement;
+  return active ? active.id : null;
+});
+check("and the arrow keys move between members", afterArrow === "avatar-group-member-b", `${afterArrow}`);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -2404,11 +2497,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 46 ported / 57 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["46", "57", "103"]),
+    "coverage stats are 47 ported / 56 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["47", "56", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 57 entries", cov.unported === 57, `got ${cov.unported}`);
+  check("unported list rendered 56 entries", cov.unported === 56, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

@@ -528,6 +528,25 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M26 — AvatarGroup: a facepile, and the margin that survives a wrapper (done, 47 of 103)
+
+The recon answered a question I would have guessed wrong: I went in expecting a resize-measurement mechanism,
+and upstream's own doc says the consumer slices and passes the "+N" chip. There is nothing to measure.
+
+The overlap is `round(size * 0.25)` - 9px at medium, 12px at large - applied as a negative inline-start margin
+on *every* member including the first, because a container margin is defeated the moment a member is wrapped in
+something of its own. That is the third appearance of this class of problem: ProgressBar's mark anchors had the
+same shape, solved by moving the positioning onto the wrapper.
+
+Three real findings, all forced by checks rather than reading. The roving mechanism was **inert**: its default
+item selector is for buttons, and an avatar is a plain div with no tabindex, so every member reported
+`tabindex: null` and nothing roved. The chip was 8px too tall, because content-box puts its border outside the
+height. And the section and the group share an id, which was the check's bug rather than the component's.
+
+The group cannot propagate size and shape (no contexts, by design), so the caller passes them per avatar and the
+group's own size decides the overlap. Because it takes already-rendered avatars it stays a function of nodes,
+which is why its structural checks run in jsdom as well as the browser.
+
 ### M25 — Avatar: a picture with a fallback, a status a role cannot prune (done, 46 of 103)
 
 The directory is the unit: `AvatarStatusDot` is a file inside `Avatar/`, so this is one coverage entry however

@@ -7,6 +7,8 @@
    where the port deliberately differs. *)
 
 module Avatar = Avatar
+module Avatar_group = Avatar_group
+module Avatar_group_overflow = Avatar_group_overflow
 module Avatar_status_dot = Avatar_status_dot
 module Metadata_list = Metadata_list
 module Metadata_list_item = Metadata_list_item

@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Avatar` (`src/avatar.ml`, M25)
-- rendered instances in the demo: 15
+- rendered instances in the demo: 20
 - classes: `astryx-avatar`, `astryx-avatar--circle`, `astryx-avatar--lg`, `astryx-avatar--md`, `astryx-avatar--rounded`, `astryx-avatar--sm`, `astryx-avatar--square`, `astryx-avatar--xl`, `astryx-avatar--xsm`
 
 ## layout

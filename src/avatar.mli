@@ -71,6 +71,10 @@ type tooltip =
 
     [href] (with [target] and [rel]) renders an [<a>]; [on_click] without [href] renders a focusable
     [<button type="button">]. Either way the avatar needs a meaningful name, or the button announces nothing. *)
+(** The pixel size a named size resolves to, which is what anything sized *around* an avatar needs - the group's
+    overlap and its overflow chip both do. A [Numeric] size is itself. *)
+val size_pixels : size -> int
+
 val view
   :  ?attrs:Vdom.Attr.t list
   -> ?id:string

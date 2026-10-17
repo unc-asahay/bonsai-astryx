@@ -3039,6 +3039,60 @@ let avatar_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* AvatarGroup takes its members already rendered, which is what lets it stay a function of nodes rather than
+   of the graph - and what lets the jsdom harness render it at all. The caller slices: upstream's group does
+   not count what fits, it renders what it is given and the chip says how many were left out. *)
+let avatar_group_demo (graph : Bonsai.graph) =
+  let facepile ?(size = Astryx.Avatar.Md) ?(id = "avatar-group") names chip =
+    unwrap_all
+      (List.map names ~f:(fun (key, name) ->
+         Astryx.Avatar.view ~id:(sprintf "%s-member-%s" id key) ~size ~name graph ()))
+    |> Bonsai.map ~f:(fun avatars ->
+      Astryx.Avatar_group.view ~id ~label:"Team" ~size ~overflow:chip ~avatars ())
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map
+          (facepile [ "a", "Ada Lovelace"; "b", "Grace Hopper"; "c", "Alan Turing" ]
+             (Astryx.Avatar_group_overflow.view ~id:"avatar-group-overflow" ~count:7 ~size:Astryx.Avatar.Md ()))
+          ~f:(ex "three of ten, with the rest as a chip")
+      ; Bonsai.map
+          (facepile ~size:Astryx.Avatar.Lg ~id:"avatar-group-large"
+             [ "a", "Ada Lovelace"; "b", "Grace Hopper" ]
+             (Astryx.Avatar_group_overflow.view ~id:"avatar-group-large-overflow" ~count:12 ~size:Astryx.Avatar.Lg ()))
+          ~f:(ex "the overlap is a ratio, so it scales with the avatars")
+      ; Bonsai.return
+          (ex
+             "a chip whose content the caller supplies"
+             (Astryx.Avatar_group.view
+                ~id:"avatar-group-custom"
+                ~label:"Team"
+                ~overflow:
+                  (Astryx.Avatar_group_overflow.view
+                     ~id:"avatar-group-custom-overflow"
+                     ~content:(Vdom.Node.text "see all")
+                     ~count:99
+                     ~size:Astryx.Avatar.Md
+                     ())
+                ~avatars:
+                  [ Astryx.Avatar_status_dot.view ~variant:Astryx.Avatar_status_dot.Neutral () ]
+                ()))
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"avatar-group"
+      ~title:"AvatarGroup"
+      ~note:
+        "A facepile: avatars stacked with a negative inline-start margin on every member, and a chip for the \
+         ones left out. The overlap is round(size * 0.25) and it is a margin on each member rather than on the \
+         container, because a container margin is defeated the moment a member is wrapped in something of its \
+         own. The row is one tab stop with the arrow keys between members, and a screen reader is told so. The \
+         group does not count what fits: the consumer slices and says how many are left, which is upstream's \
+         rule and the reason there is no measuring here."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3096,7 +3150,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3358,6 +3412,7 @@ let page (graph : Bonsai.graph) =
   let more_menu_section = more_menu_demo graph in
   let progress_bar_section = progress_bar_demo graph in
   let avatar_section = avatar_demo graph in
+  let avatar_group_section = avatar_group_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3377,10 +3432,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful more_menu_section in
   let stateful = pair stateful progress_bar_section in
   let stateful = pair stateful avatar_section in
+  let stateful = pair stateful avatar_group_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar)
+    ~f:(fun ((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3388,7 +3444,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group ])
       ])
 ;;
 

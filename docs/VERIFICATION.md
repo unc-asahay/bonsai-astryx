@@ -2146,3 +2146,57 @@ its checks live in the browser gate — where an image error can actually be fir
 
 component **433/0** · browser **279/279** · demo 25/25 · responsive 66/0 · coverage **46 of 103** (57 unported) ·
 sweep exit 0, 0 FAILs, MCP layer truthful.
+
+## Gate 41 — AvatarGroup (M26): a facepile, and the margin that survives a wrapper
+
+Coverage moves **46 → 47 of 103**. The directory is the unit again: `AvatarGroupOverflow` is a file inside
+`AvatarGroup/`, so the pair is one coverage entry.
+
+### The recon answered a question I would have guessed wrong
+
+I went in expecting to port a resize-measurement mechanism — measure the container, work out how many avatars
+fit. Upstream's own doc comment says the opposite: *"Consumers handle slicing — pass only the avatars you want
+visible, then add an AvatarGroupOverflow for the '+N' indicator."* There is no measurement to port. I had a
+whole divergence planned around machinery that does not exist, and reading two paragraphs removed it.
+
+### The margin is on every member, including the first
+
+The overlap is upstream's `round(size * 0.25)` — 9px at medium, 12px at large, both now asserted against
+measured geometry rather than a class name. Upstream applies it as a negative **inline-start margin on each
+member**, not as a negative margin on the container, and its comment gives the reason: a container margin is
+defeated the moment a member is wrapped in something of its own, which is exactly what a Tooltip does.
+
+That is the third time this class of problem has appeared in the port — ProgressBar's mark anchors collapsed to
+zero height inside the Tooltip's wrapper, and the fix there was to move the positioning onto the wrapper. The
+lesson is the same one, arriving from a different direction: **anything you do to a container survives only
+until something wraps its children.**
+
+### Three real findings the checks forced
+
+1. **The roving mechanism was inert.** `Common.List_focus`'s default item selector is `button, a[href],
+   [tabindex]` — which matches ButtonGroup's members perfectly and matched *nothing* in a facepile, because an
+   avatar is a plain `<div>` and nothing had ever given it a tabindex. The check that noticed was "one tab stop,
+   with the members behind it": every member reported `tabindex: null`. The group now names its members
+   explicitly. The mechanism was ported, correct, and doing nothing — a failure mode that no amount of reading
+   the mechanism would have revealed.
+2. **The chip was 8px too tall.** `content-box` puts the 2px border *outside* the height, so a chip meant to
+   match a 36px avatar measured 44px and stood out of the row. `border-box` now, so the number set is the size
+   the row sees.
+3. **The section and the group share an id**, so the check found the section and reported `role: null`. My bug,
+   not the component's.
+
+### What the group deliberately cannot do
+
+Upstream provides `size` and `shape` to its members through context, so setting them once sizes the whole
+facepile. The port has no contexts by design — the same rule that left Toolbar's `SizeProvider` named as a
+divergence — so the caller passes size and shape to each avatar, and the group's own `size` decides the one
+thing it can: the overlap. Named in the interface, not hidden.
+
+The group takes *already-rendered* avatars, which keeps it a function of nodes rather than of the graph — and
+that is why this component's structural checks can live in the jsdom gate **and** its behavioural ones in the
+browser gate, where the overlap and the arrow keys can be measured for real.
+
+### Counts (verified)
+
+component **433/0** · browser **286/286** · demo 25/25 · responsive 66/0 · coverage **47 of 103** (56 unported) ·
+sweep exit 0, 0 FAILs, MCP layer truthful.

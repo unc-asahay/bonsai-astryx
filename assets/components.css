@@ -2420,3 +2420,47 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-avatar-status-dot--error { background-color: var(--color-on-error); }
 
 .astryx-avatar-status-dot svg { display: block; }
+
+/* ---- Avatar group --------------------------------------------------------------------------------------- */
+
+.astryx-avatar-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Every member takes the same negative inline-start margin, including the first - upstream's choice, and it is
+   the reason the overlap survives a member being wrapped in something of its own, as a Tooltip wraps one. */
+.astryx-avatar-group > * {
+  margin-inline-start: calc(-1 * var(--astryx-avatar-group-overlap, 0px));
+}
+
+/* A ring in the surface colour is what separates one avatar from the one behind it. */
+.astryx-avatar-group > .astryx-avatar,
+.astryx-avatar-group > .astryx-avatar-group-overflow {
+  box-shadow: 0 0 0 2px var(--color-background-primary, #fff);
+}
+
+.astryx-avatar-group-overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* border-box, not content-box: the height and min-width below are meant to be the size the row sees, and a
+     content-box height had the 2px border added on the outside, leaving the chip 8px taller than the avatars
+     it ends. */
+  box-sizing: border-box;
+  border-style: solid;
+  border-color: var(--color-background-primary, #fff);
+  border-radius: var(--radius-full);
+  background-color: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-weight: var(--font-weight-medium);
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.astryx-avatar-group-overflow:hover { background-color: var(--color-background-hover, var(--color-background-muted)); }
+.astryx-avatar-group-overflow:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
