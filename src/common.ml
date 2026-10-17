@@ -959,8 +959,17 @@ module Overflow_hook = struct
     module Input = struct
       type t =
         { selector : string
-        ; gap : int
-        ; indicator_width : int
+        ; (* The "+N" indicator's width is MEASURED, not given. Its label's width depends on the content
+             and on the count it is handed, so a constant would be wrong for every case but one - and
+             upstream measures it in a hidden container of its own for the same reason. Absent means no
+             indicator, which reserves nothing. *)
+          indicator_selector : string option
+        ; (* The gap is read from the element's computed style rather than passed in, because upstream's
+             gap is a spacing-scale token whose pixel value lives in the theme, and this port has no
+             theme layer. Reading it means the arithmetic agrees with whatever the stylesheet actually
+             says, and there is no table to keep in sync - the failure mode of the other approach is a
+             count that is wrong by exactly the gap. *)
+          _gap_unused : int option
         ; min_visible_items : int
         ; max_visible_items : int option
         ; max_rows : int option
@@ -970,9 +979,12 @@ module Overflow_hook = struct
 
       (* Hand-written: this project's ppx set has no sexp deriver, and the interface wants one. Only the
          parts worth reading in a log are shown - an effect cannot be printed. *)
-      let sexp_of_t { selector; gap; min_visible_items; _ } =
+      let sexp_of_t { selector; indicator_selector; min_visible_items; _ } =
         Sexp.List
-          [ Sexp.Atom selector; Sexp.Atom (Int.to_string gap); Sexp.Atom (Int.to_string min_visible_items) ]
+          [ Sexp.Atom selector
+          ; Sexp.Atom (Option.value indicator_selector ~default:"-none-")
+          ; Sexp.Atom (Int.to_string min_visible_items)
+          ]
       ;;
 
       let combine left right =
@@ -1000,14 +1012,38 @@ module Overflow_hook = struct
         : Dom_html.element Js.t list)
     ;;
 
+    let indicator_width (input : Input.t) (container : Dom_html.element Js.t) : int =
+      match input.indicator_selector with
+      | None -> 0
+      | Some selector ->
+        (* Rendered all the time, so it is measurable whether or not it is currently shown: an
+           indicator that only exists while overflowing cannot be measured on the render that
+           decides whether to overflow. *)
+        (match children_of container selector with
+         | first :: _ -> width_of first
+         | [] -> 0)
+    ;;
+
+    let gap_px (container : Dom_html.element Js.t) : int =
+      (* The row gap the stylesheet actually applies, in pixels. [columnGap] is what a flex row's
+         [gap] resolves to; a browser that reports it as a non-pixel falls back to 0, which is the same
+         answer as no gap at all rather than a wrong one. *)
+      let js =
+        Js.Unsafe.eval_string
+          "(function (el) { var g = getComputedStyle(el).columnGap; var n = parseFloat(g); \
+           return isFinite(n) && typeof g === 'string' && g !== 'normal' ? Math.round(n) : 0; })"
+      in
+      (Js.Unsafe.fun_call js [| Js.Unsafe.inject container |] : int)
+    ;;
+
     let measure (input : Input.t) node =
       let container : Dom_html.element Js.t = Js.Unsafe.coerce node in
       let widths = List.map (children_of container input.selector) ~f:width_of in
       Overflow_math.compute
         ~widths
-        ~gap:input.gap
+        ~gap:(gap_px container)
         ~available_width:(width_of container)
-        ~indicator_width:input.indicator_width
+        ~indicator_width:(indicator_width input container)
         ~min_visible_items:input.min_visible_items
         ?max_visible_items:input.max_visible_items
         ?max_rows:input.max_rows
@@ -1063,8 +1099,7 @@ module Overflow_hook = struct
   (* The hook is attached to the element it measures, so the element is the node the hook is handed. *)
   let attr
     ~selector
-    ~gap
-    ~indicator_width
+    ?indicator_selector
     ~min_visible_items
     ?max_visible_items
     ?max_rows
@@ -1076,8 +1111,8 @@ module Overflow_hook = struct
       "astryx-overflow"
       (Hook.create
          { T.Input.selector
-         ; gap
-         ; indicator_width
+         ; _gap_unused = None
+         ; indicator_selector
          ; min_visible_items
          ; max_visible_items
          ; max_rows
