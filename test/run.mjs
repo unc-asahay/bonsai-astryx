@@ -1636,6 +1636,39 @@ section("FieldLabel");
     "the anchor wrapper is what the trigger ARIA is applied to");
 }
 
+/* -------------------------------------------------------------------------- Toolbar (M21) */
+
+check("the toolbar says what it is and is named", (() => {
+  const tb = document.getElementById("tb-actions");
+  return tb !== null && tb.getAttribute("role") === "toolbar" &&
+    tb.getAttribute("aria-label") === "Document actions";
+})());
+
+check("a vertical toolbar says which way it runs", (() => {
+  const tb = document.getElementById("tb-vertical");
+  return tb !== null && tb.getAttribute("aria-orientation") === "vertical" &&
+    tb.classList.contains("astryx-toolbar--vertical");
+})());
+
+check("a centre slot switches the row to three columns", (() => {
+  const tb = document.getElementById("tb-center");
+  return tb !== null && tb.classList.contains("astryx-toolbar--grid") &&
+    tb.querySelectorAll(".astryx-toolbar__slot").length === 3;
+})());
+
+check("slots are direct children of the toolbar, not wrappers around it", (() => {
+  const tb = document.getElementById("tb-actions");
+  return tb !== null && Array.from(tb.children).every((c) => c.classList.contains("astryx-toolbar__slot"));
+})());
+
+// A toolbar may hold a text field, which is the case the caret guard exists for - so an input has to be
+// inside the toolbar element for the guard to have anything to guard.
+check("a text field inside a toolbar is inside the toolbar element", (() => {
+  const tb = document.getElementById("tb-vertical");
+  const input = document.getElementById("tb-input");
+  return tb !== null && input !== null && tb.contains(input);
+})());
+
 /* ----------------------------------------------------------------------- InputGroup (M20) */
 
 // The group's surface: which element the label names, that the label carries no `for` (a group label names

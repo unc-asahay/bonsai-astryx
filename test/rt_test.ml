@@ -1670,3 +1670,42 @@ let () =
   Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) input_group_static
   |> fun handle -> mount "input_group" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* The toolbar's own surface: that it says what it is and which way it runs, that a centre slot switches the
+   layout, and that an input inside it is a member. The roving behaviour and the caret guard are behaviour, so
+   they are the browser gate's - and the caret guard in particular needs a real caret. *)
+let toolbar_static (_ : Bonsai.graph) =
+  let button label = Astryx.Button.view ~label [] in
+  Bonsai.return
+    (Vdom.Node.div
+       [ Astryx.Toolbar.view
+           ~label:"Document actions"
+           ~attrs:[ Vdom.Attr.create "id" "tb-actions" ]
+           ~start_content:[ button "Bold" ]
+           ~end_content:[ button "Share" ]
+           ()
+       ; Astryx.Toolbar.view
+           ~label:"Zoom"
+           ~attrs:[ Vdom.Attr.create "id" "tb-center" ]
+           ~start_content:[ button "Out" ]
+           ~center_content:[ button "100%" ]
+           ~end_content:[ button "In" ]
+           ()
+       ; Astryx.Toolbar.view
+           ~label:"Search"
+           ~orientation:Astryx.Toolbar.Vertical
+           ~attrs:[ Vdom.Attr.create "id" "tb-vertical" ]
+           ~start_content:
+             [ Vdom.Node.input
+                 ~attrs:
+                   [ Vdom.Attr.create "id" "tb-input"; Vdom.Attr.create "type" "text" ]
+                 ()
+             ]
+           ()
+       ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create (Bonsai_web_test.Result_spec.vdom Fn.id) toolbar_static
+  |> fun handle -> mount "toolbar" (Bonsai_web_test.Handle.last_result handle)
+;;

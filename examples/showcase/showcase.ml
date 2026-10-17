@@ -2853,6 +2853,51 @@ let s_input_group () =
     ]
 ;;
 
+let s_toolbar () =
+  let button label = Astryx.Button.view ~label [] in
+  section
+    ~id:"toolbar"
+    ~title:"Toolbar"
+    ~note:
+      ("A toolbar is one tab stop named as one region: Tab reaches it, the arrows move between its members, "
+       ^ "and it says what it is. A centre slot switches the row to three columns so the middle is centred "
+       ^ "against the bar rather than against whatever happens to sit beside it.")
+    [ ex "start and end slots — a flex row where the ends are pushed apart"
+        (Astryx.Toolbar.view
+           ~label:"Document actions"
+           ~attrs:[ Vdom.Attr.create "id" "showcase-toolbar-actions" ]
+           ~start_content:[ button "Bold"; button "Italic" ]
+           ~end_content:[ button "Share" ]
+           ())
+    ; ex "a centre slot, so the middle is centred against the bar"
+        (Astryx.Toolbar.view
+           ~label:"Zoom controls"
+           ~attrs:[ Vdom.Attr.create "id" "showcase-toolbar-zoom" ]
+           ~start_content:[ button "Out" ]
+           ~center_content:[ button "100%" ]
+           ~end_content:[ button "In" ]
+           ())
+    ; ex
+        "vertical, with a text field: an arrow at the end of its text leaves the field, one mid-text moves the caret — which is what lets a toolbar hold an input at all"
+        (Astryx.Toolbar.view
+           ~label:"Search and filters"
+           ~attrs:[ Vdom.Attr.create "id" "showcase-toolbar-search" ]
+           ~orientation:Astryx.Toolbar.Vertical
+           ~start_content:
+             [ Vdom.Node.input
+                 ~attrs:
+                   (Astryx.Common.Attr.class_ [ "astryx-text-input__input" ]
+                    @ [ Vdom.Attr.create "id" "showcase-toolbar-input"
+                      ; Vdom.Attr.create "type" "text"
+                      ; Vdom.Attr.create "value" "query"
+                      ])
+                 ()
+             ]
+           ~end_content:[ button "Search" ]
+           ())
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -2864,6 +2909,7 @@ let specs =
   ; s_button_group ()
   ; s_timer ()
   ; s_input_group ()
+  ; s_toolbar ()
   ]
 ;;
 
@@ -2908,7 +2954,7 @@ let nav_items =
   ; "dialog-header", "DialogHeader"
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
-  ; "timer", "Timer"; "input-group", "InputGroup"
+  ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

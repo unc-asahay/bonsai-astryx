@@ -498,6 +498,26 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### M21 — Toolbar: one tab stop for a bar of controls (done, 41 → 42 of 103)
+
+The first component here built on a mechanism extracted *because* it arrived — the arrangement this roadmap
+called for after M18, and it worked: the generalisation turned out to be a parameterisation rather than a
+discovery.
+
+A `role="toolbar"` named by its label, navigated by the same roving tab stop ButtonGroup uses, and with the
+**caret guard** on — an arrow with the caret mid-text leaves focus in the field, an arrow at the end of the
+text leaves the field and moves focus. That is what lets a toolbar contain a text field.
+
+**The debt recorded when the mechanism was generalised is paid**, and both failures on the first run were in
+the checks rather than the component: the demo toolbar holding the input is *vertical*, so its forward key is
+ArrowDown and not ArrowRight; and a synthetic `KeyboardEvent` has no default action, so a rule about a caret
+can only be tested with a real key press — the first version dispatched an event and the caret sat still,
+which said nothing about the guard and everything about the method.
+
+Named as not ported, rather than approximated: `useKeyboardHint` (the roving behaviour it explains is ported,
+and its building blocks `Kbd` and the layer mechanism are already here, so it is a small self-contained
+follow-up), edge compensation, and the size context — the same divergence as InputGroup's.
+
 ### M20 — InputGroup: a group of controls that reads as one field (done, 40 → 41 of 103)
 
 The label names the group rather than a control — rendered as a `<span>`, since a `<label>` with no control to

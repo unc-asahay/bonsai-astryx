@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("44 sections", sections.length === 44, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("45 sections", sections.length === 45, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,11 +616,11 @@ if (mode === "showcase") {
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 2, Interactive: 2, CheckboxInput: 11, Switch: 9,
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
-    ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3,
+    ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("270 examples across the page", totalExamples === 270, `got ${totalExamples}`);
+  check("273 examples across the page", totalExamples === 273, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -633,7 +633,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("44 nav links", nav.length === 44, `got ${nav.length}`);
+  check("45 nav links", nav.length === 45, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1796,6 +1796,102 @@ check("a disabled group dims as a whole — one opacity on the box, not one per 
   igDisabled !== null && Math.abs(parseFloat(igDisabled.opacity) - 0.5) < 0.01 &&
   igDisabled.h === 36, JSON.stringify(igDisabled));
 
+// ---------------------------------------------------------------------------- Toolbar (M21)
+// Behaviour, so all of it is here rather than in jsdom: a single tab stop, arrows between members, and the
+// caret guard - the branch the roadmap recorded as a debt when the mechanism was generalised, exercised now
+// from both ends because this is the only consumer that turns it on.
+
+const tbIdle = await page.evaluate(() => {
+  const tb = document.getElementById("showcase-toolbar-actions");
+  if (!tb) return null;
+  const members = Array.from(tb.querySelectorAll("button, input, [tabindex], a[href]"));
+  return {
+    count: members.length,
+    stops: members.filter((m) => m.getAttribute("tabindex") === "0").length,
+    gridCentre: (() => {
+      const c = document.getElementById("showcase-toolbar-zoom");
+      if (!c) return null;
+      const slot = c.querySelector(".astryx-toolbar__slot--center");
+      if (!slot) return null;
+      return {
+        slotMid: Math.round(slot.getBoundingClientRect().left + slot.getBoundingClientRect().width / 2),
+        barMid: Math.round(c.getBoundingClientRect().left + c.getBoundingClientRect().width / 2),
+      };
+    })(),
+  };
+});
+
+check("a toolbar starts as one tab stop", tbIdle !== null && tbIdle.count >= 2 && tbIdle.stops === 1,
+  JSON.stringify(tbIdle));
+
+const tbArrows = await page.evaluate(() => {
+  const tb = document.getElementById("showcase-toolbar-actions");
+  if (!tb) return null;
+  const members = Array.from(tb.querySelectorAll("button"));
+  if (members.length < 2) return null;
+  members[0].focus();
+  const before = document.activeElement.textContent;
+  tb.dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowRight", bubbles: true}));
+  const after = document.activeElement.textContent;
+  return {before, after, moved: document.activeElement !== members[0]};
+});
+
+check("an arrow moves focus to the next member",
+  tbArrows !== null && tbArrows.moved === true && tbArrows.before !== tbArrows.after,
+  JSON.stringify(tbArrows));
+
+// The caret guard, mid-text: the key belongs to the caret, so focus stays where it is.
+//
+// Two things this check had to learn. The first demo toolbar holding an input is *vertical*, so the key that
+// moves between its members is ArrowDown, not ArrowRight - pressing ArrowRight on it should do nothing, and
+// the first version of this check asserted that nothing had happened as though it were a failure. The second
+// is that a synthetic KeyboardEvent has no default action: it can be heard by the application but it cannot
+// move a caret, so the only way to test a rule *about* a caret is with a real key press.
+await page.evaluate(() => {
+  const input = document.getElementById("showcase-toolbar-input");
+  if (input) {
+    input.focus();
+    input.setSelectionRange(1, 1);
+  }
+});
+await page.keyboard.press("ArrowDown");
+const caretMid = await page.evaluate(() => {
+  const input = document.getElementById("showcase-toolbar-input");
+  return input === null ? null : {stillInside: document.activeElement === input};
+});
+
+check("an arrow with the caret mid-text leaves focus in the field (the caret keeps the key)",
+  caretMid !== null && caretMid.stillInside === true, JSON.stringify(caretMid));
+
+// The caret guard, at the edge: now the key belongs to the toolbar.
+await page.evaluate(() => {
+  const input = document.getElementById("showcase-toolbar-input");
+  if (input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+});
+await page.keyboard.press("ArrowDown");
+const caretEdge = await page.evaluate(() => ({
+  stillInside: document.activeElement.tagName === "INPUT",
+  tag: document.activeElement.tagName,
+}));
+
+check("an arrow at the end of the text leaves the field and moves focus",
+  caretEdge.stillInside === false && caretEdge.tag === "BUTTON", JSON.stringify(caretEdge));
+
+check("a centre slot is centred against the bar, not against its neighbours",
+  tbIdle !== null && tbIdle.gridCentre !== null &&
+  Math.abs(tbIdle.gridCentre.slotMid - tbIdle.gridCentre.barMid) <= 1,
+  JSON.stringify(tbIdle && tbIdle.gridCentre));
+
+const tbGap = await page.evaluate(() => {
+  const slot = document.querySelector("#showcase-toolbar-actions .astryx-toolbar__slot");
+  return slot ? getComputedStyle(slot).gap : null;
+});
+
+check("the gap reaches the slots from the box", tbGap === "4px", String(tbGap));
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -1829,11 +1925,11 @@ check("a disabled group dims as a whole — one opacity on the box, not one per 
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 41 ported / 62 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["41", "62", "103"]),
+    "coverage stats are 42 ported / 61 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["42", "61", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 62 entries", cov.unported === 62, `got ${cov.unported}`);
+  check("unported list rendered 61 entries", cov.unported === 61, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

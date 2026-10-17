@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Section` (`src/section.ml`, M2)
-- rendered instances in the demo: 7
+- rendered instances in the demo: 10
 - classes: `astryx-section`, `astryx-section--divider-bottom`, `astryx-section--divider-end`, `astryx-section--divider-start`, `astryx-section--divider-top`, `astryx-section--muted`, `astryx-section--section`, `astryx-section--transparent`
 
 ## layout

@@ -1794,3 +1794,71 @@ the appearance contract should account for, but not part of the coverage denomin
 reconnoitred and deliberately not started: it is a five-module subsystem of about 1,330 lines, recorded in
 the roadmap as a planned job rather than attempted at the end of a session.
 
+## Gate 35 — Toolbar (M21): one tab stop for a bar of controls
+
+Coverage moves **41 → 42 of 103**, and this is the first component in this port built on a mechanism that was
+extracted *because* it arrived — the arrangement the roadmap called for after M18.
+
+### What makes it a toolbar rather than a row of buttons
+
+Three things, each checked somewhere in the suite:
+
+- it is a `role="toolbar"` named by its label and says which way it runs (`aria-orientation`);
+- navigation inside it is the same roving tab stop `Button_group` uses, now `Common.List_focus`;
+- and **an input inside it keeps its arrows** — the caret guard, which is what lets a toolbar contain a text
+  field at all.
+
+### The debt from the generalisation, paid
+
+When the mechanism was generalised, the caret guard defaulted off and **no test could reach it**, because
+Toolbar was the only consumer that would set it. That was recorded then as a payment the next milestone owed
+rather than as a note. This is the payment:
+
+| Check | Evidence (real Chromium) |
+| --- | --- |
+| An arrow with the caret mid-text leaves focus in the field | focus is still the input after a real `ArrowDown` |
+| An arrow at the end of the text leaves the field and moves focus | focus is a `BUTTON` afterwards |
+
+**Both failures on the first run were in the checks, not the component**, and both are worth keeping:
+
+1. The demo toolbar holding an input is *vertical*, so its forward key is **ArrowDown** — I pressed ArrowRight
+   and then read "nothing happened" as a failure, when nothing happening was correct.
+2. **A synthetic `KeyboardEvent` has no default action.** It can be heard by the application but it cannot
+   move a caret, so a rule *about* a caret can only be tested with a real key press. The first version typed
+   `setSelectionRange(1, 1)` and dispatched an event, and the caret sat still at 1 — which said nothing about
+   the guard and everything about the method.
+
+### The generalisation, and what the second consumer cost
+
+`Common.List_focus` now takes its item selector, its boundary selector and the caret guard as inputs, each
+defaulted to ButtonGroup's values so the first consumer did not move — proven by its unchanged suites
+(428/0 at the time, on a freshly built bundle). Toolbar passes its own: members are
+`button, input, [tabindex], a[href]` because a toolbar may hold a field, the boundary is
+`[role="toolbar"], [popover]` because a toolbar is its own boundary, and the guard is on.
+
+### Composition, and what is not there
+
+A start/end pair is a flex row with the ends pushed apart; a centre slot switches the box to a three-column
+grid so the middle is centred against the bar rather than against its neighbours (measured: the centre slot's
+midpoint is within 1px of the toolbar's). The gap reaches the slots through a variable on the box. `role`,
+`aria-label` and `aria-orientation` are stripped from the incoming props and set by the component, so a
+Toolbar cannot be handed a role that contradicts the behaviour inside it.
+
+Named as not ported, rather than approximated: **`useKeyboardHint`** (upstream's ephemeral arrow-key hint for
+sighted keyboard users — the roving behaviour it explains is ported, and its own building blocks, `Kbd` and
+the layer mechanism, are already here, so it is a small self-contained follow-up), **edge compensation**, and
+the size context (the box takes the size scale's height and the caller builds its children knowing the size
+it wants — the same divergence as InputGroup).
+
+### Totals after this gate
+
+| Gate | Result |
+| --- | --- |
+| Component checks (`node test/run.mjs`) | **433 / 0** |
+| Real-browser checks (Chromium, live showcase) | **243 / 243** |
+| Demo fixture (jsdom) | 25 / 25 |
+| Responsive visual regression (320 / 375 / 768 / 1440) | 66 / 0 at 0.00% |
+| Coverage | **42 of 103** ported, 61 not |
+| Showcase | 45 sections, 273 examples |
+| MCP layer | every ported component truthfully reachable |
+

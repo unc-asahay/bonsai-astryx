@@ -11,6 +11,7 @@ module Common = Common
 module Tokens = Tokens
 module Timer = Timer
 module Stack = Stack
+module Toolbar = Toolbar
 module Text = Text
 module Heading = Heading
 module Button = Button
