@@ -43,7 +43,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Port status injected into every reference page | ✅ | `python3 tools/gen-port-status.py` |
 | Design tokens → OCaml + CSS (`assets/tokens.css`, 188 custom properties) | ✅ | `python3 tools/gen-ocaml-tokens.py` |
 | Mockup recipes → HTML / prompt / OCaml | ✅ | `node tools/mockup/render.mjs docs/mockups/login.json --format html` |
-| Component library (`src/`) | 🚧 42 of 103 ported (M1 + M2 + M5–M15 + M17–M21) | `dune build` |
+| Component library (`src/`) | 🚧 44 of 103 ported (M1 + M2 + M5–M15 + M17–M23) | `dune build` |
 | **Compile gate** | ✅ exit 0 | `dune build` |
 | **DOM + accessibility gate** | ✅ 59 checks, 0 failures | `node tools/visual/verify-dom.mjs` |
 | **Component test gate** (each component in isolation, incl. a real event into the Bonsai graph) | ✅ 433 checks, 0 failures | `node test/run.mjs` |
@@ -51,7 +51,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | **Responsive + visual-regression gate** (320/375/768/1440 wide, pixel diff vs stored baseline) | ✅ 66 checks, 0 failures, 0.00% pixel drift | `node tools/visual/verify-responsive.mjs` |
 | **CI on GitHub** (`.github/workflows/ci.yml`: compile, component, DOM and browser gates on a clean runner) | ✅ [run 38975820117](https://github.com/unc-asahay/bonsai-astryx/actions/runs/38975820117) — build, `433/0` component checks, DOM gate all pass, `263/263` in Chromium. That run predates several milestones; the numbers in the table above are from the local sweep.| `gh run list --repo unc-asahay/bonsai-astryx` |
 | Showcase site (`site/`, all 44 ported components + DialogHeader + InputGroupText + MetadataListItem + the layer mechanism, 283 examples, 47 sections) | ✅ live | serve the repo root, open `/site/index.html` |
-| Coverage panel (ported vs not, from `port.json`) | ✅ 42 / 61 / 103 | `node tools/site/gen-coverage.mjs` |
+| Coverage panel (ported vs not, from `port.json`) | ✅ 44 / 59 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
 | Appearance contract for components that render (`docs/visual/`, tokens resolved to literals) | ✅ 44 component pages + `INDEX.md` — including infrastructure components, since one renders whether or not it is in the coverage denominator (a delegating component appears with the one it renders: HStack and VStack under Stack) | `node tools/gen-visual-contract.mjs` |
 | Agent-facing snippets (`snippets.json`, served by the MCP tool layer) | ✅ 14 entries, every one build-checked: verbatim copies are compiled in the demo/showcase, the rest are reproduced in `examples/snippetcheck/` | `dune build` |
