@@ -1984,3 +1984,45 @@ the reason the checks are written to print what they saw.
 
 component **433/0** · browser **257/257** · demo 25/25 · responsive 66/0 · coverage **43 of 103** · sweep exit
 0, 0 FAILs, MCP layer truthful. **M23b (`MoreMenu` itself) is now a thin wrapper.**
+
+## Gate 38 — M23b: MoreMenu (coverage 43 → 44)
+
+The thinnest component in the library, and the one that took the longest to become possible. `MoreMenu` is 183
+lines upstream that hold **no behaviour at all**: it is a `DropdownMenu` whose trigger is a ghost, icon-only
+button and whose open state the caller may own. It could not be a delegation until the menu underneath could be
+configured and controlled, which is what M23a added — and this milestone is that delegation, with nothing
+invented in between.
+
+### What the port's version actually is
+
+One call, threads its arguments through, and returns. The four things it *decides* are: the trigger's defaults
+(ghost, `Md`, icon-only), the label's English default, the fallback glyph, and the marker.
+
+That last one is the load-bearing decision. The trigger is a Button; the component the user is looking at is
+MoreMenu. Passing `~trigger_component_name:"MoreMenu"` down means the marker says what the user sees, which is
+the IconButton rule and the reason the appearance contract, the DOM gate and the browser gate can all find this
+component at all. A delegating wrapper that did not name itself would be **invisible to every tool here** — the
+failure mode is silent, which is why the first check is the marker.
+
+### Checks (6, all browser)
+
+| what | why |
+|---|---|
+| the trigger's marker is `MoreMenu`, not `Button` | the delegation rule; silence here is the failure mode |
+| the label is the accessible name and the glyph is not text | icon-only, checked by what is painted |
+| a label of its own becomes the accessible name | the pass-through reaches ARIA, not just the class |
+| clicking the delegated trigger opens the menu | the delegation end to end |
+| it is controllable from outside | M23a's capability survives the wrapper |
+| — and all six passed on the first run | worth recording, because the last three milestones each cost a round of my own check bugs |
+
+### Named, not filled in
+
+The label's default is the English string upstream's i18n catalogue holds (no catalogue here); the default icon
+is the character `⋯` in an `aria-hidden` span, because this port's 30-icon set has no `moreHorizontal` glyph;
+`hasChevron` has no counterpart since the port's trigger renders no chevron in any case; and
+`placement`/`alignment`/`presentation` stay unported, the same gap `Dropdown_menu` names.
+
+### Counts (verified)
+
+component **433/0** · browser **263/263** · demo 25/25 · responsive 66/0 · coverage **44 of 103** (59
+unported) · sweep exit 0, 0 FAILs, MCP layer truthful.

@@ -528,6 +528,20 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M23b — MoreMenu: a delegation with nothing of its own (done, 44 of 103)
+
+183 lines upstream that hold no behaviour: a `DropdownMenu` whose trigger is a ghost icon-only button and whose
+open state the caller may own. It could not arrive before M23a, and the port's version is that delegation with
+nothing invented — one call, four decisions (the trigger's defaults, the label's English default, the fallback
+glyph, the marker).
+
+The marker is the load-bearing one: the trigger is a Button, the component the user sees is MoreMenu, so
+`~trigger_component_name:"MoreMenu"` goes down. A delegating wrapper that did not name itself would be
+invisible to the appearance contract, the DOM gate and the browser gate alike — a silent failure, which is why
+the marker is the first check. Named unported: the i18n label default; `moreHorizontal` (this port's icon set
+has no such glyph, so the default is a hidden `⋯` character); `hasChevron` (the trigger renders none anyway);
+and `placement`/`alignment`/`presentation`.
+
 ### M23a — DropdownMenu becomes controllable (done, coverage unchanged)
 
 **43 of 103, deliberately.** No new component: this moves a capability into an existing port. `MoreMenu` is a
