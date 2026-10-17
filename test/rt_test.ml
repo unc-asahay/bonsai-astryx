@@ -1986,3 +1986,44 @@ let () =
   in
   mount "interactive-role" (Vdom.Node.div rows)
 ;;
+
+
+(* Normalizing target/rel: the _blank case appends noopener and noreferrer, preserving the caller's rel
+   and its order, and nothing else is touched. *)
+let () =
+  let open Astryx.Target_and_rel in
+  let show target rel =
+    let target, rel = compute ~target ~rel in
+    "target="
+    ^ Option.value target ~default:"-"
+    ^ " rel="
+    ^ Option.value rel ~default:"-"
+  in
+  let cases : (string * string option * string option * string) list =
+    [ ( "neither prop given is left alone", None, None, "target=- rel=-" )
+    ; ( "a target that is not _blank is untouched", Some "_self", Some "nofollow", "target=_self rel=nofollow" )
+    ; ( "_blank with no rel gains both tokens", Some "_blank", None, "target=_blank rel=noopener noreferrer" )
+    ; ( "the caller's rel is preserved, and the tokens go on the END"
+      , Some "_blank"
+      , Some "nofollow"
+      , "target=_blank rel=nofollow noopener noreferrer" )
+    ; ( "a token already present is not duplicated", Some "_blank", Some "noopener", "target=_blank rel=noopener noreferrer" )
+    ; ( "both already present is unchanged", Some "_blank", Some "noopener noreferrer", "target=_blank rel=noopener noreferrer" )
+    ; ( "whitespace is normalized, not preserved", Some "_blank", Some "  spaced   out  ", "target=_blank rel=spaced out noopener noreferrer" )
+    ; ( "the membership test is CASE-SENSITIVE, so NOOPENER is appended too"
+      , Some "_blank"
+      , Some "NOOPENER"
+      , "target=_blank rel=NOOPENER noopener noreferrer" )
+    ]
+  in
+  let rows =
+    List.map cases ~f:(fun (label, target, rel, expect) ->
+      Vdom.Node.div
+        ~attrs:
+          (Astryx.Common.Attr.data "label" label
+           @ Astryx.Common.Attr.data "expect" expect
+           @ Astryx.Common.Attr.data "got" (show target rel))
+        [])
+  in
+  mount "target-and-rel" (Vdom.Node.div rows)
+;;

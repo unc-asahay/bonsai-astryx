@@ -1835,6 +1835,20 @@ check("a disabled group says so once, on the box", (() => {
   );
 }
 
+// ---------------------------------------------------------------- target / rel normalization
+{
+  const rows = [...document.querySelectorAll('[data-case="target-and-rel"] [data-astryx-label]')];
+  check("the target/rel fixture rendered its cases", rows.length === 8, `got ${rows.length}`);
+  const wrong = rows.filter(
+    (r) => r.getAttribute("data-astryx-expect") !== r.getAttribute("data-astryx-got"),
+  );
+  check(
+    "every target/rel case is normalized the way upstream normalizes it",
+    wrong.length === 0 && rows.length === 8,
+    wrong.map((r) => `${r.getAttribute("data-astryx-label")}: ${r.getAttribute("data-astryx-got")}`).join(" | ") || "all correct",
+  );
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 
