@@ -53,7 +53,7 @@ Pre-alpha. This table is updated as work lands; nothing is claimed here that is 
 | Showcase site (`site/`, all 42 ported components + DialogHeader + InputGroupText + the layer mechanism, 273 examples, 45 sections) | ✅ live | serve the repo root, open `/site/index.html` |
 | Coverage panel (ported vs not, from `port.json`) | ✅ 42 / 61 / 103 | `node tools/site/gen-coverage.mjs` |
 | Agent-facing tool layer (MCP server + CLI, 6 tools) | ✅ protocol paths tested | `node tools/mcp/astryx-mcp.mjs --cli status` |
-| Appearance contract for ported components (`docs/visual/`, tokens resolved to literals) | ✅ 42 pages (a distinct registry component that delegates renders under the component it renders — HStack and VStack appear with Stack) | `node tools/gen-visual-contract.mjs` |
+| Appearance contract for components that render (`docs/visual/`, tokens resolved to literals) | ✅ 42 component pages + `INDEX.md` — including infrastructure components, since one renders whether or not it is in the coverage denominator (a delegating component appears with the one it renders: HStack and VStack under Stack) | `node tools/gen-visual-contract.mjs` |
 | Agent-facing snippets (`snippets.json`, served by the MCP tool layer) | ✅ 14 entries, every one build-checked: verbatim copies are compiled in the demo/showcase, the rest are reproduced in `examples/snippetcheck/` | `dune build` |
 | Generated icon table (`src/icon_data.ml` ← upstream's `defaultIcons.tsx`) | ✅ 30 glyphs, refuses a partial or renamed table | `node tools/extract-icons.mjs` |
 | Upstream screenshot capture (`tools/visual/capture.mjs`) | ⏳ needs the upstream Storybook build | `node tools/visual/capture.mjs` |

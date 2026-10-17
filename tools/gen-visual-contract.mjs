@@ -228,11 +228,19 @@ for (const m of mounted) {
 const outDir = resolve(root, "docs/visual");
 mkdirSync(outDir, { recursive: true });
 
-const portedNames = new Set(port.ported.map((p) => p.component));
+// A component renders whether or not it is in the coverage denominator, so infrastructure components are
+// part of the appearance contract too. Walking only `ported` left DialogHeader's page frozen at whatever it
+// looked like the last time it happened to be in that list - a stale document that no run would refresh.
+const portedNames = new Set([
+  ...port.ported.map((p) => p.component),
+  ...(port.infrastructure ?? []).map((i) => i.name),
+]);
 const written = [];
 
 for (const [name, entry] of [...byComponent].sort((a, b) => a[0].localeCompare(b[0]))) {
-  const ported = port.ported.find((p) => p.component === name);
+  const ported =
+    port.ported.find((p) => p.component === name) ??
+    (port.infrastructure ?? []).find((i) => i.name === name);
   if (!ported) continue;
 
   const classes = [...entry.classes].sort();

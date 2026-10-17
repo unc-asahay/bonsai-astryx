@@ -498,6 +498,17 @@ trigger modes, and any way to want Escape without light dismiss — they are one
 phase 2, whose trigger needs exactly the ARIA this milestone put behind `Layer_trigger_hook`.
 
 
+### What the measurement says is next, after M21
+
+- **`Overlay` is not the cheap one it looked like.** Its main file is 132 lines, and its directory is four
+  files and about 700: a scrim, a hook, and the marker styles that name the scope. The lesson that the
+  directory is the unit, applied to itself.
+- **`MetadataList` (557, `themeProps` only) is the cheapest that needs nothing new.**
+- **`MoreMenu` (183, one file, nothing shared) is still the most *valuable* next step** and still blocked on
+  `DropdownMenu`'s surface: the port's `DropdownMenu` takes a trigger label and owns its open state, while
+  MoreMenu forwards a button config, a placement and a *controlled* `isMenuOpen`. Extending that surface is
+  the real work and the component is small — the good shape, not the cheap one.
+
 ### M21 — Toolbar: one tab stop for a bar of controls (done, 41 → 42 of 103)
 
 The first component here built on a mechanism extracted *because* it arrived — the arrangement this roadmap

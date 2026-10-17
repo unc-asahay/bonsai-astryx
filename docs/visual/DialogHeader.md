@@ -15,7 +15,7 @@ union over the demo's instances, not a single snapshot of one element.
 Themed colours are shown as `light (light) / dark (dark)`: upstream stores them as
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
-- module: `Astryx.Dialog_header` (`src/dialog_header.ml`, M14)
+- module: `Astryx.Dialog_header` (`src/dialog_header.ml`, undefined)
 - rendered instances in the demo: 3
 - classes: `astryx-dialog-header`, `astryx-dialog-header--compensate-all`, `astryx-dialog-header--divider`
 
