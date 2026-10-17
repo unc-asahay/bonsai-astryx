@@ -605,7 +605,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("50 sections", sections.length === 50, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("51 sections", sections.length === 51, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -616,7 +616,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3,
+    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -628,7 +628,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("299 examples across the page", totalExamples === 299, `got ${totalExamples}`);
+  check("302 examples across the page", totalExamples === 302, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -641,7 +641,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("50 nav links", nav.length === 50, `got ${nav.length}`);
+  check("51 nav links", nav.length === 51, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2464,6 +2464,122 @@ const afterArrow = await page.evaluate(() => {
 });
 check("and the arrow keys move between members", afterArrow === "avatar-group-member-b", `${afterArrow}`);
 
+// ToggleButton: aria-pressed is the state, and a real click has to move it.
+const toggleGroup = await page.evaluate(() => {
+  const root = document.getElementById("toggle-group");
+  if (!root) return null;
+  return {
+    role: root.getAttribute("role"),
+    label: root.getAttribute("aria-label"),
+    orientation: root.getAttribute("aria-orientation"),
+    pressed: ["toggle-bold", "toggle-italic", "toggle-underline"].map((id) => {
+      const el = document.getElementById(id);
+      return el ? el.getAttribute("aria-pressed") : "__missing__";
+    }),
+    markers: ["toggle-bold", "toggle-italic", "toggle-underline"].map((id) => {
+      const el = document.getElementById(id);
+      return el ? el.getAttribute("data-astryx-component") : "__missing__";
+    }),
+  };
+});
+check(
+  "a group of toggles is a named group, and every toggle starts up",
+  toggleGroup &&
+    toggleGroup.role === "group" &&
+    toggleGroup.label === "Text style" &&
+    toggleGroup.orientation === "horizontal" &&
+    JSON.stringify(toggleGroup.pressed) === JSON.stringify(["false", "false", "false"]),
+  JSON.stringify(toggleGroup),
+);
+// The delegation marker: without it a wrapper carries Button's marker and is invisible to every tool that
+// identifies components by it - the IconButton rule, and the reason ToggleButton passes component_name.
+check(
+  "each toggle names itself rather than inheriting the Button it wraps",
+  toggleGroup && toggleGroup.markers.every((m) => m === "ToggleButton"),
+  JSON.stringify(toggleGroup && toggleGroup.markers),
+);
+
+await page.click("#toggle-bold");
+await page
+  .waitForFunction(
+    () => {
+      const el = document.getElementById("toggle-bold");
+      return el && el.getAttribute("aria-pressed") === "true";
+    },
+    null,
+    { timeout: 2000 },
+  )
+  .catch(() => {});
+const afterClick = await page.evaluate(() => {
+  const el = document.getElementById("toggle-bold");
+  const other = document.getElementById("toggle-italic");
+  return {
+    pressed: el ? el.getAttribute("aria-pressed") : null,
+    neighbour: other ? other.getAttribute("aria-pressed") : null,
+    // The styles hang off the ARIA attribute, so the painted weight and the announced state cannot disagree.
+    // The pressed style is the label's weight - upstream's pressed style is exactly that, and nothing else.
+    weight: el ? getComputedStyle(el).fontWeight : null,
+    resting: other ? getComputedStyle(other).fontWeight : null,
+  };
+});
+check(
+  "clicking a toggle presses it, and only it",
+  afterClick.pressed === "true" && afterClick.neighbour === "false",
+  JSON.stringify(afterClick),
+);
+check(
+  "and the pressed style - the label weight - follows the announced state",
+  Number(afterClick.weight) > Number(afterClick.resting),
+  `${afterClick.weight} vs ${afterClick.resting}`,
+);
+
+const toggleIconOnly = await page.evaluate(() => {
+  const el = document.getElementById("toggle-icon-only");
+  return el
+    ? {
+        label: el.getAttribute("aria-label"),
+        text: el.textContent.trim(),
+        title: el.getAttribute("title"),
+        pressed: el.getAttribute("aria-pressed"),
+      }
+    : null;
+});
+check(
+  "an icon-only toggle names itself with its label and shows it on hover",
+  toggleIconOnly &&
+    toggleIconOnly.label === "Favorite" &&
+    toggleIconOnly.text === "" &&
+    toggleIconOnly.title === "Favorite" &&
+    toggleIconOnly.pressed === "true",
+  JSON.stringify(toggleIconOnly),
+);
+
+const swapped = await page.evaluate(() => {
+  const on = document.querySelector("#toggle-swap svg circle");
+  const off = document.querySelector("#toggle-swap-off svg circle");
+  return {
+    pressedFill: on ? on.getAttribute("fill") : null,
+    restingFill: off ? off.getAttribute("fill") : null,
+  };
+});
+check(
+  "the pressed icon replaces the resting one",
+  swapped.pressedFill === "currentColor" && swapped.restingFill === "none",
+  JSON.stringify(swapped),
+);
+
+const verticalGroup = await page.evaluate(() => {
+  const root = document.getElementById("toggle-group-vertical");
+  return root
+    ? { orientation: root.getAttribute("aria-orientation"), direction: getComputedStyle(root).flexDirection }
+    : null;
+});
+check(
+  "a vertical group says so, in its ARIA and in its layout",
+  verticalGroup && verticalGroup.orientation === "vertical" && verticalGroup.direction === "column",
+  JSON.stringify(verticalGroup),
+);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -2497,11 +2613,11 @@ check("and the arrow keys move between members", afterArrow === "avatar-group-me
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 47 ported / 56 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["47", "56", "103"]),
+    "coverage stats are 48 ported / 55 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["48", "55", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 56 entries", cov.unported === 56, `got ${cov.unported}`);
+  check("unported list rendered 55 entries", cov.unported === 55, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

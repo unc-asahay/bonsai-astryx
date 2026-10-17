@@ -2464,3 +2464,21 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 
 .astryx-avatar-group-overflow:hover { background-color: var(--color-background-hover, var(--color-background-muted)); }
 .astryx-avatar-group-overflow:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ---- Toggle button -------------------------------------------------------------------------------------- */
+
+/* The pressed look is the label's weight and nothing else - which is upstream's whole pressed style, and the
+   reason the width reservation exists at all: a semibold label is wider than a medium one, so a row of toggles
+   would shuffle sideways every time one went down. The port has not got the reservation (see the interface),
+   so that shuffle is real here - and this rule is what causes it. */
+.astryx-toggle-button[aria-pressed="true"] {
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.astryx-toggle-button-group {
+  display: inline-flex;
+  gap: var(--spacing-1, 2px);
+}
+
+.astryx-toggle-button-group--horizontal { flex-direction: row; align-items: center; }
+.astryx-toggle-button-group--vertical { flex-direction: column; align-items: stretch; }

@@ -195,6 +195,12 @@
       "name": "a facepile, and the margin that survives a wrapper",
       "note": "AvatarGroup, with AvatarGroupOverflow in the same directory (one coverage entry, as with Avatar). The overlap is upstream's round(size * 0.25), applied as a negative inline-start margin to every member *including the first* - upstream's reason, in upstream's comment, is that a negative container margin is defeated the moment a member is wrapped in something of its own, which is what a Tooltip does; the same wrapper problem the mark anchors hit in ProgressBar. Roving focus stands on Common.List_focus, already shared by ButtonGroup and Toolbar, and a screen reader is told through aria-describedby. The group does not measure: upstream's own docs say the consumer slices and passes an overflow chip, so there is no resize machinery here. Named divergences: size and shape are not propagated to members (the port has no contexts by design - the same rule that left Toolbar's SizeProvider named); the keyboard hint and the chip's label are English where upstream translates; themeProps has no counterpart. The group takes already-rendered avatars, which is what keeps it a function of nodes and lets the jsdom gate render it.",
       "status": "complete"
+    },
+    {
+      "id": "M27",
+      "name": "a button that stays down, and why it has to be a pure view",
+      "note": "ToggleButton, with ToggleButtonGroup in the same directory (one coverage entry). It is the port's Button with aria-pressed, an icon that swaps while pressed, and - icon-only - the label doubling as the accessible name and the hover text. Upstream keeps its pressed context in a layer-scoped context (named divergence, like every other context), and reserves the pressed label's width with a second copy sharing a grid cell with the real one, which this Button's ~label API cannot express - named rather than faked, because a hidden in-flow copy widens the button instead of reserving it. The view is pure rather than graph-taking, and that is a design constraint rather than an accident: is_pressed is state the caller re-renders on, and a view that reached for the graph could not be re-run when it changed. The consequence is a bonus - the component is static, so the jsdom gate renders it, and the tooltip becomes a title (the same call Avatar made, for the same reason).",
+      "status": "complete"
     }
   ],
   "ported": [
@@ -499,6 +505,13 @@
       "file": "src/timer.ml",
       "milestone": "M19",
       "module": "Astryx.Timer"
+    },
+    {
+      "class": "A",
+      "component": "ToggleButton",
+      "file": "src/toggle_button.ml",
+      "milestone": "M27",
+      "module": "Astryx.Toggle_button"
     },
     {
       "class": "A",

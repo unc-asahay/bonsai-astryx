@@ -2200,3 +2200,60 @@ browser gate, where the overlap and the arrow keys can be measured for real.
 
 component **433/0** · browser **286/286** · demo 25/25 · responsive 66/0 · coverage **47 of 103** (56 unported) ·
 sweep exit 0, 0 FAILs, MCP layer truthful.
+
+## Gate 42 — ToggleButton (M27): a button that stays down, and why it has to be a pure view
+
+Coverage moves **47 → 48 of 103**. The directory is the unit: `ToggleButtonGroup` is a file inside
+`ToggleButton/`, so the pair is one entry. It wraps the port's own `Button`, which is why 629 lines of upstream
+came to very little new code.
+
+### The design decision, and how it fell out
+
+The component takes a **graph** if it uses the port's Tooltip, and `is_pressed` is state the caller re-renders
+on. Those two facts cannot both hold: a view that reaches for the graph cannot be re-run when the value
+changes, because a graph is linear. So the choice was between a tooltip and a working toggle, and the toggle
+won — `view` is now a pure function of its value, and the icon-only tooltip is a `title` attribute, which is the
+same call Avatar made for the same reason.
+
+The consequence is a gain rather than a cost: a pure view is a function of nodes, so this component is
+**static**, which means the jsdom gate can render it — the first component in several milestones where that is
+true.
+
+### The pressed style: I had it exactly wrong
+
+I wrote a pressed style with a background change and an inset border, and invented two tokens for it, neither of
+which exists. The check caught it by measuring the background, finding it identical to the resting one, and
+failing.
+
+Upstream's entire pressed style is:
+
+```
+pressed: { fontWeight: fontWeightVars['--font-weight-semibold'] }
+```
+
+The label simply goes semibold. **And that is why the width reservation exists**: a semibold label is wider than
+a medium one, so a row of toggles shuffles sideways every time one goes down. I had already recorded the
+reservation as a named divergence because the port's `Button` owns its label and the two copies would have to
+share a grid cell; now that divergence has a *visible* consequence rather than a theoretical one, and the
+interface says exactly what it is. The check measures the weight, which is the real thing.
+
+I also dropped the `data-state` attribute I had added. Upstream has no such attribute, and the styling hangs off
+`aria-pressed` — one source of truth for "is this button down", and one fewer invented detail.
+
+### A doctrine rule became an assertion
+
+`Button.view` takes `?component_name`, which exists so a wrapper can name *itself* in the marker rather than
+inheriting the marker of the thing it wraps. That has been doctrine in this port since IconButton and MoreMenu;
+here it is a **check**: every toggle in the group must report `data-astryx-component="ToggleButton"` and not
+"Button". A rule that only lived in prose is now enforced.
+
+### Checks (7, browser)
+
+a named group with `aria-orientation` · every toggle naming itself · a **real click** pressing one and only one ·
+the pressed weight following the announced state · an icon-only toggle whose label is both its name and its
+hover text · the icon swap · a vertical group saying so in ARIA *and* in computed layout.
+
+### Counts (verified)
+
+component **433/0** · browser **293/293** · demo 25/25 · responsive 66/0 · coverage **48 of 103** (55 unported) ·
+sweep exit 0, 0 FAILs, MCP layer truthful.

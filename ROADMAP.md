@@ -528,6 +528,24 @@ state — `maxNumOfItems` truncates, and the toggle renders with `aria-controls`
 `columns` becomes a variant type rather than `'multi' | number`, and `MetadataListItem` registers as
 infrastructure because it is not one of the 103.
 
+### M27 — ToggleButton: a button that stays down (done, 48 of 103)
+
+The design decision fell out of two facts that cannot both hold: the port's Tooltip needs a graph, and
+`is_pressed` is state the caller re-renders on - and a view that reaches for the graph cannot be re-run when
+that value changes, because a graph is linear. The toggle won, so `view` is a pure function of its value and the
+icon-only tooltip is a `title`. The consequence is a gain: a pure view is a function of nodes, so the component
+is static and the jsdom gate can render it.
+
+I had the pressed style exactly wrong - a background change and an inset border, with two tokens I invented,
+neither of which exists. Upstream's whole pressed style is the label going semibold, and *that is why the width
+reservation exists*: a semibold label is wider, so a row shuffles every time a toggle goes down. The
+reservation stays a named divergence (this Button owns its label, and the two copies would have to share a grid
+cell) but now with a visible consequence rather than a theoretical one. The invented `data-state` is gone too.
+
+One doctrine rule became an assertion: `Button.view`'s `~component_name` exists so a wrapper names itself
+rather than inheriting the marker of what it wraps, and there is now a check that every toggle reports
+"ToggleButton" and not "Button".
+
 ### M26 — AvatarGroup: a facepile, and the margin that survives a wrapper (done, 47 of 103)
 
 The recon answered a question I would have guessed wrong: I went in expecting a resize-measurement mechanism,

@@ -3093,6 +3093,83 @@ let avatar_group_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ToggleButton is a pure view - a function of its value, not of the graph - which is what lets its pressed
+   state be the caller's: the state lives in the graph and the node is built from it. The reason it is pure is
+   worth keeping in mind when adding to it: a view that reached for the graph could not be re-run when the
+   state changed. *)
+let toggle_icon filled =
+  Vdom.Node.create_svg
+    "svg"
+    ~attrs:
+      [ Vdom.Attr.create "xmlns" "http://www.w3.org/2000/svg"
+      ; Vdom.Attr.create "viewBox" "0 0 24 24"
+      ; Vdom.Attr.create "width" "1em"
+      ; Vdom.Attr.create "height" "1em"
+      ; Vdom.Attr.create "aria-hidden" "true"
+      ]
+    (if filled
+     then [ Vdom.Node.create_svg "circle" ~attrs:[ Vdom.Attr.create "cx" "12"; Vdom.Attr.create "cy" "12"; Vdom.Attr.create "r" "9"; Vdom.Attr.create "fill" "currentColor" ] [] ]
+     else
+       [ Vdom.Node.create_svg "circle" ~attrs:[ Vdom.Attr.create "cx" "12"; Vdom.Attr.create "cy" "12"; Vdom.Attr.create "r" "9"; Vdom.Attr.create "fill" "none"; Vdom.Attr.create "stroke" "currentColor"; Vdom.Attr.create "stroke-width" "2" ] [] ])
+;;
+
+let toggle_button_demo (graph : Bonsai.graph) =
+  let toggle ?(id = "") label =
+    let pressed, set_pressed = Bonsai.state false graph in
+    Bonsai.map2 pressed set_pressed ~f:(fun is_pressed set_pressed ->
+      Astryx.Toggle_button.view ~id ~label ~is_pressed ~on_pressed_change:set_pressed ())
+  in
+  let trio =
+    unwrap_all
+      [ toggle ~id:"toggle-bold" "Bold"
+      ; toggle ~id:"toggle-italic" "Italic"
+      ; toggle ~id:"toggle-underline" "Underline"
+      ]
+    |> Bonsai.map ~f:(fun buttons ->
+      Astryx.Toggle_button_group.view ~id:"toggle-group" ~label:"Text style" ~buttons ())
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map trio ~f:(ex "three toggles, each holding its own pressed state")
+      ; Bonsai.return
+          (ex
+             "icon-only, so the label becomes the name and the hover text"
+             (Astryx.Toggle_button.view
+                ~id:"toggle-icon-only"
+                ~label:"Favorite"
+                ~is_icon_only:true
+                ~icon:(toggle_icon false)
+                ~is_pressed:true
+                ()))
+      ; Bonsai.return
+          (ex
+             "a vertical group, and an icon that swaps when pressed"
+             (Astryx.Toggle_button_group.view
+                ~id:"toggle-group-vertical"
+                ~orientation:Astryx.Toggle_button_group.Vertical
+                ~label:"View"
+                ~buttons:
+                  [ Astryx.Toggle_button.view ~id:"toggle-swap" ~label:"Outline" ~icon:(toggle_icon false) ~pressed_icon:(toggle_icon true) ~is_pressed:true ()
+                  ; Astryx.Toggle_button.view ~id:"toggle-swap-off" ~label:"Empty" ~icon:(toggle_icon false) ~pressed_icon:(toggle_icon true) ()
+                  ]
+                ()))
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"toggle-button"
+      ~title:"ToggleButton"
+      ~note:
+        "A button that stays down. It is the port's Button with aria-pressed, an icon that swaps when pressed, \
+         and - for the icon-only case - the label doubling as the accessible name and the hover text. The \
+         width reservation upstream does (a second copy of the label in the pressed weight, sharing a grid \
+         cell with the real one, so a row does not shuffle when a toggle goes down) is named as a divergence \
+         rather than faked: the two copies have to share a cell, and this Button owns its own label. The group \
+         is a named group with aria-orientation; the selection belongs to the caller, since the port has no \
+         contexts."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3150,7 +3227,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3413,6 +3490,7 @@ let page (graph : Bonsai.graph) =
   let progress_bar_section = progress_bar_demo graph in
   let avatar_section = avatar_demo graph in
   let avatar_group_section = avatar_group_demo graph in
+  let toggle_button_section = toggle_button_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3433,10 +3511,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful progress_bar_section in
   let stateful = pair stateful avatar_section in
   let stateful = pair stateful avatar_group_section in
+  let stateful = pair stateful toggle_button_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group)
+    ~f:(fun (((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3444,7 +3523,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button ])
       ])
 ;;
 
