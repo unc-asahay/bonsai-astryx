@@ -371,7 +371,15 @@ ClickableCard (live)
   ok   a javascript: href renders INERT - no href attribute reaches the DOM
 
 coverage panel (fetched from coverage.json at runtime)
-  ok   coverage stats are 50 ported / 53 not / 103 total
+  ok   the Link section rendered
+  ok   the Link section has five examples
+  ok   a disabled link is an anchor with NO href
+  ok   a disabled link announces itself and leaves the tab order
+  ok   clicking a disabled link does not navigate
+  ok   an external link opens in a new tab with noopener and noreferrer
+  ok   an external link announces the new tab instead of leaving it to the icon
+  ok   a link with no destination renders as a button
+  ok   coverage stats are 52 ported / 51 not / 103 total
   ok   unported list rendered 51 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
@@ -391,7 +399,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-323/323 checks passed, 0 failure(s)
+331/331 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

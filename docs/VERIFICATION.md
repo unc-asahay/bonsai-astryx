@@ -2753,3 +2753,70 @@ Still green, still true of the tree it named, but the watcher that re-points it 
 re-pointed, the watcher is running again, and CI on the three commits before this one is confirmed
 **completed/success**.
 
+---
+
+## Gate 49 — M31: Link (coverage 51 -> 52)
+
+The first component in several milestones that is mostly *composition*. Four mechanisms were built and
+verified on their own beforehand — the linkify scanner and its text-cutting walk, the destination handoff,
+the interactive role, and target/rel normalization — so the component itself is an assembly of verified
+parts plus the already-ported `Text` and `Icon`. That is the reason this landed in one sitting rather than
+becoming a campaign, and it is the argument for building a mechanism before the component that wraps it.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **445 checks, 0 failures**.
+- DOM + accessibility (jsdom) — all passed.
+- real browser, showcase — **331 checks, 0 failures**; demo — 25/25.
+- responsive + visual regression — **66 checks, 0 failures at 0.00%** on a separate run after a deliberate
+  re-baseline.
+- agent layer — `ported entries: 52; correctly attributed: 52`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m31c.txt`).
+
+### Three findings worth more than the component
+
+**1. A gate that asserts a generated artifact will agree with a stale one.** The coverage panel assertion
+froze `["50", "53", "103"]` — **stale by two milestones**. The gate reads the rendered page, and the page
+reads `site/coverage.json`, a *generated* file that had not been regenerated. So every green sweep in
+between was agreeing with an out-of-date artifact rather than with `port.json`. Moving a number in
+`port.json` was "verified" by a check that could not see it. Regenerated, it now asserts `52/51/103`.
+
+**2. A label that lies about its own assertion.** The same check's *description* still read "coverage stats
+are 50 ported / 53 not / 103 total" after its comparison had been updated. This repo already records the
+mirror of this ("fix the assertion, not the label"); here the assertion was fixed and the label was left
+lying, and nothing notices because only the comparison is evaluated. A transcript that states the wrong
+number in prose is worse than no description at all.
+
+**3. Upstream's comment and upstream's code disagree, and the code is right.** A check asserting "a
+disabled link cannot take focus" **failed**. The port renders `tabIndex={-1}` — focusable but not
+tabbable — so programmatic focus works. Upstream's comment says a disabled link "cannot be focused or
+activated"; the code says `tabIndex={-1}`. The claim that matters is the comment's other half: focusing it
+and activating it cannot **navigate**, which is what the missing href buys. That is now asserted by
+clicking the disabled link and requiring the URL not to move — a check that would fail if the port wrote
+the href. Recorded because the first instinct on a failing accessibility check is to change the component.
+
+### Two placement failures, both silent
+
+The browser checks were first inserted beside a *comment* rather than inside the *evaluation*, twice, and
+both times the run died with `document is not defined` before printing a single check. That is a worse
+failure than a wrong assertion: it names nothing, and the tally is unchanged, so the only evidence is a
+stack trace in a transcript nobody is reading yet. The fix is to follow the file's dominant pattern — one
+`page.evaluate` returning a plain object of facts, asserted in node scope — and the comment at the
+insertion point now says so.
+
+### Deliberate divergences
+
+- **No `tooltip` prop.** The ported `Tooltip.view` takes a graph and returns a `Bonsai.t`, so accepting one
+  here would make every link stateful, including those in pure trees, for a prop most links do not pass.
+  Wrap the link in `Astryx.Tooltip.view`; the state is then the caller's.
+- **No `LinkProvider`.** A React context, and this port's containers cannot reach children the caller
+  already built — the same fact that makes `Form_layout` take `?optionality` per field. The component is an
+  argument per link (`Link_destination.Routed`).
+
+### The re-baseline, stated rather than implied
+
+A new section adds **1201px of height at 320px and changes no width at any viewport**. The baseline was
+updated deliberately, and then verified at 0.00% on a separate run; a baseline written on the same run
+cannot detect a regression on that run, and the tool says so.
+
