@@ -2727,3 +2727,29 @@ check added after the M30 misattribution.
 Next, in the order already recorded: the scanner, using JS `RegExp` for fidelity (testable in the component
 gate, which runs under node), then the safe-link wrapper, then `Link` itself.
 
+### Addendum to Gate 48: the README's counts are now read by a gate
+
+Checking CI turned up a stale claim. The README's showcase row said "all 50 ported components, 309
+examples, 53 sections" while the page it describes had 51, 312 and 54 — all three changed in this session,
+and no gate read the row, which is why it went unnoticed. The row *above* it was made count-free for
+exactly this reason; this one kept counts and went stale anyway.
+
+It is also the reason the check below exists rather than a note asking people to be careful. The browser
+gate now reads `README.md` and `port.json` and compares the row against the page it describes, and it was
+verified the only way a check is worth anything — by putting the stale numbers back and watching it fail:
+
+```
+FAIL the README's showcase row matches the page it describes — README says 50/309/53, page has 51/312/54
+```
+
+A note about the commit that made the fix. Its message says the three counts "are asserted by the browser
+gate", which was **false when it was written** — the gate asserted the page, never the README, and that is
+precisely how the row went stale. It is true as of this addendum, because the check now exists. Commit
+messages cannot be edited, so the correction lives here rather than in a rewrite; the alternative, softening
+the sentence, would have left the gap in place and described it instead of closing it.
+
+Also from the same check: the CI row named run `38995086208`, from the M29 era and thirteen commits back.
+Still green, still true of the tree it named, but the watcher that re-points it had stopped. It is
+re-pointed, the watcher is running again, and CI on the three commits before this one is confirmed
+**completed/success**.
+

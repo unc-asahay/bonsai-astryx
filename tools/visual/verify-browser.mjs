@@ -22,7 +22,7 @@
 //   node tools/visual/verify-browser.mjs [url]
 
 import { createRequire } from "node:module";
-import { existsSync, readdirSync, mkdirSync } from "node:fs";
+import { existsSync, readdirSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -2756,6 +2756,28 @@ check(
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
+
+  // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed
+  // 50 ported components, 309 examples and 53 sections while the page it describes had 51, 312 and 54 -
+  // every one of those changed in a single session, and no gate looked. A number a gate can compare is a
+  // claim; a number nothing reads is a liability. This reads it.
+  {
+    const readme = readFileSync(resolve(root, "README.md"), "utf8");
+    const row = readme.split("\n").find((l) => l.startsWith("| Showcase site")) ?? "";
+    const ported = JSON.parse(readFileSync(resolve(root, "port.json"), "utf8")).ported.length;
+    const claimed = {
+      components: Number(row.match(/all (\d+) ported components/)?.[1]),
+      examples: Number(row.match(/(\d+) examples/)?.[1]),
+      sections: Number(row.match(/(\d+) sections/)?.[1]),
+    };
+    check(
+      "the README's showcase row matches the page it describes",
+      claimed.components === ported &&
+        claimed.examples === totalExamples &&
+        claimed.sections === sections.length,
+      `README says ${claimed.components}/${claimed.examples}/${claimed.sections}, page has ${ported}/${totalExamples}/${sections.length}`,
+    );
+  }
   // ---------------------------------------------------------------- OverflowList (M30)
   //
   // The component's whole design is the pair of containers, so the checks read both: the hidden one that
