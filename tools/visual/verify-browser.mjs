@@ -598,7 +598,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("46 sections", sections.length === 46, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("47 sections", sections.length === 47, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -609,7 +609,7 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5,
+    MetadataList: 5, MoreMenu: 3,
     Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
     StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
     HStack: 4, VStack: 4, AspectRatio: 6,
@@ -621,7 +621,7 @@ if (mode === "showcase") {
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("280 examples across the page", totalExamples === 280, `got ${totalExamples}`);
+  check("283 examples across the page", totalExamples === 283, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -634,7 +634,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("46 nav links", nav.length === 46, `got ${nav.length}`);
+  check("47 nav links", nav.length === 47, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2048,6 +2048,45 @@ check(
   `${collapsed && collapsed.dts} dt, label=${collapsed && collapsed.toggle.label}`,
 );
 
+// MoreMenu: the delegation, and the marker rule that makes it visible. The trigger is a Button, but the
+// component the user is looking at is MoreMenu, and that is what the marker has to say.
+const moreTrigger = await page.evaluate(() => {
+  const button = document.getElementById("more-menu-trigger");
+  if (!button) return null;
+  return {
+    tag: button.tagName,
+    marker: button.getAttribute("data-astryx-component"),
+    ariaLabel: button.getAttribute("aria-label"),
+    glyph: !!button.querySelector(".astryx-more-menu__glyph"),
+    background: getComputedStyle(button).backgroundColor,
+  };
+});
+check(
+  "a delegating trigger names the component the user sees, not the Button it is",
+  moreTrigger && moreTrigger.marker === "MoreMenu" && moreTrigger.tag === "BUTTON",
+  JSON.stringify(moreTrigger),
+);
+check(
+  "the default label is the accessible name, and the glyph is not text",
+  moreTrigger && moreTrigger.ariaLabel === "More" && moreTrigger.glyph && !moreTrigger.textContent,
+  JSON.stringify(moreTrigger),
+);
+const namedTrigger = await page.getAttribute("#more-menu-named-trigger", "aria-label");
+check("a label of its own becomes the accessible name", namedTrigger === "Actions", `${namedTrigger}`);
+
+// The delegation end to end: this trigger is a Button, and clicking it is what opens the menu.
+const moreRows = () => page.evaluate(() => document.querySelectorAll("#more-menu-menu [role='menuitem']").length);
+check("it starts closed", (await moreRows()) === 0);
+await page.click("#more-menu-trigger");
+await page.waitForFunction(() => document.querySelector("#more-menu-trigger").getAttribute("aria-expanded") === "true", null, { timeout: 3000 }).catch(() => {});
+check("clicking the delegated trigger opens the menu it delegates to", (await moreRows()) > 0, `rows=${await moreRows()}`);
+await page.keyboard.press("Escape");
+
+const moreControlled = async () => page.getAttribute("#more-menu-controlled-trigger", "aria-expanded");
+await page.click("#more-menu-controlled-toggle");
+await page.waitForFunction(() => document.querySelector("#more-menu-controlled-trigger").getAttribute("aria-expanded") === "true", null, { timeout: 3000 }).catch(() => {});
+check("and it is controllable, because the menu underneath is", (await moreControlled()) === "true", `${await moreControlled()}`);
+
 /* popover="manual" is how a surface asks for explicit dismissal only — and that is an attribute
        meaning, not a flag this port implements. */
     await page.click("#showcase-layer-manual-trigger");
@@ -2081,11 +2120,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 43 ported / 60 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["43", "60", "103"]),
+    "coverage stats are 44 ported / 59 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["44", "59", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 60 entries", cov.unported === 60, `got ${cov.unported}`);
+  check("unported list rendered 59 entries", cov.unported === 59, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 }

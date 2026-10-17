@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Dropdown_menu` (`src/dropdown_menu.ml`, M10)
-- rendered instances in the demo: 1
+- rendered instances in the demo: 6
 - classes: `astryx-dropdown`
 
 ## layout

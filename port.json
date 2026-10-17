@@ -171,6 +171,12 @@
       "name": "terms and values whose layout belongs to the list",
       "note": "MetadataList + MetadataListItem. A real <dl> whose layout is chosen on the list and reaches the items as their container: the item renders the dt/dd pair as a fragment, so a single-column grid puts them on two rows (stacked) and a two-column grid puts them side by side, and no context travels between the two - the same resolution as InputGroup and ButtonGroup, for the same reason (a child is built before its container sees it). Six grids come out of columns x label position: auto minmax(0, 1fr), a responsive auto-fill at 280px, a 1fr single column when stacked, a wrapping flex row when horizontal, and an explicit repeat(N, ...) when columns is a number. Named divergences: no themeProps hook; the show-all toggle takes its two labels as arguments with English defaults and does not interpolate a hidden count the way upstream's i18n catalogue does; the id becomes the root's name as well as the content's. One difference follows from the fragment and is recorded rather than left to be discovered: upstream wraps a stacked pair in a flex column with a half-step gap, while a grid row gap is a full step, so a stacked pair sits slightly further apart here. A consequence worth knowing: the component is stateful whether or not anything truncates (upstream creates the state unconditionally and so does the port), so the jsdom harness cannot render it at all and its checks live in the browser gate, where the toggle can be clicked.",
       "status": "complete"
+    },
+    {
+      "id": "M23",
+      "name": "a delegation with nothing of its own",
+      "note": "MoreMenu. 183 lines upstream that hold no behaviour: it is a DropdownMenu whose trigger is a ghost icon-only button, so it could only arrive after M23a made the menu configurable and controllable, and the port's version is that delegation with nothing invented in between. Divergences named: the label defaults to the English string the i18n catalogue holds; the default icon is the character because this port's icon set has no moreHorizontal glyph; hasChevron has no counterpart since the port's trigger renders no chevron at all; placement/alignment/presentation remain unported. The marker is passed down as the trigger's component_name, so the button the user sees says MoreMenu - a delegating component that did not name itself would be invisible to every tool here.",
+      "status": "complete"
     }
   ],
   "ported": [
@@ -363,6 +369,13 @@
       "file": "src/metadata_list.ml",
       "milestone": "M22",
       "module": "Astryx.MetadataList"
+    },
+    {
+      "class": "A",
+      "component": "MoreMenu",
+      "file": "src/more_menu.ml",
+      "milestone": "M23",
+      "module": "Astryx.More_menu"
     },
     {
       "class": "A",

@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-44 ported component(s). Each page records the appearance the port
+45 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -12,7 +12,7 @@ for image generation.
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
 | Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 62 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 66 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
@@ -22,7 +22,7 @@ for image generation.
 | Dialog | 11 | 3 | 13 | 6 | [Dialog.md](Dialog.md) |
 | DialogHeader | 3 | 3 | 5 | 4 | [DialogHeader.md](DialogHeader.md) |
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
-| DropdownMenu | 1 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
+| DropdownMenu | 6 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
 | Field | 46 | 2 | 5 | 1 | [Field.md](Field.md) |
 | FieldStatus | 13 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
@@ -36,7 +36,8 @@ for image generation.
 | InputGroupText | 2 | 1 | 8 | 5 | [InputGroupText.md](InputGroupText.md) |
 | Kbd | 15 | 1 | 4 | 1 | [Kbd.md](Kbd.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
-| MetadataListItem | 26 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
+| MetadataListItem | 27 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
+| MoreMenu | 3 | 4 | 25 | 10 | [MoreMenu.md](MoreMenu.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
 | Popover | 2 | 6 | 15 | 10 | [Popover.md](Popover.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
@@ -53,6 +54,6 @@ for image generation.
 | Tooltip | 10 | 4 | 14 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 59 components with no OCaml port. They
+Not listed: the 58 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

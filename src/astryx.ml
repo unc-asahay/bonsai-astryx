@@ -9,6 +9,8 @@
 module Metadata_list = Metadata_list
 module Metadata_list_item = Metadata_list_item
 
+module More_menu = More_menu
+
 module Popover = Popover
 module Common = Common
 module Tokens = Tokens

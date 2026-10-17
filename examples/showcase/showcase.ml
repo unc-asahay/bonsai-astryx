@@ -3006,7 +3006,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3117,6 +3117,70 @@ let metadata_list_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* MoreMenu is a delegation and nothing else, which is worth showing precisely because there is so little to
+   see: the same entries as the menu above, a trigger that is a ghost icon-only button, and - for the third
+   example - an open state the demo owns. Its marker says MoreMenu rather than Button, which is the whole
+   point of passing a component name down. *)
+let more_menu_demo (graph : Bonsai.graph) =
+  let selected, set_selected = Bonsai.state (None : string option) graph in
+  let on_select =
+    Bonsai.map set_selected ~f:(fun set_selected (item : Dm.item) -> set_selected (Some item.id))
+  in
+  let default = Astryx.More_menu.view ~id:"more-menu" ~on_select ~items:demo_menu_entries graph in
+  let named =
+    Astryx.More_menu.view
+      ~id:"more-menu-named"
+      ~label:"Actions"
+      ~on_select
+      ~items:demo_menu_entries
+      graph
+  in
+  let controlled_open, set_controlled_open = Bonsai.state false graph in
+  let controlled =
+    Astryx.More_menu.view
+      ~id:"more-menu-controlled"
+      ~is_open:controlled_open
+      ~on_open_change:set_controlled_open
+      ~on_select
+      ~items:demo_menu_entries
+      graph
+  in
+  let controlled_state =
+    Bonsai.map2 controlled_open set_controlled_open ~f:(fun value setter -> value, setter)
+  in
+  let controlled_example =
+    Bonsai.map2 controlled_state controlled ~f:(fun (is_open, set_is_open) controlled ->
+      ex
+        "controlled from the outside, like the menu above"
+        (Vdom.Node.div
+           [ Astryx.Button.view
+               ~label:(sprintf "Turn it %s from here" (if is_open then "off" else "on"))
+               ~attrs:[ Vdom.Attr.id "more-menu-controlled-toggle" ]
+               ~on_click:(fun _ -> set_is_open (not is_open))
+               []
+           ; controlled
+           ]))
+  in
+  let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
+  Bonsai.map2
+    (pair selected (pair default named))
+    controlled_example
+    (* The selection is written and never read here - the menu above prints it. *)
+    ~f:(fun (_selected, (default, named)) controlled_example ->
+      section
+        ~id:"moremenu"
+        ~title:"MoreMenu"
+        ~note:
+          "A menu whose trigger is one icon-only ghost button. There is nothing here that the menu above \
+           does not do - which is the point: MoreMenu holds no behaviour of its own, it configures the menu \
+           underneath (variant, size, icon-only, a label that becomes the accessible name) and passes its \
+           own name down so the marker on the trigger says MoreMenu rather than Button. It can be controlled \
+           the same way, because the menu can be."
+        [ ex "the default trigger: an icon-only ghost button named More" default
+        ; ex "a label of its own, which becomes the accessible name" named
+        ; controlled_example
+        ])
+;;
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -3133,6 +3197,7 @@ let page (graph : Bonsai.graph) =
   let field_section = field_demo graph in
   let text_area_section = text_area_demo graph in
   let metadata_list_section = metadata_list_demo graph in
+  let more_menu_section = more_menu_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3149,10 +3214,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful layer_section in
   let stateful = pair stateful popover_section in
   let stateful = pair stateful metadata_list_section in
+  let stateful = pair stateful more_menu_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
+    ~f:(fun ( ( ( ( ( ( ( ( ( ( ( ( (interactive, checkbox), (dropdown, field)), switch), radio_list)
                         , form_layout )
                       , tooltip )
                     , dialog )
@@ -3161,14 +3227,15 @@ let page (graph : Bonsai.graph) =
               , layer )
             , popover )
           , metadata_list )
-        text_area ->
+        , more_menu )
+      text_area ->
     Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav ()
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu ])
       ])
 ;;
 

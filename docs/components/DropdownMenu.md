@@ -95,11 +95,9 @@ val view
   -> ?id:string
   -> ?is_disabled:bool
   -> ?menu_max_height:int
-  -> trigger_label:string
-  -> on_select:(item -> unit Bonsai.Effect.t) Bonsai.t
-  -> entries:entry list
-  -> Bonsai.graph
-  -> Vdom.Node.t Bonsai.t
+  -> ?variant:Button.variant
+  -> ?size:Button.size
+  -> ?icon:Vdom.Node.t
 ```
 
 Call it with the same prop names and defaults the upstream contract above documents; `Divergence` comments in the source record the few places the port deliberately differs (class names, and inline styles for per-instance numeric props).
