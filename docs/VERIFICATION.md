@@ -2894,3 +2894,71 @@ run — a baseline written on the same run cannot detect a regression on that ru
 - **The href passes `Link_destination`** — a refused destination renders the same markup without it.
 - **`aria-description` is reproduced verbatim**, non-standard spelling and all — upstream writes it,
   and silently "correcting" it to `aria-describedby` would change the accessibility tree.
+
+## Gate 51 — M33: Spinner (coverage 53 -> 54)
+
+A loading indicator whose interesting surface is that it is *drawn* — the ring's geometry resolves in
+the port, not in a stylesheet — and that it is *named* — a label changes which element is the status
+root and how it is named. The geometry contract: the sizes table (sm 10/2, md 14/3, lg 18/3, xl 28/4;
+box = ring plus the stroke on each side, so xl draws a 28px ring in a 36px box), ARC_FRACTION = 0.375 of
+the circumference as the moving dash, and the dash's keyframe moving by exactly one circumference per
+cycle (upstream's `dashMotion`: `0 -> -PI * diameter`). The naming contract: no label — the span IS the
+status element, named by `aria-label` (explicit, else the English `Loading`); string label — the label
+text becomes a `Text` below and names the status via `aria-labelledby` (never both at once, WCAG 4.1.2,
+upstream's own comment); non-string label — cannot be referenced, so falls back to `aria-label` /
+default exactly as upstream's `typeof label === 'string'` test would.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **479 checks, 0 failures** (15 new Spinner checks).
+- DOM + accessibility (jsdom) — all passed.
+- real browser, showcase — **345 checks, 0 failures**; demo — 25/25.
+- responsive + visual regression — **66 checks, 0 failures at 0.00%** after the deliberate re-baseline.
+- appearance contract — regenerated; `docs/visual/Spinner.md` exists (56 pages).
+- agent layer — `ported entries: 54; correctly attributed: 54`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m33*.txt`).
+
+### Geometry is drawn, not styled
+
+The port emits the SVG presentation attributes (`r`, `stroke-width`, `stroke-dasharray`, box
+`width`/`height`) from the sizes table, exactly like upstream's no-stylesheet render, so a render
+before the cascade draws the right ring. The CSS layer then paints (shade colors off the public vars)
+and moves the dash. The public geometry vars (`--spinner-diameter`, `--spinner-stroke-width`,
+`--spinner-arc-fraction`) are themed here via the `--astryx-spinner-d` / `--astryx-spinner-w` pair
+declared by per-size selectors; the arc's `calc()` reads its circumference inline as a real `<length>`
+(the reason upstream registers the same var — a bare `0` poisons a `calc()` sum).
+
+### The `%g` trap, caught before the gate ran
+
+The md dasharray is `16.4934 27.4889` — `%g` 6-significant-digit formatting of `43.9823 * 0.375` and its
+complement. The first check asserted `27.4890` (round by hand, wrong); corrected against Python's
+`%g` before running — an asserted literal is prose unless it was computed the same way the code
+computes it.
+
+### Compatibility with the button's inline spinner
+
+The port reuses the `.astryx-spinner` class name, which Button's loading state already uses for its
+1em/2px border spinner (`.astryx-button--loading .astryx-spinner`). The new component's generic rules
+are scoped to instances carrying a size modifier (`:is(.astryx-spinner--sm, …)`), so the button's
+spinner — which never carries one — keeps its own look. The class namespace is the contract; the
+modifier is the discriminator.
+
+### Deliberate divergences
+
+- **No `useId`.** `id` defaults to `astryx-spinner`; callers mounting many labelled spinners pass
+  distinct ids (a repeated default id would make `aria-labelledby` ambiguous; upstream's `useId`
+  cannot). `id` exists so the derived `id-label` stays stable and themeable.
+- **No `useTranslator`.** The default accessible name is the English `Loading`
+  (upstream's en source for `@astryx.spinner.loading`).
+- **No `syncRotationPhase`** — the Web Animations pinning that keeps spinners mounted seconds apart in
+  phase; the port's CSS animation starts each ring at its own mount.
+- **No `CSS.registerProperty`** for the resolved geometry vars; the keyframes read the inline
+  `<length>` circumference instead, which cannot be poisoned by a unitless `0`. Two mechanisms, one
+  assurance, and the port's is the one that survives a missing stylesheet.
+- **One theme target where upstream has two.** Upstream moves the theme target to the wrapper when a
+  label renders; the port keeps the size/shade modifier classes and data attrs on the span in both
+  branches, so a single themed rule works in both cases. Recorded in the source and in the CSS.
+- **`label` and `label_node` are separate parts** (upstream's single `ReactNode` `label`): the port
+  needs to know whether the visible label is plain text to decide `aria-labelledby`, which OCaml
+  cannot infer from a `Vdom.Node.t`.

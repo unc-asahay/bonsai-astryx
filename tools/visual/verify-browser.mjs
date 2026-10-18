@@ -243,7 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
-    "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token",
+    "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("56 sections", sections.length === 56, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("57 sections", sections.length === 57, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -627,10 +627,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8,
+    Link: 5, Token: 8, Spinner: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("325 examples across the page", totalExamples === 325, `got ${totalExamples}`);
+  check("331 examples across the page", totalExamples === 331, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -643,7 +643,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("56 nav links", nav.length === 56, `got ${nav.length}`);
+  check("57 nav links", nav.length === 57, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2867,6 +2867,56 @@ check(
       tf.disabledBtnDisabled === true);
   }
 
+  // ------------------------------------------------------------------ Spinner (M33)
+  {
+    const sf = await page.evaluate(() => {
+      const sec = document.querySelector('[data-showcase-component="Spinner"]');
+      const ex = [...(sec?.querySelectorAll("[data-example]") ?? [])];
+      const pick = (i, sel) => ex[i]?.querySelector(sel) ?? null;
+      const statusEls = [...(sec?.querySelectorAll("[role=status]") ?? [])];
+      const md = [...statusEls].find((s) => s.getAttribute("data-astryx-size") === "md") ?? null;
+      const mdSvg = md?.querySelector("svg");
+      const arcs = mdSvg ? [...mdSvg.querySelectorAll("circle")] : [];
+      const arc = arcs[arcs.length - 1] ?? null;
+      return {
+        found: !!sec,
+        examples: ex.length,
+        statusCount: statusEls.length,
+        mdBox: mdSvg ? [mdSvg.getAttribute("width"), mdSvg.getAttribute("height")] : null,
+        arcDash: arc?.getAttribute("stroke-dasharray") ?? null,
+        labelledWithText: (() => {
+          const w = [...(sec?.querySelectorAll(".astryx-spinner-wrapper") ?? [])]
+            .find((n) => (n.textContent || "").includes("Loading..."));
+          const named = w?.querySelector("[role=status]");
+          return {
+            hasText: !!(w && (w.textContent || "").includes("Loading...")),
+            labelledby: named?.getAttribute("aria-labelledby") ?? null,
+            label: named?.getAttribute("aria-label") ?? null,
+            textBelow: !!w?.lastElementChild?.classList?.contains("astryx-text"),
+          };
+        })(),
+        onMediaClass: (() => {
+          const w = [...(sec?.querySelectorAll(".astryx-spinner-wrapper") ?? [])]
+            .find((n) => (n.textContent || "").includes("Uploading..."));
+          return !!w?.closest(".astryx-demo-on-media");
+        })(),
+      };
+    });
+    check("the Spinner section rendered", sf.found, "not found");
+    check("the Spinner section has six examples", sf.examples === 6, `got ${sf.examples}`);
+    check("status elements carry role=status (labelled or not)", sf.statusCount >= 10, `got ${sf.statusCount}`);
+    check("md box is the ring plus its stroke on each side (20px)",
+      sf.mdBox && sf.mdBox[0] === "20" && sf.mdBox[1] === "20",
+      `got ${sf.mdBox && sf.mdBox.join("x")}`);
+    check("the arc is ARC_FRACTION of the circumference",
+      sf.arcDash === "16.4934 27.4889", `got ${sf.arcDash}`);
+    check("the string label names the status and sits below as Text",
+      sf.labelledWithText.hasText && sf.labelledWithText.labelledby !== null &&
+        sf.labelledWithText.label === null && sf.labelledWithText.textBelow);
+    check("the onMedia example sits on the dark demo surface",
+      sf.onMediaClass === true);
+  }
+
   const cov = await page.evaluate(() => ({
     // Read the stat numbers themselves: textContent on the container concatenates
     // without separators ("13ported90not yet…"), which no word-boundary regex can
@@ -2877,11 +2927,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 53 ported / 50 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["53", "50", "103"]),
+    "coverage stats are 54 ported / 49 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["54", "49", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 50 entries", cov.unported === 50, `got ${cov.unported}`);
+  check("unported list rendered 49 entries", cov.unported === 49, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

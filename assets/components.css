@@ -2763,3 +2763,125 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   outline-color: var(--color-accent);
   outline-offset: var(--focus-outline-offset);
 }
+
+/* Spinner (src/spinner.ml)
+   The port draws the ring geometry as SVG presentation attributes (r, stroke-width,
+   stroke-dasharray, box width/height), so these rules only paint and move. The
+   public geometry vars upstream registers (--spinner-diameter, --spinner-stroke-width,
+   --spinner-arc-fraction) are themeable here as the --astryx-spinner-d / --astryx-spinner-w
+   pair through the per-size selectors below, which also drive the box's calc().
+   The arc's keyframes animate stroke-dashoffset by exactly one circumference
+   (upstream's dashMotion: 0 -> diameter * -PI), read inline from
+   --astryx-spinner-circumference so a themed ring keeps its arc fraction. */
+
+/* The generic rules are scoped to instances carrying a size modifier so the button's
+   inline loading spinner (.astryx-button--loading .astryx-spinner, above) - which shares
+   the .astryx-spinner class but never a per-size class - keeps its own 1em/2px border look. */
+.astryx-spinner:is(.astryx-spinner--sm, .astryx-spinner--md, .astryx-spinner--lg, .astryx-spinner--xl) {
+  display: inline-grid;
+  place-items: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Per-size geometry: diameter + stroke, and the composed box (ring + stroke on each side).
+   A theme rule like .astryx-spinner[data-astryx-size="xl"] { --astryx-spinner-d: 40px; }
+   overrides both, since the box is composed from the same vars. */
+.astryx-spinner--sm {
+  --astryx-spinner-d: 10px;
+  --astryx-spinner-w: 2px;
+}
+.astryx-spinner--md {
+  --astryx-spinner-d: 14px;
+  --astryx-spinner-w: 3px;
+}
+.astryx-spinner--lg {
+  --astryx-spinner-d: 18px;
+  --astryx-spinner-w: 3px;
+}
+.astryx-spinner--xl {
+  --astryx-spinner-d: 28px;
+  --astryx-spinner-w: 4px;
+}
+
+.astryx-spinner--sm, .astryx-spinner--md, .astryx-spinner--lg, .astryx-spinner--xl {
+  width: var(--_astryx-box-size, calc(var(--astryx-spinner-d) + var(--astryx-spinner-w) * 2));
+  height: var(--_astryx-box-size, calc(var(--astryx-spinner-d) + var(--astryx-spinner-w) * 2));
+}
+
+/* The frame follows the box - 100% of the sized span, so the SVG and its circle move
+   together when a theme changes the diameter (upstream's ring rule). */
+.astryx-spinner__ring {
+  display: block;
+  overflow: visible;
+}
+
+.astryx-spinner__track,
+.astryx-spinner__arc {
+  fill: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke-linecap: round;
+  r: calc(var(--astryx-spinner-d) / 2);
+  stroke-width: var(--astryx-spinner-w);
+}
+
+/* Shade colors ride the cascade, upstream's shape: reads the public vars the shade
+   declares, so a theme rule against .astryx-spinner[data-astryx-shade="..."] wins. */
+.astryx-spinner--default {
+  --astryx-spinner-color: var(--color-accent);
+  --astryx-spinner-track-color: var(--color-track);
+}
+.astryx-spinner--subtle {
+  --astryx-spinner-color: var(--color-text-secondary);
+  --astryx-spinner-track-color: var(--color-track);
+}
+.astryx-spinner--onMedia {
+  --astryx-spinner-color: var(--color-on-dark);
+  --astryx-spinner-track-color: var(--color-on-dark);
+}
+.astryx-spinner--inherit {
+  --astryx-spinner-color: currentColor;
+  --astryx-spinner-track-color: currentColor;
+}
+
+.astryx-spinner__track { stroke: var(--astryx-spinner-track-color); }
+
+.astryx-spinner__arc {
+  stroke: var(--astryx-spinner-color);
+  transform: rotate(-90deg);
+  /* Arc fraction as a bare number multiplier, upstream's --spinner-arc-fraction;
+     themeable per size through the same selectors that declare the geometry. */
+  --astryx-spinner-arc: 0.375;
+  stroke-dasharray:
+    calc(var(--astryx-spinner-d) * 3.141592653589793 * var(--astryx-spinner-arc))
+    calc(var(--astryx-spinner-d) * 3.141592653589793 * (1 - var(--astryx-spinner-arc)));
+  animation: astryx-spinner-dash var(--duration-slow-min, 730ms) linear infinite;
+}
+
+/* The dash moves by exactly one circumference per cycle: the same 0 -> -PI*diameter
+   upstream pins its rings to the document timeline with, and the --astryx-spinner-circumference
+   inline <length> is what makes the calc() lawful next to a themed diameter. */
+@keyframes astryx-spinner-dash {
+  from { stroke-dashoffset: 0px; }
+  to { stroke-dashoffset: calc(-1 * var(--astryx-spinner-circumference, 43.98px)); }
+}
+
+/* Slow rather than freeze under reduced motion - a frozen spinner reads as broken
+   (upstream's own choice, matching ProgressBar). */
+@media (prefers-reduced-motion: reduce) {
+  .astryx-spinner__arc { animation-duration: 3s; }
+}
+
+/* With a label, the wrapper lays the status element and the label out in a column
+   upstream's shape (inline-flex, centered, --spacing-2 gap). The port deliberately
+   keeps the theme target (the size/shade modifier classes and data attrs) on the
+   span in BOTH branches - upstream moves it to the wrapper when a label renders,
+   but a single theme target makes one theme rule work in both cases, and the
+   span's own declarations are what the keyframes and geometry read from. */
+.astryx-spinner-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+}

@@ -3357,6 +3357,59 @@ let s_token () =
     ]
 ;;
 
+let s_spinner () =
+  section
+    ~id:"spinner"
+    ~title:"Spinner"
+    ~note:
+      "An animated loading ring, in four sizes (the box is the ring plus its stroke on each side: \
+       xl draws a 28px ring inside a 36px box) and four shades - accent on light, on-dark for media \
+       surfaces, secondary text for inline lists, and inherit, which reads the parent's currentColor \
+       so a spinner inside a coloured button matches it (its track at 0.3). Geometry is drawn as \
+       SVG attributes, so a render without the stylesheet still shows the right ring; the moving \
+       arc covers 0.375 of the circumference and the dash loops once per cycle. With a string label \
+       the visible text names the status element through aria-labelledby (never both, so screen \
+       readers don't announce it twice); a non-string label can't be referenced, so it falls back to \
+       the English 'Loading' accessible name, as does a bare spinner. Divergences: upstream pins \
+       every ring's animation to the timeline origin so spinners mounted at different times stay in \
+       phase (Web Animations machinery not ported), and it registers the geometry vars with \
+       CSS.registerProperty - here the same value is emitted inline as a real <length>, which is \
+       what the keyframes' calc() needs."
+    [ ex "Default" (Astryx.Spinner.view ())
+    ; ex
+        "All sizes"
+        (Vdom.Node.div
+           [ Astryx.Spinner.view ~size:Astryx.Spinner.Sm ()
+           ; Astryx.Spinner.view ~size:Astryx.Spinner.Md ()
+           ; Astryx.Spinner.view ~size:Astryx.Spinner.Lg ()
+           ; Astryx.Spinner.view ~size:Astryx.Spinner.Xl ()
+           ])
+    ; ex
+        "Shades"
+        (Vdom.Node.div
+           [ Astryx.Spinner.view ~shade:Astryx.Spinner.Default ()
+           ; Astryx.Spinner.view ~shade:Astryx.Spinner.Subtle ()
+           ; Astryx.Spinner.view ()
+           ; Astryx.Spinner.view ~shade:Astryx.Spinner.Inherit ()
+           ])
+    ; ex "With label" (Astryx.Spinner.view ~label:"Loading..." ())
+    ; ex
+        "Label as rich content"
+        (Astryx.Spinner.view
+           ~label_node:
+             (Astryx.Text.view
+                ~type_:Astryx.Text.Body
+                ~weight:Astryx.Text.Bold
+                [ Vdom.Node.text "Fetching data" ])
+           ())
+    ; ex
+        "On media"
+        (Vdom.Node.div
+           ~attrs:[ Vdom.Attr.class_ "astryx-demo-on-media" ]
+           [ Astryx.Spinner.view ~shade:Astryx.Spinner.On_media ~label:"Uploading..." () ])
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3372,6 +3425,7 @@ let specs =
   ; s_clickable_card ()
   ; s_link ()
   ; s_token ()
+  ; s_spinner ()
   ]
 ;;
 
@@ -3417,7 +3471,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"; "token", "Token"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"; "token", "Token"; "spinner", "Spinner"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

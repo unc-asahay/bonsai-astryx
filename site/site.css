@@ -390,3 +390,12 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* On-media showcase surface (showcase.ml, Spinner's onMedia shade): a dark swatch
+   the on-dark shade is meant to be read against. */
+.astryx-demo-on-media {
+  display: inline-flex;
+  padding: var(--spacing-4);
+  border-radius: var(--radius-element);
+  background: var(--color-accent);
+}

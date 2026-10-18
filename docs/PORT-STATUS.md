@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **53 of 103** components.
+Ported: **54 of 103** components.
 
 ## Milestones
 
@@ -54,62 +54,63 @@ Ported: **53 of 103** components.
 
 | Component | Module | File | Milestone | Upstream class |
 | --- | --- | --- | --- | --- |
-| `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
-| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
-| `Avatar` | `Astryx.Avatar` | `src/avatar.ml` | M25 | A |
-| `AvatarGroup` | `Astryx.Avatar_group` | `src/avatar_group.ml` | M26 | A |
 | `Badge` | `Astryx.Badge` | `src/badge.ml` | M1 | A |
-| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
 | `Button` | `Astryx.Button` | `src/button.ml` | M1 | B |
-| `ButtonGroup` | `Astryx.Button_group` | `src/button_group.ml` | M17 | A |
 | `Card` | `Astryx.Card` | `src/card.ml` | M1 | A |
-| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
-| `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
-| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
-| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
-| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
 | `Divider` | `Astryx.Divider` | `src/divider.ml` | M1 | A |
-| `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
-| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
-| `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
-| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
-| `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
-| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
-| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
 | `Heading` | `Astryx.Heading` | `src/heading.ml` | M1 | A |
-| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
-| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
-| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
-| `InputGroup` | `Astryx.Input_group` | `src/input_group.ml` | M20 | A |
-| `Kbd` | `Astryx.Kbd` | `src/kbd.ml` | M15 | A |
-| `MetadataList` | `Astryx.MetadataList` | `src/metadata_list.ml` | M22 | A |
-| `MoreMenu` | `Astryx.More_menu` | `src/more_menu.ml` | M23 | A |
-| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
-| `Popover` | `Astryx.Popover` | `src/popover.ml` | M18 | A |
-| `ProgressBar` | `Astryx.Progress_bar` | `src/progress_bar.ml` | M24 | A |
-| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
-| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
 | `Skeleton` | `Astryx.Skeleton` | `src/skeleton.ml` | M1 | A |
 | `Stack` | `Astryx.Stack` | `src/stack.ml` | M1 | A |
 | `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
-| `Switch` | `Astryx.Switch` | `src/switch.ml` | M12 | B |
 | `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
-| `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
-| `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
-| `Timer` | `Astryx.Timer` | `src/timer.ml` | M19 | A |
-| `ToggleButton` | `Astryx.Toggle_button` | `src/toggle_button.ml` | M27 | A |
-| `Toolbar` | `Astryx.Toolbar` | `src/toolbar.ml` | M21 | A |
-| `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
-| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
+| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
+| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
+| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
 | `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
+| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
+| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
+| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
+| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
+| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
+| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
+| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
+| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
+| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
+| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
+| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
+| `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
+| `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
+| `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
+| `CheckboxInput` | `Astryx.Checkbox_input` | `src/checkbox_input.ml` | M12 | B |
+| `Indicator` | `Astryx.Indicator` | `src/indicator.ml` | M12 | A |
+| `Switch` | `Astryx.Switch` | `src/switch.ml` | M12 | B |
+| `TextArea` | `Astryx.Text_area` | `src/text_area.ml` | M12 | B |
+| `FormLayout` | `Astryx.Form_layout` | `src/form_layout.ml` | M13 | B |
+| `RadioList` | `Astryx.Radio_list` | `src/radio_list.ml` | M13 | B |
+| `Tooltip` | `Astryx.Tooltip` | `src/tooltip.ml` | M13 | B |
+| `AlertDialog` | `Astryx.Alert_dialog` | `src/alert_dialog.ml` | M14 | C |
+| `Dialog` | `Astryx.Dialog` | `src/dialog.ml` | M14 | C |
+| `Kbd` | `Astryx.Kbd` | `src/kbd.ml` | M15 | A |
+| `ButtonGroup` | `Astryx.Button_group` | `src/button_group.ml` | M17 | A |
+| `Popover` | `Astryx.Popover` | `src/popover.ml` | M18 | A |
+| `Timer` | `Astryx.Timer` | `src/timer.ml` | M19 | A |
+| `InputGroup` | `Astryx.Input_group` | `src/input_group.ml` | M20 | A |
+| `Toolbar` | `Astryx.Toolbar` | `src/toolbar.ml` | M21 | A |
+| `MetadataList` | `Astryx.MetadataList` | `src/metadata_list.ml` | M22 | A |
+| `MoreMenu` | `Astryx.More_menu` | `src/more_menu.ml` | M23 | A |
+| `ProgressBar` | `Astryx.Progress_bar` | `src/progress_bar.ml` | M24 | A |
+| `Avatar` | `Astryx.Avatar` | `src/avatar.ml` | M25 | A |
+| `AvatarGroup` | `Astryx.Avatar_group` | `src/avatar_group.ml` | M26 | A |
+| `ToggleButton` | `Astryx.Toggle_button` | `src/toggle_button.ml` | M27 | A |
 | `SelectableCard` | `Astryx.Selectable_card` | `src/selectable_card.ml` | M28 | A |
 | `ClickableCard` | `Astryx.Clickable_card` | `src/clickable_card.ml` | M29 | A |
 | `OverflowList` | `Astryx.Overflow_list` | `src/overflow_list.ml` | M30 | A |
 | `Link` | `Astryx.Link` | `src/link.ml` | M31 | A |
 | `Token` | `Astryx.Token` | `src/token.ml` | M32 | B |
+| `Spinner` | `Astryx.Spinner` | `src/spinner.ml` | M33 | B |
 
-## Not ported yet (50)
+## Not ported yet (49)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Spinner`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Stepper`, `TabList`, `Table`, `Thumbnail`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`

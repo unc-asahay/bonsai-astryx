@@ -298,6 +298,74 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     ((byLabel("tailed") || {}).textContent || "").includes("x9"));
 }
 
+// --- Spinner
+{
+  // inCaseOf picks up both the wrapper and the inner status span in the labelled
+  // branch (both are marked, like Dialog's two surfaces); the status element is
+  // the span, so filter to role=status before asserting on spinners themselves.
+  const allMarks = inCaseOf("spinner-all", "Spinner");
+  const ss = allMarks.filter((s) => attr(s, "role") === "status");
+  check("eleven spinner status elements render (4 sizes + 4 shades + 2 labelled + explicit label)",
+    ss.length === 11, `${ss.length}`);
+  check("every spinner is role=status", ss.every((s) => attr(s, "role") === "status"));
+  check("the svg is hidden from screen readers",
+    ss.every((s) => { const svg = s.querySelector("svg"); return svg && attr(svg, "aria-hidden") === "true"; }));
+
+  // Geometry: md ring is 14px, 3px stroke, box = 14 + 2*3 = 20.
+  const md = inCaseOf("spinner-all", "Spinner").find((s) => attr(s, "data-astryx-size") === "md" && attr(s, "data-astryx-shade") === "default") 
+    || ss[0];
+  const mdSvg = md && md.querySelector("svg");
+  check("md spinner draws a 20px box (14px ring + 3px stroke on each side)",
+    mdSvg && attr(mdSvg, "width") === "20" && attr(mdSvg, "height") === "20",
+    mdSvg && `${attr(mdSvg, "width")}x${attr(mdSvg, "height")}`);
+  const [mdArc] = (mdSvg ? [...mdSvg.querySelectorAll("circle")].reverse() : []);
+  check("the arc keeps 0.375 of the circumference in its dasharray",
+    mdArc && attr(mdArc, "stroke-dasharray") === "16.4934 27.4889",
+    mdArc && attr(mdArc, "stroke-dasharray"));
+
+  // Sizes: sm box = 10 + 2*2 = 14; xl box = 28 + 2*4 = 36.
+  const sm = ss.find((s) => attr(s, "data-astryx-size") === "sm" && attr(s, "data-astryx-shade") === "default");
+  const xl = ss.find((s) => attr(s, "data-astryx-size") === "xl" && attr(s, "data-astryx-shade") === "default");
+  check("sm box is 14px", sm && attr(sm.querySelector("svg"), "width") === "14");
+  check("xl box is 36px", xl && attr(xl.querySelector("svg"), "width") === "36");
+
+  // Shades: onMedia and inherit put 0.3 / 77/255 on the track.
+  const onMedia = inCaseOf("spinner-all", "Spinner").find((s) => attr(s, "data-astryx-shade") === "onMedia");
+  const inherit = inCaseOf("spinner-all", "Spinner").find((s) => attr(s, "data-astryx-shade") === "inherit");
+  check("onMedia track is translucent (77/255)",
+    onMedia && [...onMedia.querySelectorAll("circle")][0] &&
+    parseFloat(attr([...onMedia.querySelectorAll("circle")][0], "stroke-opacity")).toFixed(3) === "0.302");
+  check("inherit track is at 0.3",
+    inherit && [...inherit.querySelectorAll("circle")][0] &&
+    attr([...inherit.querySelectorAll("circle")][0], "stroke-opacity") === "0.3");
+
+  // Labelled: string label is visible below, names the status via aria-labelledby (never both).
+  const labelled = [...ss].find((s) => s.closest(".astryx-spinner-wrapper"));
+  const labelers = ss.filter((s) => s.closest(".astryx-spinner-wrapper"));
+  check("two labelled spinners render inside wrappers", labelers.length === 2, `${labelers.length}`);
+  const byLabelText = [...document.querySelectorAll('[data-case="spinner-all"] .astryx-spinner-wrapper')]
+    .find((w) => (w.textContent || "").includes("Loading..."));
+  const labelId = byLabelText && byLabelText.querySelector("[id$='-label']")?.id;
+  const named = byLabelText && byLabelText.querySelector("[role=status]");
+  check("the string label names the status element via aria-labelledby, never aria-label",
+    named && attr(named, "aria-labelledby") === labelId && attr(named, "aria-label") === null);
+  check("the visible label text is a Text below the spinner",
+    byLabelText && byLabelText.textContent.includes("Loading...") &&
+    byLabelText.lastElementChild?.classList?.contains("astryx-text"));
+
+  // Non-string label: cannot be referenced, so the fallback name is the English default.
+  const nodeLabel = [...document.querySelectorAll('[data-case="spinner-all"] .astryx-spinner-wrapper')]
+    .find((w) => (w.textContent || "").includes("Fetching"));
+  const nlv = nodeLabel && nodeLabel.querySelector("[role=status]");
+  check("a non-string label falls back to the default accessible name",
+    nlv && attr(nlv, "aria-label") === "Loading");
+
+  // Explicit aria_label wins over the string label.
+  const explicit = ss.find((s) => attr(s, "aria-label") === "Busy");
+  check("explicit aria_label is carried", !!explicit, "");
+  check("the unlabelled default is 'Loading'", ss.filter((s) => attr(s, "aria-label") === "Loading").length >= 1);
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

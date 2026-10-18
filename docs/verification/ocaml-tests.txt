@@ -76,6 +76,21 @@ the ported components render in isolation
   ok   is_label_hidden keeps the text and names the root instead
   ok   description rides along as aria-description, upstream's spelling
   ok   end content carries through
+  ok   eleven spinner status elements render (4 sizes + 4 shades + 2 labelled + explicit label)
+  ok   every spinner is role=status
+  ok   the svg is hidden from screen readers
+  ok   md spinner draws a 20px box (14px ring + 3px stroke on each side)
+  ok   the arc keeps 0.375 of the circumference in its dasharray
+  ok   sm box is 14px
+  ok   xl box is 36px
+  ok   onMedia track is translucent (77/255)
+  ok   inherit track is at 0.3
+  ok   two labelled spinners render inside wrappers
+  ok   the string label names the status element via aria-labelledby, never aria-label
+  ok   the visible label text is a Text below the spinner
+  ok   a non-string label falls back to the default accessible name
+  ok   explicit aria_label is carried
+  ok   the unlabelled default is 'Loading'
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -516,5 +531,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-464 checks, 0 failure(s)
+479 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -2055,3 +2055,24 @@ let () =
        ; Vdom.Node.div [ view ~is_disabled:true "dimmed" ]
        ])
 ;;
+
+(* Spinner: every size and shade as the unlabelled status element, plus both labelled
+   arrangements - string label (aria-labelledby naming) and node label (accessible name
+   falls back to aria-label/default). Geometry checked in run.mjs: the box is the ring
+   plus the stroke on each side, the arc keeps ARC_FRACTION of the circumference. *)
+let () =
+  mount
+    "spinner-all"
+    (Vdom.Node.div
+       [ (List.map [ Astryx.Spinner.Sm; Md; Lg; Xl ] ~f:(fun size ->
+            Astryx.Spinner.view ~size ())
+         |> Vdom.Node.div)
+       ; (List.map [ Astryx.Spinner.Default; Subtle; On_media; Inherit ]
+           ~f:(fun shade -> Astryx.Spinner.view ~shade ())
+         |> Vdom.Node.div)
+       ; Vdom.Node.div [ Astryx.Spinner.view ~label:"Loading..." () ]
+       ; Vdom.Node.div
+           [ Astryx.Spinner.view ~label_node:(Vdom.Node.text "Fetching") () ]
+       ; Vdom.Node.div [ Astryx.Spinner.view ~aria_label:"Busy" () ]
+       ])
+;;

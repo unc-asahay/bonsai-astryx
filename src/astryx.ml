@@ -18,6 +18,7 @@ module More_menu = More_menu
 module Popover = Popover
 module Common = Common
 module Progress_bar = Progress_bar
+module Spinner = Spinner
 
 module Tokens = Tokens
 module Timer = Timer
