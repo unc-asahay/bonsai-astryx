@@ -483,6 +483,56 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     !!(fullBleed && hasClass(fullBleed, /--full-bleed/)));
 }
 
+// --- NavHeadingMenu
+{
+  const host = document.querySelector('[data-case="nav-heading-menu-all"]');
+  const wrap = host && host.querySelector("#nhm-wrap");
+  const menu = wrap && wrap.querySelector("#nhm-all");
+  const row = (id) => menu && menu.querySelector(`[data-astryx-menu-item="${id}"]`);
+
+  check("the menu surface renders", !!menu, "");
+  check("the surface is role=menu with the component marker",
+    menu && attr(menu, "role") === "menu" && attr(menu, "data-astryx-component") === "NavHeadingMenu",
+    menu && `${attr(menu, "role")}/${attr(menu, "data-astryx-component")}`);
+  check("four rows render as menuitems",
+    menu && menu.querySelectorAll('[role="menuitem"]').length === 4,
+    menu && `${menu.querySelectorAll('[role="menuitem"]').length}`);
+
+  // The row contract: menu-item data id, tabindex=-1 (roving focus), disabled
+  // carried as aria-disabled so the keyboard engine's selector skips it.
+  check("a row carries its id and a roving tabindex",
+    !!row("dashboard") && attr(row("dashboard"), "tabindex") === "-1");
+  check("the disabled row is aria-disabled",
+    !!row("reports") && attr(row("reports"), "aria-disabled") === "true");
+  check("a row with an href is the anchor itself",
+    !!(row("dashboard") && row("dashboard").tagName === "A"));
+  check("a row without an href is still a menuitem div",
+    !!(row("settings") && row("settings").tagName === "DIV"));
+
+  // Icon and description cells.
+  check("the icon cell renders", !!(row("analytics") && row("analytics").querySelector(".astryx-nav-heading-menu__icon")));
+  check("the description cell renders its text",
+    !!(row("analytics") && /Usage by day and by team/.test(row("analytics").textContent || "")));
+
+  // Sizes: class + min-width inline, so an arbitrary override stays easy.
+  const sm = host && host.querySelector("#nhm-sm");
+  const lg = host && host.querySelector("#nhm-lg");
+  check("sm is classed and sized 160px",
+    sm && hasClass(sm, /--sm/) && attr(sm, "data-astryx-size") === "sm" && attr(sm, "min-width") === "160px",
+    sm && `${attr(sm, "min-width")}`);
+  check("lg is classed and sized 240px",
+    lg && hasClass(lg, /--lg/) && attr(lg, "data-astryx-size") === "lg" && attr(lg, "min-width") === "240px",
+    lg && `${attr(lg, "min-width")}`);
+  check("md defaults to 200px", menu && attr(menu, "min-width") === "200px", menu && attr(menu, "min-width"));
+
+  // Effects: choosing a row hands its id to on_select and closes (upstream's
+  // select-then-close); Escape runs on_close too. jsdom cannot pump Bonsai's
+  // event scheduler, so the live versions of these are asserted in the browser
+  // gate on the showcase's controlled demo; here we assert the initial state.
+  check("nothing is selected yet", wrap && attr(wrap, "data-selected") === "-", wrap && attr(wrap, "data-selected"));
+  check("no row was closed yet", wrap && attr(wrap, "data-closed") === "0", wrap && attr(wrap, "data-closed"));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

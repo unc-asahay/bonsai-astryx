@@ -614,6 +614,13 @@
    "file": "src/scrollable_area.ml",
    "milestone": "M35",
    "module": "Astryx.Scrollable_area"
+  },
+  {
+   "class": "C",
+   "component": "NavHeadingMenu",
+   "file": "src/nav_heading_menu.ml",
+   "milestone": "M36",
+   "module": "Astryx.Nav_heading_menu"
   }
  ],
  "schema": 1,

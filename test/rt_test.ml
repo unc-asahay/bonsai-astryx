@@ -2203,3 +2203,65 @@ let () =
   in
   mount "scrollable-area-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* NavHeadingMenu: markup contract. The menu is trigger-less, so what renders is
+   the surface itself: role=menu, rows as role=menuitem, a disabled row with
+   aria-disabled, a row with an href being the anchor itself, icon + description
+   cells. The wrapper readouts make the two effects observable: choosing a row
+   hands its id to on_select, and Escape (a native keydown dispatched from
+   jsdom, which the test harness itself cannot synthesise) runs on_close.
+   Keyboard moves (arrows/Home/End/typeahead) move DOM focus and are asserted in
+   the real-browser gate where focus is real. *)
+let nav_heading_menu_component (graph : Bonsai.graph) =
+  let selected, set_selected = Bonsai.state (None : string option) graph in
+  let closed_count, set_closed_count = Bonsai.state 0 graph in
+  let on_select =
+    Bonsai.map set_selected ~f:(fun set_selected (item : Astryx.Nav_heading_menu.item) ->
+      set_selected (Some item.id))
+  in
+  let on_close =
+    Bonsai.map2 closed_count set_closed_count ~f:(fun count set_count ->
+      set_count (count + 1))
+  in
+  let items =
+    [ { Astryx.Nav_heading_menu.id = "dashboard"; label = "Dashboard"; description = None; icon = None; href = Some "#dashboard"; is_disabled = false }
+    ; { Astryx.Nav_heading_menu.id = "analytics"; label = "Analytics"; description = Some "Usage by day and by team"; icon = Some "chart"; href = Some "#analytics"; is_disabled = false }
+    ; { Astryx.Nav_heading_menu.id = "reports"; label = "Reports"; description = None; icon = None; href = Some "#reports"; is_disabled = true }
+    ; { Astryx.Nav_heading_menu.id = "settings"; label = "Settings"; description = None; icon = Some "gear"; href = None; is_disabled = false }
+    ]
+  in
+  let menu =
+    Bonsai.map3
+      selected
+      closed_count
+      (Astryx.Nav_heading_menu.view ~id:"nhm-all" ~on_select ~on_close ~items graph)
+      ~f:(fun selected closed_count menu ->
+        Vdom.Node.div
+          ~attrs:
+            [ Vdom.Attr.id "nhm-wrap"
+            ; Vdom.Attr.create "data-selected" (Option.value selected ~default:"-")
+            ; Vdom.Attr.create "data-closed" (string_of_int closed_count)
+            ]
+          [ menu ])
+  in
+  let sizes graph =
+    [ Astryx.Nav_heading_menu.view ~id:"nhm-sm" ~size:Astryx.Nav_heading_menu.Sm ~on_select ~items graph
+    ; Astryx.Nav_heading_menu.view ~id:"nhm-lg" ~size:Astryx.Nav_heading_menu.Lg ~on_select ~items graph
+    ]
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map2 menu (join_all (sizes graph)) ~f:(fun menu sizes ->
+    Vdom.Node.div [ menu; Vdom.Node.div sizes ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      nav_heading_menu_component
+  in
+  mount "nav-heading-menu-all" (Bonsai_web_test.Handle.last_result handle)
+;;

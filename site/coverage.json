@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 56,
-    "unported": 47,
+    "ported": 57,
+    "unported": 46,
     "total": 103,
     "documented": 103
   },
@@ -204,6 +204,12 @@
       "milestone": "M23"
     },
     {
+      "name": "NavHeadingMenu",
+      "module": "Astryx.Nav_heading_menu",
+      "file": "src/nav_heading_menu.ml",
+      "milestone": "M36"
+    },
+    {
       "name": "NavIcon",
       "module": "Astryx.NavIcon",
       "file": "src/nav_icon.ml",
@@ -375,7 +381,6 @@
     "Markdown",
     "MobileNav",
     "MultiSelector",
-    "NavHeadingMenu",
     "NumberInput",
     "Outline",
     "Overlay",

@@ -823,6 +823,7 @@ let s_field_status () =
 ;;
 
 module Dm = Astryx.Dropdown_menu
+module Nhm = Astryx.Nav_heading_menu
 
 let demo_menu_item
       ?description
@@ -2123,15 +2124,15 @@ let tooltip_demo (graph : Bonsai.graph) =
       ~id:"tooltip"
       ~title:"Tooltip"
       ~note:
-        "A short message attached to a trigger, open while the trigger is hovered or focused and \\
-         gone the moment it is not — the message element is not in the DOM at all while closed, \\
-         which is what makes the last two examples worth having: the second-last is open because its \\
-         caller said so, and the last is the pattern a disabled control needs, a control that looks \\
-         disabled and still takes focus, because a natively disabled button receives no pointer \\
-         events and so can never explain itself. Two divergences are named in the interface rather \\
-         than hidden here: the message is positioned in place instead of through a portal, so an \\
-         ancestor with overflow hidden clips it, and the hover delay is not ported — opening after a \\
-         pause needs a timer that can write back into the component's state, which this release has \\
+        "A short message attached to a trigger, open while the trigger is hovered or focused and \
+         gone the moment it is not — the message element is not in the DOM at all while closed, \
+         which is what makes the last two examples worth having: the second-last is open because its \
+         caller said so, and the last is the pattern a disabled control needs, a control that looks \
+         disabled and still takes focus, because a natively disabled button receives no pointer \
+         events and so can never explain itself. Two divergences are named in the interface rather \
+         than hidden here: the message is positioned in place instead of through a portal, so an \
+         ancestor with overflow hidden clips it, and the hover delay is not ported — opening after a \
+         pause needs a timer that can write back into the component's state, which this release has \
          no primitive for."
       examples)
 ;;
@@ -2270,17 +2271,17 @@ let dialog_demo (graph : Bonsai.graph) =
       ~id:"dialog"
       ~title:"Dialog"
       ~note:
-        "A modal surface built on the platform's own <dialog>, opened with showModal() — so the top \\
-         layer, the inert page behind it, the focus trap and the ::backdrop come from the browser and \\
-         are not written here at all. What is ours is the dismissal matrix, and the three live \\
-         dialogs below are how it is pressed rather than read: purpose = info closes on Escape and on \\
-         a backdrop click, purpose = form closes on Escape but NOT on a backdrop click (a half-filled \\
-         form should not be lost to a stray click), and purpose = required refuses both and carries \\
-         role = alertdialog, because a dialog that refuses every exit is one the user has to answer. \\
-         Two divergences are named in the interface rather than hidden: upstream's Layer gives it a \\
-         depth stack, a page scroll lock and a directional open animation, none of which is ported \\
-         (what is ported is the focus restoration, because that is behaviour rather than flourish), \\
-         and the title association is an argument here where upstream wires it from context, because \\
+        "A modal surface built on the platform's own <dialog>, opened with showModal() — so the top \
+         layer, the inert page behind it, the focus trap and the ::backdrop come from the browser and \
+         are not written here at all. What is ours is the dismissal matrix, and the three live \
+         dialogs below are how it is pressed rather than read: purpose = info closes on Escape and on \
+         a backdrop click, purpose = form closes on Escape but NOT on a backdrop click (a half-filled \
+         form should not be lost to a stray click), and purpose = required refuses both and carries \
+         role = alertdialog, because a dialog that refuses every exit is one the user has to answer. \
+         Two divergences are named in the interface rather than hidden: upstream's Layer gives it a \
+         depth stack, a page scroll lock and a directional open animation, none of which is ported \
+         (what is ported is the focus restoration, because that is behaviour rather than flourish), \
+         and the title association is an argument here where upstream wires it from context, because \
          a child in this port is already built by the time the container sees it."
       examples)
 ;;
@@ -3635,34 +3636,128 @@ let scrollable_area_demo (graph : Bonsai.graph) =
       ~id:"scrollable-area"
       ~title:"ScrollableArea"
       ~note:
-        "A native scroll viewport whose accessibility follows the measured geometry, not the \\\
+        "A native scroll viewport whose accessibility follows the measured geometry, not the \\
 
-         intent alone. The viewport is the root and its single child is a normal block content \\\
+         intent alone. The viewport is the root and its single child is a normal block content \\
 
-         box; only a requested axis that actually overflows makes the box scrollable, and only \\\
+         box; only a requested axis that actually overflows makes the box scrollable, and only \\
 
-         then does the viewport enter the tab order (tabindex is removed - or held at -1 while \\\
+         then does the viewport enter the tab order (tabindex is removed - or held at -1 while \\
 
-         it still holds focus - when the axis stops being effective). The measured state is \\\
+         it still holds focus - when the axis stops being effective). The measured state is \\
 
-         published as data-scroll-* attributes on the viewport and data-scroll-content on the \\\
+         published as data-scroll-* attributes on the viewport and data-scroll-content on the \\
 
-         content box, exactly upstream's contract: edges are logical (stable under RTL and \\\
+         content box, exactly upstream's contract: edges are logical (stable under RTL and \\
 
-         vertical writing modes), and an inactive axis reports both edges at rest. The \\\
+         vertical writing modes), and an inactive axis reports both edges at rest. The \\
 
-         overflow style is clip until a Sticky boundary is needed, then auto on the overflowed \\\
+         overflow style is clip until a Sticky boundary is needed, then auto on the overflowed \\
 
-         axis and hidden on the crossed one, with overscroll-behavior on the requested axes. \\\
+         axis and hidden on the crossed one, with overscroll-behavior on the requested axes. \\
 
-         Full-bleed escapes the container's --container-padding-* variables. Divergences: the \\\
+         Full-bleed escapes the container's --container-padding-* variables. Divergences: the \\
 
-         hook's contentOrViewport keyboard delegation is not ported (the component always passes \\\
+         hook's contentOrViewport keyboard delegation is not ported (the component always passes \\
 
-         owner 'viewport', which upstream never delegates), and the overflow/overscroll values \\\
+         owner 'viewport', which upstream never delegates), and the overflow/overscroll values \\
 
          are real inline CSS properties rather than stylex custom-property shims."
       examples)
+;;
+
+let nav_heading_menu_demo (graph : Bonsai.graph) =
+  let selected, set_selected = Bonsai.state (None : string option) graph in
+  let on_select =
+    Bonsai.map set_selected ~f:(fun set_selected (item : Nhm.item) ->
+      set_selected (Some item.id))
+  in
+  let entries =
+    [ { Nhm.id = "dashboard"; label = "Dashboard"; description = None; icon = None; href = Some "#dashboard"; is_disabled = false }
+    ; { Nhm.id = "analytics"; label = "Analytics"; description = Some "Usage by day and by team"; icon = Some "chart"; href = Some "#analytics"; is_disabled = false }
+    ; { Nhm.id = "reports"; label = "Reports"; description = None; icon = None; href = Some "#reports"; is_disabled = true }
+    ; { Nhm.id = "settings"; label = "Settings"; description = None; icon = Some "gear"; href = None; is_disabled = false }
+    ]
+  in
+  let plain =
+    Nhm.view
+      ~id:"nav-menu-plain"
+      ~on_select
+      ~items:entries
+      graph
+  in
+  let small =
+    Nhm.view
+      ~id:"nav-menu-sm"
+      ~size:Nhm.Sm
+      ~on_select
+      ~items:entries
+      graph
+  in
+  let large =
+    Nhm.view
+      ~id:"nav-menu-lg"
+      ~size:Nhm.Lg
+      ~on_select
+      ~items:entries
+      graph
+  in
+  (* Controlled: a popover owner (the heading, in upstream) holds the open flag
+     and passes ~on_close so Escape and choosing a row both dismiss it. *)
+  let open_, set_open = Bonsai.state false graph in
+  let on_close = Bonsai.map set_open ~f:(fun set_open -> set_open false) in
+  let controlled_menu =
+    Nhm.view
+      ~id:"nav-menu-controlled"
+      ~on_select
+      ~on_close
+      ~items:entries
+      graph
+  in
+  let controlled =
+    Bonsai.map2 open_ controlled_menu ~f:(fun open_ controlled_menu ->
+      if open_ then Vdom.Node.div [ controlled_menu ] else Vdom.Node.div [])
+  in
+  let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
+  let controlled_pair = pair controlled (pair open_ set_open) in
+  Bonsai.map2
+    (pair selected plain)
+    (pair (pair small large) controlled_pair)
+    ~f:(fun (selected, plain) ((small, large), (controlled, (open_, set_open))) ->
+      let selected_text =
+        match selected with
+        | Some id -> sprintf "last chosen: %s" id
+        | None -> "nothing chosen yet: arrows move focus, type to jump, Enter chooses, Escape leaves"
+      in
+      section
+        ~id:"nav-heading-menu"
+        ~title:"NavHeadingMenu"
+        ~note:
+          "A trigger-less menu: the body of a nav heading's popover. The surface is \\
+           one tab stop into which the opener moves focus, and the rows are the \\
+           keyboard contract - Arrows/Home/End move focus, typing jumps to the row \\
+           whose text matches, Enter or Space activates the focused row, Escape \\
+           leaves. Rows with an href are the anchor, so a modified click keeps the \\
+           browser's meaning; a disabled row cannot take focus and is skipped. The \\
+           close callback is an explicit effect because this port has no React \\
+           context: the popover owner passes ~on_close and both Escape and a chosen \\
+           row run it. The trigger and the popover themselves belong to \\
+           SideNavHeading/TopNavHeading, which are not ported; the controlled \\
+           example below stands in for that pose."
+        [ ex "the md surface as a nav heading's popover body" plain
+        ; ex "size sm: tighter min-width and row padding" small
+        ; ex "size lg: roomier rows" large
+        ; ex "a controlled surface, opened and owned by the caller"
+            (Vdom.Node.div
+               [ (Vdom.Node.span ~attrs:[ Vdom.Attr.id "nav-menu-readout" ] [ Vdom.Node.text selected_text ])
+               ; Astryx.Button.view
+                   ~label:(if open_ then "Close it from here" else "Open it from here")
+                   ~attrs:[ Vdom.Attr.id "nav-menu-toggle" ]
+                   ~on_click:(fun _ -> set_open (not open_))
+                   []
+               ; controlled
+               ])
+        ])
 ;;
 
 let specs =
@@ -3735,6 +3830,7 @@ let nav_items =
   ; "interactive", "Interactive"
   ; "overflow-list", "OverflowList"
   ; "scrollable-area", "ScrollableArea"
+  ; "nav-heading-menu", "NavHeadingMenu"
   ]
 ;;
 
@@ -4102,10 +4198,12 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful overflow_list_section in
   let stateful = pair stateful thumbnail_section in
   let stateful = pair stateful scrollable_area_section in
+  let nav_heading_menu_section = nav_heading_menu_demo graph in
+  let stateful = pair stateful nav_heading_menu_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area)
+    ~f:(fun ((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -4113,7 +4211,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area ])
+          @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu ])
       ])
 ;;
 

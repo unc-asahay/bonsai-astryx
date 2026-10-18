@@ -3086,3 +3086,88 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-scrollable-area__content--inline-overflow {
   inline-size: max-content;
 }
+
+/* --- NavHeadingMenu ----------------------------------------------------------
+   The popover body of a nav heading: a role=menu surface of rows. Upstream
+   sizes its min-width with style-x (160/200/240) and the row padding on the
+   size scale; this port emits min-width inline (so an arbitrary override is
+   easy) and the paddings as classes, with the same values. The surface has no
+   box of its own: it is meant to be the content of a heading's popover. The
+   rows are the interactive part - hover/focus tint from the overlay token,
+   radius-element corners, no outline (focus is roving and visual). */
+
+.astryx-nav-heading-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+}
+
+.astryx-nav-heading-menu__item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  border-radius: var(--radius-element);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-3xs);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: start;
+  outline: none;
+  text-decoration: none;
+}
+
+.astryx-nav-heading-menu__item:hover:not([aria-disabled="true"]) {
+  background: var(--color-overlay-hover);
+}
+
+.astryx-nav-heading-menu__item:focus {
+  background: var(--color-overlay-hover);
+}
+
+.astryx-nav-heading-menu__item--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.astryx-nav-heading-menu--sm .astryx-nav-heading-menu__item {
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+}
+
+.astryx-nav-heading-menu--md .astryx-nav-heading-menu__item {
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-2);
+}
+
+.astryx-nav-heading-menu--lg .astryx-nav-heading-menu__item {
+  padding-block: var(--spacing-3);
+  padding-inline: var(--spacing-3);
+}
+
+.astryx-nav-heading-menu__icon {
+  flex: 0 0 auto;
+}
+
+.astryx-nav-heading-menu__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.astryx-nav-heading-menu__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.astryx-nav-heading-menu__description {
+  color: var(--color-neutral);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

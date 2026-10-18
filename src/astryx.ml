@@ -21,6 +21,7 @@ module Progress_bar = Progress_bar
 module Spinner = Spinner
 module Thumbnail = Thumbnail
 module Scrollable_area = Scrollable_area
+module Nav_heading_menu = Nav_heading_menu
 
 module Tokens = Tokens
 module Timer = Timer

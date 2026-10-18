@@ -131,6 +131,20 @@ the ported components render in isolation
   ok   ~role:Region keeps the region role with the label
   ok   the padded viewport still carries the axis attribute
   ok   the full-bleed viewport carries the full-bleed class
+  ok   the menu surface renders
+  ok   the surface is role=menu with the component marker
+  ok   four rows render as menuitems
+  ok   a row carries its id and a roving tabindex
+  ok   the disabled row is aria-disabled
+  ok   a row with an href is the anchor itself
+  ok   a row without an href is still a menuitem div
+  ok   the icon cell renders
+  ok   the description cell renders its text
+  ok   sm is classed and sized 160px
+  ok   lg is classed and sized 240px
+  ok   md defaults to 200px
+  ok   nothing is selected yet
+  ok   no row was closed yet
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -571,5 +585,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-513 checks, 0 failure(s)
+527 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

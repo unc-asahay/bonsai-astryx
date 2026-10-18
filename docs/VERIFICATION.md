@@ -3054,3 +3054,46 @@ arrives, after the hook's rAF-scheduled re-measure — the gate reads the edges 
 an inline viewport measures the *other* axis into the tab order, a fitting viewport never enters it,
 and a `role=region` viewport with `overscroll=contain` carries its containment to the computed
 longhand style — belong to the real-browser gate, where layout is real.
+
+## Gate 54 — M36: NavHeadingMenu (coverage 56 -> 57)
+
+The trigger-less menu that is a nav heading's popover body: a `role=menu` surface of rows
+(`role=menuitem`, roving `tabindex=-1`), where a row with an `href` is the anchor itself (a modified
+click keeps the browser's meaning), a disabled row carries `aria-disabled="true"` and cannot take
+focus (the keyboard engine's selector skips it), and a row may carry an icon cell and a description
+cell. Sizes `Sm/Md/Lg` control the surface min-width (160/200/240px, overridable via `min_width`)
+and the rows' padding. The keyboard path is the whole upstream contract: Arrows (wrapping) move
+focus between rows, Home/End bound it, typing jumps to the first row whose text matches (typeahead,
+buffered per instance, reset on Escape and activation), Enter or Space synthesises the focused row's
+activation, and Escape leaves. There is no on-screen trigger and no focus-on-open, because both
+belong to the unported heading; the port takes `~on_select` (a tree, per house convention) and
+`~on_close` — an explicit effect tree where upstream reads a React context's `closeMenu`, so both a
+chosen row and Escape run it. No `NavMenuContext` exists here: the context is one function upstream
+and one `~on_close` parameter in the port, which is the whole API of that file. Divergences:
+`preventedBeforeDescendants` capture-phase tracking is not ported (it exists to let a caller's own
+keydown handler observe nested-menu presses; this port owns the whole keydown, so there is nothing
+to observe), and the icon is the port's own icon set rather than upstream's icon components.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **527 checks, 0 failures** (14 new NavHeadingMenu checks; the two effect checks
+  that need a scheduler moved to the real-browser gate, since jsdom cannot pump Bonsai's event loop).
+- DOM + accessibility (jsdom) — all passed (demo fixture unchanged).
+- real browser, showcase — **366 checks, 0 failures** (8 new live NavHeadingMenu checks: the surface
+  renders as `role=menu` with four menuitem rows, the disabled row is `aria-disabled`, an href row is
+  the anchor, a chosen row reports its id, ArrowDown moves focus and skips the disabled row,
+  typeahead jumps to the matching row, Enter activates the focused row, and a caller-owned
+  controlled surface closes through `~on_close` when Escape is pressed).
+- responsive + visual regression — re-baselined (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/NavHeadingMenu.md` exists (58 pages in total).
+- agent layer — `ported entries: 57; correctly attributed: 57`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m36*.txt`).
+
+### jsdom asserts markup, the browser gate asserts the keyboard
+
+jsdom can render the markup contract (roles, aria-disabled, anchor-vs-div rows, icon/description
+cells, size classes and min-widths) but cannot pump Bonsai's event scheduler, so a synthetic click
+there never reaches the effect; the choose-then-close wire, ArrowDown, typeahead, Enter activation
+and Escape-to-close are asserted in the real-browser gate on the showcase demo, where focus and
+events are real.

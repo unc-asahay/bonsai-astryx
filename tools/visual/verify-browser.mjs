@@ -245,6 +245,7 @@ if (mode === "showcase") {
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
     "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner", "Thumbnail",
     "ScrollableArea",
+    "NavHeadingMenu",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -607,7 +608,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("59 sections", sections.length === 59, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("60 sections", sections.length === 60, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -628,10 +629,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("347 examples across the page", totalExamples === 347, `got ${totalExamples}`);
+  check("351 examples across the page", totalExamples === 351, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -644,7 +645,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("59 nav links", nav.length === 59, `got ${nav.length}`);
+  check("60 nav links", nav.length === 60, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2590,6 +2591,71 @@ check(
   JSON.stringify(saRegion),
 );
 
+// NavHeadingMenu: the live keyboard contract — jsdom cannot pump Bonsai's
+// event scheduler or move real focus, so choose-then-close, ArrowDown, typeahead,
+// Enter activation and Escape-to-close are asserted here on the showcase demos.
+const nhm = await page.evaluate(() => {
+  const m = document.getElementById("nav-menu-plain");
+  if (!m) return null;
+  const row = (id) => m.querySelector(`[data-astryx-menu-item="${id}"]`);
+  return {
+    role: m.getAttribute("role"),
+    marker: m.getAttribute("data-astryx-component"),
+    items: [...m.querySelectorAll("[role=menuitem]")].length,
+    disabledReports: row("reports")?.getAttribute("aria-disabled"),
+    hrefTag: row("dashboard")?.tagName,
+    readout: document.getElementById("nav-menu-readout")?.textContent ?? null,
+  };
+});
+check(
+  "the md surface renders as a role=menu with four menuitem rows",
+  nhm && nhm.role === "menu" && nhm.marker === "NavHeadingMenu" && nhm.items === 4,
+  JSON.stringify(nhm),
+);
+check("the disabled row advertises aria-disabled", nhm && nhm.disabledReports === "true", "");
+check("a row with an href is the anchor itself", nhm && nhm.hrefTag === "A", "");
+
+await page.evaluate(() => document.querySelector('#nav-menu-plain [data-astryx-menu-item="dashboard"]').click());
+await page.waitForTimeout(150);
+const nhmSelect = await page.evaluate(() => document.getElementById("nav-menu-readout")?.textContent ?? null);
+check("choosing a row reports its id to on_select", /dashboard/.test(nhmSelect ?? ""), String(nhmSelect));
+
+// ArrowDown: next focusable row. The disabled row is not focusable, so from
+// analytics the next stop is settings (reports is skipped).
+await page.evaluate(() => document.querySelector('#nav-menu-plain [data-astryx-menu-item="dashboard"]').focus());
+await page.keyboard.press("ArrowDown");
+await page.waitForTimeout(150);
+let nhmFocused = await page.evaluate(() => document.activeElement?.getAttribute("data-astryx-menu-item") ?? null);
+check("ArrowDown moves focus to the next row", nhmFocused === "analytics", String(nhmFocused));
+await page.keyboard.press("ArrowDown");
+await page.waitForTimeout(150);
+nhmFocused = await page.evaluate(() => document.activeElement?.getAttribute("data-astryx-menu-item") ?? null);
+check("ArrowDown skips the disabled row", nhmFocused === "settings", String(nhmFocused));
+
+// Typeahead: typing a letter jumps to the first labelled row starting with it.
+await page.keyboard.type("d");
+await page.waitForTimeout(150);
+nhmFocused = await page.evaluate(() => document.activeElement?.getAttribute("data-astryx-menu-item") ?? null);
+check("typeahead jumps to the matching row", nhmFocused === "dashboard", String(nhmFocused));
+
+// Enter synthesizes the row's activation: on_select receives the label on its id.
+await page.keyboard.press("Enter");
+await page.waitForTimeout(150);
+const nhmEnter = await page.evaluate(() => document.getElementById("nav-menu-readout")?.textContent ?? null);
+check("Enter activates the focused row", /dashboard/.test(nhmEnter ?? ""), String(nhmEnter));
+
+// Controlled demo: the caller owns the popover state. Open it, then Escape closes
+// it through ~on_close — the same wire a nav heading would use.
+await page.evaluate(() => document.getElementById("nav-menu-toggle").click());
+await page.waitForTimeout(150);
+let nhmControlledOpen = await page.evaluate(() => !!document.getElementById("nav-menu-controlled"));
+check("the caller can open the controlled surface", nhmControlledOpen);
+await page.evaluate(() => document.querySelector('#nav-menu-controlled [data-astryx-menu-item="dashboard"]').focus());
+await page.keyboard.press("Escape");
+await page.waitForTimeout(150);
+nhmControlledOpen = await page.evaluate(() => !!document.getElementById("nav-menu-controlled"));
+check("Escape closes through on_close", !nhmControlledOpen);
+
 // AvatarGroup: the group's ARIA, the chip, and an overlap that can be measured rather than eyeballed.
 const avatarGroup = await page.evaluate(() => {
   const root = document.querySelector("#avatar-group .astryx-avatar-group");
@@ -3144,11 +3210,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 56 ported / 47 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["56", "47", "103"]),
+    "coverage stats are 57 ported / 46 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["57", "46", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 47 entries", cov.unported === 47, `got ${cov.unported}`);
+  check("unported list rendered 46 entries", cov.unported === 46, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
