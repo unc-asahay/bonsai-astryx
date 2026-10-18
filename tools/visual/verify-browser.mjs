@@ -247,6 +247,7 @@ if (mode === "showcase") {
     "ScrollableArea",
     "NavHeadingMenu",
     "SegmentedControl",
+    "Overlay",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -609,7 +610,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("61 sections", sections.length === 61, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("62 sections", sections.length === 62, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -630,10 +631,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("361 examples across the page", totalExamples === 361, `got ${totalExamples}`);
+  check("373 examples across the page", totalExamples === 373, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -646,7 +647,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("61 nav links", nav.length === 61, `got ${nav.length}`);
+  check("62 nav links", nav.length === 62, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -3008,6 +3009,284 @@ check(
       JSON.stringify(manualClosed));
   }
 
+  // -------------------------------------------------------------- Overlay (M38)
+  // The rt_test fixture asserts markup/classes; the dynamic half obeys CSS and
+  // a touch-device gate that jsdom cannot evaluate: hover reveal, focus-within
+  // reveal, the slide geometry, the controlled is_open round-trip (visible +
+  // inert), and the hover:none touch toggle (driven by emulating the media
+  // feature over CDP, since this runner's device reports hover:hover).
+  console.log("\nOverlay (live)");
+  const ovDim = (id) =>
+    page.evaluate((id2) => {
+      const g = (id3) => document.getElementById(id3);
+      const root = g(id2);
+      if (!root) return null;
+      root.scrollIntoView({ block: "center" });
+      const s = root.querySelector(".astryx-overlay-scrim");
+      if (!s) return { root: null };
+      const c = getComputedStyle(s);
+      const rc = getComputedStyle(root);
+      const media = s.querySelector("[data-astryx-media]");
+      return {
+        marker: root.getAttribute("data-astryx-component"),
+        classes: [...s.classList].join(" "),
+        opacity: c.opacity,
+        visibility: c.visibility,
+        pointerEvents: c.pointerEvents,
+        transformY: c.transform === "none" ? 0 : new DOMMatrix(c.transform).m42,
+        alignItems: c.alignItems,
+        background: c.backgroundColor,
+        inert: s.hasAttribute("inert"),
+        position: rc.position,
+        overflow: rc.overflow,
+        colorScheme: media ? getComputedStyle(media).colorScheme : null,
+      };
+    }, id);
+
+  const ovAlways = await Promise.all([
+    ovDim("ov-always-fill-dark"),
+    ovDim("ov-always-fill-light"),
+    ovDim("ov-always-bottom"),
+    ovDim("ov-always-top"),
+  ]);
+  check(
+    "the overlay container clips like upstream (relative + clip)",
+    ovAlways.every((d) => d && d.position === "relative" && d.overflow === "clip"),
+    JSON.stringify(ovAlways.map((d) => d && `${d.position}/${d.overflow}`)),
+  );
+  check(
+    "the container is marked as the Overlay component",
+    ovAlways.every((d) => d && d.marker === "Overlay"),
+    JSON.stringify(ovAlways.map((d) => d && d.marker)),
+  );
+  check(
+    "scrim: dark default fills, aligns end, is visible and interactive",
+    ovAlways[0] &&
+      /--fill/.test(ovAlways[0].classes) &&
+      /--align-end/.test(ovAlways[0].classes) &&
+      /--scrim-dark/.test(ovAlways[0].classes) &&
+      /--visible\b/.test(ovAlways[0].classes) &&
+      ovAlways[0].opacity === "1" &&
+      ovAlways[0].visibility === "visible" &&
+      ovAlways[0].pointerEvents === "auto",
+    JSON.stringify(ovAlways[0]),
+  );
+  check(
+    "a dark scrim paints the overlay token and flips the media wrapper to dark",
+    ovAlways[0] && ovAlways[0].background !== "rgba(0, 0, 0, 0)" && ovAlways[0].colorScheme === "dark",
+    JSON.stringify([ovAlways[0].background, ovAlways[0].colorScheme]),
+  );
+  check(
+    "a light scrim is translucent white and flips the wrapper to light",
+    ovAlways[1] &&
+      /--scrim-light/.test(ovAlways[1].classes) &&
+      ovAlways[1].colorScheme === "light" &&
+      parseFloat((ovAlways[1].background.match(/[\d.]+/g) ?? ["1"]).pop()) < 1,
+    JSON.stringify([ovAlways[1].background, ovAlways[1].colorScheme]),
+  );
+  check(
+    "the bottom strip is its own position class, not an inset override",
+    ovAlways[2] && /--bottom\b/.test(ovAlways[2].classes) && /--visible-from-bottom/.test(ovAlways[2].classes),
+    ovAlways[2] && ovAlways[2].classes,
+  );
+  check(
+    "the top strip flips light too",
+    ovAlways[3] && /--top\b/.test(ovAlways[3].classes) && /--visible-from-top/.test(ovAlways[3].classes),
+    ovAlways[3] && ovAlways[3].classes,
+  );
+
+  const ovAlign = await Promise.all([ovDim("ov-align-start"), ovDim("ov-align-center"), ovDim("ov-align-end")]);
+  check(
+    "align is measured, not just classed: start/center/end line up",
+    ovAlign[0] && ovAlign[1] && ovAlign[2] &&
+      ovAlign[0].alignItems === "flex-start" &&
+      ovAlign[1].alignItems === "center" &&
+      ovAlign[2].alignItems === "flex-end",
+    JSON.stringify(ovAlign.map((d) => d && d.alignItems)),
+  );
+
+  const ovHoverOff = await ovDim("ov-hover-fill");
+  check(
+    "a hover overlay is invisible and click-through until the pointer arrives",
+    ovHoverOff && /--hover\b/.test(ovHoverOff.classes) && !/--visible/.test(ovHoverOff.classes) &&
+      ovHoverOff.opacity === "0" && ovHoverOff.visibility === "hidden" && ovHoverOff.pointerEvents === "none",
+    JSON.stringify(ovHoverOff),
+  );
+  await page.hover("#ov-hover-fill");
+  await page.waitForTimeout(150);
+  const ovHoverOn = await ovDim("ov-hover-fill");
+  check(
+    "hover reveals it, and it starts taking pointer",
+    ovHoverOn && ovHoverOn.opacity === "1" && ovHoverOn.visibility === "visible" && ovHoverOn.pointerEvents === "auto",
+    JSON.stringify({ opacity: ovHoverOn && ovHoverOn.opacity, visibility: ovHoverOn && ovHoverOn.visibility }),
+  );
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(150);
+  const ovHoverBack = await ovDim("ov-hover-fill");
+  check("moving the pointer away hides it again (the reveal is reversible)",
+    ovHoverBack && ovHoverBack.opacity === "0", String(ovHoverBack && ovHoverBack.opacity));
+
+  const ovSlideOff = await ovDim("ov-hover-bottom");
+  check(
+    "the bottom strip starts translated below the edge",
+    ovSlideOff && ovSlideOff.transformY > 10,
+    String(ovSlideOff && ovSlideOff.transformY),
+  );
+  await page.hover("#ov-hover-bottom");
+  await page.waitForTimeout(150);
+  const ovSlideOn = await ovDim("ov-hover-bottom");
+  check(
+    "on hover it slides up into place (translateY 0)",
+    ovSlideOn && Math.abs(ovSlideOn.transformY) < 1,
+    String(ovSlideOn && ovSlideOn.transformY),
+  );
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(150);
+
+  const ovFocusOff = await ovDim("ov-focus-fill");
+  check(
+    "the focus-only variant is closed before anything in it has focus",
+    ovFocusOff && /--focus\b/.test(ovFocusOff.classes) && ovFocusOff.opacity === "0",
+    JSON.stringify(ovFocusOff && { classes: ovFocusOff.classes, opacity: ovFocusOff.opacity }),
+  );
+  await page.focus("#ov-focus-fill .overlay-demo-surface");
+  await page.waitForTimeout(150);
+  const ovFocusOn = await ovDim("ov-focus-fill");
+  check(
+    "focus-within reveals the keyboard-only overlay",
+    ovFocusOn && ovFocusOn.opacity === "1" && ovFocusOn.visibility === "visible",
+    JSON.stringify({ opacity: ovFocusOn && ovFocusOn.opacity, visibility: ovFocusOn && ovFocusOn.visibility }),
+  );
+
+  const ovControlled0 = await ovDim("ov-controlled");
+  check(
+    "a controlled overlay starts closed, hidden and inert",
+    ovControlled0 && /--hidden/.test(ovControlled0.classes) && ovControlled0.opacity === "0" && ovControlled0.inert,
+    JSON.stringify(ovControlled0),
+  );
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll("#overlay button")].find((x) => /toggle overlay/i.test(x.textContent || ""));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(150);
+  const ovControlled1 = await ovDim("ov-controlled");
+  const ovReadout1 = await page.evaluate(
+    () => (document.querySelector("#overlay .overlay-demo-readout") || {}).textContent,
+  );
+  check(
+    "one click opens it: visible, interactive, inert lifted — and the readout agrees",
+    ovControlled1 && /--visible/.test(ovControlled1.classes) && ovControlled1.opacity === "1" &&
+      ovControlled1.pointerEvents === "auto" && !ovControlled1.inert &&
+      /is_open: true/.test(ovReadout1 || ""),
+    `${JSON.stringify(ovControlled1)} readout=${ovReadout1}`,
+  );
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll("#overlay button")].find((x) => /toggle overlay/i.test(x.textContent || ""));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(150);
+  const ovControlled2 = await ovDim("ov-controlled");
+  const ovReadout2 = await page.evaluate(
+    () => (document.querySelector("#overlay .overlay-demo-readout") || {}).textContent,
+  );
+  check(
+    "and the same click closes it again (closed = hidden + inert)",
+    ovControlled2 && /--hidden/.test(ovControlled2.classes) && ovControlled2.opacity === "0" &&
+      ovControlled2.inert && /is_open: false/.test(ovReadout2 || ""),
+    `${JSON.stringify(ovControlled2)} readout=${ovReadout2}`,
+  );
+
+  const ovHook = await page.evaluate(() => {
+    const card = document.querySelector('#overlay [data-astryx-component="Overlay"].overlay-demo-surface');
+    if (!card) return null;
+    card.scrollIntoView({ block: "center" });
+    const s = card.querySelector(".astryx-overlay-scrim");
+    if (!s) return { marker: card.getAttribute("data-astryx-component"), scrim: null };
+    const c = getComputedStyle(s);
+    return { marker: card.getAttribute("data-astryx-component"), scrim: [...s.classList].join(" "),
+             opacity: c.opacity, visibility: c.visibility };
+  });
+  check(
+    "use_overlay dresses an existing container: marker + scrim, closed until hover",
+    ovHook && ovHook.marker === "Overlay" && ovHook.scrim !== null &&
+      /--hover/.test(ovHook.scrim) && ovHook.opacity === "0" && ovHook.visibility === "hidden",
+    JSON.stringify(ovHook),
+  );
+  await page.hover('#overlay [data-astryx-component="Overlay"].overlay-demo-surface');
+  await page.waitForTimeout(150);
+  const ovHookOn = await page.evaluate(() => {
+    const card = document.querySelector('#overlay [data-astryx-component="Overlay"].overlay-demo-surface');
+    const s = card && card.querySelector(".astryx-overlay-scrim");
+    return s ? { opacity: getComputedStyle(s).opacity, visibility: getComputedStyle(s).visibility } : null;
+  });
+  check("the hook's scrim reveals on hover like the wrapper's",
+    ovHookOn && ovHookOn.opacity === "1" && ovHookOn.visibility === "visible",
+    JSON.stringify(ovHookOn));
+
+  // The touch half: a hover:none device is the only place the click toggle does
+  // anything, and this runner's device is hover:hover. Playwright/CDP here cannot
+  // emulate the hover media feature (Emulation.setEmulatedMedia leaves
+  // matchMedia untouched), so a fresh page overrides matchMedia BEFORE the
+  // bundle mounts: the hook then reads "(hover: none)" the way a touch device
+  // would, and a tap on the container must open/close the overlay. This tests
+  // the port's rule, not the detection — the detection is "this runner reports
+  // hover: none", which the override supplies in the same way emulation would.
+  const touchPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  await touchPage.addInitScript(() => {
+    const orig = window.matchMedia.bind(window);
+    const query = (q) => ({
+      media: q, matches: false, onchange: null,
+      addEventListener: () => {}, removeEventListener: () => {},
+      addListener: () => {}, removeListener: () => {}, dispatchEvent: () => false,
+    });
+    window.matchMedia = (q) => {
+      if (q === "(hover: none)") return { ...query(q), matches: true };
+      if (q === "(hover: hover)") return query(q);
+      return orig(q);
+    };
+  });
+  await touchPage.goto("http://127.0.0.1:8791/site/index.html");
+  await touchPage.waitForTimeout(600);
+  const ovTouch0 = await touchPage.evaluate(() => {
+    const root = document.getElementById("ov-hover-fill");
+    const s = root && root.querySelector(".astryx-overlay-scrim");
+    return s ? { classes: [...s.classList].join(" "), opacity: getComputedStyle(s).opacity } : null;
+  });
+  check(
+    "on a hover:none device the overlay starts closed (touch mode controls it)",
+    ovTouch0 && /--hidden/.test(ovTouch0.classes) && !/--hover\b/.test(ovTouch0.classes),
+    JSON.stringify(ovTouch0),
+  );
+  await touchPage.evaluate(() => {
+    const root = document.getElementById("ov-hover-fill");
+    if (root) root.click();
+  });
+  await touchPage.waitForTimeout(200);
+  const ovTouchOn = await touchPage.evaluate(() => {
+    const root = document.getElementById("ov-hover-fill");
+    const s = root && root.querySelector(".astryx-overlay-scrim");
+    return s ? { classes: [...s.classList].join(" "), opacity: getComputedStyle(s).opacity, inert: s.hasAttribute("inert") } : null;
+  });
+  check(
+    "a tap opens it (the touch toggle), from the touch state not the CSS reveal",
+    ovTouchOn && /--visible/.test(ovTouchOn.classes) && ovTouchOn.opacity === "1" && !ovTouchOn.inert,
+    JSON.stringify(ovTouchOn),
+  );
+  await touchPage.evaluate(() => {
+    const root = document.getElementById("ov-hover-fill");
+    if (root) root.click();
+  });
+  await touchPage.waitForTimeout(200);
+  const ovTouchOff = await touchPage.evaluate(() => {
+    const root = document.getElementById("ov-hover-fill");
+    const s = root && root.querySelector(".astryx-overlay-scrim");
+    return s ? { classes: [...s.classList].join(" "), opacity: getComputedStyle(s).opacity } : null;
+  });
+  check("and a second tap closes it",
+    ovTouchOff && /--hidden/.test(ovTouchOff.classes) && ovTouchOff.opacity === "0",
+    JSON.stringify(ovTouchOff));
+  await touchPage.close();
+
   // -------------------------------------------------------- SelectableCard (M28)
   console.log("\nSelectableCard (live)");
   const scState = (id) =>
@@ -3332,11 +3611,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 58 ported / 45 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["58", "45", "103"]),
+    "coverage stats are 59 ported / 44 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["59", "44", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 45 entries", cov.unported === 45, `got ${cov.unported}`);
+  check("unported list rendered 44 entries", cov.unported === 44, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

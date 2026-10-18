@@ -22,6 +22,7 @@ module Spinner = Spinner
 module Thumbnail = Thumbnail
 module Scrollable_area = Scrollable_area
 module Nav_heading_menu = Nav_heading_menu
+module Overlay = Overlay
 
 module Tokens = Tokens
 module Timer = Timer

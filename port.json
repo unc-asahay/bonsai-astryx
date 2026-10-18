@@ -628,6 +628,13 @@
       "file": "src/segmented_control.ml",
       "milestone": "M37",
       "module": "Astryx.Segmented_control"
+    },
+    {
+      "class": "C",
+      "component": "Overlay",
+      "file": "src/overlay.ml",
+      "milestone": "M38",
+      "module": "Astryx.Overlay"
     }
   ],
   "schema": 1,

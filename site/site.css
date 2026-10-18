@@ -428,3 +428,35 @@ code {
   color: var(--color-accent);
   font-size: var(--font-size-3xs);
 }
+
+/* Overlay demo surfaces */
+.overlay-demo-surface {
+  background: linear-gradient(160deg, #2b3a55 0%, #16202f 100%);
+  border-radius: 12px;
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  color: #f3f6fb;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+.overlay-demo-title { padding: 6px; }
+.overlay-demo-readout {
+  margin-top: var(--spacing-2);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary, #666);
+}
+.overlay-demo-row { display: flex; gap: var(--spacing-3); align-items: flex-start; }
+.overlay-demo-row > .ex { flex: 1 1 0; min-width: 0; }
+.astryx-overlay-demo-content {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  padding: var(--spacing-2) var(--spacing-3);
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  background: transparent;
+  cursor: pointer;
+}

@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 58,
-    "unported": 45,
+    "ported": 59,
+    "unported": 44,
     "total": 103,
     "documented": 103
   },
@@ -222,6 +222,12 @@
       "milestone": "M30"
     },
     {
+      "name": "Overlay",
+      "module": "Astryx.Overlay",
+      "file": "src/overlay.ml",
+      "milestone": "M38"
+    },
+    {
       "name": "Popover",
       "module": "Astryx.Popover",
       "file": "src/popover.ml",
@@ -389,7 +395,6 @@
     "MultiSelector",
     "NumberInput",
     "Outline",
-    "Overlay",
     "Pagination",
     "PowerSearch",
     "Resizable",

@@ -3154,3 +3154,50 @@ the disabled skip all come from `Common.List_focus` — which is why the mechani
 any key: a native radio group's arrows select as they move, and this port reproduces that promise by
 letting focus move and then reading the focused segment on `focusin` — one attribute, one JS helper,
 the upstream bound check included.
+
+## Gate 56 — M38: Overlay (coverage 58 -> 59)
+
+Content on top of media — a scrim (dark `--color-overlay`, `Light` rendered as a translucent white, or
+`None` which paints nothing and skips theme inversion) in `Fill`/`Bottom`/`Top` positions with aligned
+content, over a container the port makes `position: relative; overflow: clip`. Visibility is pure CSS
+(`Always`, `Hover`, `Hover_or_focus`, `Focus`) except for one JS half: upstream toggles hover overlays
+on touch devices (`useSyncExternalStore` against `matchMedia("(hover: none)")` + a clickable-container
+filter), and the port keeps it as a vdom hook — reads the media query at mount, subscribes to its
+`change` event, and holds a click listener that applies upstream's nested-interactive and
+text-selection checks in one JS call. An explicit `is_open` overrides all of it; the closed scrim is
+then `inert`, so its content cannot take focus. The light/dark inversion is a `display: contents`
+wrapper carrying `data-astryx-media` and `color-scheme`, because the house token set resolves through
+`light-dark()`.
+
+Named divergences: upstream's `onMouseUp` (middle-click navigation) is a no-op here — it only does
+anything when the container is a clickable card with an href, and Overlay passes no href; no
+`ref`/`useMergedRefs` (the house API does not forward refs; the hook does the DOM work); no
+`themeProps` (styled by class with the house `data-astryx-component` marker); `MediaTheme` is token
+inversion only, since there is no theme-provider mechanism; the child's border radius mirrored onto the
+wrapper is a vdom hook reading `getComputedStyle` once after the DOM patch.
+
+Two port bugs were found on the live path, not by reading: `subscribe` never read the media state at
+mount (upstream's `useSyncExternalStore` snapshot runs immediately), so a real touch device would
+never have enabled the toggle — fixed by refreshing the state inside `subscribe`; and the JS listener
+was called with the wrong arity — it is a factory (`function(){...}` returning the binder), so a
+single call returned the binder and the DOM invoked it with the event, discarding `fire`. Probes
+(instrumented `setAttribute`, listener log, touch-mode override) caught both before they reached the
+gate quietly.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **555 checks, 0 failures** (14 new Overlay checks).
+- DOM + accessibility (jsdom) — all passed (demo fixture unchanged).
+- real browser, showcase — **399 checks, 0 failures** (23 new live Overlay checks: the container clips
+  like upstream; the always-on scrim paints its token and is interactive; the light scrim is genuinely
+  translucent and flips the media palette; a hover overlay is click-through until the pointer arrives
+  and the reveal reverses when it leaves; the bottom strip starts translated below the edge and slides
+  up; focus-within reveals the keyboard-only variant; a controlled overlay opens and closes with the
+  closed scrim `inert`; and on a `hover:none` device a tap opens and closes it — the touch half driven
+  by an init-script `matchMedia` override before the bundle mounts, since this runner's device reports
+  `hover:hover` and its CDP cannot emulate the feature).
+- responsive + visual regression — re-baselined (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/Overlay.md` exists (60 pages in total).
+- agent layer — `ported entries: 59; correctly attributed: 59`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m38.txt`).

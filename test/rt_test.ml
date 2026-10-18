@@ -2379,3 +2379,77 @@ let () =
   in
   mount "segmented-control-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* Overlay: markup + state contract. The wrapper is the overlay container
+   (class + marker + touch hook), the scrim renders inside it with the
+   position/align/scrim classes, and its visibility classes follow show_on or
+   is_open. The controlled variant is wired to state so the checks can flip
+   is_open and confirm the inert/visibility classes; hover/focus reveal and the
+   touch toggle are CSS/real-browser behaviour and are asserted in the
+   browser gate. MediaTheme wrapper carries data-astryx-media. *)
+let overlay_component (graph : Bonsai.graph) =
+  let open_now, _set_open_now = Bonsai.state false graph in
+  let content label =
+    [ Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "ov-fixture-content" ]
+        [ Vdom.Node.text label ]
+    ]
+  in
+  let surface =
+    [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ov-fixture-surface" ] [ Vdom.Node.text "media" ] ]
+  in
+  let main =
+    Astryx.Overlay.view
+      ~id:"ov-controlled"
+      ~is_open:open_now
+      ~content:(content "Quick view")
+      ~children:surface
+      graph
+  in
+  let readout =
+    Bonsai.map open_now ~f:(fun open_now ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.create "id" "ov-fixture-state" ]
+        [ Vdom.Node.text (if open_now then "open" else "closed") ])
+  in
+  let plain_graph ?show_on ?(scrim = Astryx.Overlay.Dark) ?(position = Astryx.Overlay.Fill)
+      ?(align = Astryx.Overlay.End) id graph =
+    Astryx.Overlay.view
+      ~id
+      ?show_on
+      ~scrim
+      ~position
+      ~align
+      ~content:(content "Quick view")
+      ~children:surface
+      graph
+  in
+  let variants graph =
+    [ plain_graph ~show_on:Astryx.Overlay.Hover "ov-hover" graph
+    ; plain_graph ~show_on:Astryx.Overlay.Focus "ov-focus" graph
+    ; plain_graph ~position:Astryx.Overlay.Bottom "ov-bottom" graph
+    ; plain_graph ~position:Astryx.Overlay.Top ~scrim:Astryx.Overlay.Light "ov-top" graph
+    ; plain_graph ~scrim:Astryx.Overlay.Light "ov-light" graph
+    ; plain_graph ~scrim:Astryx.Overlay.None "ov-none" graph
+    ; plain_graph ~align:Astryx.Overlay.Center "ov-center" graph
+    ; plain_graph ~show_on:Astryx.Overlay.Hover_or_focus ~position:Astryx.Overlay.Bottom
+        "ov-hover-bottom" graph
+    ]
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map2 (Bonsai.map2 main readout ~f:(fun main readout -> Vdom.Node.div [ main; readout ]))
+    (join_all (variants graph))
+    ~f:(fun main variants -> Vdom.Node.div [ main; Vdom.Node.div variants ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      overlay_component
+  in
+  mount "overlay-all" (Bonsai_web_test.Handle.last_result handle)
+;;

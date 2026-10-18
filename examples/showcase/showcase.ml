@@ -825,6 +825,7 @@ let s_field_status () =
 module Dm = Astryx.Dropdown_menu
 module Nhm = Astryx.Nav_heading_menu
 module Segc = Astryx.Segmented_control
+module Ov = Astryx.Overlay
 
 let demo_menu_item
       ?description
@@ -3870,6 +3871,173 @@ let segmented_control_demo (graph : Bonsai.graph) =
         examples)
 ;;
 
+let overlay_demo (graph : Bonsai.graph) =
+  let surface ?(title = "Hero media") () =
+    Vdom.Node.div
+      ~attrs:
+        [ Vdom.Attr.class_ "overlay-demo-surface"
+        ; Vdom.Attr.create "tabindex" "0"
+        ]
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "overlay-demo-title" ] [ Vdom.Node.text title ] ]
+  in
+  let content label =
+    [ Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "astryx-overlay-demo-content" ]
+        [ Vdom.Node.text label ]
+    ]
+  in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let always_fill_dark =
+    Ov.view
+      ~id:"ov-always-fill-dark"
+      ~content:(content "Quick view")
+      ~children:[ surface ~title:"Dark scrim, always on" () ]
+      graph
+  in
+  let always_fill_light =
+    Ov.view
+      ~id:"ov-always-fill-light"
+      ~scrim:Ov.Light
+      ~content:(content "Quick view")
+      ~children:[ surface ~title:"Light scrim" () ]
+      graph
+  in
+  let always_bottom =
+    Ov.view
+      ~id:"ov-always-bottom"
+      ~position:Ov.Bottom
+      ~content:(content "Read more")
+      ~children:[ surface ~title:"Bottom strip" () ]
+      graph
+  in
+  let always_top =
+    Ov.view
+      ~id:"ov-always-top"
+      ~position:Ov.Top
+      ~scrim:Ov.Light
+      ~content:(content "New")
+      ~children:[ surface ~title:"Top strip" () ]
+      graph
+  in
+  let hover_fill =
+    Ov.view
+      ~id:"ov-hover-fill"
+      ~show_on:Ov.Hover
+      ~content:(content "Quick view")
+      ~children:[ surface ~title:"Hover or focus me" () ]
+      graph
+  in
+  let hover_bottom =
+    Ov.view
+      ~id:"ov-hover-bottom"
+      ~show_on:Ov.Hover
+      ~position:Ov.Bottom
+      ~content:(content "Read more")
+      ~children:[ surface ~title:"Hover reveals the strip" () ]
+      graph
+  in
+  let focus_fill =
+    Ov.view
+      ~id:"ov-focus-fill"
+      ~show_on:Ov.Focus
+      ~content:(content "Quick view")
+      ~children:[ surface ~title:"Focus me (keyboard trail)" () ]
+      graph
+  in
+  let align_rows =
+    let one align id cls =
+      Ov.view
+        ~id
+        ~align
+        ~content:(content (sprintf "%s content" cls))
+        ~children:[ surface ~title:cls () ]
+        graph
+    in
+    let a = Bonsai.map (one Ov.Start "ov-align-start" "start") ~f:(fun n -> ex "align: start" n) in
+    let b = Bonsai.map (one Ov.Center "ov-align-center" "center") ~f:(fun n -> ex "align: center" n) in
+    let c = Bonsai.map (one Ov.End "ov-align-end" "end") ~f:(fun n -> ex "align: end" n) in
+    Bonsai.map3 a b c ~f:(fun x y z ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "overlay-demo-row" ]
+        [ x; y; z ])
+  in
+  let controlled =
+    let show, set_show = Bonsai.state false graph in
+    let on_toggle =
+      Bonsai.map2 show set_show ~f:(fun show set_show _ -> set_show (not show))
+    in
+    let button =
+      Bonsai.map on_toggle ~f:(fun on_toggle ->
+        Astryx.Button.view
+          ~variant:Astryx.Button.Secondary
+          ~label:"Toggle overlay"
+          ~on_click:on_toggle
+          [])
+    in
+    let overlay =
+      Ov.view
+        ~id:"ov-controlled"
+        ~is_open:show
+        ~content:(content "Quick view")
+        ~children:[ surface () ]
+        graph
+    in
+    let readout =
+      Bonsai.map show ~f:(fun show ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.class_ "overlay-demo-readout" ]
+          [ Vdom.Node.text (if show then "is_open: true" else "is_open: false") ])
+    in
+    Bonsai.map2 (Bonsai.map2 button overlay ~f:(fun b o -> Vdom.Node.div [ b; o ])) readout
+      ~f:(fun body r -> Vdom.Node.div [ body; r ])
+  in
+  let hook_card =
+    let ov =
+      Ov.use_overlay
+        ~show_on:Ov.Hover
+        ~content:(content "Quick view (hook)")
+        graph
+    in
+    Bonsai.map ov ~f:(fun ov ->
+      Vdom.Node.div
+        ~attrs:(ov.container @ [ Vdom.Attr.class_ "overlay-demo-surface" ])
+        (surface ~title:"A card: the useOverlay hook" ()
+        :: (match ov.element with Some e -> [ e ] | None -> [])))
+  in
+  let examples =
+    [ ex_tree "always, fill, dark" always_fill_dark
+    ; ex_tree "always, fill, light" always_fill_light
+    ; ex_tree "always, bottom strip" always_bottom
+    ; ex_tree "always, top strip" always_top
+    ; ex_tree "hover: hover or focus reveals" hover_fill
+    ; ex_tree "hover: bottom strip slides in" hover_bottom
+    ; ex_tree "focus: keyboard-only reveal" focus_fill
+    ; align_rows
+    ; ex_tree "controlled: is_open decides" controlled
+    ; ex_tree "the hook on an existing container" hook_card
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+      section
+        ~id:"overlay"
+        ~title:"Overlay"
+        ~note:
+          "The overlay sits in its own surface: the wrapper is position: relative and clips, the \\\n\
+           scrim is an absolutely positioned flex column that fills the surface or runs along the \\\n\
+           bottom/top edge, and its content aligns start, center or end. Visibility is CSS-driven \\\n\
+           (always, hover — guarded to pointer devices — or focus-within) or controlled by is_open, \\\n\
+           which also makes the closed scrim inert. A dark scrim paints the --color-overlay token and \\\n\
+           flips the colors of its content through a media-theme wrapper, so a light label on a dark \\\n\
+           backdrop is the intended look. On a hover-capable container the overlay can also hang \\\n\
+           directly off an existing surface: use_overlay returns the container attributes and the \\\n\
+           scrim element."
+        examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3942,6 +4110,7 @@ let nav_items =
   ; "scrollable-area", "ScrollableArea"
   ; "nav-heading-menu", "NavHeadingMenu"
   ; "segmented-control", "SegmentedControl"
+  ; "overlay", "Overlay"
   ]
 ;;
 
@@ -4313,15 +4482,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful nav_heading_menu_section in
   let segmented_control_section = segmented_control_demo graph in
   let stateful = pair stateful segmented_control_section in
+  let overlay_section = overlay_demo graph in
+  let stateful = pair stateful overlay_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control))
+    ~f:(fun (((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay))
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay ])
       ])
 ;;
 

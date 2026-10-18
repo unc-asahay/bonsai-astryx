@@ -610,6 +610,66 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
       && attr(radio("segc-disabled-message", "list"), "tabindex") === "-1");
 }
 
+// --- Overlay (M38)
+{
+  const host = document.querySelector('[data-case="overlay-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const scrim = (id) => g(id) && g(id).querySelector(".astryx-overlay-scrim");
+  const media = (id) => g(id) && g(id).querySelector("[data-astryx-media]");
+
+  check("the overlay renders as a marked media container", !!g("ov-controlled")
+    && attr(g("ov-controlled"), "data-astryx-component") === "Overlay"
+    && hasClass(g("ov-controlled"), /astryx-overlay/));
+  check("children render in front of the scrim", !!g("ov-controlled")
+    && g("ov-controlled").querySelector(".ov-fixture-surface") !== null
+    && g("ov-controlled").querySelector(".ov-fixture-surface").nextElementSibling
+      === g("ov-controlled").querySelector(".astryx-overlay-scrim"));
+  check("the scrim fills the container, aligns to end, and uses the dark mode by default",
+    !!scrim("ov-controlled")
+      && hasClass(scrim("ov-controlled"), /--fill/)
+      && hasClass(scrim("ov-controlled"), /--align-end/)
+      && hasClass(scrim("ov-controlled"), /--scrim-dark/));
+  check("the media surface gets the dark theme tint", !!media("ov-controlled")
+    && attr(media("ov-controlled"), "data-astryx-media") === "dark"
+    && /Quick view/.test((media("ov-controlled").textContent || "")));
+  check("a closed controlled overlay is hidden and inert", !!scrim("ov-controlled")
+    && hasClass(scrim("ov-controlled"), /--hidden/)
+    && scrim("ov-controlled").hasAttribute("inert"));
+  check("the fixture wrap reads the live open state", (() => {
+    const w = host && host.querySelector("#ov-fixture-state");
+    return w && (w.textContent || "").trim() === "closed";
+  })());
+
+  // Uncontrolled / always-visible variants.
+  const bottom = g("ov-bottom");
+  check("Bottom is visible and not inert by default", !!bottom
+    && !!scrim("ov-bottom") && hasClass(scrim("ov-bottom"), /--visible/)
+    && !scrim("ov-bottom").hasAttribute("inert"), bottom && classesOf(bottom).join(" "));
+  check("Bottom slides from the bottom edge", !!scrim("ov-bottom") && hasClass(scrim("ov-bottom"), /--visible-from-bottom/));
+  check("Top slides from the top edge and flips light via scrim=LIGHT", !!scrim("ov-top")
+    && hasClass(scrim("ov-top"), /--visible-from-top/)
+    && !hasClass(scrim("ov-top"), /--visible-from-bottom/)
+    && attr(media("ov-top"), "data-astryx-media") === "light");
+  check("scrim=NONE emits no theme surface at all", !!g("ov-none")
+    && g("ov-none").querySelector("[data-astryx-media]") === null
+    && !hasClass(scrim("ov-none"), /--scrim-dark/) && !hasClass(scrim("ov-none"), /--scrim-light/));
+
+  // show_on variants: hover/focus stay closed until a real browser interaction;
+  // the classes carry the reveal mode.
+  check("Hover stays closed with the --hover reveal mode and no --visible", !!scrim("ov-hover")
+    && hasClass(scrim("ov-hover"), /--hover/) && !hasClass(scrim("ov-hover"), /--visible/));
+  check("Focus stays closed with the --focus reveal mode and no --visible", !!scrim("ov-focus")
+    && hasClass(scrim("ov-focus"), /--focus/) && !hasClass(scrim("ov-focus"), /--visible/));
+  check("Hover_or_focus plus Bottom carries the hover mode and the bottom slide",
+    !!scrim("ov-hover-bottom")
+      && hasClass(scrim("ov-hover-bottom"), /--hover/) && hasClass(scrim("ov-hover-bottom"), /--hover-bottom/)
+      && !hasClass(scrim("ov-hover-bottom"), /--visible/));
+
+  // Aligns are classes so an override can be found and overridden.
+  check("Center is a class, not an inline style", !!scrim("ov-center")
+    && hasClass(scrim("ov-center"), /--align-center/) && !/align/.test(attr(scrim("ov-center"), "style") || ""));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

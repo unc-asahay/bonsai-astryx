@@ -3286,3 +3286,98 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-segmented-control--fill .astryx-segmented-control__item-label {
   flex: 1 1 auto;
 }
+
+/* ---------------------------------------------------------------- Overlay
+   Overlay: a wrapper that turns a media surface into an overlay container
+   (position: relative; overflow: clip), with an absolutely positioned scrim
+   that reveals on hover/focus or is controlled by JS. Port of
+   facebook/astryx Overlay/OverlayScrim. */
+.astryx-overlay {
+  position: relative;
+  overflow: clip;
+}
+.astryx-overlay-scrim {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  pointer-events: none;
+  transition-property: opacity, visibility, transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .astryx-overlay-scrim { transition-duration: 0s; }
+}
+/* Positions */
+.astryx-overlay-scrim--fill { inset: 0; }
+.astryx-overlay-scrim--bottom { inset-inline: 0; bottom: 0; }
+.astryx-overlay-scrim--top { inset-inline: 0; top: 0; }
+/* Alignment */
+.astryx-overlay-scrim--align-start { align-items: flex-start; justify-content: flex-start; }
+.astryx-overlay-scrim--align-center { align-items: center; justify-content: center; }
+.astryx-overlay-scrim--align-end { align-items: flex-end; justify-content: flex-start; }
+/* Scrim backgrounds */
+.astryx-overlay-scrim--scrim-dark { background-color: var(--color-overlay); }
+.astryx-overlay-scrim--scrim-light { background-color: color-mix(in srgb, white 60%, transparent); }
+/* Media theme: display: contents wrapper that flips color-scheme so the
+   light-dark() token set resolves to the scrim's palette. */
+.astryx-overlay-media { display: contents; }
+.astryx-overlay-media[data-astryx-media="dark"] { color-scheme: dark; }
+.astryx-overlay-media[data-astryx-media="light"] { color-scheme: light; }
+/* Controlled (JS) visibility */
+.astryx-overlay-scrim--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+@starting-style {
+  .astryx-overlay-scrim--visible { opacity: 0; }
+}
+@starting-style {
+  .astryx-overlay-scrim--visible-from-bottom { opacity: 0; transform: translateY(100%); }
+}
+@starting-style {
+  .astryx-overlay-scrim--visible-from-top { opacity: 0; transform: translateY(-100%); }
+}
+.astryx-overlay-scrim--hidden { opacity: 0; visibility: hidden; }
+.astryx-overlay-scrim--hidden-bottom { transform: translateY(100%); }
+.astryx-overlay-scrim--hidden-top { transform: translateY(-100%); }
+/* CSS-driven: hover + focus. The hover half is guarded by (hover: hover) so a
+   touch device never reveals on pointer; the focus half is not guarded. */
+.astryx-overlay-scrim--hover { opacity: 0; visibility: hidden; pointer-events: none; }
+@media (hover: hover) {
+  .astryx-overlay:hover .astryx-overlay-scrim--hover {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+.astryx-overlay:focus-within .astryx-overlay-scrim--hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.astryx-overlay-scrim--hover-bottom { transform: translateY(100%); }
+@media (hover: hover) {
+  .astryx-overlay:hover .astryx-overlay-scrim--hover-bottom { transform: translateY(0); }
+}
+.astryx-overlay:focus-within .astryx-overlay-scrim--hover-bottom { transform: translateY(0); }
+.astryx-overlay-scrim--hover-top { transform: translateY(-100%); }
+@media (hover: hover) {
+  .astryx-overlay:hover .astryx-overlay-scrim--hover-top { transform: translateY(0); }
+}
+.astryx-overlay:focus-within .astryx-overlay-scrim--hover-top { transform: translateY(0); }
+/* CSS-driven: focus only */
+.astryx-overlay-scrim--focus { opacity: 0; visibility: hidden; pointer-events: none; }
+.astryx-overlay:focus-within .astryx-overlay-scrim--focus {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.astryx-overlay-scrim--focus-bottom { transform: translateY(100%); }
+.astryx-overlay:focus-within .astryx-overlay-scrim--focus-bottom { transform: translateY(0); }
+.astryx-overlay-scrim--focus-top { transform: translateY(-100%); }
+.astryx-overlay:focus-within .astryx-overlay-scrim--focus-top { transform: translateY(0); }
