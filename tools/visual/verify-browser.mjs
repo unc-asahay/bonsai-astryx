@@ -246,6 +246,7 @@ if (mode === "showcase") {
     "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner", "Thumbnail",
     "ScrollableArea",
     "NavHeadingMenu",
+    "SegmentedControl",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -608,7 +609,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("60 sections", sections.length === 60, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("61 sections", sections.length === 61, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -629,10 +630,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("351 examples across the page", totalExamples === 351, `got ${totalExamples}`);
+  check("361 examples across the page", totalExamples === 361, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -645,7 +646,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("60 nav links", nav.length === 60, `got ${nav.length}`);
+  check("61 nav links", nav.length === 61, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2656,6 +2657,127 @@ await page.waitForTimeout(150);
 nhmControlledOpen = await page.evaluate(() => !!document.getElementById("nav-menu-controlled"));
 check("Escape closes through on_close", !nhmControlledOpen);
 
+
+// SegmentedControl: the live radiogroup contract — click selects, arrows move focus
+// AND select (selection follows focus), the disabled segment is skipped, a settled
+// group keeps its stop, Tab leaves the group, and a disabled group cannot change.
+const segc = await page.evaluate(() => {
+  const g = document.getElementById("showcase-segmented-control-live");
+  if (!g) return null;
+  const seg = (v) => g.querySelector(`[data-astryx-value="${v}"]`);
+  return {
+    role: g.getAttribute("role"),
+    marker: g.getAttribute("data-astryx-component"),
+    label: g.getAttribute("aria-label"),
+    radios: [...g.querySelectorAll("[role=radio]")].length,
+    gridChecked: seg("grid")?.getAttribute("aria-checked"),
+    gridTabindex: seg("grid")?.getAttribute("tabindex"),
+    listTabindex: seg("list")?.getAttribute("tabindex"),
+    readout: document.getElementById("showcase-segmented-control-state")?.textContent ?? null,
+  };
+});
+check(
+  "the live control renders as a labelled radiogroup with three radios and grid selected",
+  segc && segc.role === "radiogroup" && segc.marker === "SegmentedControl" && segc.label === "View mode"
+    && segc.radios === 3 && segc.gridChecked === "true" && segc.readout === "view: grid",
+  JSON.stringify(segc),
+);
+check("the selected segment owns the tab stop", segc && segc.gridTabindex === "0" && segc.listTabindex === "-1", "");
+
+await page.evaluate(() => document.querySelector('#showcase-segmented-control-live [data-astryx-value="list"]').click());
+await page.waitForTimeout(150);
+let segcState = await page.evaluate(() => ({
+  readout: document.getElementById("showcase-segmented-control-state")?.textContent ?? null,
+  listChecked: document.querySelector('#showcase-segmented-control-live [data-astryx-value="list"]')?.getAttribute("aria-checked"),
+  gridChecked: document.querySelector('#showcase-segmented-control-live [data-astryx-value="grid"]')?.getAttribute("aria-checked"),
+  listTabindex: document.querySelector('#showcase-segmented-control-live [data-astryx-value="list"]')?.getAttribute("tabindex"),
+}));
+check(
+  "clicking a segment selects it and moves the tab stop",
+  segcState.readout === "view: list" && segcState.listChecked === "true" && segcState.gridChecked === "false"
+    && segcState.listTabindex === "0",
+  JSON.stringify(segcState),
+);
+
+// Arrows: focus the selected segment, press ArrowRight — focus AND selection move together.
+await page.evaluate(() => document.querySelector('#showcase-segmented-control-live [data-astryx-value="grid"]').focus());
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(150);
+let segcArrow = await page.evaluate(() => ({
+  focused: document.activeElement?.getAttribute("data-astryx-value") ?? null,
+  readout: document.getElementById("showcase-segmented-control-state")?.textContent ?? null,
+}));
+check(
+  "ArrowRight moves focus and selection to the next segment",
+  segcArrow.focused === "list" && segcArrow.readout === "view: list",
+  JSON.stringify(segcArrow),
+);
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(150);
+segcArrow = await page.evaluate(() => ({
+  focused: document.activeElement?.getAttribute("data-astryx-value") ?? null,
+  readout: document.getElementById("showcase-segmented-control-state")?.textContent ?? null,
+}));
+check("a second ArrowRight reaches the last segment", segcArrow.focused === "table" && segcArrow.readout === "view: table", JSON.stringify(segcArrow));
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(150);
+segcArrow = await page.evaluate(() => ({
+  focused: document.activeElement?.getAttribute("data-astryx-value") ?? null,
+  readout: document.getElementById("showcase-segmented-control-state")?.textContent ?? null,
+}));
+check("arrows wrap around the end", segcArrow.focused === "grid" && segcArrow.readout === "view: grid", JSON.stringify(segcArrow));
+
+// A disabled segment is skipped by the arrows.
+await page.evaluate(() => {
+  const g = document.getElementById("segc-disabled-item");
+  g.querySelector('[data-astryx-value="grid"]').focus();
+});
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(150);
+const segcSkip = await page.evaluate(() =>
+  document.activeElement?.getAttribute("data-astryx-value") ?? null);
+check("ArrowRight skips the disabled segment", segcSkip === "table", String(segcSkip));
+
+// Tab leaves the single tab stop (roving: one segment is in the tab order).
+await page.evaluate(() => document.querySelector('#showcase-segmented-control-live [data-astryx-value="grid"]').focus());
+await page.keyboard.press("Tab");
+await page.waitForTimeout(150);
+const segcTab = await page.evaluate(() =>
+  document.activeElement?.getAttribute("data-astryx-value") ?? null);
+check("Tab leaves the group (one roving stop)", segcTab === null, String(segcTab));
+
+// Disabled with a reason: the reason bubble is reachable and selection cannot change.
+await page.evaluate(() => {
+  const g = document.getElementById("segc-disabled-message");
+  g.querySelector('[data-astryx-value="list"]').click();
+});
+await page.waitForTimeout(150);
+const segcDisable = await page.evaluate(() => {
+  const g = document.getElementById("segc-disabled-message");
+  const bubble = document.getElementById("segc-disabled-message-disabled-message");
+  return {
+    listChecked: g.querySelector('[data-astryx-value="list"]')?.getAttribute("aria-checked"),
+    gridChecked: g.querySelector('[data-astryx-value="grid"]')?.getAttribute("aria-checked"),
+    gridTabindex: g.querySelector('[data-astryx-value="grid"]')?.getAttribute("tabindex"),
+    bubble: bubble ? bubble.textContent.trim() : null,
+    describedby: g.getAttribute("aria-describedby"),
+  };
+});
+check(
+  "a disabled-with-message group cannot change, keeps its stop, and shows the reason",
+  segcDisable.listChecked === "false" && segcDisable.gridChecked === "true"
+    && segcDisable.gridTabindex === "0" && segcDisable.bubble === "View mode is locked by the plan."
+    && segcDisable.describedby === "segc-disabled-message-disabled-message",
+  JSON.stringify(segcDisable),
+);
+
+// A settled disabled group really blocks the pointer (CSS, measured).
+const segcPointer = await page.evaluate(() => {
+  const g = document.getElementById("segc-disabled");
+  return g ? getComputedStyle(g).pointerEvents : null;
+});
+check("a disabled group without a reason blocks pointer events", segcPointer === "none", String(segcPointer));
+
 // AvatarGroup: the group's ARIA, the chip, and an overlap that can be measured rather than eyeballed.
 const avatarGroup = await page.evaluate(() => {
   const root = document.querySelector("#avatar-group .astryx-avatar-group");
@@ -3210,11 +3332,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 57 ported / 46 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["57", "46", "103"]),
+    "coverage stats are 58 ported / 45 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["58", "45", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 46 entries", cov.unported === 46, `got ${cov.unported}`);
+  check("unported list rendered 45 entries", cov.unported === 45, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

@@ -3171,3 +3171,118 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ---------------------------------------------------------------------- SegmentedControl
+
+   A single-control radiogroup: the track is the neutral muted surface, the selected
+   segment is raised like a button. Sizes house (28/32/36px total) with the radius
+   concentric to the track padding; icons follow size via their own [width]/[height]. */
+.astryx-segmented-control {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  max-width: 100%;
+  padding: 2px;
+  border-radius: var(--radius-element);
+  background: var(--color-background-muted);
+}
+.astryx-segmented-control--sm { padding: 2px; }
+.astryx-segmented-control--md,
+.astryx-segmented-control--lg { padding: 3px; }
+/* The wrapper is the plain block that presents the track and the reason bubble the
+   way a Field does for the other controls; the bubble is never inside the flex row. */
+.astryx-segmented-control-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.astryx-segmented-control--fill {
+  display: flex;
+  width: 100%;
+}
+.astryx-segmented-control--disabled { opacity: 0.5; }
+/* Disabled with a reason: the dim stays but the group must keep receiving pointer
+   events and stay focusable so the reason is reachable. */
+.astryx-segmented-control--disabled:not(.astryx-segmented-control--disabled-with-message) {
+  pointer-events: none;
+}
+.astryx-segmented-control__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--text-body-weight);
+  white-space: nowrap;
+  padding-inline: 12px;
+  border-radius: calc(var(--radius-element) - 2px);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.astryx-segmented-control--sm .astryx-segmented-control__item {
+  height: calc(var(--size-element-sm) - 4px);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  border-radius: calc(var(--radius-element) - 2px);
+}
+.astryx-segmented-control--md .astryx-segmented-control__item,
+.astryx-segmented-control--lg .astryx-segmented-control__item {
+  height: calc(var(--size-element-md) - 6px);
+  border-radius: calc(var(--radius-element) - 3px);
+}
+.astryx-segmented-control--fill .astryx-segmented-control__item {
+  flex: 1 1 0;
+  justify-content: center;
+}
+.astryx-segmented-control__item:focus-visible {
+  outline: var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
+  outline-offset: 2px;
+}
+.astryx-segmented-control__item--selected {
+  background: var(--color-background-surface);
+  box-shadow: var(--shadow-low);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.astryx-segmented-control__item--disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.astryx-segmented-control__item:not(.astryx-segmented-control__item--disabled):hover {
+  background: var(--color-overlay-hover);
+}
+.astryx-segmented-control__item:not(.astryx-segmented-control__item--selected):active {
+  background: var(--color-neutral);
+}
+.astryx-segmented-control__item--selected.astryx-segmented-control__item--disabled {
+  background: transparent;
+  box-shadow: none;
+}
+/* Icon-only segments keep their size; a hug control with visible labels truncates
+   its labels before it ever shrinks an icon-only segment. */
+.astryx-segmented-control__item-icon {
+  display: inline-flex;
+  align-items: center;
+  width: 1em;
+  height: 1em;
+}
+.astryx-segmented-control__item-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.astryx-segmented-control__item-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.astryx-segmented-control--fill .astryx-segmented-control__item-label {
+  flex: 1 1 auto;
+}

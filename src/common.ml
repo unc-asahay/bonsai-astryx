@@ -589,15 +589,20 @@ module List_focus = struct
         ; mutable item_selector : string
         ; mutable boundary_selector : string
         ; mutable caret_guard : bool
-        ; mutable key_listener : Js.Unsafe.any option
-        ; mutable focus_listener : Js.Unsafe.any option
-        }
+ ; (* Upstream's roving sync never consults focus: it keeps the member already carrying an
+      explicit tabindex="0", falling back to the first enabled. ButtonGroup/Toolbar want the
+      focused member to win, so this is opt-in. *)
+   mutable prefer_existing_stop : bool
+ ; mutable key_listener : Js.Unsafe.any option
+ ; mutable focus_listener : Js.Unsafe.any option
+ }
 
       let create () =
         { orientation = Horizontal
         ; item_selector = button_group_item_selector
         ; boundary_selector = button_group_boundary_selector
         ; caret_guard = false
+        ; prefer_existing_stop = false
         ; key_listener = None
         ; focus_listener = None
         }
@@ -618,14 +623,18 @@ module List_focus = struct
              moves toward. A toolbar can contain inputs; a button group cannot, which is why this defaults
              off and why the default is what keeps the first consumer's behaviour intact. *)
           caret_guard : bool
+        ; (* True for a controlled radiogroup (SegmentedControl): keep the member already carrying an
+             explicit tabindex="0" rather than the focused member, upstream's sync rule. *)
+          prefer_existing_stop : bool
         }
 
-      let sexp_of_t { orientation; item_selector; boundary_selector; caret_guard } =
+      let sexp_of_t { orientation; item_selector; boundary_selector; caret_guard; prefer_existing_stop } =
         Sexp.List
           [ sexp_of_orientation orientation
           ; Sexp.Atom item_selector
           ; Sexp.Atom boundary_selector
           ; Sexp.Atom (Bool.to_string caret_guard)
+          ; Sexp.Atom (Bool.to_string prefer_existing_stop)
           ]
       ;;
 
@@ -661,6 +670,14 @@ module List_focus = struct
            el
            "removeEventListener"
            [| Js.Unsafe.inject (Js.string kind); Js.Unsafe.inject listener |])
+    ;;
+
+    (* Reads any attribute, defaulting to the empty string. The feature is small but it runs once per
+       patch (the sync's tab-stop search), so the question is answered in one JS call. *)
+    let attr_str (el : Dom_html.element Js.t) (name : string) : string =
+      Js.Unsafe.fun_call
+        (Js.Unsafe.eval_string "(function (el, name) { return el.getAttribute(name) || ''; })")
+        [| Js.Unsafe.inject el; Js.Unsafe.inject (Js.string name) |]
     ;;
 
     (* Both questions are asked in JS rather than through `Js.Unsafe.get` into an OCaml bool: a `div`
@@ -725,14 +742,25 @@ module List_focus = struct
     ;;
 
     (* Which member is the tab stop. The focused member wins if there is one, so a re-render cannot
-       drag the stop back to the first item while the person is standing on the third. *)
+       drag the stop back to the first item while the person is standing on the third. With
+       [prefer_existing_stop] the rule is upstream's exactly - the current tab stop (the enabled
+       member already carrying an explicit tabindex="0") is kept, falling back to the first enabled
+       member - which is what a controlled radiogroup needs, since its item set carries the selected
+       member's tabindex and upstream's sync never consults focus at all. *)
     let stamp (state : State.t) (el : Dom_html.element Js.t) =
       let candidates = items state el in
-      let active = active_element () in
       let stop =
-        match List.find candidates ~f:(fun item -> same item active) with
-        | Some focused -> Some focused
-        | None -> List.find candidates ~f:(fun item -> not (is_disabled item))
+        if state.prefer_existing_stop
+        then (
+          let enabled = List.filter candidates ~f:(fun item -> not (is_disabled item)) in
+          match List.find enabled ~f:(fun item -> String.equal (attr_str item "tabindex") "0") with
+          | Some stop -> Some stop
+          | None -> List.hd enabled)
+        else (
+          let active = active_element () in
+          match List.find candidates ~f:(fun item -> same item active) with
+          | Some focused -> Some focused
+          | None -> List.find candidates ~f:(fun item -> not (is_disabled item)))
       in
       match stop with
       | None -> ()
@@ -852,11 +880,13 @@ module List_focus = struct
     ?(item_selector = button_group_item_selector)
     ?(boundary_selector = button_group_boundary_selector)
     ?(caret_guard = false)
+    ?(prefer_existing_stop = false)
     ()
     =
     Vdom.Attr.create_hook
       "astryx-list-focus"
-      (Hook.create { T.Input.orientation; item_selector; boundary_selector; caret_guard })
+      (Hook.create
+         { T.Input.orientation; item_selector; boundary_selector; caret_guard; prefer_existing_stop })
   ;;
 end
 

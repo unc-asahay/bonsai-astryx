@@ -533,6 +533,83 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("no row was closed yet", wrap && attr(wrap, "data-closed") === "0", wrap && attr(wrap, "data-closed"));
 }
 
+
+// --- SegmentedControl (M37)
+{
+  const host = document.querySelector('[data-case="segmented-control-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const radio = (id, value) => g(id) && g(id).querySelector(`[data-astryx-value="${value}"]`);
+
+  check("the control renders as a radiogroup with the marker and its label",
+    !!g("segc-all") && attr(g("segc-all"), "role") === "radiogroup"
+      && attr(g("segc-all"), "data-astryx-component") === "SegmentedControl"
+      && attr(g("segc-all"), "aria-label") === "View mode",
+    g("segc-all") && `${attr(g("segc-all"), "role")}/${attr(g("segc-all"), "aria-label")}`);
+  check("three segments are role=radio buttons", !!g("segc-all")
+    && g("segc-all").querySelectorAll('[role="radio"]').length === 3
+    && g("segc-all").querySelector('[role="radio"]').tagName === "BUTTON");
+  check("each segment carries its value and the selected one is checked",
+    attr(radio("segc-all", "grid"), "aria-checked") === "true"
+      && attr(radio("segc-all", "list"), "aria-checked") === "false"
+      && attr(radio("segc-all", "table"), "aria-checked") === "false");
+  check("the selected segment owns the tab stop, the rest are -1",
+    attr(radio("segc-all", "grid"), "tabindex") === "0"
+      && attr(radio("segc-all", "list"), "tabindex") === "-1"
+      && attr(radio("segc-all", "table"), "tabindex") === "-1");
+  check("segments are real buttons (type=button, not anchors)",
+    radio("segc-all", "grid") && radio("segc-all", "grid").getAttribute("type") === "button");
+  check("the wrap reads the live selected value", (() => {
+    const w = host && host.querySelector("#segc-wrap");
+    return w && attr(w, "data-selected") === "grid";
+  })());
+
+  // Sizes and layout are classes, so an override that ships can be found and overridden.
+  const sm = g("segc-sm");
+  const fill = g("segc-fill");
+  check("sm is a class, not an inline size",
+    !!sm && hasClass(sm, /--sm/) && attr(sm, "data-astryx-size") === null);
+  check("fill stretches the track and its segments",
+    !!fill && hasClass(fill, /--fill/)
+      && fill.querySelectorAll("[role=radio].astryx-segmented-control__item--fill").length === 3);
+
+  // Icon+label keeps the visible label; icon-only swaps it for aria-label.
+  const icons = g("segc-icons");
+  const iconOnly = g("segc-icon-only");
+  check("an icon + label segment shows both",
+    !!icons && icons.querySelectorAll(".astryx-segmented-control__item-label").length === 3
+      && icons.querySelectorAll(".astryx-segmented-control__item-icon").length === 3);
+  check("an icon-only segment names itself with aria-label instead",
+    !!iconOnly && attr(radio("segc-icon-only", "list"), "aria-label") === "List"
+      && !iconOnly.querySelector(".astryx-segmented-control__item-label"));
+
+  // A disabled segment is aria-disabled and out of the roving set.
+  const dis = g("segc-disabled-item");
+  check("a disabled segment is aria-disabled and not the tab stop",
+    !!dis && attr(radio("segc-disabled-item", "list"), "aria-disabled") === "true"
+      && attr(radio("segc-disabled-item", "list"), "tabindex") === "-1"
+      && attr(radio("segc-disabled-item", "grid"), "aria-disabled") === null);
+
+  // Whole-control disabled: the flag is on the group; pointer events are CSS.
+  const disabled = g("segc-disabled");
+  check("the disabled group says so and has no focusable segment",
+    !!disabled && attr(disabled, "aria-disabled") === "true"
+      && disabled.classList.contains("astryx-segmented-control--disabled")
+      && ![...disabled.querySelectorAll('[role="radio"]')].some((r) => attr(r, "tabindex") === "0"));
+
+  // Disabled with a reason: the bubble exists, the group points at it, and the
+  // selected segment stays focusable (upstream: keepsSelectedFocusable).
+  const dm = g("segc-disabled-message");
+  const dmWrap = host && host.querySelector("#segc-disabled-message")?.parentElement;
+  const bubble = dmWrap && dmWrap.querySelector('[data-astryx-component="DisabledMessage"]');
+  check("a reason bubble renders and the group points at it",
+    !!dm && !!bubble && attr(bubble, "role") === "tooltip"
+      && attr(dm, "aria-describedby") === "segc-disabled-message-disabled-message"
+      && bubble.id === "segc-disabled-message-disabled-message");
+  check("the selected segment stays the tab stop while disabled-with-message",
+    !!dm && attr(radio("segc-disabled-message", "grid"), "tabindex") === "0"
+      && attr(radio("segc-disabled-message", "list"), "tabindex") === "-1");
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

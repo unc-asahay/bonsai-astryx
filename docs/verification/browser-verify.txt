@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   60 sections
+  ok   61 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   351 examples across the page
+  ok   361 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10
 
 navigation
-  ok   60 nav links
+  ok   61 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -349,6 +349,16 @@ Layer (the native popover API)
   ok   Enter activates the focused row
   ok   the caller can open the controlled surface
   ok   Escape closes through on_close
+  ok   the live control renders as a labelled radiogroup with three radios and grid selected
+  ok   the selected segment owns the tab stop
+  ok   clicking a segment selects it and moves the tab stop
+  ok   ArrowRight moves focus and selection to the next segment
+  ok   a second ArrowRight reaches the last segment
+  ok   arrows wrap around the end
+  ok   ArrowRight skips the disabled segment
+  ok   Tab leaves the group (one roving stop)
+  ok   a disabled-with-message group cannot change, keeps its stop, and shows the reason
+  ok   a disabled group without a reason blocks pointer events
   ok   the group is a named group, and tells a screen reader it is navigable
   ok   adjacent avatars overlap by round(size * 0.25), measured
   ok   the chip is a button the size of an avatar plus its border, labelled with the count
@@ -414,8 +424,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 57 ported / 46 not / 103 total
-  ok   unported list rendered 46 entries
+  ok   coverage stats are 58 ported / 45 not / 103 total
+  ok   unported list rendered 45 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
   ok   the README's showcase row matches the page it describes
@@ -434,7 +444,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-366/366 checks passed, 0 failure(s)
+376/376 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

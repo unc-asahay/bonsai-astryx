@@ -824,6 +824,7 @@ let s_field_status () =
 
 module Dm = Astryx.Dropdown_menu
 module Nhm = Astryx.Nav_heading_menu
+module Segc = Astryx.Segmented_control
 
 let demo_menu_item
       ?description
@@ -3760,6 +3761,115 @@ let nav_heading_menu_demo (graph : Bonsai.graph) =
         ])
 ;;
 
+let segmented_control_demo (graph : Bonsai.graph) =
+  let segc_icon s = Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "glyph" ] [ Vdom.Node.text s ] in
+  let live_value, set_live_value = Bonsai.state "grid" graph in
+  let on_change =
+    Bonsai.map set_live_value ~f:(fun set_live_value value -> set_live_value value)
+  in
+  let no_change = Bonsai.return (fun (_ : string) -> Effect.Many []) in
+  let item
+        ?(is_label_hidden = false)
+        ?(icon = None)
+        ?(is_disabled = false)
+        value
+        label =
+    { Segc.value; label; is_label_hidden; icon; is_disabled }
+  in
+  let grid_list =
+    [ item "grid" "Grid"; item "list" "List"; item "table" "Table" ]
+  in
+  let plain ?(is_disabled = false) ?disabled_message ?(size = Segc.Md) ?(layout = `Hug)
+        ?(value = "grid") ?(items = grid_list) ?(label = "View mode") ~id () =
+    Segc.view
+      ~id
+      ~label
+      ~items
+      ~size
+      ~layout
+      ~is_disabled
+      ?disabled_message
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      graph
+  in
+  let live =
+    let readout =
+      Bonsai.map live_value ~f:(fun value ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-segmented-control-state" ]
+          [ Vdom.Node.text ("view: " ^ value) ])
+    in
+    Bonsai.map2 (Segc.view
+                   ~id:"showcase-segmented-control-live"
+                   ~label:"View mode"
+                   ~items:grid_list
+                   ~value:live_value
+                   ~on_change
+                   graph)
+      readout
+      ~f:(fun control readout -> Vdom.Node.div [ control; readout ])
+  in
+  let icons =
+    [ item ~icon:(Some (segc_icon "☰")) "grid" "Grid"
+    ; item ~icon:(Some (segc_icon "≡")) "list" "List"
+    ; item ~icon:(Some (segc_icon "▦")) "table" "Table"
+    ]
+  in
+  let icon_only =
+    [ item ~is_label_hidden:true ~icon:(Some (segc_icon "☰")) "grid" "Grid"
+    ; item ~is_label_hidden:true ~icon:(Some (segc_icon "≡")) "list" "List"
+    ; item ~is_label_hidden:true ~icon:(Some (segc_icon "▦")) "table" "Table"
+    ]
+  in
+  let with_disabled =
+    [ item "grid" "Grid"; item ~is_disabled:true "list" "List"; item "table" "Table" ]
+  in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let examples =
+    [ ex_tree "size sm: the tight segment height" (plain ~id:"segc-sm" ~size:Segc.Sm ())
+    ; ex_tree "size md (default)" (plain ~id:"segc-md" ())
+    ; ex_tree "size lg: the tall segment" (plain ~id:"segc-lg" ~size:Segc.Lg ())
+    ; ex_tree "layout fill: segments stretch equally"
+        (plain ~id:"segc-fill" ~layout:`Fill ())
+    ; ex_tree "icon + label" (plain ~id:"segc-icons" ~items:icons ())
+    ; ex_tree "icon only: each segment keeps its size"
+        (plain ~id:"segc-icon-only" ~items:icon_only ())
+    ; ex_tree "a disabled segment is skipped by Tab and arrows"
+        (plain ~id:"segc-disabled-item" ~items:with_disabled ~value:"grid" ())
+    ; ex_tree "the whole control disabled: dimmed, blocked"
+        (plain ~id:"segc-disabled" ~is_disabled:true ())
+    ; ex_tree "disabled with a reason: the selected segment stays focusable"
+        (plain
+           ~id:"segc-disabled-message"
+           ~is_disabled:true
+           ~disabled_message:"View mode is locked by the plan."
+           ())
+    ; ex_tree "a controlled example: the state below is the real value" live
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+      section
+        ~id:"segmented-control"
+        ~title:"SegmentedControl"
+        ~note:
+          "A single-control radiogroup: the caller owns the [value] and hears the \
+           chosen segment. Arrows move focus and select (selection follows focus, \
+           as in a native radio group), Tab lands on the selected segment, and \
+           clicking a segment is the same promise shortcut. The track is one \
+           neutral surface; the selected segment is raised. A hug control yields \
+           its width at most to the container and truncates visible labels; fill \
+           stretches the segments equally. A disabled segment stays visible but is \
+           never focusable or selectable; a whole disabled control admits one \
+           focusable selected segment when a reason is given, and the reason is a \
+           persistent bubble rather than a hover-only tooltip."
+        examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3831,6 +3941,7 @@ let nav_items =
   ; "overflow-list", "OverflowList"
   ; "scrollable-area", "ScrollableArea"
   ; "nav-heading-menu", "NavHeadingMenu"
+  ; "segmented-control", "SegmentedControl"
   ]
 ;;
 
@@ -4200,18 +4311,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful scrollable_area_section in
   let nav_heading_menu_section = nav_heading_menu_demo graph in
   let stateful = pair stateful nav_heading_menu_section in
+  let segmented_control_section = segmented_control_demo graph in
+  let stateful = pair stateful segmented_control_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu)
+    ~f:(fun ((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control))
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
-      [ nav ()
-      ; Vdom.Node.main
-          ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs
-          @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu ])
+      [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control ])
       ])
 ;;
 

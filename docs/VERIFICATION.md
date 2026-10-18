@@ -3097,3 +3097,60 @@ cells, size classes and min-widths) but cannot pump Bonsai's event scheduler, so
 there never reaches the effect; the choose-then-close wire, ArrowDown, typeahead, Enter activation
 and Escape-to-close are asserted in the real-browser gate on the showcase demo, where focus and
 events are real.
+
+## Gate 55 — M37: SegmentedControl (coverage 57 -> 58)
+
+A single-control radiogroup: one `role=radiogroup` track (`aria-label`, `aria-disabled` on the
+group, `aria-describedby` when a reason is given) of `role=radio` buttons whose `aria-checked`,
+`aria-disabled` and a single roving `tabindex=0` describe the selection. The caller owns the
+selection (`~value`, `~on_change` as a tree per house convention — upstream's `onValueChange`) and
+hears every change, whether made by click or by arrow. Sizes `Sm/Md/Lg` (28/32/36px totals,
+concentric radius), layout `Hug` (segments hug content, labels truncate) or `Fill` (segments
+stretch equally). A disabled segment stays visible but is never focuable or selectable; a whole
+disabled control dims and blocks the pointer, except with a reason, where the pointer stays live,
+the selected segment remains the single tab stop (upstream's `keepsSelectedFocusable`) and the
+reason is the house persistent `[role=tooltip]` bubble rather than upstream's hover-only tooltip — a
+description that exists only on hover is one a screen reader never reads (M13 rule).
+
+Two upstream rules made it into the shared mechanism rather than the component:
+
+- `Common.List_focus` gained an opt-in `prefer_existing_stop`: upstream's roving sync never consults
+  focus — it keeps the member already carrying an explicit `tabindex="0"`, falling back to the first
+  enabled member. A controlled radiogroup is exactly that shape (its items carry the selected
+  member's tabindex), so `Segmented_control.view` turns the flag on; ButtonGroup and Toolbar keep the
+  default focused-member-wins rule, which their browser checks still prove.
+- selection-follows-focus is one `on_focusin` handler on the track whose JS helper answers upstream's
+  two questions in the DOM: the boundary check (`relatedTarget` inside this container) and the
+  `closest('[role=radio]')` search that stops a nested-label retarget from re-firing the change.
+
+Named divergences: per-item consumer `onClick` before selection (the item model has no callback
+slot), press-feedback state (visual feedback is weight + `:active`, as with the card controls), and
+upstream's "Press Enter or Space" keyboard hint (a radio has no pressed state to describe).
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **541 checks, 0 failures** (14 new SegmentedControl checks; the two interaction
+  checks that need a scheduler — click-to-select, arrow selection — live in the browser gate, since
+  jsdom cannot pump Bonsai's event loop).
+- DOM + accessibility (jsdom) — all passed (demo fixture unchanged).
+- real browser, showcase — **376 checks, 0 failures** (10 new live SegmentedControl checks: the
+  control renders as a labelled radiogroup with grid selected; the selected segment owns the tab
+  stop; clicking a segment selects it and moves the stop; ArrowRight moves focus and selection,
+  again at the far end, wraps around; a disabled segment is skipped; Tab leaves the single roving
+  stop; a disabled-with-message group cannot change, keeps its selected stop, and shows the reason
+  bubble its `aria-describedby` points at; a settled disabled group blocks the pointer at the
+  computed-style level).
+- responsive + visual regression — re-baselined (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/SegmentedControl.md` exists (59 pages in total).
+- agent layer — `ported entries: 58; correctly attributed: 58`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m37*.txt`).
+
+### A radiogroup is cheaper than its api suggests
+
+No keydown handler exists in this component. The roving tab stop, the arrow traversal, the wrap and
+the disabled skip all come from `Common.List_focus` — which is why the mechanism extension
+(`prefer_existing_stop`) landed there rather than in the component. Selection itself is not wired to
+any key: a native radio group's arrows select as they move, and this port reproduces that promise by
+letting focus move and then reading the focused segment on `focusin` — one attribute, one JS helper,
+the upstream bound check included.

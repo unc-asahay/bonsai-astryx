@@ -2265,3 +2265,117 @@ let () =
   in
   mount "nav-heading-menu-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+let segmented_control_component (graph : Bonsai.graph) =
+  let selected, set_selected = Bonsai.state "grid" graph in
+  let on_change = Bonsai.map set_selected ~f:(fun set_selected value -> set_selected value) in
+  let item ?(is_label_hidden = false) ?(icon = None) ?(is_disabled = false) value label =
+    { Astryx.Segmented_control.value; label; is_label_hidden; icon; is_disabled }
+  in
+  let grid_list =
+    [ item "grid" "Grid"; item "list" "List"; item "table" "Table" ]
+  in
+  let icons =
+    [ item ~icon:(Some (Vdom.Node.text "☰")) "grid" "Grid"
+    ; item ~icon:(Some (Vdom.Node.text "≡")) "list" "List"
+    ; item ~icon:(Some (Vdom.Node.text "▦")) "table" "Table"
+    ]
+  in
+  let icon_only =
+    [ item ~is_label_hidden:true ~icon:(Some (Vdom.Node.text "☰")) "grid" "Grid"
+    ; item ~is_label_hidden:true ~icon:(Some (Vdom.Node.text "≡")) "list" "List"
+    ; item ~is_label_hidden:true ~icon:(Some (Vdom.Node.text "▦")) "table" "Table"
+    ]
+  in
+  let with_disabled =
+    [ item "grid" "Grid"; item ~is_disabled:true "list" "List"; item "table" "Table" ]
+  in
+  let control =
+    Astryx.Segmented_control.view
+      ~id:"segc-all"
+      ~label:"View mode"
+      ~value:selected
+      ~on_change
+      ~items:grid_list
+      graph
+  in
+  let main =
+    Bonsai.map2 selected control ~f:(fun selected control ->
+        Vdom.Node.div
+          ~attrs:
+            [ Vdom.Attr.id "segc-wrap"; Vdom.Attr.create "data-selected" selected ]
+          [ control ])
+  in
+  let variants graph =
+    [ Astryx.Segmented_control.view
+        ~id:"segc-sm"
+        ~label:"View mode"
+        ~size:Astryx.Segmented_control.Sm
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:grid_list
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-fill"
+        ~label:"View mode"
+        ~layout:`Fill
+        ~value:(Bonsai.return "list")
+        ~on_change
+        ~items:grid_list
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-icons"
+        ~label:"View mode"
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:icons
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-icon-only"
+        ~label:"View mode"
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:icon_only
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-disabled-item"
+        ~label:"View mode"
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:with_disabled
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-disabled"
+        ~label:"View mode"
+        ~is_disabled:true
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:grid_list
+        graph
+    ; Astryx.Segmented_control.view
+        ~id:"segc-disabled-message"
+        ~label:"View mode"
+        ~is_disabled:true
+        ~disabled_message:"Locked by the plan."
+        ~value:(Bonsai.return "grid")
+        ~on_change
+        ~items:grid_list
+        graph
+    ]
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map2 main (join_all (variants graph)) ~f:(fun main variants ->
+    Vdom.Node.div [ main; Vdom.Node.div variants ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      segmented_control_component
+  in
+  mount "segmented-control-all" (Bonsai_web_test.Handle.last_result handle)
+;;

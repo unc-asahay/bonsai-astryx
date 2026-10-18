@@ -33,6 +33,7 @@ module Text = Text
 module Heading = Heading
 module Button = Button
 module Button_group = Button_group
+module Segmented_control = Segmented_control
 module Card = Card
 module Badge = Badge
 module Divider = Divider

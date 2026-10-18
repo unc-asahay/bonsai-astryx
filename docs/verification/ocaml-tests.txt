@@ -25,6 +25,14 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -145,6 +153,20 @@ the ported components render in isolation
   ok   md defaults to 200px
   ok   nothing is selected yet
   ok   no row was closed yet
+  ok   the control renders as a radiogroup with the marker and its label
+  ok   three segments are role=radio buttons
+  ok   each segment carries its value and the selected one is checked
+  ok   the selected segment owns the tab stop, the rest are -1
+  ok   segments are real buttons (type=button, not anchors)
+  ok   the wrap reads the live selected value
+  ok   sm is a class, not an inline size
+  ok   fill stretches the track and its segments
+  ok   an icon + label segment shows both
+  ok   an icon-only segment names itself with aria-label instead
+  ok   a disabled segment is aria-disabled and not the tab stop
+  ok   the disabled group says so and has no focusable segment
+  ok   a reason bubble renders and the group points at it
+  ok   the selected segment stays the tab stop while disabled-with-message
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -585,5 +607,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-527 checks, 0 failure(s)
+541 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

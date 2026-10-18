@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 57,
-    "unported": 46,
+    "ported": 58,
+    "unported": 45,
     "total": 103,
     "documented": 103
   },
@@ -252,6 +252,12 @@
       "milestone": "M2"
     },
     {
+      "name": "SegmentedControl",
+      "module": "Astryx.Segmented_control",
+      "file": "src/segmented_control.ml",
+      "milestone": "M37"
+    },
+    {
       "name": "SelectableCard",
       "module": "Astryx.Selectable_card",
       "file": "src/selectable_card.ml",
@@ -387,7 +393,6 @@
     "Pagination",
     "PowerSearch",
     "Resizable",
-    "SegmentedControl",
     "Selector",
     "SideNav",
     "Slider",
