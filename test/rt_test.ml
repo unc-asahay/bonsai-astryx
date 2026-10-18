@@ -2453,3 +2453,52 @@ let () =
   in
   mount "overlay-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+let file_input_component (graph : Bonsai.graph) =
+  let value, set_value = Bonsai.state None graph in
+  let on_change = Bonsai.map set_value ~f:(fun set_value -> fun files -> set_value files) in
+  let status s = Some { Astryx.Input_types.type_ = s; message = Some "File is too large (5 MB max)" } in
+  let mk ?mode ?(is_disabled = false) ?(is_loading = false) ?(is_required = false)
+      ?(is_multiple = false) ?(status = None) ?(status_variant = Astryx.Field_status.Tooltip)
+      ?(placeholder = "") ?label id graph =
+    Astryx.File_input.view
+      ~id
+      ?mode
+      ~label:(Option.value label ~default:(id ^ " label"))
+      ~is_disabled
+      ~is_loading
+      ~is_required
+      ~is_multiple
+      ?status
+      ~status_variant
+      ~placeholder
+      ~value
+      ~on_change
+      graph
+  in
+  let trees =
+    [ mk "fi-compact" graph
+    ; mk ~mode:Astryx.File_input.Dropzone "fi-dropzone" graph
+    ; mk ~is_disabled:true "fi-disabled" graph
+    ; mk ~is_loading:true "fi-loading" graph
+    ; mk ~is_required:true "fi-required" graph
+    ; mk ~is_multiple:true ~label:"Upload images" "fi-multiple" graph
+    ; mk ~status:(status Astryx.Input_types.Error) ~status_variant:Astryx.Field_status.Attached "fi-error" graph
+    ; mk ~placeholder:"Choose a file…" "fi-placeholder" graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "fi-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      file_input_component
+  in
+  mount "file-input-all" (Bonsai_web_test.Handle.last_result handle)
+;;

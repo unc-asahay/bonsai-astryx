@@ -199,6 +199,16 @@ the ported components render in isolation
   ok   Focus stays closed with the --focus reveal mode and no --visible
   ok   Hover_or_focus plus Bottom carries the hover mode and the bottom slide
   ok   Center is a class, not an inline style
+  ok   the compact control renders as a marked FileInput
+  ok   there is a real file input behind a visually-hidden button
+  ok   the default content is the upload icon, and no spinner
+  ok   the dropzone variant is dashed and spans the width
+  ok   the disabled control is inert and non-focusable
+  ok   the busy control swaps the content for a spinner
+  ok   the required control marks the trigger aria-required
+  ok   multiple files are announced on the native input
+  ok   the error status surfaces its message
+  ok   the placeholder is shown when no files are chosen
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -639,5 +649,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-555 checks, 0 failure(s)
+565 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

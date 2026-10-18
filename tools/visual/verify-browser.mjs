@@ -248,6 +248,7 @@ if (mode === "showcase") {
     "NavHeadingMenu",
     "SegmentedControl",
     "Overlay",
+    "FileInput",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -610,7 +611,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("62 sections", sections.length === 62, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("63 sections", sections.length === 63, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -631,10 +632,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("373 examples across the page", totalExamples === 373, `got ${totalExamples}`);
+  check("379 examples across the page", totalExamples === 379, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -647,7 +648,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("62 nav links", nav.length === 62, `got ${nav.length}`);
+  check("63 nav links", nav.length === 63, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -3287,6 +3288,46 @@ check(
     JSON.stringify(ovTouchOff));
   await touchPage.close();
 
+
+  // -------------------------------------------------------------- FileInput (M39)
+  console.log("\nFileInput (live)");
+  const fi = await page.evaluate(() => {
+    const g = (id) => document.getElementById(id);
+    const grab = (id, sel) => g(id) && g(id).querySelector(sel);
+    const cls = (id) => (g(id) && g(id).className) || "";
+    return {
+      compact: !!g("fi-compact-demo") && g("fi-compact-demo").getAttribute("data-astryx-component") === "FileInput",
+      dropzone: /--dropzone/.test(cls("fi-dropzone-demo")),
+      disabled: /--disabled/.test(cls("fi-disabled-demo")),
+      busy: !!grab("fi-busy-demo", ".astryx-spinner"),
+      multiple: !!g("fi-multiple-demo") && !!g("fi-multiple-demo").querySelector('input[multiple]'),
+      native: !!grab("fi-compact-demo", 'input[type="file"]'),
+      hiddenTrigger: !!grab("fi-compact-demo", ".astryx-file-input__trigger"),
+      placeholder: (g("fi-placeholder-demo")?.textContent || "").includes("Choose a file"),
+    };
+  });
+  check("the FileInput demos render: compact, dropzone, disabled, busy, multiple, placeholder",
+    fi.compact && fi.dropzone && fi.disabled && fi.busy && fi.multiple && fi.placeholder, JSON.stringify(fi));
+  check("the trigger is a real file input behind a visually-hidden button", fi.native && fi.hiddenTrigger);
+  // The dropzone announces drag state: enter lightens, leave clears (no file dialog opens headless).
+  let dropState = { before: null, after: null };
+  await page.evaluate(() => {
+    const dz = document.getElementById("fi-dropzone-demo");
+    const ev = new Event("dragenter", { bubbles: true, cancelable: true });
+    dz.dispatchEvent(ev);
+  });
+  await page.waitForTimeout(120);
+  dropState.before = await page.evaluate(() => document.getElementById("fi-dropzone-demo")?.className || "");
+  await page.evaluate(() => {
+    const dz = document.getElementById("fi-dropzone-demo");
+    const ev = new Event("dragleave", { bubbles: true, cancelable: true });
+    dz.dispatchEvent(ev);
+  });
+  await page.waitForTimeout(120);
+  dropState.after = await page.evaluate(() => document.getElementById("fi-dropzone-demo")?.className || "");
+  check("dragenter lights the --drag-over state and dragleave clears it",
+    /--drag-over/.test(dropState.before) && !/--drag-over/.test(dropState.after), JSON.stringify(dropState));
+
   // -------------------------------------------------------- SelectableCard (M28)
   console.log("\nSelectableCard (live)");
   const scState = (id) =>
@@ -3611,11 +3652,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 59 ported / 44 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["59", "44", "103"]),
+    "coverage stats are 60 ported / 43 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["60", "43", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 44 entries", cov.unported === 44, `got ${cov.unported}`);
+  check("unported list rendered 43 entries", cov.unported === 43, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

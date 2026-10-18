@@ -3381,3 +3381,79 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-overlay:focus-within .astryx-overlay-scrim--focus-bottom { transform: translateY(0); }
 .astryx-overlay-scrim--focus-top { transform: translateY(-100%); }
 .astryx-overlay:focus-within .astryx-overlay-scrim--focus-top { transform: translateY(0); }
+
+/* FileInput — a file picker whose surface is the trigger: compact inline or a
+   dashed dropzone. The wrapper is Card-shaped; the cause classes repeat the
+   Field status colours on the border. */
+.astryx-file-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-width: var(--border-width, 1px);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  min-height: var(--size-element-md, 32px);
+  transition-property: border-color, box-shadow, background-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  cursor: pointer;
+}
+.astryx-file-input--dropzone {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-6) var(--spacing-4);
+  border-style: dashed;
+  min-height: 160px;
+}
+.astryx-file-input--drag-over {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-muted);
+}
+.astryx-file-input--error { border-color: color-mix(in srgb, var(--color-error, #dc2626) 60%, transparent); }
+.astryx-file-input--warning { border-color: color-mix(in srgb, var(--color-warning, #d97706) 60%, transparent); }
+.astryx-file-input--success { border-color: color-mix(in srgb, var(--color-success, #16a34a) 60%, transparent); }
+.astryx-file-input--disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.astryx-file-input__trigger {
+  /* the real button is visually hidden; the surface is the pointing target */
+  pointer-events: none;
+}
+.astryx-file-input__native { display: none; }
+.astryx-file-input__filename {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.astryx-file-input__placeholder { color: var(--color-text-secondary); }
+.astryx-file-input--dropzone .astryx-file-input__placeholder { margin-top: var(--spacing-1); }
+.astryx-file-input__clear {
+  margin-left: auto;
+  font: inherit;
+  font-size: var(--font-size-xs, 12px);
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.astryx-file-input--dropzone .astryx-file-input__clear { margin-left: 0; }
+.astryx-file-input__reason {
+  display: none;
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-text-secondary);
+}
+.astryx-file-input:focus-within ~ .astryx-file-input__reason,
+.astryx-file-input:hover ~ .astryx-file-input__reason { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .astryx-file-input { transition-duration: 0s; }
+}

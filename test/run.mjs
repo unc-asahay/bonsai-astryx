@@ -670,6 +670,41 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     && hasClass(scrim("ov-center"), /--align-center/) && !/align/.test(attr(scrim("ov-center"), "style") || ""));
 }
 
+
+// --- FileInput (M39)
+{
+  const host = document.querySelector('[data-case="file-input-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const native = (id) => g(id) && g(id).querySelector('input[type="file"]');
+  const grab = (id, sel) => g(id) && g(id).querySelector(sel);
+
+  check("the compact control renders as a marked FileInput", !!g("fi-compact")
+    && attr(g("fi-compact"), "data-astryx-component") === "FileInput"
+    && hasClass(g("fi-compact"), /astryx-file-input/)
+    && hasClass(g("fi-compact"), /--compact/));
+  check("there is a real file input behind a visually-hidden button", !!native("fi-compact")
+    && !!grab("fi-compact", ".astryx-file-input__trigger")
+    && g("fi-compact").querySelector(".astryx-file-input__trigger + input") !== null,
+    g("fi-compact") && g("fi-compact").innerHTML.slice(0, 120));
+  check("the default content is the upload icon, and no spinner", !!grab("fi-compact", "svg")
+    && !grab("fi-compact", ".astryx-spinner"));
+  check("the dropzone variant is dashed and spans the width", !!g("fi-dropzone")
+    && hasClass(g("fi-dropzone"), /--dropzone/)
+    && g("fi-dropzone").querySelector(".astryx-file-input__trigger") !== null);
+  check("the disabled control is inert and non-focusable", !!g("fi-disabled")
+    && hasClass(g("fi-disabled"), /--disabled/)
+    && attr(g("fi-disabled").querySelector(".astryx-file-input__trigger"), "tabindex") === "-1"
+    && g("fi-disabled").querySelector(".astryx-file-input__trigger").hasAttribute("inert") !== true);
+  check("the busy control swaps the content for a spinner", !!grab("fi-loading", ".astryx-spinner")
+    && !g("fi-loading").querySelector('[data-astryx-icon="upload"]'));
+  check("the required control marks the trigger aria-required", attr(g("fi-required").querySelector(".astryx-file-input__trigger"), "aria-required") === "true");
+  check("multiple files are announced on the native input", !!native("fi-multiple")
+    && native("fi-multiple").hasAttribute("multiple"), native("fi-multiple") && native("fi-multiple").outerHTML);
+  check("the error status surfaces its message", (host.textContent || "").includes("too large")
+    || (g("fi-error") && (g("fi-error").textContent || "").includes("too large")));
+  check("the placeholder is shown when no files are chosen", (g("fi-placeholder").textContent || "").includes("Choose a file"));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

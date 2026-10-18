@@ -69,6 +69,7 @@ module Input_group_text = Input_group_text
 module Icon = Icon
 module Entry_animation = Entry_animation
 module Field_status = Field_status
+module File_input = File_input
 module Input_types = Input_types
 module Indicator = Indicator
 module Checkbox_input = Checkbox_input

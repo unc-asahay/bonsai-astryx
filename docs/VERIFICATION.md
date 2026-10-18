@@ -3201,3 +3201,40 @@ gate quietly.
 - appearance contract — regenerated; `docs/visual/Overlay.md` exists (60 pages in total).
 - agent layer — `ported entries: 59; correctly attributed: 59`, MCP truthful.
 - **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m38.txt`).
+
+## Gate 57 — M39: FileInput (coverage 59 -> 60)
+
+A labelled file picker whose surface is the trigger: a compact control or a dashed dropzone, opening a
+real `<input type="file">` through a visually-hidden button (click, Enter or Space). The container is a
+non-interactive surface under the house `Clickable_container` rules — a click that ends a text
+selection is ignored, and a click on the nested clear button is left alone; the button answers Enter
+by itself, so the keydown handler calls `click` only for Space. Drag-and-drop on the dropzone:
+dragenter/dragover light the drag-over state, dragleave clears only when the pointer actually exits,
+and drop feeds the same validation the picker uses. Validation — `accept` (extensions, `type/*`
+wildcards, exact MIME), `max_size` and `max_files` (multiple only) — is pure and unit-tested in OCaml;
+the first error becomes the Field's error status, announced by the `Field_status` the derived status
+mounts (assertive), and success is announced politely through a persistent `role=status` live region
+(the compact test asserts the trigger carries `aria-invalid` and the dropzone's drag state flips).
+
+Named divergences: the port cannot hand out live `File` objects (no OCaml type for one, and nothing
+stores a JS value in application state), so `on_change` delivers `{name; size; mime}` read off the DOM
+`File` while the native input still holds the real objects; there is no `ref`/focus-shift API (the
+disabled reason tooltip is pure CSS in this port); the reason is a `role=tooltip`-free span shown on
+hover/focus-within while the trigger stays focusable via `aria-disabled` so a screen-reader user can
+discover why the picker is blocked — opening stays blocked by the `is_disabled` guards. HTML boolean
+attributes are omitted rather than set to `"false"` (`disabled`/`multiple`), which is the HTML contract
+and was caught by the jsdom fixture on the first run.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **565 checks, 0 failures** (13 new FileInput checks across 8 variants:
+  compact/dropzone/disabled/loading/required/multiple/error/placeholder).
+- DOM + accessibility (jsdom) — all passed (demo fixture unchanged).
+- real browser, showcase — **402 checks, 0 failures** (3 new live FileInput checks: all six demos
+  render with the component marker; the trigger is a real file input behind the visually-hidden
+  button; dragenter lights `--drag-over` and dragleave clears it on the live page).
+- responsive + visual regression — **66 checks, 0 failures** after re-baselining the new section
+  (768x1024 and 1440x900 baselines updated).
+- agent layer — `ported entries: 60; correctly attributed: 60`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m39.txt`).

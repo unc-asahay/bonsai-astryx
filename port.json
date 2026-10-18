@@ -635,6 +635,13 @@
       "file": "src/overlay.ml",
       "milestone": "M38",
       "module": "Astryx.Overlay"
+    },
+    {
+      "class": "C",
+      "component": "FileInput",
+      "file": "src/file_input.ml",
+      "milestone": "M39",
+      "module": "Astryx.FileInput"
     }
   ],
   "schema": 1,

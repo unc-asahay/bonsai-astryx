@@ -826,6 +826,7 @@ module Dm = Astryx.Dropdown_menu
 module Nhm = Astryx.Nav_heading_menu
 module Segc = Astryx.Segmented_control
 module Ov = Astryx.Overlay
+module Fi = Astryx.File_input
 
 let demo_menu_item
       ?description
@@ -4038,6 +4039,55 @@ let overlay_demo (graph : Bonsai.graph) =
         examples)
 ;;
 
+
+let file_input_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let value, set_value = Bonsai.state None graph in
+  let on_change = Bonsai.map set_value ~f:(fun set_value -> fun files -> set_value files) in
+  let mk ?mode ?(is_disabled = false) ?(is_loading = false) ?(is_multiple = false)
+      ?(placeholder = "") ?(label = "Upload a file") id graph =
+    Fi.view
+      ~id
+      ?mode
+      ~label
+      ~is_disabled
+      ~is_loading
+      ~is_multiple
+      ~placeholder
+      ~value
+      ~on_change
+      graph
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let examples =
+    [ ex_tree "Compact" (mk "fi-compact-demo" graph)
+    ; ex_tree "Dropzone" (mk ~mode:Fi.Dropzone ~label:"Photos (drop or click)" "fi-dropzone-demo" graph)
+    ; ex_tree "Disabled" (mk ~is_disabled:true "fi-disabled-demo" graph)
+    ; ex_tree "Busy (loading)" (mk ~is_loading:true "fi-busy-demo" graph)
+    ; ex_tree "Multiple files" (mk ~is_multiple:true ~label:"Choose images" "fi-multiple-demo" graph)
+    ; ex_tree "Placeholder" (mk ~placeholder:"Choose a file\xE2\x80\xA6" "fi-placeholder-demo" graph)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"file-input"
+      ~title:"FileInput"
+      ~note:
+        "A file picker whose surface is the trigger: the compact control or the dashed dropzone \n\
+         opens a real <input type=file> through a visually-hidden button (click, Enter or Space, \n\
+         guarded by the container rules so a text-selection click or a click on the nested clear \n\
+         button is left alone). Drag-and-drop works on the dropzone: drag-entering lights the \n\
+         drop state, and dropping feeds the same accept/max-size/max-files validation the picker \n\
+         uses. Validation failures become the Field's error status; a successful attach is\n\
+         announced through a polite live region. on_change hands the application the selected\n\
+         files' metadata (name, size, MIME) — the byte stream stays with the application's own\n\
+         File objects, since the native input retains them."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -4111,6 +4161,7 @@ let nav_items =
   ; "nav-heading-menu", "NavHeadingMenu"
   ; "segmented-control", "SegmentedControl"
   ; "overlay", "Overlay"
+  ; "file-input", "FileInput"
   ]
 ;;
 
@@ -4484,15 +4535,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful segmented_control_section in
   let overlay_section = overlay_demo graph in
   let stateful = pair stateful overlay_section in
+  let file_input_section = file_input_demo graph in
+  let stateful = pair stateful file_input_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay))
+    ~f:(fun (((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input ])
       ])
 ;;
 
