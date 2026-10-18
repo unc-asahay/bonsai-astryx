@@ -2632,3 +2632,134 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-link--disabled { cursor: not-allowed; }
 .astryx-link--standalone { text-decoration: underline; }
 .astryx-link__icon { display: inline-flex; align-items: center; margin-left: 0.25em; vertical-align: -0.125em; }
+
+/* ---------------------------------------------------------------- Token */
+
+.astryx-token {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding-block: 0;
+  border-width: 0;
+  border-style: none;
+  border-radius: var(--radius-inner);
+  font-family: inherit;
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-decoration: none;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Sizes: upstream's calc is upstream's - the element-height tokens, each minus 8px. */
+.astryx-token--sm { height: calc(var(--size-element-sm) - 8px); padding-inline: var(--spacing-2); }
+.astryx-token--md { height: calc(var(--size-element-md) - 8px); padding-inline: var(--spacing-2); }
+.astryx-token--lg { height: calc(var(--size-element-lg) - 8px); padding-inline: var(--spacing-2); }
+
+/* Colour variants tint the background behind text colour - same tokens Badge's colour set uses. */
+.astryx-token--default { background-color: var(--color-neutral); color: var(--color-text-primary); }
+.astryx-token--red { background-color: var(--color-background-red); color: var(--color-text-red); }
+.astryx-token--orange { background-color: var(--color-background-orange); color: var(--color-text-orange); }
+.astryx-token--yellow { background-color: var(--color-background-yellow); color: var(--color-text-yellow); }
+.astryx-token--green { background-color: var(--color-background-green); color: var(--color-text-green); }
+.astryx-token--teal { background-color: var(--color-background-teal); color: var(--color-text-teal); }
+.astryx-token--cyan { background-color: var(--color-background-cyan); color: var(--color-text-cyan); }
+.astryx-token--blue { background-color: var(--color-background-blue); color: var(--color-text-blue); }
+.astryx-token--purple { background-color: var(--color-background-purple); color: var(--color-text-purple); }
+.astryx-token--pink { background-color: var(--color-background-pink); color: var(--color-text-pink); }
+.astryx-token--gray { background-color: var(--color-background-gray); color: var(--color-text-gray); }
+
+.astryx-token__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* upstream's labelHidden: the screen-reader-only clip, spelled out rather than borrowed from
+   .astryx-visually-hidden because upstream's own set does not merge with anything either. */
+.astryx-token__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Interactive surfaces paint with a background-IMAGE (a translucent overlay gradient) so the colour
+   variant stays visible underneath; the transition makes press/release fade rather than flash.
+   Only :active exists here - the document-level press controller that prints data-astryx-press
+   under a touch is the press-feedback pillar, not yet ported (see Token's Divergence list). */
+.astryx-token--interactive {
+  cursor: pointer;
+  transition-property: background-image;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+.astryx-token--interactive:hover {
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
+}
+.astryx-token--interactive:active {
+  background-image: linear-gradient(var(--color-overlay-pressed), var(--color-overlay-pressed));
+}
+.astryx-token--disabled {
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The invisible inner control: no chrome of its own; the container and the label carry the look. */
+.astryx-token__invisible-button {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: inherit;
+  outline: none;
+  overflow: hidden;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.astryx-token__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0;
+  margin-inline-end: calc(-1 * var(--spacing-1));
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  width: 16px;
+  height: 16px;
+  color: inherit;
+  background: none;
+  border: none;
+}
+/* upstream: an inset (-14px) pseudo-element widens a 16px target to the eye-and-thumb size
+   while keeping the visual X small. */
+.astryx-token__remove::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
+}
+
+/* Focus: a bare token is the anchor (focus-visible on itself); the two container shapes take the
+   same ring from focus-within, which is upstream's focusVisible/focusWithin split made visible. */
+.astryx-token:focus-visible,
+.astryx-token--container:focus-within {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--color-accent);
+  outline-offset: var(--focus-outline-offset);
+}

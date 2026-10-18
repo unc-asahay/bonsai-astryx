@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   55 sections
+  ok   56 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   317 examples across the page
+  ok   325 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3
 
 navigation
-  ok   55 nav links
+  ok   56 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -379,8 +379,15 @@ coverage panel (fetched from coverage.json at runtime)
   ok   an external link opens in a new tab with noopener and noreferrer
   ok   an external link announces the new tab instead of leaving it to the icon
   ok   a link with no destination renders as a button
-  ok   coverage stats are 52 ported / 51 not / 103 total
-  ok   unported list rendered 51 entries
+  ok   the Token section rendered
+  ok   the Token section has eight examples
+  ok   a default token is an inert span with no controls
+  ok   a live href makes the anchor the root
+  ok   href + remove is a span container and the remove button is a SIBLING of the link
+  ok   on_click puts a real button inside the container
+  ok   a disabled token disables its inner button
+  ok   coverage stats are 53 ported / 50 not / 103 total
+  ok   unported list rendered 50 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
   ok   the README's showcase row matches the page it describes
@@ -399,7 +406,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-331/331 checks passed, 0 failure(s)
+338/338 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

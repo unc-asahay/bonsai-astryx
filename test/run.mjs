@@ -216,6 +216,88 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("every badge variant is distinguishable", variantClasses.size === 14, `${variantClasses.size} distinct`);
 }
 
+// --- Token
+{
+  const ts = inCaseOf("token-all", "Token");
+  const byLabel = (label) => ts.find((t) =>
+    Array.from(t.querySelectorAll(".astryx-token__label")).map((s) => s.textContent).join("") === label);
+  check("twelve tokens render", ts.length === 12, `${ts.length}`);
+  check("every token names its component", ts.every((t) => attr(t, "data-astryx-component") === "Token"));
+
+  // Branch 3 (inert): plain span, no interactive modifier, no controls - remove included.
+  const plain = byLabel("plain");
+  check("a plain token is an inert span",
+    plain && plain.tagName === "SPAN" && !hasClass(plain, /interactive/));
+  check("a plain token with no on_remove contains no controls",
+    plain && plain.querySelector("button, a") === null);
+
+  // on_remove without a click stays branch 3: the button exists, the ROOT does not become interactive.
+  const detachable = byLabel("detachable");
+  check("removability alone adds a remove button but not interactivity",
+    detachable && detachable.querySelectorAll("button.astryx-token__remove").length === 1 &&
+    !hasClass(detachable, /interactive/));
+
+  // Branch 1: two anchors - and only the safe one keeps its destination.
+  const anchors = ts.filter((t) => t.tagName === "A");
+  check("two tokens render as anchors", anchors.length === 2, `${anchors.length}`);
+  const linked = byLabel("linked");
+  check("a live href makes the anchor the ROOT (no container above it)",
+    linked && linked.tagName === "A" && !hasClass(linked, /container/) &&
+    linked.closest(".astryx-token") === linked);
+  check("the refused javascript: destination renders its shape with NO href",
+    (t => t && t.tagName === "A" && attr(t, "href") === null)(byLabel("refused")));
+
+  // Branch 2a: sibling containers - the invalid-nesting contract, asserted structurally.
+  const linkedDetach = byLabel("linked-detach");
+  const innerLink = linkedDetach && linkedDetach.querySelector("a");
+  const removeBtn = linkedDetach && linkedDetach.querySelector("button.astryx-token__remove");
+  check("href + on_remove becomes a span container with an inner link",
+    linkedDetach && linkedDetach.tagName === "SPAN" && hasClass(linkedDetach, /container/) && !!innerLink);
+  check("the remove button is a SIBLING of the link, never nested inside it",
+    innerLink && removeBtn && removeBtn.parentElement === linkedDetach && innerLink.parentElement === linkedDetach);
+  check("the remove button's accessible name is the English default",
+    removeBtn && attr(removeBtn, "aria-label") === "Remove linked-detach",
+    removeBtn && attr(removeBtn, "aria-label"));
+
+  // Branch 2b: invisible button under the container; disabled reaches the button's own state.
+  const clickable = byLabel("clickable");
+  const innerButton = clickable && clickable.querySelector("button.astryx-token__invisible-button");
+  check("on_click puts a real button inside the container",
+    clickable && hasClass(clickable, /container/) && !!innerButton &&
+    attr(innerButton, "type") === "button");
+  check("the guard's other half exists: click+remove keeps both controls as siblings",
+    (t => t && t.querySelector("button.astryx-token__invisible-button") &&
+          t.querySelector("button.astryx-token__remove") &&
+          t.querySelector("button.astryx-token__invisible-button").parentElement ===
+          t.querySelector("button.astryx-token__remove").parentElement)(byLabel("click-detach")));
+  const parked = byLabel("parked");
+  check("a disabled token is inert at the root and disabled at the button",
+    parked && hasClass(parked, /disabled/) &&
+    parked.querySelector("button.astryx-token__invisible-button[disabled]") !== null);
+
+  // Markers: pressable only where a press could happen; colour/size reflected as data.
+  check("pressable marks every live interactive surface and nothing else",
+    attr(byLabel("linked"), "data-astryx-pressable") === "" &&
+    attr(clickable, "data-astryx-pressable") === "" &&
+    attr(plain, "data-astryx-pressable") === null &&
+    attr(parked, "data-astryx-pressable") === null);
+  const sized = byLabel("sized");
+  check("colour and size are reflected as data and classes",
+    attr(sized, "data-astryx-color") === "red" && attr(sized, "data-astryx-size") === "sm" &&
+    hasClass(sized, /--red/) && hasClass(sized, /--sm/));
+
+  // Hidden label: clipped for the eye, named for the screen reader.
+  const sam = byLabel("sam");
+  const samLabel = sam && sam.querySelector(".astryx-token__label");
+  check("is_label_hidden keeps the text and names the root instead",
+    sam && attr(sam, "aria-label") === "sam" && hasClass(samLabel, /label--hidden/));
+  check("description rides along as aria-description, upstream's spelling",
+    sam && attr(sam, "aria-description") === "a real person");
+
+  check("end content carries through",
+    ((byLabel("tailed") || {}).textContent || "").includes("x9"));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

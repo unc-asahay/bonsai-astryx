@@ -60,6 +60,13 @@ let view
     ]
   in
   let label_attrs = Option.value_map label ~default:[] ~f:(fun l -> Common.Attr.aria "label" l) in
+  (* The port-wide convention: every ported component stamps its own marker on ITS root so the
+     contract tools (mountedComponents, the DOM gate, gen-visual-contract) can find it. Link
+     missed this at M31, which silently dropped it from the appearance contract while the INDEX
+     claimed otherwise - the stale-document class of bug this repo exists to catch. A custom
+     [as_] component is excluded: it stamps its own marker (Button, RouterLink, ...) and would
+     otherwise be mislabelled. *)
+  let marker = Common.Attr.data "component" "Link" in
   let forwarded = attrs @ label_attrs in
   if renders_as_button
   then (
@@ -70,6 +77,7 @@ let view
       ~attrs:
         (Common.Attr.class_ classes
          @ forwarded
+         @ marker
          @ [ Vdom.Attr.create "type" "button"
            ; Vdom.Attr.on_click click
            ; (if is_disabled then Vdom.Attr.create "aria-disabled" "true" else Vdom.Attr.empty)
@@ -93,6 +101,7 @@ let view
       ~attrs:
         (Common.Attr.class_ classes
          @ forwarded
+         @ marker
          @ [ Vdom.Attr.on_click cancel
            ; Vdom.Attr.create "aria-disabled" "true"
            ; Vdom.Attr.create "tabindex" "-1"
@@ -104,7 +113,7 @@ let view
       (* One unsafe destination rejects the whole handoff: the anchor still renders, without it. *)
       Vdom.Node.create
         "a"
-        ~attrs:(Common.Attr.class_ classes @ forwarded)
+        ~attrs:(Common.Attr.class_ classes @ forwarded @ marker)
         content
     | Link_destination.Routed { href = routed_href; to_ = routed_to } ->
       let component = Option.value_exn as_ in
@@ -115,6 +124,7 @@ let view
         ~attrs:
           (Common.Attr.class_ classes
            @ forwarded
+           @ marker
            @ Option.value_map native_href ~default:[] ~f:(fun h -> [ Vdom.Attr.href h ])
            @ Option.value_map target ~default:[] ~f:(fun t -> [ Vdom.Attr.create "target" t ])
            @ Option.value_map rel ~default:[] ~f:(fun r -> [ Vdom.Attr.create "rel" r ])

@@ -586,6 +586,13 @@
       "file": "src/link.ml",
       "milestone": "M31",
       "module": "Astryx.Link"
+    },
+    {
+      "class": "B",
+      "component": "Token",
+      "file": "src/token.ml",
+      "milestone": "M32",
+      "module": "Astryx.Token"
     }
   ],
   "schema": 1,

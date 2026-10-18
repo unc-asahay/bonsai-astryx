@@ -3313,6 +3313,50 @@ let s_link () =
     ]
 ;;
 
+let s_token () =
+  section
+    ~id:"token"
+    ~title:"Token"
+    ~note:
+      "A chip for an entity inline - a tag, a filter, a recipient. Which ELEMENT it renders as is \
+       decided by same resolved role that drives Link, in upstream's order: a live href makes the \
+       anchor the root, and fires a remove button alongside it the root becomes a span so the link \
+       and the button sit as SIBLINGS - a button nested inside an anchor is invalid HTML, and the \
+       sibling shape is the fix; without a link, an on_click hides a real button under a visible \
+       label and the focus ring moves to the whole token; otherwise it is a plain span. A remove \
+       button's name always says which token it removes ('Remove ' plus the label, upstream's \
+       English message), a refused destination loses its href but keeps its outline, and colour \
+       plus size are reflected as data attributes so callers can theme them without selectors. \
+       One thing upstream does that this port does not: when a link token is also removable, \
+       upstream lets a click anywhere on the chip drive the inner link (new-tab clicks included) \
+       through a ref-bridged hook - here the markers and structure are faithful but only the link \
+       itself navigates. A press paints with the mouse; the touch press controller is the \
+       press-feedback milestone, still to come."
+    [ ex "Default" (Astryx.Token.view "engineering")
+    ; ex "Coloured category" (Astryx.Token.view ~color:Astryx.Token.Green "status: active")
+    ; ex
+        "Removable"
+        (Astryx.Token.view ~on_remove:(fun _ -> Effect.Ignore) "label: ui")
+    ; ex
+        "Clickable"
+        (Astryx.Token.view ~on_click:(fun _ -> Effect.Ignore) "open details")
+    ; ex "Link" (Astryx.Token.view ~href:"https://example.com" "example.com")
+    ; ex
+        "Link + removable (sibling container)"
+        (Astryx.Token.view ~href:"/docs" ~on_remove:(fun _ -> Effect.Ignore) "docs (v2)")
+    ; ex
+        "Disabled"
+        (Astryx.Token.view ~is_disabled:true ~on_click:(fun _ -> Effect.Ignore) "archived")
+    ; ex
+        "Icon only, label for screen readers"
+        (Astryx.Token.view
+           ~is_label_hidden:true
+           ~description:"Done"
+           ~icon:(Astryx.Icon.view ~size:Astryx.Icon.Md ~name:"check" ())
+           "done")
+    ]
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3327,6 +3371,7 @@ let specs =
   ; s_toolbar ()
   ; s_clickable_card ()
   ; s_link ()
+  ; s_token ()
   ]
 ;;
 
@@ -3372,7 +3417,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"; "token", "Token"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"

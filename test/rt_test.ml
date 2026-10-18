@@ -2027,3 +2027,31 @@ let () =
   in
   mount "target-and-rel" (Vdom.Node.div rows)
 ;;
+
+(* Token: the four upstream branches in one case, side by side, because the BRANCH MEMBERSHIP is the
+   contract: role first (a live href makes the anchor the root - or the sibling container when the
+   remove button would nest invalidly inside it), then on_click -> container with an invisible
+   button, otherwise the plain span. Markers are upstream's: pressable only on interactive
+   non-disabled surfaces, colour and size reflected as data, the refused javascript: href losing its
+   destination while keeping its shape, and the remove button's accessible name in English. *)
+let () =
+  let open Astryx.Token in
+  let noop _ = Effect.Ignore in
+  let view = view in
+  mount
+    "token-all"
+    (Vdom.Node.div
+       [ Vdom.Node.div [ view "plain" ]
+       ; Vdom.Node.div [ view ~on_remove:noop "detachable" ]
+       ; Vdom.Node.div [ view ~on_click:noop "clickable" ]
+       ; Vdom.Node.div [ view ~on_click:noop ~on_remove:noop "click-detach" ]
+       ; Vdom.Node.div [ view ~is_disabled:true ~on_click:noop "parked" ]
+       ; Vdom.Node.div [ view ~href:"/docs" "linked" ]
+       ; Vdom.Node.div [ view ~href:"/docs" ~on_remove:noop "linked-detach" ]
+       ; Vdom.Node.div [ view ~href:"javascript:alert(1)" "refused" ]
+       ; Vdom.Node.div [ view ~size:Sm ~color:Red ~icon:(icon ()) "sized" ]
+       ; Vdom.Node.div [ view ~is_label_hidden:true ~description:"a real person" ~icon:(icon ()) "sam" ]
+       ; Vdom.Node.div [ view ~end_content:(Vdom.Node.text "x9") "tailed" ]
+       ; Vdom.Node.div [ view ~is_disabled:true "dimmed" ]
+       ])
+;;

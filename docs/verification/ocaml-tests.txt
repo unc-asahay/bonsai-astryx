@@ -57,6 +57,25 @@ the ported components render in isolation
   ok   only the pulsing dot has a pulsing class
   ok   fourteen badge variants render
   ok   every badge variant is distinguishable
+  ok   twelve tokens render
+  ok   every token names its component
+  ok   a plain token is an inert span
+  ok   a plain token with no on_remove contains no controls
+  ok   removability alone adds a remove button but not interactivity
+  ok   two tokens render as anchors
+  ok   a live href makes the anchor the ROOT (no container above it)
+  ok   the refused javascript: destination renders its shape with NO href
+  ok   href + on_remove becomes a span container with an inner link
+  ok   the remove button is a SIBLING of the link, never nested inside it
+  ok   the remove button's accessible name is the English default
+  ok   on_click puts a real button inside the container
+  ok   the guard's other half exists: click+remove keeps both controls as siblings
+  ok   a disabled token is inert at the root and disabled at the button
+  ok   pressable marks every live interactive surface and nothing else
+  ok   colour and size are reflected as data and classes
+  ok   is_label_hidden keeps the text and names the root instead
+  ok   description rides along as aria-description, upstream's spelling
+  ok   end content carries through
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -497,5 +516,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-445 checks, 0 failure(s)
+464 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

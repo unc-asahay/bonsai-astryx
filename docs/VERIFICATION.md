@@ -2820,3 +2820,77 @@ A new section adds **1201px of height at 320px and changes no width at any viewp
 updated deliberately, and then verified at 0.00% on a separate run; a baseline written on the same run
 cannot detect a regression on that run, and the tool says so.
 
+
+## Gate 50 — M32: Token (coverage 52 -> 53)
+
+The first class-B component whose interesting surface is entirely the *role resolution* — the same
+`Interactive_role` the Link gate built — plus the branch the M31 gate could not have exercised, because
+a button nested inside an anchor is invalid HTML and that shape only exists when a token has a live
+href *and* a remove button. The four branches, in upstream's order, and the reason the order is the
+contract: a live href makes the anchor the root; href + remove swaps the root for a span so the link
+and the remove button render as SIBLINGS (upstream's own reason: WCAG 4.1.2, and the port records that
+the ref-bridged `useClickableContainer` delegation is not reproduced — the sibling shape is what
+makes the markup valid, and only the link itself navigates); otherwise an `on_click` hides a real
+button under a visible label with the root taking the focus-within outline and skipping targets
+inside any button/anchor (upstream's `closest('button, a')` guard); otherwise a plain span.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **464 checks, 0 failures** (2 checks fixed, below).
+- DOM + accessibility (jsdom) — all passed.
+- real browser, showcase — **338 checks, 0 failures**; demo — 25/25.
+- responsive + visual regression — **66 checks, 0 failures at 0.00%** on a separate run after a deliberate
+  re-baseline.
+- agent layer — `ported entries: 53; correctly attributed: 53`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m32b.txt`).
+
+### Two broken test assertions, not broken code
+
+The failing component gate reported two failures, both in the *assertions* rather than the port:
+
+1. **"a live href makes the anchor the ROOT" asserted `linked === linked.parentElement`** — an element
+   is never its own parent, so the check could not pass no matter what the port rendered. Corrected to
+   `tagName === "A"`, no `--container` class, and `closest(".astryx-token") === linked` — the anchor is
+   the token root. This was the fourth check for the same fact this file carried; three variants of the
+   same claim is a smell, and the strongest one is the one that survived.
+2. **"end content carries through" asserted `/\bx9\b/`** — no word boundary exists between `d` in
+   "tailed" and `x` in "x9", so the regex could never match text that was verifiably present
+   (`textContent === "tailedx9"`). Corrected to `includes("x9")`.
+
+Both were verified against the real rendered DOM (jsdom, compiled bundle) before changing anything,
+and both corrections were re-run in the full sweep. The lesson is the one the repo has recorded three
+times: a check whose *comparison* cannot be satisfied is not a check, it is a transcript cost.
+
+### The M31 marker gap, found by regenerating an artifact
+
+Link — the component the previous gate recorded as green — never stamps `data-astryx-component`, the
+port-wide marker every other component carries on its own root. Nothing asserted the absence, so the
+M31 gate's green status stood while `docs/visual/` silently carried 52 pages for 53 ported components,
+and the INDEX's footer — "Not listed: the N components with *no OCaml port*" — was a lie in the other
+direction: it listed exactly the component that *was* ported. The appearance contract could not see
+Link at all. Fixed by adding the marker to Link's own four branches (button, disabled anchor,
+refused-anchor, native anchor). The custom `as_` branch is deliberately excluded: it stamps its own
+marker (Button, RouterLink, …), and labelling a stranger's root "Link" would be a worse lie. Link
+now has a visual-contract page (54 total, `docs/visual/Link.md`), and the original `grep` that found
+this is now the kind of check the INDEX's own numbers would have caught had anything read them — the
+stale-artifact class again: an unread generated index is prose with pixels.
+
+### The re-baseline, stated rather than implied
+
+A new section adds **~1590px of height at 320px** and changes no width at any viewport. The baseline
+was updated deliberately on its own run (`--update-baseline`), then verified at 0.00% on a separate
+run — a baseline written on the same run cannot detect a regression on that run, and the tool says so.
+
+### Deliberate divergences
+
+- **No `useTranslator`.** The remove button's accessible name is the English default
+  `Remove <label>` (upstream's en source for `@astryx.token.remove`).
+- **No `usePressFeedback` controller.** The constant `data-astryx-pressable` marker is reproduced (as
+  SelectableCard and ClickableCard do); the document-level controller that writes `data-astryx-press`
+  under a touch is the press-feedback pillar: a mouse `:active` paints, a finger does not.
+- **Role step 3** (interactive trigger context) has no port — `effectiveOnClick = onClick ?? ctx-noop`
+  reduces here to `on_click` itself.
+- **The href passes `Link_destination`** — a refused destination renders the same markup without it.
+- **`aria-description` is reproduced verbatim**, non-standard spelling and all — upstream writes it,
+  and silently "correcting" it to `aria-describedby` would change the accessibility tree.

@@ -243,7 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
-    "SelectableCard", "ClickableCard", "OverflowList",
+    "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("55 sections", sections.length === 55, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("56 sections", sections.length === 56, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -627,10 +627,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5,
+    Link: 5, Token: 8,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("317 examples across the page", totalExamples === 317, `got ${totalExamples}`);
+  check("325 examples across the page", totalExamples === 325, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -643,7 +643,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("55 nav links", nav.length === 55, `got ${nav.length}`);
+  check("56 nav links", nav.length === 56, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2814,6 +2814,59 @@ check(
     );
   }
 
+  // ------------------------------------------------------------------ Token (M32)
+  // Same shape as the Link block above: everything gathered in ONE evaluate (a block placed
+  // outside the evaluation dies with 'document is not defined' and prints no check at all -
+  // recorded in the M31 gate).
+  {
+    const tf = await page.evaluate(() => {
+      const sec = document.querySelector('[data-showcase-component="Token"]');
+      const ex = [...(sec?.querySelectorAll("[data-example]") ?? [])];
+      const pick = (i, sel) => ex[i]?.querySelector(sel) ?? null;
+      const demo = pick(0, ".astryx-token");            // Default
+      const linkEl = pick(4, "a");                       // Link
+      const linkRoot = pick(4, ".astryx-token");         // Link example root
+      const sibling = pick(5, ".astryx-token--container"); // Link + removable
+      const innerLink = sibling?.querySelector("a");
+      const removeBtn = sibling?.querySelector("button.astryx-token__remove");
+      const clickable = pick(3, ".astryx-token--container");
+      const innerButton = clickable?.querySelector("button.astryx-token__invisible-button");
+      const disabledBtn = pick(6, ".astryx-token__invisible-button");
+      return {
+        found: !!sec,
+        examples: ex.length,
+        demoTag: demo?.tagName ?? null,
+        demoHasControls: !!(demo && demo.querySelector("button, a")),
+        linkTag: linkRoot?.tagName ?? null,
+        linkHref: linkEl?.getAttribute("href") ?? null,
+        siblingTag: sibling?.tagName ?? null,
+        innerLinkTag: innerLink?.tagName ?? null,
+        removeType: removeBtn?.getAttribute("type") ?? null,
+        removeIsSibling: !!sibling && !!innerLink && !!removeBtn &&
+          innerLink.parentElement === sibling && removeBtn.parentElement === sibling,
+        innerButtonType: innerButton?.getAttribute("type") ?? null,
+        disabledBtnDisabled: !!disabledBtn?.hasAttribute("disabled"),
+      };
+    });
+    check("the Token section rendered", tf.found, "not found");
+    check("the Token section has eight examples", tf.examples === 8, `got ${tf.examples}`);
+    check("a default token is an inert span with no controls",
+      tf.demoTag === "SPAN" && !tf.demoHasControls,
+      `tag=${tf.demoTag} controls=${tf.demoHasControls}`);
+    check("a live href makes the anchor the root",
+      tf.linkTag === "A" && tf.linkHref === "https://example.com",
+      `tag=${tf.linkTag} href=${tf.linkHref}`);
+    check("href + remove is a span container and the remove button is a SIBLING of the link",
+      tf.siblingTag === "SPAN" && tf.innerLinkTag === "A" &&
+        tf.removeType === "button" && tf.removeIsSibling,
+      `container=${tf.siblingTag} inner=${tf.innerLinkTag} type=${tf.removeType} siblings=${tf.removeIsSibling}`);
+    check("on_click puts a real button inside the container",
+      tf.innerButtonType === "button",
+      `type=${tf.innerButtonType}`);
+    check("a disabled token disables its inner button",
+      tf.disabledBtnDisabled === true);
+  }
+
   const cov = await page.evaluate(() => ({
     // Read the stat numbers themselves: textContent on the container concatenates
     // without separators ("13ported90not yet…"), which no word-boundary regex can
@@ -2824,11 +2877,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 52 ported / 51 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["52", "51", "103"]),
+    "coverage stats are 53 ported / 50 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["53", "50", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 51 entries", cov.unported === 51, `got ${cov.unported}`);
+  check("unported list rendered 50 entries", cov.unported === 50, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
