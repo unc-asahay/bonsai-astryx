@@ -827,6 +827,7 @@ module Nhm = Astryx.Nav_heading_menu
 module Segc = Astryx.Segmented_control
 module Ov = Astryx.Overlay
 module Fi = Astryx.File_input
+module Lay = Astryx.Layout
 
 let demo_menu_item
       ?description
@@ -4088,6 +4089,72 @@ let file_input_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------------------------ layout *)
+let layout_demo (_graph : Bonsai.graph) =
+  let examples =
+    [ ex
+        "Shell: five slots"
+        (Lay.view
+           ~header:(Lay.header ~has_divider:true [ chip "Header" ] ())
+           ~start:(Lay.panel ~has_divider:true ~width:(Size.Css "min(200px, 30%)") [ chip "Start panel" ] ())
+           ~content:(Lay.content [ chip "Main content" ] ())
+           ~end_:(Lay.panel ~has_divider:true ~width:(Size.Css "min(240px, 32%)") [ chip "End panel" ] ())
+           ~footer:(Lay.footer ~has_divider:true [ chip "Footer" ] ())
+           ())
+    ; ex
+        "Content width 640"
+        (Lay.view
+           ~content_width:(Size.Px 640)
+           ~header:(Lay.header ~has_divider:true [ chip "Header" ] ())
+           ~content:(Lay.content [ chip "Centred at 640px" ] ())
+           ())
+    ; ex
+        "Both panels, width 960"
+        (Lay.view
+           ~content_width:(Size.Px 960)
+           ~start:(Lay.panel ~has_divider:true ~width:(Size.Css "min(200px, 30%)") [ chip "Start" ] ())
+           ~content:(Lay.content [ chip "Content" ] ())
+           ~end_:(Lay.panel ~has_divider:true ~width:(Size.Css "min(240px, 32%)") [ chip "End" ] ())
+           ())
+    ; ex
+        "Default dividers on"
+        (Lay.view
+           ~default_has_dividers:true
+           ~header:(Lay.header [ chip "Header (inherits the divider)" ] ())
+           ~content:(Lay.content [ chip "Content" ] ())
+           ~footer:(Lay.footer [ chip "Footer (inherits the divider)" ] ())
+           ())
+    ; ex
+        "No header or footer"
+        (Lay.view
+           ~start:(Lay.panel ~has_divider:true ~width:(Size.Css "min(200px, 30%)") [ chip "Start" ] ())
+           ~content:(Lay.content [ chip "Content with outer padding at the top and bottom" ] ())
+           ())
+    ; ex
+        "Auto height, not scrollable"
+        (Lay.view
+           ~height:Lay.Auto
+           ~header:(Lay.header [ chip "Header" ] ())
+           ~content:(Lay.content ~is_scrollable:false [ chip "Grows with its content" ] ())
+           ())
+    ]
+  in
+  Bonsai.return
+    (section
+       ~id:"layout"
+       ~title:"Layout"
+       ~note:
+         "The five-slot frame: header on top, an optional start/end pair around \
+          the content in the middle, footer on the bottom. It escapes an enclosing \
+          container's padding and, unless contentWidth says otherwise, every \
+          region spans the container. Dividers and the spacers are automatic: a \
+          region without a divider merges into its neighbour, and a nested layout \
+          inherits the nearest explicit defaultHasDividers. Panels know their edge \
+          structurally, so the divider side and the outer padding come out right \
+          in both LTR and RTL with no plumbing."
+       examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -4162,6 +4229,7 @@ let nav_items =
   ; "segmented-control", "SegmentedControl"
   ; "overlay", "Overlay"
   ; "file-input", "FileInput"
+  ; "layout", "Layout"
   ]
 ;;
 
@@ -4537,15 +4605,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful overlay_section in
   let file_input_section = file_input_demo graph in
   let stateful = pair stateful file_input_section in
+  let layout_section = layout_demo graph in
+  let stateful = pair stateful layout_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input)
+    ~f:(fun ((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout ])
       ])
 ;;
 

@@ -51,6 +51,7 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -209,6 +210,16 @@ the ported components render in isolation
   ok   multiple files are announced on the native input
   ok   the error status surfaces its message
   ok   the placeholder is shown when no files are chosen
+  ok   the five-slot shell renders all five regions
+  ok   the shell is a fill layout and the header is a banner, the content main
+  ok   explicit dividers are static attributes, one per header/footer
+  ok   the two panels carry the divider class and their widths as inline styles
+  ok   content is scrollable by default
+  ok   the default-dividers layout publishes the default on the inner and leaves the header unresolved (the hook resolves it in the browser)
+  ok   the auto layout marks itself, and its 640px width takes the internal path
+  ok   a non-scrollable content is clipped rather than scrolled
+  ok   a bare panel outside a layout renders with its width and no divider
+  ok   every region is named for the harness
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -649,5 +660,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-565 checks, 0 failure(s)
+575 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -249,6 +249,7 @@ if (mode === "showcase") {
     "SegmentedControl",
     "Overlay",
     "FileInput",
+    "Layout",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -611,7 +612,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("63 sections", sections.length === 63, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("64 sections", sections.length === 64, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -632,10 +633,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("379 examples across the page", totalExamples === 379, `got ${totalExamples}`);
+  check("385 examples across the page", totalExamples === 385, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -648,7 +649,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("63 nav links", nav.length === 63, `got ${nav.length}`);
+  check("64 nav links", nav.length === 64, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -3328,6 +3329,69 @@ check(
   check("dragenter lights the --drag-over state and dragleave clears it",
     /--drag-over/.test(dropState.before) && !/--drag-over/.test(dropState.after), JSON.stringify(dropState));
 
+  // -------------------------------------------------------------- Layout (M41)
+  console.log("\nLayout (live)");
+  const lay = await page.evaluate(() => {
+    const ex = (name) =>
+      document.querySelector(`#layout [data-example="${name}"] .astryx-layout`);
+    const q = (name, sel) => ex(name) && ex(name).querySelector(sel);
+    const hdr = (name) => q(name, ".astryx-layout-header");
+    return {
+      shell: !!ex("Shell: five slots") && !!hdr("Shell: five slots"),
+      regions: (() => {
+        const e = ex("Shell: five slots");
+        return !!e && e.querySelectorAll('[data-astryx-component="LayoutPanel"]').length === 2
+          && !!e.querySelector('[data-astryx-component="LayoutContent"]')
+          && !!e.querySelector('[data-astryx-component="LayoutFooter"]');
+      })(),
+      explicitDivider: (hdr("Shell: five slots") || { getAttribute: () => null })
+        .getAttribute("data-astryx-divider"),
+      inheritedDivider: (hdr("Default dividers on") || { getAttribute: () => null })
+        .getAttribute("data-astryx-divider"),
+      inheritedFooter: (q("Default dividers on", ".astryx-layout-footer") || { getAttribute: () => null })
+        .getAttribute("data-astryx-divider"),
+      noDefaultDivider: (hdr("Auto height, not scrollable") || { getAttribute: () => null })
+        .getAttribute("data-astryx-divider"),
+      autoClass: /astryx-layout--auto/.test((ex("Auto height, not scrollable") || { className: "" }).className),
+      // Content-width 640: the header inner should be capped at 640px (its max-width
+      // is var(--layout-content-width)), and the content's computed left padding should
+      // be non-zero (it is centred by the alignment var).
+      headerMaxWidth: (() => {
+        const h = q("Content width 640", ".astryx-layout-header__inner");
+        return h ? getComputedStyle(h).maxWidth : null;
+      })(),
+      contentPad: (() => {
+        const c = q("Content width 640", ".astryx-layout-content");
+        return c ? getComputedStyle(c).paddingInlineStart : null;
+      })(),
+      // Both panels width 960: the middle is the content lane (max-width 960, centred).
+      laneMaxWidth: (() => {
+        const m = q("Both panels, width 960", ".astryx-layout__middle");
+        return m ? getComputedStyle(m).maxWidth : null;
+      })(),
+      laneCentred: (() => {
+        const m = q("Both panels, width 960", ".astryx-layout__middle");
+        if (!m) return false;
+        const r = m.getBoundingClientRect();
+        const p = m.parentElement.getBoundingClientRect();
+        return Math.abs((r.left - p.left) - (p.right - r.right)) < 6;
+      })(),
+    };
+  });
+  check("the Layout demos render: the shell's five regions", lay.shell && lay.regions, JSON.stringify({ shell: lay.shell, regions: lay.regions }));
+  check("an explicit divider is static on the shell header", lay.explicitDivider === "true", String(lay.explicitDivider));
+  check("the divider hook resolves the default onto the inheriting header and footer",
+    lay.inheritedDivider === "true" && lay.inheritedFooter === "true",
+    `header=${lay.inheritedDivider} footer=${lay.inheritedFooter}`);
+  check("a header with no default and no explicit divider stays plain", lay.noDefaultDivider === null, String(lay.noDefaultDivider));
+  check("the auto-height layout marks itself", lay.autoClass);
+  check("content-width 640: the header inner is capped at 640px by the layout var",
+    lay.headerMaxWidth === "640px", String(lay.headerMaxWidth));
+  check("content-width 640: the content is centred with real padding", lay.contentPad !== "0px", String(lay.contentPad));
+  check("both panels width 960: the middle is a 960px content lane, centred",
+    lay.laneMaxWidth === "960px" && lay.laneCentred,
+    `maxWidth=${lay.laneMaxWidth} centred=${lay.laneCentred}`);
+
   // -------------------------------------------------------- SelectableCard (M28)
   console.log("\nSelectableCard (live)");
   const scState = (id) =>
@@ -3652,11 +3716,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 60 ported / 43 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["60", "43", "103"]),
+    "coverage stats are 61 ported / 42 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["61", "42", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 43 entries", cov.unported === 43, `got ${cov.unported}`);
+  check("unported list rendered 42 entries", cov.unported === 42, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

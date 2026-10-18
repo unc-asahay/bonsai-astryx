@@ -642,6 +642,13 @@
       "file": "src/file_input.ml",
       "milestone": "M39",
       "module": "Astryx.FileInput"
+    },
+    {
+      "class": "C",
+      "component": "Layout",
+      "file": "src/layout.ml",
+      "milestone": "M41",
+      "module": "Astryx.Layout"
     }
   ],
   "schema": 1,

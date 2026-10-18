@@ -705,6 +705,62 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("the placeholder is shown when no files are chosen", (g("fi-placeholder").textContent || "").includes("Choose a file"));
 }
 
+// --- Layout (M41)
+{
+  const host = document.querySelector('[data-case="layout-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const innerStyle = (id) => (g(id) && g(id).querySelector(".astryx-layout__inner")?.getAttribute("style")) || "";
+  const middle = (id) => (g(id) && g(id).querySelector(".astryx-layout__middle")) || null;
+  const column = (id) => (g(id) && g(id).querySelector(".astryx-layout__column")) || null;
+
+  check("the five-slot shell renders all five regions", !!g("layout-shell-example")
+    && attr(g("layout-shell-example"), "data-astryx-component") === "Layout"
+    && !!g("layout-shell-example").querySelector('[data-astryx-component="LayoutHeader"]')
+    && g("layout-shell-example").querySelectorAll('[data-astryx-component="LayoutPanel"]').length === 2
+    && !!g("layout-shell-example").querySelector('[data-astryx-component="LayoutContent"]')
+    && !!g("layout-shell-example").querySelector('[data-astryx-component="LayoutFooter"]'));
+  check("the shell is a fill layout and the header is a banner, the content main",
+    hasClass(g("layout-shell-example"), /astryx-layout--fill/)
+    && attr(g("layout-shell-example"), "data-astryx-height") === "fill"
+    && attr(g("layout-shell-example").querySelector('[data-astryx-component="LayoutHeader"]'), "role") === "banner"
+    && attr(g("layout-shell-example").querySelector('[data-astryx-component="LayoutContent"]'), "role") === "main");
+  check("explicit dividers are static attributes, one per header/footer",
+    attr(g("layout-shell-example").querySelector('[data-astryx-component="LayoutHeader"]'), "data-astryx-divider") === "true"
+    && attr(g("layout-shell-example").querySelector('[data-astryx-component="LayoutFooter"]'), "data-astryx-divider") === "true");
+  check("the two panels carry the divider class and their widths as inline styles",
+    [...g("layout-shell-example").querySelectorAll('[data-astryx-component="LayoutPanel"]')]
+      .every((p) => hasClass(p, /astryx-layout-panel--has-divider/))
+    && /width:\s*200px/.test(attr(g("layout-shell-example").querySelectorAll('[data-astryx-component="LayoutPanel"]')[0], "style") || "")
+    && /width:\s*240px/.test(attr(g("layout-shell-example").querySelectorAll('[data-astryx-component="LayoutPanel"]')[1], "style") || ""));
+  check("content is scrollable by default", hasClass(
+    g("layout-shell-example").querySelector('[data-astryx-component="LayoutContent"]'), /--scrollable/));
+  check("the default-dividers layout publishes the default on the inner and leaves the header unresolved (the hook resolves it in the browser)",
+    /data-astryx-default-dividers="true"/.test(g("layout-default-dividers").querySelector(".astryx-layout__inner")?.outerHTML || "")
+    && !attr(g("layout-default-dividers").querySelector('[data-astryx-component="LayoutHeader"]'), "data-astryx-divider"));
+  check("the auto layout marks itself, and its 640px width takes the internal path",
+    hasClass(g("layout-auto"), /astryx-layout--auto/)
+    && attr(g("layout-auto"), "data-astryx-height") === "auto"
+    && /--layout-content-width:\s*640px/.test(innerStyle("layout-auto"))
+    && /--layout-alignment-width:\s*640px/.test(innerStyle("layout-auto"))
+    && !!middle("layout-auto") && hasClass(middle("layout-auto"), /--query/)
+    && !!column("layout-auto") && hasClass(column("layout-auto"), /--single-column/));
+  check("a non-scrollable content is clipped rather than scrolled",
+    hasClass(g("layout-auto").querySelector('[data-astryx-component="LayoutContent"]'), /--clip/));
+  check("a bare panel outside a layout renders with its width and no divider",
+    !!g("layout-shell-example") // host holds the bare panel too
+    && (() => {
+      const bare = host.querySelectorAll('[data-astryx-component="LayoutPanel"]');
+      const last = bare[bare.length - 1];
+      return last !== g("layout-shell-example").querySelector('[data-astryx-component="LayoutPanel"]')
+        && hasClass(last, /astryx-layout-panel--scrollable/)
+        && !hasClass(last, /--has-divider/)
+        && /width:\s*300px/.test(attr(last, "style") || "");
+    })());
+  check("every region is named for the harness", !!g("layout-shell-example")
+    && [ "LayoutHeader", "LayoutPanel", "LayoutContent", "LayoutFooter" ].every((n) =>
+        !!g("layout-shell-example").querySelector(`[data-astryx-component="${n}"]`)));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

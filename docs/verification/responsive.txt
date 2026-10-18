@@ -4,7 +4,7 @@
 
 chromium:   /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
 viewports:  320x568, 375x667, 768x1024, 1440x900
-baseline:   /home/noor/src/bonsai-astryx/docs/verification/responsive/baseline
+baseline:   /home/noor/src/bonsai-astryx-m40/docs/verification/responsive/baseline
 
 ========================================================================
 showcase  http://127.0.0.1:8791/site/index.html

@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-60 ported component(s). Each page records the appearance the port
+62 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -27,17 +27,19 @@ for image generation.
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 6 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 46 | 2 | 5 | 1 | [Field.md](Field.md) |
+| Field | 52 | 2 | 5 | 1 | [Field.md](Field.md) |
 | FieldStatus | 13 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
+| FileInput | 6 | 4 | 19 | 11 | [FileInput.md](FileInput.md) |
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 69 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| Icon | 74 | 15 | 9 | 8 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
 | InputGroupText | 2 | 1 | 8 | 5 | [InputGroupText.md](InputGroupText.md) |
 | Kbd | 15 | 1 | 4 | 1 | [Kbd.md](Kbd.md) |
+| Layout | 6 | 3 | 7 | 5 | [Layout.md](Layout.md) |
 | Link | 5 | 4 | 3 | 1 | [Link.md](Link.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
 | MetadataListItem | 27 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
@@ -54,7 +56,7 @@ for image generation.
 | SegmentedControl | 10 | 7 | 9 | 2 | [SegmentedControl.md](SegmentedControl.md) |
 | SelectableCard | 6 | 7 | 17 | 15 | [SelectableCard.md](SelectableCard.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
-| Spinner | 16 | 10 | 13 | 7 | [Spinner.md](Spinner.md) |
+| Spinner | 17 | 10 | 13 | 7 | [Spinner.md](Spinner.md) |
 | Stack | 59 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
@@ -69,6 +71,6 @@ for image generation.
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 43 components with no OCaml port. They
+Not listed: the 41 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

@@ -3238,3 +3238,52 @@ and was caught by the jsdom fixture on the first run.
   (768x1024 and 1440x900 baselines updated).
 - agent layer — `ported entries: 60; correctly attributed: 60`, MCP truthful.
 - **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m39.txt`).
+
+## Gate 58 — M41: Layout (coverage 60 -> 61)
+
+The five-slot frame ported from `facebook/astryx` `Layout/`: `view` lays out a header on top,
+an optional start/end panel pair around the content in the middle, and a footer on the bottom,
+at either `Fill` or `Auto` height. Each region is its own builder (`header`/`footer`/
+`content`/`panel`) carrying the upstream padding-token chains (`--layout-padding-*`,
+`--layout-container-padding-inline`), optional `has_divider` borders, `is_scrollable`
+(content/panel only), explicit panel widths, and accessible `role`/`label`. The content-width
+system is the interesting part: a `~content_width` that is a `Px` or length resolves to
+`--layout-alignment-width` **internally** (the container publishes `container-type: inline-size`
+via `--layout-content-width` plus `--layout-alignment-width`, and the content lane is centred by
+`calc((100cqi - var(--layout-alignment-width)) / 2)` padding — no JS measurement), while a
+percentage / var / keyword width stays a constrained max-width lane. Dividers are inherited from
+`~default_has_dividers` through a real DOM hook (`Vdom.Attr.Hooks.Make` + `closest()` in JS via
+`eval_string`, same overlay FFI pattern): the inner publishes
+`data-astryx-default-dividers`, each region queries its closest layout and resolves its own
+`data-astryx-divider="true"/"false"` if it did not set one explicitly; an explicit
+`has_divider:true` renders statically so jsdom sees it.
+
+Named divergences: the alignment-width internal path is driven by container queries + padding
+rather than upstream's `ResizeObserver`, so no measurement and no JS state — a `Px` width works
+where the browser supports `container-type` (all modern engines); upstream's `Layout` uses the
+same CSS-var contract, so the port pins the same class names (`astryx-layout__middle`,
+`__column`, `--single-column`, `--query`, `--content-lane`, `--fill`/`--auto`,
+`astryx-layout-header/footer/panel/content`) and named classes only where a slot-agnostic
+`:has()`/`:first-child` edge rule cannot express the intent.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **575 checks, 0 failures** (10 new Layout checks: the five-slot shell
+  renders all five regions with roles; explicit dividers are static attrs; the
+  default-dividers variant publishes `data-astryx-default-dividers` on the inner and leaves
+  the un-set header/footer unresolved in jsdom (the hook runs only in the browser); the
+  `Auto` + `Px 640` variant stamps `--auto` and `--layout-content-width: 640px` /
+  `--layout-alignment-width: 640px` with `--query` + `--single-column`; a non-scrollable content
+  is clipped; a bare panel outside a layout renders at its width with no divider class).
+- DOM + accessibility (jsdom) — all passed (demo fixture unchanged).
+- real browser, showcase — **410 checks, 0 failures** (8 new live Layout checks: the section
+  renders six examples; the divider hook resolves the default onto un-set regions (the browser
+  path jsdom cannot pump); the 640-lane caps the header inner at 640px in *computed* style and
+  the content's alignment padding is non-zero; the 960 both-panel lane is a centred
+  `--content-lane` (computed max-width 960px, left/right gutters equal); the auto layout is
+  `--auto` + height=auto; the scrollable content still scrolls in the browser).
+- responsive + visual regression — re-baselined (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/Layout.md` exists (62 pages in total).
+- agent layer — `ported entries: 61; correctly attributed: 61`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m41.txt`).

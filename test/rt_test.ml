@@ -2502,3 +2502,36 @@ let () =
   in
   mount "file-input-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- layout *)
+
+let layout_all () =
+  let text s = Vdom.Node.text s in
+  let px n = Astryx.Common.Size_value.Px n in
+  Vdom.Node.div
+    ~attrs:[ Vdom.Attr.id "layout-all"; Vdom.Attr.class_ "layout-shell" ]
+    [ Astryx.Layout.view
+        ~id:"layout-shell-example"
+        ~header:(Astryx.Layout.header ~has_divider:true ~role:"banner" [ text "Header" ] ())
+        ~start:(Astryx.Layout.panel ~has_divider:true ~width:(px 200) [ text "Start" ] ())
+        ~content:(Astryx.Layout.content ~role:"main" [ text "Main" ] ())
+        ~end_:(Astryx.Layout.panel ~has_divider:true ~width:(px 240) [ text "End" ] ())
+        ~footer:(Astryx.Layout.footer ~has_divider:true [ text "Footer" ] ())
+        ()
+    ; Astryx.Layout.view
+        ~id:"layout-default-dividers"
+        ~default_has_dividers:true
+        ~header:(Astryx.Layout.header [ text "Inherited divider" ] ())
+        ~content:(Astryx.Layout.content [ text "Body" ] ())
+        ()
+    ; Astryx.Layout.view
+        ~id:"layout-auto"
+        ~height:Astryx.Layout.Auto
+        ~content_width:(px 640)
+        ~content:(Astryx.Layout.content ~is_scrollable:false [ text "Auto" ] ())
+        ()
+    ; Astryx.Layout.panel ~has_divider:false ~width:(px 300) [ text "Bare panel" ] ()
+    ]
+;;
+
+let () = mount "layout-all" (layout_all ())
