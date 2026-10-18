@@ -2885,3 +2885,145 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   align-items: center;
   gap: var(--spacing-2);
 }
+
+/* ----------------------------------------------------------------- Thumbnail
+
+   A square preview card. The surface is the aspect-ratio box; the image fills
+   it with object-fit: cover; an inset border draws a hairline on top of
+   whatever is rendered; a placeholder icon fills the failure/no-source case;
+   the upload overlay scrims the image with a Spinner; and the remove slot
+   sits in the top-end corner. The interactive arm paints the same overlay
+   colours as ClickableCard (mouse :active only - this port has no touch
+   press model). */
+
+.astryx-thumbnail {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  width: 64px;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+
+.astryx-thumbnail__surface {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-element);
+  overflow: hidden;
+  background-color: var(--color-neutral);
+}
+
+.astryx-thumbnail__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.astryx-thumbnail__inset-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  pointer-events: none;
+}
+
+.astryx-thumbnail__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-icon-secondary);
+}
+
+.astryx-thumbnail__action {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  border-radius: var(--radius-element);
+  overflow: hidden;
+  background: none;
+  cursor: pointer;
+}
+
+.astryx-thumbnail__surface--interactive {
+  cursor: pointer;
+}
+
+/* The hover/press tint is an ::after painted over the image, the same recipe
+   Token's remove button and the overlay utility use: a transparent layer whose
+   background flips on hover/active, guarded by @media (hover: hover) so touch
+   devices don't show a stuck hover state. The remove slot and upload overlay
+   carry z-index 1 so they stay above it. */
+.astryx-thumbnail__surface--interactive::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: background-color var(--duration-fast);
+}
+
+@media (hover: hover) {
+  .astryx-thumbnail__surface--interactive:not(:disabled):hover::after {
+    background-color: var(--color-overlay-hover);
+  }
+}
+
+.astryx-thumbnail__surface--interactive:not(:disabled):active::after {
+  background-color: var(--color-overlay-pressed);
+}
+
+.astryx-thumbnail--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The remove slot. Default (hover reveal) hides the button until the surface is
+   hovered or the button itself receives keyboard focus, so keyboard users
+   still reach it; `--always` keeps it visible. */
+.astryx-thumbnail__remove-slot {
+  position: absolute;
+  top: var(--spacing-1);
+  inset-inline-end: var(--spacing-1);
+  z-index: 1;
+  line-height: 0;
+}
+
+.astryx-thumbnail__remove-slot--hover {
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.astryx-thumbnail__surface:hover .astryx-thumbnail__remove-slot--hover,
+.astryx-thumbnail__remove-slot--hover:hover,
+.astryx-thumbnail__remove-slot--hover:focus-within {
+  opacity: 1;
+}
+
+.astryx-thumbnail__remove-slot .astryx-button {
+  /* The overlaid scrim button: fixed colours (not luminance-adapting) so it
+     reads on any image, matching upstream. */
+  --_button-radius: calc(var(--radius-element) - var(--spacing-1));
+  position: relative;
+  height: 20px;
+  min-width: 20px;
+  background-color: var(--color-overlay) !important;
+  color: var(--color-on-dark) !important;
+}
+
+.astryx-thumbnail__upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-overlay);
+  border-radius: inherit;
+  z-index: 1;
+  line-height: 0;
+}

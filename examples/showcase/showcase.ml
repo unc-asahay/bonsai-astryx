@@ -3410,6 +3410,129 @@ let s_spinner () =
     ]
 ;;
 
+
+(* Thumbnail takes a graph only for the failed-source memory: one cell remembers the exact source that
+   failed so a changed source gets a fresh load. The states are otherwise props - placeholder, skeleton,
+   upload overlay, remove (hover or always), interactive, disabled. The jsdom harness can render each by
+   prop; the state change after a real image error is exercised in the browser gate. *)
+let thumbnail_demo (graph : Bonsai.graph) =
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-placeholder"
+             ~label:"photo.png"
+             graph
+             )
+          ~f:(ex "no source: the placeholder silhouette")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-image"
+             ~src:avatar_data_uri
+             ~alt:"A lilac square"
+             ~label:"picture.svg"
+             graph
+             )
+          ~f:(ex "a source that loads, with the inset edge")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-image-label"
+             ~src:avatar_data_uri
+             ~label:"report.pdf"
+             graph
+             )
+          ~f:(ex "decorative (no alt): the name is the label alone")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-skeleton"
+             ~src:"/site/this-source-does-not-exist.png"
+             ~is_loading:true
+             ~label:"uploading.pdf"
+             graph
+             )
+          ~f:(ex "loading with a source: the scrimmed upload overlay")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-remove-hover"
+             ~src:avatar_data_uri
+             ~alt:"A lilac square"
+             ~label:"report.pdf"
+             ~on_remove:(fun _ -> Effect.Ignore)
+             graph
+             )
+          ~f:(ex "a remove button, revealed on hover and focus")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-remove-always"
+             ~src:avatar_data_uri
+             ~alt:"A lilac square"
+             ~label:"always.pdf"
+             ~on_remove:(fun _ -> Effect.Ignore)
+             ~show_remove_on:`Always
+             graph
+             )
+          ~f:(ex "the remove button kept visible")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-interactive"
+             ~src:avatar_data_uri
+             ~alt:"A lilac square"
+             ~on_click:(fun _ -> Effect.Ignore)
+             graph
+             )
+          ~f:(ex "interactive: the whole surface is a button")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-disabled"
+             ~src:avatar_data_uri
+             ~alt:"A lilac square"
+             ~label:"taken.pdf"
+             ~on_click:(fun _ -> Effect.Ignore)
+             ~on_remove:(fun _ -> Effect.Ignore)
+             ~is_disabled:true
+             graph
+             )
+          ~f:(ex "disabled: no hover, no actions")
+      ; Bonsai.map
+          (Astryx.Thumbnail.view
+             ~id:"thumbnail-error"
+             ~src:"/site/this-source-does-not-exist.png"
+             ~alt:"Anything"
+             ~label:"broken.png"
+             graph
+             )
+          ~f:(ex "the source fails: the placeholder returns")
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"thumbnail"
+      ~title:"Thumbnail"
+      ~note:
+        "A square preview card for an attachment, in four surface states: the image once it has loaded, \
+
+         a skeleton while it is fetched, the placeholder silhouette when there is no source or the load has \
+
+         failed, and the scrimmed upload overlay while an existing source is still being processed. The \
+
+         remove button (when [on_remove] is set) overlays the corner - revealed on hover and keyboard \
+
+         focus by default, or always visible - and its icon is a real Button, so the scrim colours are \
+
+         fixed rather than luminance-adapting. A label both names the group - the remove button reads \
+
+         'Remove <name>' and an interactive surface 'Open <name>' - and supplies the hover title; an image \
+
+         without alt is decorative, so the name comes from the label alone. Divergences: upstream's \
+
+         label tooltip is the native title attribute (the port's Tooltip takes a static trigger, and the \
+
+         root is state-driven - the same divergence Avatar records), and there is no press-feedback \
+
+         machinery: the interactive surface is a real button, so the press is the browser's own [:active]."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3471,7 +3594,7 @@ let nav_items =
   ; "kbd", "Kbd"
   ; "button-group", "ButtonGroup"
   ; "timer", "Timer"; "input-group", "InputGroup"; "toolbar", "Toolbar"
-  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"; "token", "Token"; "spinner", "Spinner"
+  ; "metadata-list", "MetadataList"; "moremenu", "MoreMenu"; "progressbar", "ProgressBar"; "avatar", "Avatar"; "avatar-group", "AvatarGroup"; "toggle-button", "ToggleButton"; "selectable-card", "SelectableCard"; "clickable-card", "ClickableCard"; "link", "Link"; "token", "Token"; "spinner", "Spinner"; "thumbnail", "Thumbnail"
   ; "layer", "Layer"
   ; "popover", "Popover"
   ; "field", "Field + TextInput"
@@ -3819,6 +3942,7 @@ let page (graph : Bonsai.graph) =
   let toggle_button_section = toggle_button_demo graph in
   let selectable_card_section = selectable_card_demo graph in
   let overflow_list_section = overflow_list_demo graph in
+  let thumbnail_section = thumbnail_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3842,10 +3966,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful toggle_button_section in
   let stateful = pair stateful selectable_card_section in
   let stateful = pair stateful overflow_list_section in
+  let stateful = pair stateful thumbnail_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list)
+    ~f:(fun ((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3853,7 +3978,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail ])
       ])
 ;;
 

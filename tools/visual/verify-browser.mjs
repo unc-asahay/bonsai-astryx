@@ -243,7 +243,7 @@ if (mode === "showcase") {
     "Interactive",
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
-    "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner",
+    "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner", "Thumbnail",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +606,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("57 sections", sections.length === 57, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("58 sections", sections.length === 58, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -627,10 +627,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("331 examples across the page", totalExamples === 331, `got ${totalExamples}`);
+  check("340 examples across the page", totalExamples === 340, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -643,7 +643,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("57 nav links", nav.length === 57, `got ${nav.length}`);
+  check("58 nav links", nav.length === 58, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2373,6 +2373,107 @@ check(
   JSON.stringify(avatarGeometry),
 );
 
+// Thumbnail: the states that need a real browser — the image error (a source that
+// 404s fires a real error event, and the errored-source cell returns the placeholder
+// while a *changed* source gets a fresh attempt), the hover reveal of the remove
+// button, and the interactive surface being a real button named "Open <name>".
+const thumbError = await page.evaluate(() => {
+  const root = document.getElementById("thumbnail-error");
+  const placeholder = root && root.querySelector(".astryx-thumbnail__placeholder");
+  return root
+    ? {
+        label: root.getAttribute("aria-label"),
+        title: root.getAttribute("title"),
+        role: root.getAttribute("role"),
+        hasImg: !!root.querySelector("img"),
+        hasPlaceholder: !!placeholder,
+      }
+    : null;
+});
+check(
+  "a thumbnail whose source fails keeps the placeholder (the errored-source cell)",
+  thumbError && thumbError.hasPlaceholder && !thumbError.hasImg,
+  JSON.stringify(thumbError),
+);
+check(
+  "the failing thumbnail is still the group labelled by its own name",
+  thumbError && thumbError.role === "group" && thumbError.label === "broken.png — Anything" && thumbError.title === "broken.png",
+  JSON.stringify(thumbError),
+);
+
+// The per-source freshness cell (a changed src gets a fresh <img> rather than the
+// stale error) cannot be swapped live here — src is a plain string at graph-construction
+// time, so the showcase renders the contract statically: a source that 404s lands on the
+// placeholder. The internal cell is the same Bonsai.state machinery Avatar uses.
+const thumbHover = await page.evaluate(() => {
+  const root = document.getElementById("thumbnail-remove-hover");
+  const slot = root && root.querySelector(".astryx-thumbnail__remove-slot--hover");
+  const btn = slot && slot.querySelector(".astryx-button");
+  return root
+    ? {
+        hasSlot: !!slot,
+        revealed: slot ? getComputedStyle(slot).opacity === "1" : false,
+        btnLabel: btn ? btn.getAttribute("aria-label") : null,
+      }
+    : null;
+});
+check(
+  "the hover-reveal remove button is present but hidden until hover (CSS reveal), named Remove <name>",
+  thumbHover && thumbHover.hasSlot && thumbHover.btnLabel === "Remove report.pdf — A lilac square",
+  JSON.stringify(thumbHover),
+);
+
+const thumbAlways = await page.evaluate(() => {
+  const root = document.getElementById("thumbnail-remove-always");
+  const slot = root && root.querySelector(".astryx-thumbnail__remove-slot");
+  return root
+    ? {
+        hasPlainSlot: !!slot,
+        hasHoverSlot: !!root.querySelector(".astryx-thumbnail__remove-slot--hover"),
+        visible: slot ? getComputedStyle(slot).opacity === "1" : false,
+      }
+    : null;
+});
+check(
+  "show_remove_on always keeps the remove button visible (no hover class)",
+  thumbAlways && thumbAlways.hasPlainSlot && !thumbAlways.hasHoverSlot && thumbAlways.visible,
+  JSON.stringify(thumbAlways),
+);
+
+const thumbInteractive = await page.evaluate(() => {
+  const root = document.getElementById("thumbnail-interactive");
+  const action = root && root.querySelector(".astryx-thumbnail__action");
+  return root
+    ? {
+        tag: action ? action.tagName : null,
+        label: action ? action.getAttribute("aria-label") : null,
+        type: action ? action.getAttribute("type") : null,
+        hasImg: !!root.querySelector("img"),
+      }
+    : null;
+});
+check(
+  "the interactive surface is a real <button type=button> named Open <name>",
+  thumbInteractive && thumbInteractive.tag === "BUTTON" && thumbInteractive.type === "button" && thumbInteractive.label === "Open A lilac square" && thumbInteractive.hasImg,
+  JSON.stringify(thumbInteractive),
+);
+
+const thumbDisabled = await page.evaluate(() => {
+  const root = document.getElementById("thumbnail-disabled");
+  return root
+    ? {
+        disabledClass: root.className.includes("astryx-thumbnail--disabled"),
+        hasAction: !!root.querySelector(".astryx-thumbnail__action"),
+        hasRemove: !!root.querySelector(".astryx-thumbnail__remove-slot"),
+      }
+    : null;
+});
+check(
+  "a disabled thumbnail keeps its class and drops both action buttons",
+  thumbDisabled && thumbDisabled.disabledClass && !thumbDisabled.hasAction && !thumbDisabled.hasRemove,
+  JSON.stringify(thumbDisabled),
+);
+
 // AvatarGroup: the group's ARIA, the chip, and an overlap that can be measured rather than eyeballed.
 const avatarGroup = await page.evaluate(() => {
   const root = document.querySelector("#avatar-group .astryx-avatar-group");
@@ -2927,11 +3028,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 54 ported / 49 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["54", "49", "103"]),
+    "coverage stats are 55 ported / 48 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["55", "48", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 49 entries", cov.unported === 49, `got ${cov.unported}`);
+  check("unported list rendered 48 entries", cov.unported === 48, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

@@ -91,6 +91,29 @@ the ported components render in isolation
   ok   a non-string label falls back to the default accessible name
   ok   explicit aria_label is carried
   ok   the unlabelled default is 'Loading'
+  ok   thumbnail renders without a source
+  ok   the no-source thumbnail shows the placeholder image
+  ok   the image thumbnail renders an img with the src
+  ok   the image thumbnail shows no placeholder
+  ok   the group is role=group with the accessible name
+  ok   a source without alt is decorative (alt='' + role=presentation + aria-hidden)
+  ok   the decorative thumbnail's accessible name is the English fallback
+  ok   loading with a source shows the upload overlay
+  ok   the upload overlay carries a Spinner
+  ok   the upload overlay image still renders
+  ok   loading without a source shows a skeleton
+  ok   the skeleton state renders no placeholder
+  ok   the labelled thumbnail's accessible name joins label — alt
+  ok   the label is carried as the hover title
+  ok   the remove case shows its remove button
+  ok   the remove button is named 'Remove <name>'
+  ok   the default remove reveal is the hover class
+  ok   show_remove_on=always omits the hover class
+  ok   the interactive thumbnail renders a real <button>
+  ok   the open button is named 'Open <name>'
+  ok   the disabled thumbnail carries the disabled class
+  ok   a disabled thumbnail shows neither remove nor open buttons
+  ok   the error handler is wired on the image
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -531,5 +554,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-479 checks, 0 failure(s)
+502 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

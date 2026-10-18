@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 54,
-    "unported": 49,
+    "ported": 55,
+    "unported": 48,
     "total": 103,
     "documented": 103
   },
@@ -294,6 +294,12 @@
       "milestone": "M11"
     },
     {
+      "name": "Thumbnail",
+      "module": "Astryx.Thumbnail",
+      "file": "src/thumbnail.ml",
+      "milestone": "M34"
+    },
+    {
       "name": "Timer",
       "module": "Astryx.Timer",
       "file": "src/timer.ml",
@@ -378,7 +384,6 @@
     "Stepper",
     "TabList",
     "Table",
-    "Thumbnail",
     "TimeInput",
     "Timestamp",
     "Toast",

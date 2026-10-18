@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Spinner` (`src/spinner.ml`, M33)
-- rendered instances in the demo: 15
+- rendered instances in the demo: 16
 - classes: `astryx-spinner`, `astryx-spinner--default`, `astryx-spinner--inherit`, `astryx-spinner--lg`, `astryx-spinner--md`, `astryx-spinner--onMedia`, `astryx-spinner--sm`, `astryx-spinner--subtle`, `astryx-spinner--xl`, `astryx-spinner-wrapper`
 
 ## layout

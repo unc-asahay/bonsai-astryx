@@ -2076,3 +2076,69 @@ let () =
        ; Vdom.Node.div [ Astryx.Spinner.view ~aria_label:"Busy" () ]
        ])
 ;;
+
+(* ----------------------------------------------------------------- Thumbnail (M34)
+
+   A preview card whose states are the contract: placeholder (no source), the image
+   (with the decorative/aliased split), the skeleton (loading, no source), the upload
+   overlay (loading, has source), the remove button (shown always or on hover), the
+   interactive open button, and the disabled case. The per-source error cell is
+   asserted in run.mjs by rendering a fresh mount after an error; the rendered states
+   here cover the rest. All instances live in one graph because Thumbnail owns the
+   failed-source state, the same shape Avatar's fixture uses. *)
+let join_all (trees : Vdom.Node.t Bonsai.t list) =
+  List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+    Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+;;
+
+let thumbnail_component (graph : Bonsai.graph) =
+  let noop (_ : Dom_html.mouseEvent Js.t) = Effect.Ignore in
+  let one ?label ?src ?alt ?on_remove ?on_click ?is_loading ?is_disabled ?show_remove_on
+      ?(id = "astryx-thumbnail") name
+    =
+    Astryx.Thumbnail.view
+      ?src
+      ?alt
+      ?label
+      ?on_remove
+      ?on_click
+      ?is_loading
+      ?is_disabled
+      ?show_remove_on
+      ~id
+      graph
+    |> Bonsai.map ~f:(fun node ->
+           Vdom.Node.div
+             ~attrs:
+               [ Vdom.Attr.create "data-case" name
+               ; Vdom.Attr.create "data-astryx-thumbnail-case" name
+               ]
+             [ node ])
+  in
+  let trees =
+    [ one ~id:"t-plain" "placeholder"
+    ; one ~id:"t-image" ~src:"https://example.invalid/a.jpg" ~alt:"A photo" "image"
+    ; one ~id:"t-decorative" ~src:"https://example.invalid/b.jpg" "decorative"
+    ; one ~id:"t-loading-src" ~src:"https://example.invalid/c.jpg" ~is_loading:true "upload"
+    ; one ~id:"t-loading-none" ~is_loading:true "skeleton"
+    ; one ~id:"t-remove" ~src:"https://example.invalid/d.jpg" ~alt:"R" ~label:"report.pdf"
+        ~on_remove:noop "remove"
+    ; one ~id:"t-remove-always" ~src:"https://example.invalid/e.jpg" ~alt:"A"
+        ~on_remove:noop ~show_remove_on:`Always "remove-always"
+    ; one ~id:"t-interactive" ~src:"https://example.invalid/f.jpg" ~alt:"I"
+        ~on_click:noop "interactive"
+    ; one ~id:"t-disabled" ~src:"https://example.invalid/g.jpg" ~alt:"D"
+        ~on_remove:noop ~on_click:noop ~is_disabled:true "disabled"
+    ]
+  in
+  Bonsai.map (join_all trees) ~f:(fun children -> Vdom.Node.div children)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      thumbnail_component
+  in
+  mount "thumbnail-all" (Bonsai_web_test.Handle.last_result handle)
+;;

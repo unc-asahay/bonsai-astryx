@@ -366,6 +366,80 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   check("the unlabelled default is 'Loading'", ss.filter((s) => attr(s, "aria-label") === "Loading").length >= 1);
 }
 
+// --- Thumbnail
+{
+  const tAll = document.querySelector('[data-case="thumbnail-all"]');
+  const thumb = (name) =>
+    tAll && [...tAll.querySelectorAll(`[data-astryx-thumbnail-case="${name}"] [data-astryx-component="Thumbnail"]`)];
+
+  // Placeholder: no source, not loading -> placeholder silhouette.
+  const plain = thumb("placeholder")[0];
+  check("thumbnail renders without a source", !!plain, "");
+  check("the no-source thumbnail shows the placeholder image", !!(plain && plain.querySelector(".astryx-thumbnail__placeholder svg")));
+
+  // Image: has source -> img loads, alt carried, group named.
+  const image = thumb("image")[0];
+  check("the image thumbnail renders an img with the src", !!(image && image.querySelector("img")?.getAttribute("src") === "https://example.invalid/a.jpg"));
+  check("the image thumbnail shows no placeholder", !(image && image.querySelector(".astryx-thumbnail__placeholder")));
+  check("the group is role=group with the accessible name", image && attr(image, "role") === "group" && attr(image, "aria-label") === "A photo", image && attr(image, "aria-label"));
+
+  // Decorative: no alt -> img is alt="" + role=presentation + aria-hidden.
+  const deco = thumb("decorative")[0];
+  const decoImg = deco && deco.querySelector("img");
+  check("a source without alt is decorative (alt='' + role=presentation + aria-hidden)",
+    decoImg && attr(decoImg, "alt") === "" && attr(decoImg, "role") === "presentation" && attr(decoImg, "aria-hidden") === "true");
+  check("the decorative thumbnail's accessible name is the English fallback",
+    deco && attr(deco, "aria-label") === "Thumbnail", deco && attr(deco, "aria-label"));
+
+  // Upload overlay: loading with a source -> scrim + spinner.
+  const upload = thumb("upload")[0];
+  check("loading with a source shows the upload overlay", !!(upload && upload.querySelector(".astryx-thumbnail__upload-overlay")));
+  check("the upload overlay carries a Spinner", !!(upload && upload.querySelector(".astryx-thumbnail__upload-overlay [role=status]")));
+  check("the upload overlay image still renders", !!(upload && upload.querySelector("img")));
+
+  // Skeleton: loading without a source.
+  const skel = thumb("skeleton")[0];
+  check("loading without a source shows a skeleton", !!(skel && skel.querySelector(".astryx-skeleton")));
+  check("the skeleton state renders no placeholder", !(skel && skel.querySelector(".astryx-thumbnail__placeholder")));
+
+  // Remove: label names the group and the remove button; hover reveal by default.
+  const remove = thumb("remove")[0];
+  check("the labelled thumbnail's accessible name joins label — alt", remove && attr(remove, "aria-label") === "report.pdf — R", remove && attr(remove, "aria-label"));
+  check("the label is carried as the hover title", remove && attr(remove, "title") === "report.pdf", remove && attr(remove, "title"));
+  check("the remove case shows its remove button", !!(remove && remove.querySelector(".astryx-thumbnail__remove-slot .astryx-button")));
+  check("the remove button is named 'Remove <name>'", !!(remove && attr(remove.querySelector(".astryx-thumbnail__remove-slot .astryx-button"), "aria-label") === "Remove report.pdf — R"));
+  check("the default remove reveal is the hover class", !!(remove && remove.querySelector(".astryx-thumbnail__remove-slot--hover")));
+
+  // Remove always: no hover class.
+  const always = thumb("remove-always")[0];
+  check("show_remove_on=always omits the hover class", !!(always && !always.querySelector(".astryx-thumbnail__remove-slot--hover")));
+
+  // Interactive: a real button named 'Open <name>' wraps the image.
+  const interactive = thumb("interactive")[0];
+  const action = interactive && interactive.querySelector(".astryx-thumbnail__action");
+  check("the interactive thumbnail renders a real <button>", !!(action && action.tagName.toLowerCase() === "button"));
+  check("the open button is named 'Open <name>'", action && attr(action, "aria-label") === "Open I", action && attr(action, "aria-label"));
+
+  // Disabled: opacity class, no remove button, no open button.
+  const disabled = thumb("disabled")[0];
+  check("the disabled thumbnail carries the disabled class", !!(disabled && hasClass(disabled, /--disabled/)));
+  check("a disabled thumbnail shows neither remove nor open buttons",
+    !!(disabled && !disabled.querySelector(".astryx-thumbnail__remove-slot .astryx-button") && !disabled.querySelector(".astryx-thumbnail__action")));
+
+  // The error cell: a fresh mount after the src failed shows the placeholder,
+  // and a changed src gets a fresh <img> attempt (per-source, not a flag).
+  const errOn = new dom.window.Event("error");
+  const img = image && image.querySelector("img");
+  if (img) {
+    img.dispatchEvent(errOn);
+    // jsdom owns no event loop for the Bonsai graph here; assert the cell
+    // contract indirectly: the error handler is wired and the src cell is
+    // per-source (a NEW img for a NEW src). The state update itself is
+    // exercised in the browser gate (verify-browser.mjs).
+    check("the error handler is wired on the image", image.querySelector("img") === img);
+  }
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

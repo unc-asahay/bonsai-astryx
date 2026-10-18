@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-55 ported component(s). Each page records the appearance the port
+56 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -14,7 +14,7 @@ for image generation.
 | AvatarGroup | 3 | 1 | 2 | 0 | [AvatarGroup.md](AvatarGroup.md) |
 | Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 67 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 69 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
@@ -32,7 +32,7 @@ for image generation.
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 61 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| Icon | 63 | 15 | 9 | 8 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
@@ -50,13 +50,14 @@ for image generation.
 | Section | 10 | 8 | 9 | 5 | [Section.md](Section.md) |
 | SelectableCard | 6 | 7 | 17 | 15 | [SelectableCard.md](SelectableCard.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
-| Spinner | 15 | 10 | 13 | 7 | [Spinner.md](Spinner.md) |
+| Spinner | 16 | 10 | 13 | 7 | [Spinner.md](Spinner.md) |
 | Stack | 59 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
 | Text | 73 | 16 | 8 | 27 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
+| Thumbnail | 18 | 4 | 13 | 2 | [Thumbnail.md](Thumbnail.md) |
 | Timer | 3 | 0 | 0 | 0 | [Timer.md](Timer.md) |
 | ToggleButton | 6 | 5 | 25 | 11 | [ToggleButton.md](ToggleButton.md) |
 | Token | 8 | 7 | 25 | 13 | [Token.md](Token.md) |
@@ -64,6 +65,6 @@ for image generation.
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 48 components with no OCaml port. They
+Not listed: the 47 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

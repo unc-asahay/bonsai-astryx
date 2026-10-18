@@ -2962,3 +2962,53 @@ modifier is the discriminator.
 - **`label` and `label_node` are separate parts** (upstream's single `ReactNode` `label`): the port
   needs to know whether the visible label is plain text to decide `aria-labelledby`, which OCaml
   cannot infer from a `Vdom.Node.t`.
+
+## Gate 52 — M34: Thumbnail (coverage 54 -> 55)
+
+A square preview card whose four surface states are the contract, and whose interesting part is the
+*state*: one cell remembers the exact source that failed, so a changed source starts a fresh load
+instead of inheriting the stale error — upstream's `erroredSrc`, reproduced via `Bonsai.state` with
+the same freshness test Avatar's image chain uses. The states: no source → placeholder silhouette;
+loading with no known source → skeleton; loading with a source → the scrimmed upload overlay (a
+Spinner); source present and not errored → the image. The remove button (when `on_remove` is set)
+overlays the corner — revealed on hover and keyboard focus by default, always visible on
+`show_remove_on = \`Always` — and is a real `Button`, so its scrim colours are fixed rather than
+luminance-adapting. A label both names the group (`role=group`, name = `label` joined with `alt`
+when both exist) and supplies the hover `title`; the remove button reads "Remove <name>", an
+interactive surface reads "Open <name>" through a real `<button>`. An image without `alt` is
+explicitly decorative (`alt=""` + `role=presentation` + `aria-hidden`), so the name comes from the
+label alone, else the English "Thumbnail" fallback.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **502 checks, 0 failures** (23 new Thumbnail checks).
+- DOM + accessibility (jsdom) — all passed.
+- real browser, showcase — **351 checks, 0 failures**; demo — 25/25.
+- responsive + visual regression — after the deliberate re-baseline (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/Thumbnail.md` exists.
+- agent layer — `ported entries: 55; correctly attributed: 55`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m34*.txt`).
+
+### The attribute trap that produced the duplicate-class failure
+
+The remove button is a composed `Button`, and the first version passed it a caller `class`
+attribute (`astryx-thumbnail__remove`). Vdom refuses to combine duplicate `class` attributes —
+"not combining attributes (name class)" — so the render kept only Button's own classes and the
+modifier never reached the DOM: the fixture's element query found nothing, and the debug DOM dump
+showed the button carrying `astryx-button …` alone. Two sibling spots had the same defect (the
+remove slot's base + hover classes, the surface's base + interactive classes). Both were merged
+into one attribute via `Common.Attr.class_` (the shared helper that joins a list), and the remove
+button's styling moved to a descendant selector (`.astryx-thumbnail__remove-slot .astryx-button`),
+which also keeps the scrim colours off the public class the component does not own. A component that
+composes Button must either take the class on a wrapper or accept that the composed child owns its
+own class — the checker asserting a class a caller cannot influence is the failure mode.
+
+### The per-source cell cannot be shown as a live swap
+
+The port takes `src` as a plain string at graph-construction time (no bind in the Bonsai surface
+this port uses), so a showcase example that *changes* a thumbnail's source cannot exist the way a
+controlled dropdown can. The contract is still asserted: the static example whose source genuinely
+404s lands on the placeholder in the real browser (a real error event fired, exactly the case jsdom
+cannot produce), and the cell itself is the same `Bonsai.state` machinery Avatar's fallback chain
+exercises. The browser gate does not pretend otherwise — the comment in the gate says so.
