@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-56 ported component(s). Each page records the appearance the port
+57 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -47,6 +47,7 @@ for image generation.
 | Popover | 2 | 6 | 15 | 10 | [Popover.md](Popover.md) |
 | ProgressBar | 8 | 1 | 5 | 1 | [ProgressBar.md](ProgressBar.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
+| ScrollableArea | 7 | 1 | 7 | 1 | [ScrollableArea.md](ScrollableArea.md) |
 | Section | 10 | 8 | 9 | 5 | [Section.md](Section.md) |
 | SelectableCard | 6 | 7 | 17 | 15 | [SelectableCard.md](SelectableCard.md) |
 | Skeleton | 10 | 8 | 7 | 8 | [Skeleton.md](Skeleton.md) |
@@ -65,6 +66,6 @@ for image generation.
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 47 components with no OCaml port. They
+Not listed: the 46 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

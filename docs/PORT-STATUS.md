@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **55 of 103** components.
+Ported: **56 of 103** components.
 
 ## Milestones
 
@@ -109,9 +109,10 @@ Ported: **55 of 103** components.
 | `Token` | `Astryx.Token` | `src/token.ml` | M32 | B |
 | `Spinner` | `Astryx.Spinner` | `src/spinner.ml` | M33 | B |
 | `Thumbnail` | `Astryx.Thumbnail` | `src/thumbnail.ml` | M34 | B |
+| `ScrollableArea` | `Astryx.Scrollable_area` | `src/scrollable_area.ml` | M35 | C |
 
-## Not ported yet (48)
+## Not ported yet (47)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `ScrollableArea`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `FileInput`, `HoverCard`, `Item`, `Layer`, `Layout`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NavHeadingMenu`, `NumberInput`, `Outline`, `Overlay`, `Pagination`, `PowerSearch`, `Resizable`, `SegmentedControl`, `Selector`, `SideNav`, `Slider`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`

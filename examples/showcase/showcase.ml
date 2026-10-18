@@ -3533,6 +3533,138 @@ let thumbnail_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+
+(* ScrollableArea is stateful in one thing: the measured state of the viewport, which drives the
+   data-scroll-* attributes, the tabindex, and the overflow/overscroll style. The examples are
+   static geometry - fixed viewport sizes over content that overflows them - and the jsdom harness
+   can only render the pre-measurement state (jsdom has no layout: every client extent is 0 and the
+   viewport is not measurable, so it stays inactive). The live cases - a measured viewport gains
+   tabindex 0, edges flip as it scrolls - are exercised in the browser gate, where layout is real. *)
+let scrollable_area_demo (graph : Bonsai.graph) =
+  let row items =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.class_ "astryx-scrollable-area-demo__row" ]
+      items
+  in
+  let rows count =
+    List.init count ~f:(fun i ->
+      row
+        [ Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "astryx-scrollable-area-demo__index" ]
+            [ Vdom.Node.text (Int.to_string (i + 1)) ]
+        ; Vdom.Node.span
+            [ Vdom.Node.text
+                (sprintf
+                   "Row %d - the viewport is as wide as its content box, and it keeps its own scrollbar." i)
+            ]
+        ])
+  in
+  let chip i =
+    Vdom.Node.span
+      ~attrs:[ Vdom.Attr.class_ "astryx-scrollable-area-demo__chip" ]
+      [ Vdom.Node.text (sprintf "item %d" i) ]
+  in
+  let examples : Vdom.Node.t list Bonsai.t =
+    unwrap_all
+      [ Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-block"
+             ~label:"Activity history"
+             ~height:(Size.Px 180)
+             graph
+             (rows 12))
+          ~f:(ex "block axis: vertical scrolling in a fixed height")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-inline"
+             ~axis:`Inline
+             ~label:"Tags"
+             ~width:(Size.Px 420)
+             graph
+             (List.init 16 ~f:(fun i -> chip (i + 1))))
+          ~f:(ex "inline axis: horizontal scrolling")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-both"
+             ~axis:`Both
+             ~label:"Gallery"
+             ~width:(Size.Px 420)
+             ~height:(Size.Px 180)
+             graph
+             (List.init 40 ~f:(fun i -> chip (i + 1))))
+          ~f:(ex "both axes: a small window over a large grid")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-region"
+             ~role:`Region
+             ~label:"Activity history"
+             ~height:(Size.Px 180)
+             ~overscroll:`Contain
+             graph
+             (rows 12))
+          ~f:(ex "role region + contained overscroll")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-padded"
+             ~label:"Activity history"
+             ~height:(Size.Px 180)
+             ~padding:S.S3
+             graph
+             (rows 8))
+          ~f:(ex "content padding on the spacing scale")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-sticky"
+             ~label:"Activity history"
+             ~height:(Size.Px 180)
+             ~sticky_containment:`Always
+             graph
+             (rows 8))
+          ~f:(ex "sticky containment always: a fitting viewport keeps its boundary")
+      ; Bonsai.map
+          (Astryx.Scrollable_area.view
+             ~id:"scrollable-fitting"
+             ~label:"Activity history"
+             ~height:(Size.Px 180)
+             graph
+             (rows 3))
+          ~f:(ex "fitting content: no effective axis, no tab stop")
+      ]
+  in
+  Bonsai.map examples ~f:(fun examples ->
+    section
+      ~id:"scrollable-area"
+      ~title:"ScrollableArea"
+      ~note:
+        "A native scroll viewport whose accessibility follows the measured geometry, not the \\\
+
+         intent alone. The viewport is the root and its single child is a normal block content \\\
+
+         box; only a requested axis that actually overflows makes the box scrollable, and only \\\
+
+         then does the viewport enter the tab order (tabindex is removed - or held at -1 while \\\
+
+         it still holds focus - when the axis stops being effective). The measured state is \\\
+
+         published as data-scroll-* attributes on the viewport and data-scroll-content on the \\\
+
+         content box, exactly upstream's contract: edges are logical (stable under RTL and \\\
+
+         vertical writing modes), and an inactive axis reports both edges at rest. The \\\
+
+         overflow style is clip until a Sticky boundary is needed, then auto on the overflowed \\\
+
+         axis and hidden on the crossed one, with overscroll-behavior on the requested axes. \\\
+
+         Full-bleed escapes the container's --container-padding-* variables. Divergences: the \\\
+
+         hook's contentOrViewport keyboard delegation is not ported (the component always passes \\\
+
+         owner 'viewport', which upstream never delegates), and the overflow/overscroll values \\\
+
+         are real inline CSS properties rather than stylex custom-property shims."
+      examples)
+;;
+
 let specs =
   [ s_stack (); s_text (); s_heading (); s_button (); s_badge (); s_card (); s_divider ()
   ; s_status_dot (); s_skeleton (); s_center (); s_section (); s_grid (); s_visually_hidden ()
@@ -3602,6 +3734,7 @@ let nav_items =
   ; "dropdownmenu", "DropdownMenu"
   ; "interactive", "Interactive"
   ; "overflow-list", "OverflowList"
+  ; "scrollable-area", "ScrollableArea"
   ]
 ;;
 
@@ -3943,6 +4076,7 @@ let page (graph : Bonsai.graph) =
   let selectable_card_section = selectable_card_demo graph in
   let overflow_list_section = overflow_list_demo graph in
   let thumbnail_section = thumbnail_demo graph in
+  let scrollable_area_section = scrollable_area_demo graph in
   let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
   let stateful =
     pair
@@ -3967,10 +4101,11 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful selectable_card_section in
   let stateful = pair stateful overflow_list_section in
   let stateful = pair stateful thumbnail_section in
+  let stateful = pair stateful scrollable_area_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail)
+    ~f:(fun (((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
@@ -3978,7 +4113,7 @@ Vdom.Node.div
       ; Vdom.Node.main
           ~attrs:[ Vdom.Attr.class_ "main" ]
           (specs
-           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail ])
+           @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area ])
       ])
 ;;
 

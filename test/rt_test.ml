@@ -2142,3 +2142,64 @@ let () =
   in
   mount "thumbnail-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ScrollableArea: the viewport's props and contract are props about the geometry
+   intent; the measured state itself cannot be exercised in jsdom (no layout: every
+   client extent is 0, so the viewport stays unmeasurable and inactive). What the
+   harness CAN render is the pre-measurement contract: the viewport carries role,
+   aria-label, data-scroll-axis (raw, not data-astryx- prefixed - upstream's
+   contract), the content box carries data-scroll-content, and with no effective
+   axis there is no tabindex. The live cases (tabindex appears, edges flip when
+   real layout measures) are the browser gate's job. All instances share one graph
+   because the viewport is stateful. *)
+let scrollable_area_component (graph : Bonsai.graph) =
+  let trees =
+    [ Astryx.Scrollable_area.view
+        ~id:"sa-block"
+        ~label:"Activity history"
+        graph
+        [ Vdom.Node.text "block axis" ]
+    ; Astryx.Scrollable_area.view
+        ~id:"sa-inline"
+        ~axis:`Inline
+        ~label:"Tags"
+        graph
+        [ Vdom.Node.text "inline axis" ]
+    ; Astryx.Scrollable_area.view
+        ~id:"sa-both"
+        ~axis:`Both
+        ~label:"Gallery"
+        graph
+        [ Vdom.Node.text "both axes" ]
+    ; Astryx.Scrollable_area.view
+        ~id:"sa-region"
+        ~role:`Region
+        ~label:"Activity history"
+        ~overscroll:`Contain
+        graph
+        [ Vdom.Node.text "region role" ]
+    ; Astryx.Scrollable_area.view
+        ~id:"sa-padded"
+        ~label:"Activity history"
+        ~padding:Astryx.Common.Spacing.S3
+        graph
+        [ Vdom.Node.text "padded" ]
+    ; Astryx.Scrollable_area.view
+        ~id:"sa-full-bleed"
+        ~label:"Activity history"
+        ~is_full_bleed:true
+        graph
+        [ Vdom.Node.text "full bleed" ]
+    ]
+  in
+  Bonsai.map (join_all trees) ~f:(fun nodes -> Vdom.Node.div nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      scrollable_area_component
+  in
+  mount "scrollable-area-all" (Bonsai_web_test.Handle.last_result handle)
+;;

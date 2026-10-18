@@ -20,6 +20,7 @@ module Common = Common
 module Progress_bar = Progress_bar
 module Spinner = Spinner
 module Thumbnail = Thumbnail
+module Scrollable_area = Scrollable_area
 
 module Tokens = Tokens
 module Timer = Timer

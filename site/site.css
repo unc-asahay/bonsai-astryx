@@ -399,3 +399,32 @@ code {
   border-radius: var(--radius-element);
   background: var(--color-accent);
 }
+
+/* --- ScrollableArea showcase -------------------------------------------------
+   The demo gives the viewports real content: a tall list for the block axis
+   (rows are wide so they show the full content box) and a row of chips for
+   the inline axis. The chips are inline-flex so the whole row becomes wide
+   content, and the two-axis grid wraps so both directions overflow. */
+.astryx-scrollable-area-demo__row {
+  display: flex;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.astryx-scrollable-area-demo__index {
+  flex: 0 0 auto;
+  width: 2ch;
+  text-align: end;
+  color: var(--color-neutral);
+  font-variant-numeric: tabular-nums;
+}
+
+.astryx-scrollable-area-demo__chip {
+  flex: 0 0 auto;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-element);
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  font-size: var(--font-size-3xs);
+}

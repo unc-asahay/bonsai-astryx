@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 55,
-    "unported": 48,
+    "ported": 56,
+    "unported": 47,
     "total": 103,
     "documented": 103
   },
@@ -234,6 +234,12 @@
       "milestone": "M13"
     },
     {
+      "name": "ScrollableArea",
+      "module": "Astryx.Scrollable_area",
+      "file": "src/scrollable_area.ml",
+      "milestone": "M35"
+    },
+    {
       "name": "Section",
       "module": "Astryx.Section",
       "file": "src/section.ml",
@@ -376,7 +382,6 @@
     "Pagination",
     "PowerSearch",
     "Resizable",
-    "ScrollableArea",
     "SegmentedControl",
     "Selector",
     "SideNav",

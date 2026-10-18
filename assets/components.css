@@ -3027,3 +3027,62 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   z-index: 1;
   line-height: 0;
 }
+
+/* --- ScrollableArea ------------------------------------------------------- */
+.astryx-scrollable-area {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: var(--color-neutral) transparent;
+  scrollbar-width: auto;
+  scrollbar-gutter: auto;
+}
+
+/* Chromium can resolve CSS-only stuck/edge presentation for descendants.
+   Unsupported engines keep the hook state as the behavior source of truth. */
+@supports (container-type: scroll-state) {
+  .astryx-scrollable-area {
+    container-type: scroll-state;
+  }
+}
+
+/* The named scroll viewport is a tab stop only while an effective axis exists;
+   the focus ring is the shared one, so a keyboard user sees where the viewport
+   is. */
+.astryx-scrollable-area:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* Full-bleed escapes inherited container padding: the container sets the
+   --container-padding-* variables and this viewport is allowed to break out of
+   them (mirroring upstream's styles.fullBleed). */
+.astryx-scrollable-area--full-bleed {
+  margin-inline-start: calc(-1 * var(--container-padding-inline-start, 0px));
+  margin-inline-end: calc(-1 * var(--container-padding-inline-end, 0px));
+  max-inline-size: calc(100% + var(--container-padding-inline-start, 0px) + var(--container-padding-inline-end, 0px));
+}
+
+.astryx-scrollable-area--full-bleed:first-child {
+  margin-block-start: calc(-1 * var(--container-padding-block-start, 0px));
+}
+
+.astryx-scrollable-area--full-bleed:last-child {
+  margin-block-end: calc(-1 * var(--container-padding-block-end, 0px));
+}
+
+/* The content box participates in the viewport's scroll layout rather than
+   directly: 100% minimum sizes on both axes, and max-content inline sizing
+   when the inline axis is scrollable. */
+.astryx-scrollable-area__content {
+  box-sizing: border-box;
+  min-inline-size: 100%;
+  min-block-size: 100%;
+}
+
+.astryx-scrollable-area__content--inline-overflow {
+  inline-size: max-content;
+}

@@ -440,6 +440,49 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
   }
 }
 
+// --- ScrollableArea
+{
+  const sa = document.querySelector('[data-case="scrollable-area-all"]');
+  const view = (id) => sa && sa.querySelector(`#${id}`);
+  const content = (id) => { const v = view(id); return v && v.querySelector(".astryx-scrollable-area__content"); };
+
+  // The viewport root: the block-axis default, role=group (upstream default).
+  const block = view("sa-block");
+  check("the block viewport renders", !!block, "");
+  check("the viewport is role=group with the accessible label",
+    block && attr(block, "role") === "group" && attr(block, "aria-label") === "Activity history",
+    block && `${attr(block, "role")}/${attr(block, "aria-label")}`);
+  check("the viewport advertises its axis (raw upstream attr, not data-astryx-)",
+    block && attr(block, "data-scroll-axis") === "block", block && attr(block, "data-scroll-axis"));
+  check("the viewport carries the component marker", block && attr(block, "data-astryx-component") === "ScrollableArea", "");
+  check("the content box carries data-scroll-content",
+    !!content("sa-block") && attr(content("sa-block"), "data-scroll-content") !== null);
+
+  // Inactive (jsdom has no layout: 0 extents -> unmeasured): tabindex must be absent.
+  check("an unmeasured viewport is not a tab stop",
+    !!(block && !block.hasAttribute("tabindex")));
+
+  // Axis variants get the correct data-scroll-axis.
+  const inline = view("sa-inline");
+  const both = view("sa-both");
+  check("the inline viewport advertises inline", inline && attr(inline, "data-scroll-axis") === "inline", inline && attr(inline, "data-scroll-axis"));
+  check("the both viewport advertises both", both && attr(both, "data-scroll-axis") === "both", both && attr(both, "data-scroll-axis"));
+
+  // Accessibility: role/region via ~role.
+  const region = view("sa-region");
+  check("~role:Region keeps the region role with the label",
+    region && attr(region, "role") === "region" && attr(region, "aria-label") === "Activity history", "");
+
+  // padding / full-bleed are class-driven presentation, but they must not break
+  // the data-scroll-* contract.
+  const padded = view("sa-padded");
+  const fullBleed = view("sa-full-bleed");
+  check("the padded viewport still carries the axis attribute",
+    padded && attr(padded, "data-scroll-axis") === "block", padded && attr(padded, "data-scroll-axis"));
+  check("the full-bleed viewport carries the full-bleed class",
+    !!(fullBleed && hasClass(fullBleed, /--full-bleed/)));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

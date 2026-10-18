@@ -3012,3 +3012,45 @@ controlled dropdown can. The contract is still asserted: the static example whos
 404s lands on the placeholder in the real browser (a real error event fired, exactly the case jsdom
 cannot produce), and the cell itself is the same `Bonsai.state` machinery Avatar's fallback chain
 exercises. The browser gate does not pretend otherwise — the comment in the gate says so.
+
+## Gate 53 — M35: ScrollableArea (coverage 55 -> 56)
+
+A native scroll viewport whose accessibility follows the *measured* geometry, not the props: the
+viewport (`role=group` by default, `region` via `role`, always labelled) is the root and its single
+child is a normal block content box. Only a requested logical axis that actually overflows becomes
+scrollable, and only then does the viewport enter the tab order (`tabindex=0`; held at `-1` while it
+still holds focus after the axis stops being effective). The measured state is published as the raw
+upstream `data-scroll-*` attributes (not the `data-astryx-*` house prefix — upstream's contract is
+the contract): `data-scroll-axis`, `data-scrollable-{block,inline}`, `data-scroll-{block,inline}-{start,end}`,
+and `data-scroll-content` on the content box. Edges are logical — stable under RTL and vertical
+writing modes, via `Scroll_math` — and an inactive/unrequested axis reports both edges at rest. The
+overflow style is `clip` until a Sticky boundary is needed, then `auto` on the overflowed axis and
+`hidden` on the crossed one; `overscroll-behavior` lands on the requested axes only. Full-bleed
+escapes the container padding through `--container-padding-*` variables.
+
+Divergence: the hook's `contentOrViewport` keyboard delegation is not ported — the component always
+passes `owner: 'viewport'`, so upstream never attaches `scrollKeyboardDelegation.ts` in this path.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **513 checks, 0 failures** (11 new ScrollableArea checks).
+- DOM + accessibility (jsdom) — all passed.
+- real browser, showcase — **356 checks, 0 failures**; demo — 25/25.
+- responsive + visual regression — after the deliberate re-baseline (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/ScrollableArea.md` exists.
+- agent layer — `ported entries: 56; correctly attributed: 56`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m35*.txt`).
+
+### jsdom cannot measure, so it asserts the pre-measurement contract
+
+jsdom has no layout: every client extent is 0, so the measure hook never produces a value and the
+viewport stays inactive there. The jsdom fixture therefore asserts what is true before measurement —
+`data-scroll-axis` and the component marker are present, role/label are right, `data-scroll-content`
+sits on the content box, and an unmeasured viewport has *no* `tabindex` (inactive axes report both
+edges at rest). The live cases — a measured block viewport gains `tabindex=0`, only its overflowing
+axis is advertised as scrollable, scrolling to the end flips the logical edges (start leaves, end
+arrives, after the hook's rAF-scheduled re-measure — the gate reads the edges on a second pass),
+an inline viewport measures the *other* axis into the tab order, a fitting viewport never enters it,
+and a `role=region` viewport with `overscroll=contain` carries its containment to the computed
+longhand style — belong to the real-browser gate, where layout is real.

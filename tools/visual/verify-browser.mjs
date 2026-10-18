@@ -244,6 +244,7 @@ if (mode === "showcase") {
     "Field + TextInput", "TextArea", "FieldLabel", "Indicator", "CheckboxInput", "Switch",
     "RadioList", "FormLayout", "Tooltip", "Dialog", "AlertDialog", "DialogHeader",
     "SelectableCard", "ClickableCard", "OverflowList", "Link", "Token", "Spinner", "Thumbnail",
+    "ScrollableArea",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -606,7 +607,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("58 sections", sections.length === 58, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("59 sections", sections.length === 59, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -627,10 +628,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("340 examples across the page", totalExamples === 340, `got ${totalExamples}`);
+  check("347 examples across the page", totalExamples === 347, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -643,7 +644,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("58 nav links", nav.length === 58, `got ${nav.length}`);
+  check("59 nav links", nav.length === 59, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -2474,6 +2475,121 @@ check(
   JSON.stringify(thumbDisabled),
 );
 
+// ScrollableArea: the states that need real layout — jsdom has no geometry, so the
+// measured contract (tabindex appears on an effective axis, edges flip when the
+// viewport scrolls, data-scroll-* reflect the measured state) is the browser gate's
+// job. The fitting example must stay unmeasured-inactive: no effective axis, no tab
+// stop, and both edges at rest.
+const saFitting = await page.evaluate(() => {
+  const root = document.getElementById("scrollable-fitting");
+  if (!root) return null;
+  return {
+    tabindex: root.hasAttribute("tabindex") ? root.getAttribute("tabindex") : null,
+    blockScrollable: root.getAttribute("data-scrollable-block"),
+    blockStart: root.getAttribute("data-scroll-block-start"),
+    blockEnd: root.getAttribute("data-scroll-block-end"),
+    inlineStart: root.getAttribute("data-scroll-inline-start"),
+    inlineEnd: root.getAttribute("data-scroll-inline-end"),
+  };
+});
+check(
+  "fitting content: no effective axis, so no tab stop and both edges at rest",
+  saFitting &&
+    saFitting.tabindex === null &&
+    saFitting.blockScrollable === null &&
+    saFitting.blockStart === "true" &&
+    saFitting.inlineStart === "true",
+  JSON.stringify(saFitting),
+);
+
+const saBlock = await page.evaluate(() => {
+  const root = document.getElementById("scrollable-block");
+  if (!root) return null;
+  const content = root.querySelector(".astryx-scrollable-area__content");
+  const before = {
+    tabindex: root.hasAttribute("tabindex") ? root.getAttribute("tabindex") : null,
+    role: root.getAttribute("role"),
+    label: root.getAttribute("aria-label"),
+    axis: root.getAttribute("data-scroll-axis"),
+    scrollableBlock: root.getAttribute("data-scrollable-block"),
+    blockStart: root.getAttribute("data-scroll-block-start"),
+    blockEnd: root.getAttribute("data-scroll-block-end"),
+    hasContentMarker: content && content.hasAttribute("data-scroll-content"),
+    clipped: content ? getComputedStyle(content.parentElement).getPropertyValue("--inline-overflow") : null,
+  };
+  // Scroll to the end of the viewport and re-read the edges after the hook's
+  // rAF-scheduled measure has run.
+  root.scrollTop = root.scrollHeight;
+  return { before };
+});
+check(
+  "a measured block viewport is a tab stop (tabindex 0) with the axis contract",
+  saBlock &&
+    saBlock.before.tabindex === "0" &&
+    saBlock.before.role === "group" &&
+    saBlock.before.label === "Activity history" &&
+    saBlock.before.axis === "block" &&
+    saBlock.before.scrollableBlock === "true" &&
+    saBlock.before.hasContentMarker,
+  JSON.stringify(saBlock?.before),
+);
+await page.waitForTimeout(120);
+const saBlockAfter = await page.evaluate(() => {
+  const root = document.getElementById("scrollable-block");
+  if (!root) return null;
+  return {
+    blockStart: root.getAttribute("data-scroll-block-start"),
+    blockEnd: root.getAttribute("data-scroll-block-end"),
+    scrollTop: root.scrollTop,
+  };
+});
+check(
+  "scrolling to the end flips the block edges (start leaves, end arrives)",
+  saBlock && saBlock.before.blockStart === "true" && saBlock.before.blockEnd === null &&
+    saBlockAfter && saBlockAfter.blockStart === null && saBlockAfter.blockEnd === "true",
+  JSON.stringify(saBlockAfter),
+);
+
+const saInline = await page.evaluate(() => {
+  const root = document.getElementById("scrollable-inline");
+  if (!root) return null;
+  return {
+    axis: root.getAttribute("data-scroll-axis"),
+    scrollableInline: root.getAttribute("data-scrollable-inline"),
+    scrollableBlock: root.getAttribute("data-scrollable-block"),
+    inlineStart: root.getAttribute("data-scroll-inline-start"),
+    tabindex: root.hasAttribute("tabindex") ? root.getAttribute("tabindex") : null,
+  };
+});
+check(
+  "the inline viewport measures the inline axis (not the block one) into a tab stop",
+  saInline &&
+    saInline.axis === "inline" &&
+    saInline.scrollableInline === "true" &&
+    saInline.scrollableBlock === null &&
+    saInline.inlineStart === "true" &&
+    saInline.tabindex === "0",
+  JSON.stringify(saInline),
+);
+
+const saRegion = await page.evaluate(() => {
+  const root = document.getElementById("scrollable-region");
+  return root
+    ? {
+        role: root.getAttribute("role"),
+        label: root.getAttribute("aria-label"),
+        // The component sets the longhands, not the shorthand.
+        overscrollY: root.style.overscrollBehaviorY ?? null,
+      }
+    : null;
+});
+check(
+  "~role:Region + contained overscroll are carried to the viewport",
+  saRegion && saRegion.role === "region" && saRegion.label === "Activity history" &&
+    (saRegion.overscrollY ?? "").includes("contain"),
+  JSON.stringify(saRegion),
+);
+
 // AvatarGroup: the group's ARIA, the chip, and an overlap that can be measured rather than eyeballed.
 const avatarGroup = await page.evaluate(() => {
   const root = document.querySelector("#avatar-group .astryx-avatar-group");
@@ -3028,11 +3144,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 55 ported / 48 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["55", "48", "103"]),
+    "coverage stats are 56 ported / 47 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["56", "47", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 48 entries", cov.unported === 48, `got ${cov.unported}`);
+  check("unported list rendered 47 entries", cov.unported === 47, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
