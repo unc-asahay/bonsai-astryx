@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 62,
-    "unported": 41,
+    "ported": 63,
+    "unported": 40,
     "total": 103,
     "documented": 103
   },
@@ -190,6 +190,12 @@
       "module": "Astryx.Kbd",
       "file": "src/kbd.ml",
       "milestone": "M15"
+    },
+    {
+      "name": "Layer",
+      "module": "Astryx.Layer",
+      "file": "src/layer.ml",
+      "milestone": "M43"
     },
     {
       "name": "Layout",
@@ -403,7 +409,6 @@
     "DateTimeInput",
     "HoverCard",
     "Item",
-    "Layer",
     "Lightbox",
     "List",
     "Markdown",

@@ -460,3 +460,7 @@ code {
   background: transparent;
   cursor: pointer;
 }
+
+/* Layer demo (M43): the anchor the inset example positions against. The name is static (one demo
+   anchor per page); the surface refers to it from its inline position-anchor. */
+.astryx-layer-demo__anchor { display: inline-flex; anchor-name: --astryx-layer-demo-anchor; }

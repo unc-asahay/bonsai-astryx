@@ -20,6 +20,7 @@ module S = Astryx.Common.Spacing
 module A = Astryx.Common.Alignment
 module Size = Astryx.Common.Size_value
 module Text = Astryx.Text
+module Layer = Astryx.Layer
 
 (* ---------------------------------------------------------------- chrome *)
 
@@ -2820,7 +2821,84 @@ let layer_demo (graph : Bonsai.graph) =
         ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__wrap" ]
         [ trigger; surface; readout ])
   in
-  (* Two trees, in the order the match below destructures them — the same pairwise discipline the rest
+  (* The third example: an app-declared inset. The provider is Layer.Provider — the port's answer to
+     upstream's React context. It writes the inset as custom properties on its own (display: contents)
+     element, and inheritance carries them to the layer; the gutter in components.css reads
+     var(--astryx-layer-inset-*, 0px) exactly as upstream's does. The surface is the geometry half of
+     M43: Layer.surface_attrs is the pure rules composed — position-anchor/position-area/
+     position-try-fallbacks inline, the base, margin and gutter classes. The gate measures the gutter
+     and the caps from computed style. *)
+  let inset_one =
+    let is_open, set_is_open = Bonsai.state false graph in
+    let trigger =
+      Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+        Vdom.Node.span
+          ~attrs:
+            [ Vdom.Attr.create "id" "showcase-layer-inset-trigger-wrapper"
+              (* The anchor name is static on this wrapper (the demo stylesheet), and the surface
+                 writes position-anchor referencing it. *)
+            ; Vdom.Attr.class_ "astryx-layer-demo__anchor"
+            ; Astryx.Common.Layer_trigger_hook.attr
+                ~controls:"showcase-layer-inset-surface"
+                ~is_open
+                ~on_toggle:(set (not is_open))
+                ()
+            ]
+          [ Astryx.Button.view
+              ~label:"Open a layer under a 56px bottom bar"
+              ~attrs:[ Vdom.Attr.create "id" "showcase-layer-inset-trigger" ]
+              [] ])
+    in
+    let surface =
+      Bonsai.map2 is_open set_is_open ~f:(fun is_open set ->
+        Vdom.Node.div
+          ~attrs:
+            ([ Vdom.Attr.create "id" "showcase-layer-inset-surface"
+             ; Vdom.Attr.create "popover" "auto"
+             ]
+             @ Layer.surface_attrs
+                 ~placement:Layer.Below
+                 ~alignment:Layer.Align_center
+                 ~anchor:"--astryx-layer-demo-anchor"
+                 ()
+             @ Astryx.Common.Attr.data "component" "Layer"
+             @ [ Astryx.Common.Layer_hook.attr ~is_open ~on_platform_close:(set false) ])
+          [ Vdom.Node.div
+              ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__title" ]
+              [ Vdom.Node.text "An anchored layer inside a declared inset" ]
+          ; Vdom.Node.p
+              ~attrs:[ Vdom.Attr.class_ "astryx-layer-demo__body" ]
+              [ Vdom.Node.text
+                  "The provider declares a 56px bar on the block-end edge. The viewport gutter reads \
+                   max(var(--spacing-4), env(safe-area-inset-bottom)) + \
+                   var(--astryx-layer-inset-block-end, 0px), and the caps are the viewport minus both \
+                   gutters — the gate measures both from computed style."
+              ]
+          ; Astryx.Button.view
+              ~label:"Close it from the application"
+              ~attrs:[ Vdom.Attr.create "id" "showcase-layer-inset-close" ]
+              ~on_click:(fun _ -> set false)
+              [] ])
+    in
+    let readout =
+      Bonsai.map is_open ~f:(fun is_open ->
+        Vdom.Node.div
+          ~attrs:
+            [ Vdom.Attr.create "id" "showcase-layer-inset-state"
+            ; Vdom.Attr.class_ "astryx-layer-demo__state"
+            ]
+          [ Vdom.Node.text
+              (Printf.sprintf
+                 "the value the application holds: %s"
+                 (if is_open then "open" else "closed")) ])
+    in
+    Bonsai.map3 trigger surface readout ~f:(fun trigger surface readout ->
+      Layer.Provider.view
+        ~attrs:[ Vdom.Attr.create "id" "showcase-layer-inset-provider" ]
+        ~inset:(Layer.inset ~block_end:(Size.Px 56) ())
+        [ trigger; surface; readout ])
+  in
+  (* The trees, in the order the match below destructures them — the same pairwise discipline the rest
      of this file uses, since Bonsai offers no list combinator over trees. *)
   let examples =
     [ one
@@ -2831,11 +2909,12 @@ let layer_demo (graph : Bonsai.graph) =
         ~id:"showcase-layer-manual"
         ~popover_kind:"manual"
         ~label:"Open a layer the platform leaves alone"
+    ; inset_one
     ]
   in
   Bonsai.map (join_all examples) ~f:(fun examples ->
     match examples with
-    | [ auto; manual ] ->
+    | [ auto; manual; inset ] ->
       section
         ~id:"layer"
         ~title:"Layer"
@@ -2856,6 +2935,7 @@ let layer_demo (graph : Bonsai.graph) =
         (* Inside the map the trees are resolved, so these are plain nodes. *)
         [ ex "dismissed by the platform (popover=auto)" auto
         ; ex "explicit dismissal only (popover=manual)" manual
+        ; ex "an app-declared inset narrows the gutter" inset
         ]
     | _ -> Vdom.Node.none)
 ;;

@@ -3341,3 +3341,69 @@ full upstream parity around a `ref`-based API is not attempted.
 - appearance contract — regenerated; `docs/visual/Slider.md` exists (63 pages in total).
 - agent layer — `ported entries: 62; correctly attributed: 62`, MCP truthful.
 - **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m42.txt`).
+## Gate 60 — M43: Layer (coverage 62 -> 63)
+
+The shared geometry of the overlay family, ported from `facebook/astryx` `Layer/` (the
+`LayerProvider` plus the *rules* half of `useLayer.tsx`; the rendering half of `useLayer`
+assembles a popover surface, and this port already has that — `Astryx.Popover` plus the
+`Common.Layer_hook`/`Layer_trigger_hook` from M16). What Layer owns is the app-declared
+inset — a persistent bar floating over a viewport edge (a phone nav bar, a docked toolbar)
+— and the pure rules an anchored layer runs on: `position_area` (getPositionArea), the
+`position_try_fallbacks` list (flips first, then the named slides; a centered pair keeps
+its one-sided spans ahead of the full span so it slides the least distance first),
+`self_alignment` (while the anchor is out of view an aligned layer pins its alignment
+`unsafe` toward the anchor — the caller supplies the answer, since the port does not
+observe the anchor), plus the viewport gutter/cap contract: `layerViewportInset.stylex.ts`
+verbatim as one CSS block in `assets/components.css` — `--astryx-layer-inset-*` custom
+properties, per-edge gutters `calc(max(spacing, env(safe-area-inset-*)) + declared)`, and
+the caps `calc(100vi/dvb - both gutters)` — and the 24 static `@position-try` slide options
+(`layerSlideRules.ts`): 4 placements × 3 alignments × 2 sides, each carrying its own
+gutter and clearance declarations so a slide keeps the clearance toward the anchor.
+
+The provider is `Astryx.Layer.Provider.view` — the port's answer to upstream's React
+context. It writes the four custom properties on its own `display: contents` element and
+lets them inherit (no portal in this port, so the gutter reads them exactly as upstream's
+does); an undeclared edge sets nothing and reads `0px` through the gutter's fallback.
+`Astryx.Layer.surface_attrs` composes the base class, the placement/margin classes
+(`--far-*` without offset, `--placement-*` with one, where the offset also travels as
+`--_astryx-layer-clearance`) and the gutter classes with the inline anchor wiring:
+`position-anchor`, `position-area`, `position-try-fallbacks`, and the self-alignment when
+it applies.
+
+Named divergences, each stated in `layer.mli` rather than silently dropped: the slide
+rules ship as a static sheet in the stylesheet, not from a JS install
+(`ensureSlideRules` — the port has no document handle at module scope; `slide_rules_css`
+is the generator, and the component gate asserts the shipped file contains exactly what
+it generates); no dismissal stack (`layerStack.ts` — upstream needs it because its layers
+are `popover="manual"` with JS dismissal; this port's layers are `popover="auto"` and the
+platform's close watcher already owns one Escape); no touch trigger
+(`useTouchTrigger`/`isActionTrigger` — a touch model for hover-type layers, and the gates
+drive the mouse). `Popover` keeps its own `placement`/`alignment` copies for now; a later
+milestone re-exports these destructively, per the mechanism-owns-types rule. The port is
+tier C (utility geometry, like Layout and Slider); `registry.json` has it in Utility
+group.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **609 checks, 0 failures** (24 new Layer geometry checks: four
+  position-areas, both fallback shapes — centered and aligned — all four
+  self-alignment branches, the slide-name format, the inset property list, and the
+  provider/surface structure: custom properties on the provider, display: contents, the
+  class list of a centered far-below surface, the inline anchor wiring, the clearance
+  travelling only with an offset, and the stylesheet shipping all 24 slide options in the
+  generator's order).
+- DOM + accessibility (jsdom) — all passed (fixture unchanged).
+- real browser, showcase — **424 checks, 0 failures** (8 new live Layer inset checks:
+  the declaration lives on the provider and inherits to the layer, the platform anchors
+  it at the block end, the far gutter computes to spacing + the declared 56px (72px),
+  the block cap is the viewport minus both gutters, the surface clears the declared bar,
+  the fallbacks name the sheet's slide options, and Escape closes it like any other. The
+  gate centres the trigger before opening: the Layer section sits at the bottom of the
+  showcase, so a plain click-into-view lands the anchor at the viewport edge and the
+  platform rightly flips it — the flip is the platform's, not what this block measures).
+- responsive + visual regression — re-baselined (the new example grows the page);
+  66 checks, 0 failures, 0.00% pixel drift.
+- appearance contract — regenerated; `docs/visual/Layer.md` exists (64 pages in total).
+- agent layer — `ported: 63 of 103`, `Astryx.Layer` attributed, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m43.txt`).

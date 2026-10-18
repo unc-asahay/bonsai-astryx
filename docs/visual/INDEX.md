@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-63 ported component(s). Each page records the appearance the port
+64 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -14,7 +14,7 @@ for image generation.
 | AvatarGroup | 3 | 1 | 2 | 0 | [AvatarGroup.md](AvatarGroup.md) |
 | Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
-| Button | 71 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 73 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
@@ -39,6 +39,7 @@ for image generation.
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
 | InputGroupText | 2 | 1 | 8 | 5 | [InputGroupText.md](InputGroupText.md) |
 | Kbd | 15 | 1 | 4 | 1 | [Kbd.md](Kbd.md) |
+| Layer | 3 | 5 | 12 | 5 | [Layer.md](Layer.md) |
 | Layout | 6 | 3 | 7 | 5 | [Layout.md](Layout.md) |
 | Link | 5 | 4 | 3 | 1 | [Link.md](Link.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
@@ -72,6 +73,6 @@ for image generation.
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 40 components with no OCaml port. They
+Not listed: the 39 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

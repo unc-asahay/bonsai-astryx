@@ -1609,6 +1609,141 @@ let () =
   |> fun handle -> mount "layer" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ------------------------------------------------------------------ Layer geometry (M43)
+   The heart of Layer is pure: upstream's getPositionArea / getPositionTryFallbacks /
+   getSelfAlignment are functions, not DOM, and this harness can press both branches of the
+   anchor positioning without a browser — jsdom has none. The provider is a structure fact:
+   display: contents, one custom property per declared edge, inherited by children. The
+   surface attrs are structure too: the class list and the inline style, asserted verbatim.
+   The live geometry (computed gutter, caps) is the browser gate's, as always. *)
+
+let layer_geometry_static (_ : Bonsai.graph) =
+  let rule id text = Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text text ] in
+  let self_alignment_text placement alignment in_view =
+    match
+      Astryx.Layer.self_alignment ~placement ~alignment ~is_anchor_in_view:in_view
+    with
+    | None -> "none"
+    | Some { property; value } ->
+        Printf.sprintf
+          "%s:%s"
+          (match property with
+           | `Align_self -> "align-self"
+           | `Justify_self -> "justify-self")
+          value
+  in
+  let surface =
+    Astryx.Layer.surface_attrs
+      ~placement:Astryx.Layer.Below
+      ~alignment:Astryx.Layer.Align_center
+      ~anchor:"--demo-anchor"
+      ()
+  in
+  let surface_offset =
+    Astryx.Layer.surface_attrs
+      ~placement:Astryx.Layer.Below
+      ~alignment:Astryx.Layer.Align_start
+      ~anchor:"--demo-anchor"
+      ~offset:(Astryx.Common.Size_value.Px 8)
+      ()
+  in
+  Bonsai.return
+    (Vdom.Node.div
+       [ rule "layer-geo-area-below-center"
+           (Astryx.Layer.position_area
+              ~placement:Astryx.Layer.Below
+              ~alignment:Astryx.Layer.Align_center
+              ())
+       ; rule "layer-geo-area-above-start"
+           (Astryx.Layer.position_area
+              ~placement:Astryx.Layer.Above
+              ~alignment:Astryx.Layer.Align_start
+              ())
+       ; rule "layer-geo-area-end-end"
+           (Astryx.Layer.position_area
+              ~placement:Astryx.Layer.End
+              ~alignment:Astryx.Layer.Align_end
+              ())
+       ; rule "layer-geo-area-start-end"
+           (Astryx.Layer.position_area
+              ~placement:Astryx.Layer.Start
+              ~alignment:Astryx.Layer.Align_end
+              ())
+       ; rule "layer-geo-fallbacks-below-center"
+           (Astryx.Layer.position_try_fallbacks
+              ~placement:Astryx.Layer.Below
+              ~alignment:Astryx.Layer.Align_center
+              ())
+       ; rule "layer-geo-fallbacks-start-start"
+           (Astryx.Layer.position_try_fallbacks
+              ~placement:Astryx.Layer.Start
+              ~alignment:Astryx.Layer.Align_start
+              ())
+       ; rule "layer-geo-self-aligned-inview"
+           (self_alignment_text
+              Astryx.Layer.Below
+              Astryx.Layer.Align_start
+              true)
+       ; rule "layer-geo-self-aligned-out"
+           (self_alignment_text
+              Astryx.Layer.Below
+              Astryx.Layer.Align_start
+              false)
+       ; rule "layer-geo-self-centered-out"
+           (self_alignment_text
+              Astryx.Layer.Below
+              Astryx.Layer.Align_center
+              false)
+       ; rule "layer-geo-self-inline-out"
+           (self_alignment_text
+              Astryx.Layer.End
+              Astryx.Layer.Align_end
+              false)
+       ; rule "layer-geo-slide-name"
+           (Astryx.Layer.slide_rule_name
+              ~placement:Astryx.Layer.Below
+              ~alignment:Astryx.Layer.Align_center
+              ~side:Astryx.Layer.Same)
+       ; rule "layer-geo-inset-properties"
+           (Astryx.Layer.inset_properties
+              (Astryx.Layer.inset
+                 ~block_end:(Astryx.Common.Size_value.Px 56)
+                 ~inline_start:(Astryx.Common.Size_value.Css "12px")
+                 ())
+           |> List.map ~f:(fun (k, v) -> k ^ "=" ^ v) |> String.concat ~sep:",")
+       (* The provider: the declaration on the element the gate can read, and the surface
+          it carries. *)
+       ; Vdom.Node.div
+           ~attrs:
+             [ Vdom.Attr.create "id" "layer-geo-provider" ]
+           [ Astryx.Layer.Provider.view
+               ~inset:
+                 (Astryx.Layer.inset
+                    ~block_end:(Astryx.Common.Size_value.Px 56)
+                    ())
+               [ Vdom.Node.div
+                   ~attrs:
+                     ([ Vdom.Attr.create "id" "layer-geo-surface"
+                      ; Vdom.Attr.create "popover" "manual"
+                      ]
+                      @ surface)
+                   [ Vdom.Node.text "layer geo content" ]
+               ; Vdom.Node.div
+                   ~attrs:
+                     ([ Vdom.Attr.create "id" "layer-geo-surface-offset" ]
+                      @ surface_offset)
+                   [ Vdom.Node.text "layer geo offset content" ]
+               ] ]
+       ])
+;;
+
+let () =
+  Bonsai_web_test.Handle.create
+    (Bonsai_web_test.Result_spec.vdom Fn.id)
+    layer_geometry_static
+  |> fun handle -> mount "layer-geometry" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 (* --------------------------------------------------------------------------------- ButtonGroup (M17) *)
 (* What belongs in this gate is the structure, not the behaviour: the roving tab stop is written by a
    mount effect, and this harness does not pump those (see Gate 30). The browser gate asserts that the

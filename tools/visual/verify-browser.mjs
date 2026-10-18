@@ -631,13 +631,13 @@ if (mode === "showcase") {
     IconButton: 5, Code: 5, Blockquote: 2,
     NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
     FieldStatus: 4, DropdownMenu: 4, Interactive: 2, CheckboxInput: 11, Switch: 9,
-    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
+    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
     Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("393 examples across the page", totalExamples === 393, `got ${totalExamples}`);
+  check("394 examples across the page", totalExamples === 394, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -1548,6 +1548,66 @@ if (mode === "showcase") {
     await page.waitForTimeout(250);
     check("Enter again closes it",
       (await layerState("showcase-layer-auto")).open === false);
+
+    /* --------------------------------------------------- Layer: the app-declared inset (M43)
+       The geometry the port owns: the provider's declaration must reach the layer (inherited
+       custom property), the gutter must be spacing + declared inset, and the cap must be the
+       viewport minus both gutters. All measured, not read back from classes. */
+    /* The Layer section sits at the bottom of the showcase, so a plain click-into-view lands
+       the anchor at the viewport's bottom edge and the platform correctly flips to the other
+       side — which is not what this block is about. Center the anchor first so the declaration
+       (gutter, cap, placement) is what is measured. */
+    await page.evaluate(() => {
+      document
+        .getElementById("showcase-layer-inset-trigger")
+        ?.scrollIntoView({ block: "center" });
+    });
+    await page.waitForTimeout(200);
+    await page.click("#showcase-layer-inset-trigger");
+    await page.waitForTimeout(250);
+    const insetInfo = await page.evaluate(() => {
+      const provider = document.getElementById("showcase-layer-inset-provider");
+      const surface = document.getElementById("showcase-layer-inset-surface");
+      const cs = surface ? getComputedStyle(surface) : null;
+      const rect = surface?.getBoundingClientRect() ?? null;
+      return {
+        open: !!surface?.matches(":popover-open"),
+        providerClass: provider ? provider.className : null,
+        inset: cs ? cs.getPropertyValue("--astryx-layer-inset-block-end").trim() : null,
+        positionArea: cs ? cs.positionArea : null,
+        inlineFallbacks: surface?.getAttribute("style") ?? null,
+        marginBlockEnd: cs ? cs.marginBlockEnd : null,
+        maxBlockSize: cs ? cs.maxBlockSize : null,
+        viewportH: window.innerHeight,
+        surfaceBottom: rect ? Math.round(rect.bottom) : null,
+      };
+    });
+    check("the layer under a declared inset opens",
+      insetInfo.open === true, JSON.stringify(insetInfo));
+    check("the declaration sits on the provider and inherits to the layer",
+      !!insetInfo.providerClass?.includes("astryx-layer-provider") && insetInfo.inset === "56px",
+      JSON.stringify({ cls: insetInfo.providerClass, inset: insetInfo.inset }));
+    check("the surface is anchored at the block end by the platform",
+      insetInfo.positionArea === "self-block-end", String(insetInfo.positionArea));
+    check("the far gutter is the spacing plus the declared inset",
+      insetInfo.marginBlockEnd === "72px", String(insetInfo.marginBlockEnd));
+    /* The cap is the viewport minus both gutters: plain spacing on the start edge, spacing
+       plus the declared 56px on the end edge (1rem is 16px). Computed from the live viewport
+       so the check does not depend on the gate's window size. */
+    check("the block cap is the viewport minus both gutters",
+      insetInfo.maxBlockSize === `${insetInfo.viewportH - 16 - 72}px`,
+      `got ${insetInfo.maxBlockSize} for viewport ${insetInfo.viewportH}`);
+    check("the surface clears the declared bar, not just the viewport",
+      insetInfo.surfaceBottom !== null && insetInfo.surfaceBottom <= insetInfo.viewportH - 72,
+      JSON.stringify({ bottom: insetInfo.surfaceBottom, viewportH: insetInfo.viewportH }));
+    check("the fallbacks name the slide options the stylesheet defines",
+      (insetInfo.inlineFallbacks ?? "").includes("--astryx-layer-slide-below-center-same"),
+      String(insetInfo.inlineFallbacks));
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    const insetClosed = await page.evaluate(() =>
+      document.getElementById("showcase-layer-inset-surface")?.matches(":popover-open"));
+    check("Escape closes the inset layer like any other", insetClosed === false, String(insetClosed));
 
     /* ------------------------------------------------------------------ ButtonGroup (M17) */
 /* One tab stop with the arrows moving within it is behaviour the platform provides for radios and not
@@ -3778,11 +3838,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 62 ported / 41 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["62", "41", "103"]),
+    "coverage stats are 63 ported / 40 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["63", "40", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 41 entries", cov.unported === 41, `got ${cov.unported}`);
+  check("unported list rendered 40 entries", cov.unported === 40, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

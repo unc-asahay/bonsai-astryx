@@ -105,4 +105,5 @@ module Interactive_role = Interactive_role
 module Target_and_rel = Target_and_rel
 module Link = Link
 module Layout = Layout
+module Layer = Layer
 module Token = Token

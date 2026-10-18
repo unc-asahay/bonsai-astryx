@@ -656,6 +656,13 @@
       "file": "src/slider.ml",
       "milestone": "M42",
       "module": "Astryx.Slider"
+    },
+    {
+      "class": "C",
+      "component": "Layer",
+      "file": "src/layer.ml",
+      "milestone": "M43",
+      "module": "Astryx.Layer"
     }
   ],
   "schema": 1,

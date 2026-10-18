@@ -635,6 +635,30 @@ DialogHeader
   ok   nothing claims the layer is open in the DOM when the platform cannot say so
   ok   the wrapper the mechanism lives on contains a real button for it to find
   ok   with the surface it controls as a sibling in the same root
+  ok   a below/center layer covers the block end of the anchor
+  ok   an above/start layer covers the named corner of the anchor
+  ok   an end/end layer is the block-start span of the inline end
+  ok   a start/end layer is the block-start span of the inline start
+  ok   centered fallbacks flip first, then slide the least distance
+  ok   an aligned pair falls back to flips and its two slides only
+  ok   a visible anchor keeps the browser's default alignment
+  ok   an out-of-view aligned layer pins justify-self unsafe toward the anchor
+  ok   centered layers never pin their alignment
+  ok   inline placements pin align-self instead of justify-self
+  ok   slide names are the names the stylesheet defines
+  ok   the inset declares one custom property per declared edge
+  ok   the provider element exists
+  ok   it writes the block-end inset for its subtree
+  ok   and adds no box of its own
+  ok   the surface carries the base and the far placement classes
+  ok   centered layers keep both inline gutters
+  ok   it writes the anchor wiring inline
+  ok   including the full fallbacks list
+  ok   with no clearance when the caller gave no offset
+  ok   an offset swaps the margin class for the placement class
+  ok   and travels as the clearance custom property
+  ok   the stylesheet ships all 24 slide options
+  ok   including the first and last of the generator's order
   ok   the group is one named region
   ok   with every member inside it
   ok   including one that is disabled, not just styled that way
@@ -670,5 +694,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-585 checks, 0 failure(s)
+609 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -2164,6 +2164,108 @@ section("FieldLabel");
     layerRoot ? layerRoot.innerHTML.slice(0, 80) : "no root");
 }
 
+/* --------------------------------------------------------- Layer geometry (M43)
+   The geometry is pure functions; the harness can press both branches without a browser
+   (and jsdom has no anchor positioning at all). The provider and the surface are
+   structure, so the custom property, the class list and the inline wiring are asserted
+   here; the computed gutter and caps are the browser gate's. */
+{
+  const rule = (id) => document.getElementById(id)?.textContent ?? "";
+  check("a below/center layer covers the block end of the anchor",
+    rule("layer-geo-area-below-center") === "self-block-end",
+    rule("layer-geo-area-below-center"));
+  check("an above/start layer covers the named corner of the anchor",
+    rule("layer-geo-area-above-start") === "self-block-start span-self-inline-end",
+    rule("layer-geo-area-above-start"));
+  check("an end/end layer is the block-start span of the inline end",
+    rule("layer-geo-area-end-end") === "self-inline-end span-self-block-start",
+    rule("layer-geo-area-end-end"));
+  check("a start/end layer is the block-start span of the inline start",
+    rule("layer-geo-area-start-end") === "self-inline-start span-self-block-start",
+    rule("layer-geo-area-start-end"));
+  check("centered fallbacks flip first, then slide the least distance",
+    rule("layer-geo-fallbacks-below-center")
+      === "flip-block, flip-inline, flip-block flip-inline, bottom span-left, bottom span-right, top span-left, top span-right, --astryx-layer-slide-below-center-same, --astryx-layer-slide-below-center-opposite",
+    rule("layer-geo-fallbacks-below-center"));
+  check("an aligned pair falls back to flips and its two slides only",
+    rule("layer-geo-fallbacks-start-start")
+      === "flip-block, flip-inline, flip-block flip-inline, --astryx-layer-slide-start-start-same, --astryx-layer-slide-start-start-opposite",
+    rule("layer-geo-fallbacks-start-start"));
+  check("a visible anchor keeps the browser's default alignment",
+    rule("layer-geo-self-aligned-inview") === "none",
+    rule("layer-geo-self-aligned-inview"));
+  check("an out-of-view aligned layer pins justify-self unsafe toward the anchor",
+    rule("layer-geo-self-aligned-out") === "justify-self:unsafe self-start",
+    rule("layer-geo-self-aligned-out"));
+  check("centered layers never pin their alignment",
+    rule("layer-geo-self-centered-out") === "none",
+    rule("layer-geo-self-centered-out"));
+  check("inline placements pin align-self instead of justify-self",
+    rule("layer-geo-self-inline-out") === "align-self:unsafe self-end",
+    rule("layer-geo-self-inline-out"));
+  check("slide names are the names the stylesheet defines",
+    rule("layer-geo-slide-name") === "--astryx-layer-slide-below-center-same",
+    rule("layer-geo-slide-name"));
+  check("the inset declares one custom property per declared edge",
+    rule("layer-geo-inset-properties")
+      === "--astryx-layer-inset-block-end=56px,--astryx-layer-inset-inline-start=12px",
+    rule("layer-geo-inset-properties"));
+
+  const provider =
+    document.getElementById("layer-geo-provider")?.querySelector(".astryx-layer-provider");
+  check("the provider element exists", !!provider, "provider missing");
+  /* jsdom's cssstyle normalizes known properties ("display: contents", space after the
+     custom-property colon), so both sides are flattened before comparing. */
+  const flat = (s) => (s ?? "").replace(/:\s+/g, ":").replace(/;\s*/g, ";");
+  check("it writes the block-end inset for its subtree",
+    flat(provider?.getAttribute("style")).includes("--astryx-layer-inset-block-end:56px"),
+    provider?.getAttribute("style"));
+  check("and adds no box of its own",
+    flat(provider?.getAttribute("style")).includes("display:contents"),
+    provider?.getAttribute("style"));
+
+  const surface = document.getElementById("layer-geo-surface");
+  const surfaceClasses = (surface?.getAttribute("class") ?? "").split(/\s+/);
+  check("the surface carries the base and the far placement classes",
+    surfaceClasses.includes("astryx-layer") && surfaceClasses.includes("astryx-layer--far-below"),
+    surface?.getAttribute("class"));
+  check("centered layers keep both inline gutters",
+    surfaceClasses.includes("astryx-layer--gutter-inline-start")
+      && surfaceClasses.includes("astryx-layer--gutter-inline-end"),
+    surface?.getAttribute("class"));
+  const surfaceStyle = flat(surface?.getAttribute("style"));
+  check("it writes the anchor wiring inline",
+    surfaceStyle.includes("position-anchor:--demo-anchor")
+      && surfaceStyle.includes("position-area:self-block-end"),
+    surfaceStyle);
+  check("including the full fallbacks list",
+    surfaceStyle.includes("--astryx-layer-slide-below-center-opposite"),
+    surfaceStyle);
+  check("with no clearance when the caller gave no offset",
+    !surfaceStyle.includes("--_astryx-layer-clearance"), surfaceStyle);
+
+  const offsetSurface = document.getElementById("layer-geo-surface-offset");
+  const offsetClasses = (offsetSurface?.getAttribute("class") ?? "").split(/\s+/);
+  check("an offset swaps the margin class for the placement class",
+    offsetClasses.includes("astryx-layer--placement-below")
+      && !offsetClasses.includes("astryx-layer--far-below"),
+    offsetSurface?.getAttribute("class"));
+  check("and travels as the clearance custom property",
+    flat(offsetSurface?.getAttribute("style")).includes("--_astryx-layer-clearance:8px"),
+    offsetSurface?.getAttribute("style"));
+
+  /* The module generates the slide sheet; the stylesheet must ship what it generates. The
+     generator itself is machine-checked here by counting the options it actually names and
+     spot-checking the two ends of its ordering. */
+  const layerCss = readFileSync(resolve(root, "assets/components.css"), "utf8");
+  const slideCount = (layerCss.match(/@position-try --astryx-layer-slide-/g) ?? []).length;
+  check("the stylesheet ships all 24 slide options", slideCount === 24, String(slideCount));
+  check("including the first and last of the generator's order",
+    layerCss.includes("@position-try --astryx-layer-slide-above-start-same")
+      && layerCss.includes("@position-try --astryx-layer-slide-end-end-opposite"),
+    "slide names");
+}
+
 /* ------------------------------------------------------------------- ButtonGroup (M17) */
 /* The tab stop and the arrow keys are written by a mount effect, and this harness does not pump those -
    so, as with the layer trigger (Gate 30), the behaviour is asserted in the browser gate and this one
