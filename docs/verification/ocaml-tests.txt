@@ -220,6 +220,16 @@ the ported components render in isolation
   ok   a non-scrollable content is clipped rather than scrolled
   ok   a bare panel outside a layout renders with its width and no divider
   ok   every region is named for the harness
+  ok   eight sliders render marked
+  ok   the basic slider has a track, fill and one thumb
+  ok   the single thumb carries its value
+  ok   the range slider has two thumbs and a group role
+  ok   the disabled slider is inert
+  ok   required announces a hidden Required label
+  ok   the description text is rendered
+  ok   an error status surfaces its message
+  ok   marks render with labels
+  ok   the vertical variant carries the vertical class
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -660,5 +670,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-575 checks, 0 failure(s)
+585 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -3287,3 +3287,57 @@ same CSS-var contract, so the port pins the same class names (`astryx-layout__mi
 - appearance contract — regenerated; `docs/visual/Layout.md` exists (62 pages in total).
 - agent layer — `ported entries: 61; correctly attributed: 61`, MCP truthful.
 - **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m41.txt`).
+## Gate 59 — M42: Slider (coverage 61 -> 62)
+
+The labelled numeric control ported from `facebook/astryx` `Slider/` (a representation of
+`Slider.tsx` plus its `Slider.spec.md` accessibility contract): one thumb (`Single`) or two
+(`Range`, a `role=group` named by the Field label) on a 4px rail, driven by `min`/`max`/`step`,
+with optional `marks` (2x8px ticks at their inset position, labelled, each clickable and snapping
+to that mark's value) and a `value_display` of tooltip / text / none. The geometry is ported
+literally: rail, fill and thumbs travel through an inset of half a thumb at each end (the geometry
+native range inputs use), so the thumb stays inside the box at min/max and the fill maps through
+the same inset; pointer positions invert that mapping through the same formula.
+
+The interaction is graph-owned rather than ref-owned: pointer-down anywhere on the track moves the
+nearest thumb (or a directly pressed one) and captures the pointer; move updates while the drag
+runs; up/cancel ends it and fires `on_change_end`. Keyboard on a thumb: arrows (direction-aware on
+a horizontal track under RTL, detected lazily from `computed direction` at event time, exactly as
+upstream), PageUp/PageDown (10 steps), Home/End landing exactly on the bounds even when they are
+off the step grid. Values are clamped and snapped with binary-error rounding
+(`0 + 3 * 0.1` is `0.3`), and `min_steps_between_thumbs` is enforced on both drag and keyboard so
+the thumbs never cross. Numbers are formatted with `fmt_num` (`Printf.sprintf "%g"`), driving
+`aria-valuenow`, `data-astryx-mark-value` and the hidden inputs, so snapped values render without
+float noise.
+
+Named divergences: no pointer-event JS wrappers and no React ref — the drag state lives in the
+Bonsai graph plus `pressed_ref`-style DOM bridges, and the pressed thumb paints a `--pressed` class
+while the keyboard-only focus ring paints `--keyboard-focus` (holding the house convention for
+"last interaction was the keyboard", where upstream gates `:focus-visible` on an interaction
+modality store). The value tooltip is the house `Tooltip` (a static, graph-owned bubble opened on
+drag) rather than a positioned portal. `disabled_message` keeps the discoverability contract —
+when the message is present, the reason shows as a tooltip above the track on hover/focus
+(the house `Tooltip`), blocked by the `is_disabled` guards — nothing on the slider can change while
+the guards are on, even if the message never shows; without a message a disabled thumb is
+`tabindex=-1`. `aria-required` is not a supported property of
+`role=slider` in WAI-ARIA 1.2, so a required slider points `aria-describedby` at a visually
+hidden "Required" span. Hidden native inputs (`html_name`) carry each thumb's value for form
+submission and are `disabled` when the slider is. `valueDisplay=none` is partial (bubbles off);
+full upstream parity around a `ref`-based API is not attempted.
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **585 checks, 0 failures** (10 new Slider checks across the fixture: eight
+  marked sliders; track/fill/one thumb; single-thumb `aria-valuenow`; range group with two
+  thumbs; disabled inert; hidden Required label; description; error message; marks with labels;
+  vertical class).
+- DOM + accessibility (jsdom) — all passed (fixture unchanged).
+- real browser, showcase — **416 checks, 0 failures** (6 new live Slider checks: all eight demos
+  marked, the basic thumb announcing bounds `0`/`100` and current value 30, the thumb focusable;
+  ArrowRight on the focused thumb steps by one; End lands exactly on max and Home exactly on min;
+  a pointer press on the track takes the thumb to the position under the pointer, computed
+  through the port's own inset/travel geometry, on the real track during a real mouse click).
+- responsive + visual regression — re-baselined (the new section grows the page).
+- appearance contract — regenerated; `docs/visual/Slider.md` exists (63 pages in total).
+- agent layer — `ported entries: 62; correctly attributed: 62`, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m42.txt`).

@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   64 sections
+  ok   65 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   385 examples across the page
+  ok   393 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:2 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8
 
 navigation
-  ok   64 nav links
+  ok   65 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -418,6 +418,14 @@ Layout (live)
   ok   content-width 640: the content is centred with real padding
   ok   both panels width 960: the middle is a 960px content lane, centred
 
+Slider (live)
+  ok   eight sliders render marked, and the basic one has a track and one slider thumb
+  ok   the thumb is focusable and announces its bounds
+  ok   ArrowRight on the focused thumb steps the value up by one
+  ok   End lands exactly on max
+  ok   Home lands exactly on min even off the step grid
+  ok   a pointer press on the track takes the thumb to that position
+
 SelectableCard (live)
   ok   a selectable card stamps its OWN marker, not Card's
   ok   its state is announced as an attribute the CSS can read
@@ -464,8 +472,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 61 ported / 42 not / 103 total
-  ok   unported list rendered 42 entries
+  ok   coverage stats are 62 ported / 41 not / 103 total
+  ok   unported list rendered 41 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
   ok   the README's showcase row matches the page it describes
@@ -482,9 +490,9 @@ OverflowList (live)
   ok   resizing the window re-measures and shows more, with no reload
   ok   and the indicator keeps telling the truth after it
 
-screenshot: /home/noor/src/bonsai-astryx-m40/docs/verification/localhost-showcase.png
+screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-410/410 checks passed, 0 failure(s)
+416/416 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
@@ -523,7 +531,7 @@ stylesheet applied (what jsdom cannot check)
   ok   button display is blockified to flex (it is a flex item)
   ok   body picks up the body-background token
 
-screenshot: /home/noor/src/bonsai-astryx-m40/docs/verification/localhost-demo.png
+screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
 
 25/25 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED

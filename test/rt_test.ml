@@ -57,6 +57,52 @@ let icon () = Vdom.Node.span ~attrs:[] [ Vdom.Node.text "+" ]
 
 (* ---------------------------------------------------------------- rendering *)
 
+
+let slider_component (graph : Bonsai.graph) =
+  let value, set_value = Bonsai.state (Astryx.Slider.Single 25.) graph in
+  let on_change = Bonsai.map set_value ~f:(fun set_value -> fun v -> set_value v) in
+  let on_change_end = Bonsai.map set_value ~f:(fun set_value -> fun v -> set_value v) in
+  let sr label msg = Some { Astryx.Input_types.type_ = label; message = Some msg } in
+  let mk ?(id = "sl") ?(label = "sl label") ?(markers = None) ?(orientation = Astryx.Slider.Horizontal)
+      ?(disabled = false) ?(required = false) ?(description = None) ?(status = None)
+      ?(value_spec = None) ?(value_display = Astryx.Slider.Tooltip)
+      graph =
+    let value_t =
+      match value_spec with Some v -> Bonsai.return v | None -> value
+    in
+    Astryx.Slider.view
+      ~id ~label ~orientation
+      ~is_disabled:disabled
+      ?description
+      ?status
+      ~is_required:required
+      ~value_display
+      ?marks:markers
+      ~value:value_t
+      ~on_change
+      ~on_change_end
+      graph
+  in
+  let trees =
+    [ mk ~id:"sl-basic" graph
+    ; mk ~id:"sl-range" ~label:"range" ~value_spec:(Some (Astryx.Slider.Range (25., 75.))) graph
+    ; mk ~id:"sl-disabled" ~disabled:true graph
+    ; mk ~id:"sl-required" ~required:true ~label:"Required" graph
+    ; mk ~id:"sl-desc" ~description:(Some "Adjust the amount") graph
+    ; mk ~id:"sl-error" ~label:"Error" ~status:(sr Astryx.Input_types.Error "Out of range") graph
+    ; mk ~id:"sl-marks" ~markers:(Some [ { Astryx.Slider.value = 0.; label = Some "0" }
+                                       ; { Astryx.Slider.value = 50.; label = Some "50" }
+                                       ; { Astryx.Slider.value = 100.; label = Some "100" } ]) graph
+    ; mk ~id:"sl-vertical" ~orientation:Astryx.Slider.Vertical ~label:"Vertical" graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "sl-all" ] nodes)
+;;
+
 let () =
   (* Button: variants, sizes, elevations, states, types, link *)
   mount "button-default" (Button.view ~label:"Save" []);
@@ -2535,3 +2581,11 @@ let layout_all () =
 ;;
 
 let () = mount "layout-all" (layout_all ())
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      slider_component
+  in
+  mount "slider-all" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -761,6 +761,33 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
         !!g("layout-shell-example").querySelector(`[data-astryx-component="${n}"]`)));
 }
 
+// --- Slider (M42)
+{
+  const host = document.querySelector('[data-case="slider-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  check("eight sliders render marked", inCaseOf("slider-all", "Slider").length === 8,
+    `${inCaseOf("slider-all", "Slider").length}`);
+  check("the basic slider has a track, fill and one thumb", !!g("sl-basic")
+    && !!g("sl-basic").querySelector(".astryx-slider__track")
+    && !!g("sl-basic").querySelector(".astryx-slider__fill")
+    && g("sl-basic").querySelectorAll(".astryx-slider__thumb").length === 1,
+    g("sl-basic") && g("sl-basic").innerHTML.slice(0, 160));
+  check("the single thumb carries its value", attr(g("sl-basic").querySelector(".astryx-slider__thumb"), "aria-valuenow") === "25");
+  check("the range slider has two thumbs and a group role", !!g("sl-range")
+    && g("sl-range").querySelectorAll(".astryx-slider__thumb").length === 2
+    && attr(g("sl-range").querySelector(".astryx-slider__track"), "role") === "group");
+  check("the disabled slider is inert", !!g("sl-disabled")
+    && hasClass(g("sl-disabled"), /--disabled/));
+  check("required announces a hidden Required label", (host.textContent || "").includes("Required"));
+  check("the description text is rendered", (host.textContent || "").includes("Adjust the amount"));
+  check("an error status surfaces its message", (host.textContent || "").includes("Out of range"));
+  check("marks render with labels", g("sl-marks").querySelectorAll(".astryx-slider__mark").length === 3
+    && (g("sl-marks").querySelectorAll(".astryx-slider__mark-label").length || 0) >= 1,
+    g("sl-marks") && g("sl-marks").innerHTML.slice(0, 180));
+  check("the vertical variant carries the vertical class", hasClass(g("sl-vertical"), /--vertical/)
+    || !!g("sl-vertical").querySelector(".astryx-slider__track--vertical"));
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");

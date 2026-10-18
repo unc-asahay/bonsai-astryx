@@ -70,6 +70,7 @@ module Icon = Icon
 module Entry_animation = Entry_animation
 module Field_status = Field_status
 module File_input = File_input
+module Slider = Slider
 module Input_types = Input_types
 module Indicator = Indicator
 module Checkbox_input = Checkbox_input

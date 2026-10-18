@@ -828,6 +828,7 @@ module Segc = Astryx.Segmented_control
 module Ov = Astryx.Overlay
 module Fi = Astryx.File_input
 module Lay = Astryx.Layout
+module Sl = Astryx.Slider
 
 let demo_menu_item
       ?description
@@ -4230,6 +4231,7 @@ let nav_items =
   ; "overlay", "Overlay"
   ; "file-input", "FileInput"
   ; "layout", "Layout"
+  ; "slider", "Slider"
   ]
 ;;
 
@@ -4547,6 +4549,32 @@ let overflow_list_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+let slider_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let controlled, set_controlled = Bonsai.state (Sl.Single 30.) graph in
+  let on_change = Bonsai.map set_controlled ~f:(fun set_value -> fun value -> set_value value) in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let examples =
+    [ ex_tree "Basic" (Sl.view ~id:"sl-basic-demo" ~label:"Volume" ~value:controlled ~on_change graph)
+    ; ex_tree "Range (two thumbs)" (Sl.view ~id:"sl-range-demo" ~label:"Budget" ~value:(Bonsai.return (Sl.Range (20., 80.))) ~on_change graph)
+    ; ex_tree "Steps 0..100 step 5" (Sl.view ~id:"sl-steps-demo" ~label:"Score" ~min:0. ~max:100. ~step:5. ~value:(Bonsai.return (Sl.Single 50.)) ~on_change graph)
+    ; ex_tree "With marks" (Sl.view ~id:"sl-marks-demo" ~label:"Sprint" ~value:(Bonsai.return (Sl.Single 40.)) ~on_change
+                              ~marks:[ { Sl.value = 0.; label = Some "0" }; { Sl.value = 50.; label = Some "50" }; { Sl.value = 100.; label = Some "100" } ] graph)
+    ; ex_tree "Vertical" (Sl.view ~id:"sl-vertical-demo" ~label:"Height" ~orientation:Sl.Vertical ~value:(Bonsai.return (Sl.Single 20.)) ~on_change graph)
+    ; ex_tree "Disabled" (Sl.view ~id:"sl-disabled-demo" ~label:"Locked" ~is_disabled:true ~disabled_message:"Not available right now" ~value:(Bonsai.return (Sl.Single 60.)) ~on_change graph)
+    ; ex_tree "Required + description" (Sl.view ~id:"sl-required-demo" ~label:"Forward rate" ~description:"How much to scale" ~is_required:true ~value:(Bonsai.return (Sl.Single 70.)) ~on_change graph)
+    ; ex_tree "Text value (smart)" (Sl.view ~id:"sl-text-demo" ~label:"Smart" ~value_display:Sl.Text ~value:(Bonsai.return (Sl.Range (10., 40.))) ~on_change graph)
+    ]
+  in
+  let nodes = join_all examples in
+  Bonsai.map nodes ~f:(fun nodes ->
+    section ~id:"slider" ~title:"Slider" ~note:"A draggable range with optional marks, tooltips and a filled track"
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -4603,19 +4631,23 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful segmented_control_section in
   let overlay_section = overlay_demo graph in
   let stateful = pair stateful overlay_section in
+
   let file_input_section = file_input_demo graph in
   let stateful = pair stateful file_input_section in
   let layout_section = layout_demo graph in
   let stateful = pair stateful layout_section in
+
+  let slider_section = slider_demo graph in
+  let stateful = pair stateful slider_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout)
+    ~f:(fun (((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider ])
       ])
 ;;
 

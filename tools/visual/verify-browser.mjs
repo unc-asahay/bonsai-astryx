@@ -250,6 +250,7 @@ if (mode === "showcase") {
     "Overlay",
     "FileInput",
     "Layout",
+    "Slider",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -612,7 +613,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("64 sections", sections.length === 64, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("65 sections", sections.length === 65, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -633,10 +634,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 2,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("385 examples across the page", totalExamples === 385, `got ${totalExamples}`);
+  check("393 examples across the page", totalExamples === 393, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -649,7 +650,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("64 nav links", nav.length === 64, `got ${nav.length}`);
+  check("65 nav links", nav.length === 65, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -3392,6 +3393,67 @@ check(
     lay.laneMaxWidth === "960px" && lay.laneCentred,
     `maxWidth=${lay.laneMaxWidth} centred=${lay.laneCentred}`);
 
+  // -------------------------------------------------------------- Slider (M42)
+  console.log("\nSlider (live)");
+  {
+    const readBaby = () =>
+      page.evaluate(() => {
+        const basic = document.getElementById("sl-basic-demo");
+        const thumb = basic && basic.querySelector('[role="slider"]');
+        return {
+          marked: document.querySelectorAll('[data-astryx-component="Slider"]').length,
+          track: !!basic && !!basic.querySelector(".astryx-slider__track"),
+          thumb: thumb && thumb.getAttribute("aria-valuenow"),
+          min: thumb && thumb.getAttribute("aria-valuemin"),
+          max: thumb && thumb.getAttribute("aria-valuemax"),
+          focusable: thumb && thumb.getAttribute("tabindex"),
+          readout: (document.querySelector("#slider .showcase-note") || {}).textContent || "",
+        };
+      });
+    const s0 = await readBaby();
+    check("eight sliders render marked, and the basic one has a track and one slider thumb",
+      s0.marked === 8 && s0.track && s0.thumb === "30" && s0.min === "0" && s0.max === "100",
+      JSON.stringify(s0));
+    check("the thumb is focusable and announces its bounds", s0.focusable === "0", String(s0.focusable));
+
+    await page.focus("#sl-basic-demo [role=\"slider\"]");
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+    const s1 = await readBaby();
+    check("ArrowRight on the focused thumb steps the value up by one",
+      s1.thumb === "31", `got ${s1.thumb}`);
+
+    await page.keyboard.press("End");
+    await page.waitForTimeout(150);
+    const s2 = await readBaby();
+    check("End lands exactly on max", s2.thumb === "100", `got ${s2.thumb}`);
+    await page.keyboard.press("Home");
+    await page.waitForTimeout(150);
+    const s3 = await readBaby();
+    check("Home lands exactly on min even off the step grid", s3.thumb === "0", `got ${s3.thumb}`);
+
+    // The track is narrow (multi-column showcase row), so use the port's own mapping:
+    // fraction = (offset - thumb_inset) / (width - thumb_size), i.e. the same
+    // geometry the thumb travels through. Click at 75% of the track width.
+    const box = await page.evaluate(() => {
+      document.getElementById("sl-basic-demo").scrollIntoView({ block: "center" });
+      const r = document.querySelector("#sl-basic-demo .astryx-slider__track").getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height };
+    });
+    await page.waitForTimeout(250);
+    const box2 = await page.evaluate(() => {
+      const r = document.querySelector("#sl-basic-demo .astryx-slider__track").getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height };
+    });
+    const expected = Math.round((((box2.w * 0.75 - 10) / (box2.w - 20)) * 100));
+    await page.mouse.click(box2.x + box2.w * 0.75, box2.y + box2.h / 2);
+    await page.waitForTimeout(150);
+    const s4 = await readBaby();
+    const v4 = Number(s4.thumb);
+    check("a pointer press on the track takes the thumb to that position",
+      Math.abs(v4 - expected) <= 2, `got ${s4.thumb}, expected ~${expected}`);
+  }
+
   // -------------------------------------------------------- SelectableCard (M28)
   console.log("\nSelectableCard (live)");
   const scState = (id) =>
@@ -3716,11 +3778,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 61 ported / 42 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["61", "42", "103"]),
+    "coverage stats are 62 ported / 41 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["62", "41", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 42 entries", cov.unported === 42, `got ${cov.unported}`);
+  check("unported list rendered 41 entries", cov.unported === 41, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

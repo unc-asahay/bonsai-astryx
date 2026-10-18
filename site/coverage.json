@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 61,
-    "unported": 42,
+    "ported": 62,
+    "unported": 41,
     "total": 103,
     "documented": 103
   },
@@ -288,6 +288,12 @@
       "milestone": "M1"
     },
     {
+      "name": "Slider",
+      "module": "Astryx.Slider",
+      "file": "src/slider.ml",
+      "milestone": "M42"
+    },
+    {
       "name": "Spinner",
       "module": "Astryx.Spinner",
       "file": "src/spinner.ml",
@@ -410,7 +416,6 @@
     "Resizable",
     "Selector",
     "SideNav",
-    "Slider",
     "Stepper",
     "TabList",
     "Table",
