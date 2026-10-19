@@ -1,0 +1,224 @@
+/* MobileNav — the slide-out drawer for mobile navigation.
+
+   Ported from astryx packages/core/src/MobileNav/MobileNav.tsx (the stylex
+   block). The token *values* are upstream's; the class names are this port's,
+   as everywhere else in this stylesheet.
+
+   The dialog is the full-viewport overlay the browser puts in the top layer;
+   the drawer is the painted panel that slides in from the resolved edge. The
+   edge is read from [data-astryx-side] on the root rather than from a class,
+   because an auto drawer resolves its edge when it opens and the stylesheet
+   has to follow it. */
+
+.astryx-mobile-nav {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-style: none;
+  max-width: none;
+  max-height: none;
+  background-color: transparent;
+  /* The layer's text baseline: a top-layer element still inherits from the
+     document, and the drawer holds body text. */
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-leading);
+  /* `clip`, not `hidden`. Both clip the off-screen drawer, but `hidden` makes
+     the dialog a SCROLL CONTAINER, and a scroll container in the top layer
+     whose subtree holds another scroller (the drawer's content area) does not
+     paint a @starting-style entry transition for its descendants: the
+     transition ticks in the CSSOM while every painted frame shows the end
+     value, so the drawer appears fully open. */
+  overflow: clip;
+  overscroll-behavior: contain;
+  /* Stop pans passing through (pull-to-refresh, background scroll), but leave
+     pinch to the browser: the open nav covers the whole viewport, and pinch
+     is how phone readers resize text (WCAG 1.4.4). */
+  touch-action: pinch-zoom;
+  outline: none;
+  /* `display` participates in the transition with allow-discrete, so it flips
+     to none only after the slide-out finishes — which keeps the drawer
+     rendered until the close has actually run. Deliberately not shortened
+     under reduced motion: `display` is discrete, so a long hold animates
+     nothing; it is only the window the close has to land inside. */
+  display: none;
+  transition-property: display;
+  transition-duration: var(--duration-medium);
+  transition-behavior: allow-discrete;
+}
+
+.astryx-mobile-nav--open {
+  display: flex;
+}
+
+/* The scrim is the browser's: the ::backdrop only exists once showModal() has
+   put the dialog in the top layer. */
+.astryx-mobile-nav::backdrop {
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-mobile-nav--open::backdrop {
+  opacity: 1;
+}
+
+/* The ::backdrop's first rendered frame already has the open opacity, so
+   without a starting style it has nothing to fade from and the scrim snaps
+   in behind the drawer. */
+@starting-style {
+  .astryx-mobile-nav--open::backdrop {
+    opacity: 0;
+  }
+}
+
+.astryx-mobile-nav__drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background-color: var(--color-background-surface);
+  overflow: hidden;
+  outline: none;
+  transition-property: transform;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: var(--ease-standard);
+}
+
+/* Which edge the drawer is at. */
+.astryx-mobile-nav[data-astryx-side="start"] .astryx-mobile-nav__drawer {
+  inset-inline-start: 0;
+  border-inline-end-width: var(--border-width);
+  border-inline-end-style: solid;
+  border-inline-end-color: var(--color-border);
+}
+
+.astryx-mobile-nav[data-astryx-side="end"] .astryx-mobile-nav__drawer {
+  inset-inline-end: 0;
+  border-inline-start-width: var(--border-width);
+  border-inline-start-style: solid;
+  border-inline-start-color: var(--color-border);
+}
+
+/* Closed: the drawer is parked off-screen, on the edge it slides from. */
+.astryx-mobile-nav:not(.astryx-mobile-nav--open)[data-astryx-side="start"] .astryx-mobile-nav__drawer {
+  transform: translateX(-100%);
+}
+
+.astryx-mobile-nav:not(.astryx-mobile-nav--open)[data-astryx-side="end"] .astryx-mobile-nav__drawer {
+  transform: translateX(100%);
+}
+
+/* Open: on screen. */
+.astryx-mobile-nav--open[data-astryx-side="start"] .astryx-mobile-nav__drawer,
+.astryx-mobile-nav--open[data-astryx-side="end"] .astryx-mobile-nav__drawer {
+  transform: translateX(0);
+}
+
+/* Mirrored in a right-to-left page: the start edge is the right one. */
+.astryx-mobile-nav:not(.astryx-mobile-nav--open)[data-astryx-side="start"] .astryx-mobile-nav__drawer:is([dir="rtl"] *) {
+  transform: translateX(100%);
+}
+
+.astryx-mobile-nav:not(.astryx-mobile-nav--open)[data-astryx-side="end"] .astryx-mobile-nav__drawer:is([dir="rtl"] *) {
+  transform: translateX(-100%);
+}
+
+/* The slide-in needs a value to run from: the whole dialog is display:none
+   while closed, so the drawer is not rendered and the open transform is the
+   only value it has ever had. A transition needs a previous value. */
+@starting-style {
+  .astryx-mobile-nav--open[data-astryx-side="start"] .astryx-mobile-nav__drawer {
+    transform: translateX(-100%);
+  }
+
+  .astryx-mobile-nav--open[data-astryx-side="start"] .astryx-mobile-nav__drawer:is([dir="rtl"] *) {
+    transform: translateX(100%);
+  }
+
+  .astryx-mobile-nav--open[data-astryx-side="end"] .astryx-mobile-nav__drawer {
+    transform: translateX(100%);
+  }
+
+  .astryx-mobile-nav--open[data-astryx-side="end"] .astryx-mobile-nav__drawer:is([dir="rtl"] *) {
+    transform: translateX(-100%);
+  }
+}
+
+.astryx-mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--spacing-12);
+  padding-inline: var(--spacing-2);
+  flex-shrink: 0;
+  border-block-end-width: var(--border-width);
+  border-block-end-style: solid;
+  border-block-end-color: var(--color-border);
+}
+
+/* Without a title the close button is the only thing in the row, and it
+   belongs on the end. */
+.astryx-mobile-nav__header--no-title {
+  justify-content: flex-end;
+}
+
+/* The title's own margin, which upstream puts on the heading. */
+.astryx-mobile-nav__header .astryx-heading {
+  margin-inline-start: var(--spacing-1);
+}
+
+.astryx-mobile-nav__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  /* Vertical touch scrolling is on inside the drawer; the dialog root allows
+     only pinch-zoom, to block pull-to-refresh. */
+  touch-action: pan-y pinch-zoom;
+  padding-inline: var(--spacing-2);
+  padding-block: var(--spacing-2);
+}
+
+/* Reduced motion collapses the visible transitions. The display hold is left
+   alone: it is the window the close has to land inside, and a discrete
+   property animates nothing either way. */
+@media (prefers-reduced-motion: reduce) {
+  .astryx-mobile-nav::backdrop {
+    transition-duration: 0.01s;
+  }
+
+  .astryx-mobile-nav__drawer {
+    transition-duration: 0.01s;
+  }
+}
+
+/* The inline rendering: the same drawer, with no top layer and no modal
+   behaviour — the showcase path, so a page can show several drawers at once.
+   It is a block box the drawer is laid out in, not an overlay. */
+.astryx-mobile-nav--inline,
+.astryx-mobile-nav--inline.astryx-mobile-nav--open {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-background-body);
+  transition-property: none;
+}
+
+.astryx-mobile-nav--inline .astryx-mobile-nav__drawer {
+  transition-property: none;
+}
