@@ -178,14 +178,15 @@ type listener_target =
 let js_string s = Js.Unsafe.inject (Js.string s)
 let js_number f = Js.Unsafe.inject (Js.number_of_float f)
 
-(* The host helpers are evaluated once, not per call. *)
-let now_ms_js = Js.Unsafe.pure_js_expr "Date.now()"
+(* The host helpers. The clock is read per call - a constant would freeze
+   the toast's timer at the moment the module loaded - and the measurement
+   helper is a function the port calls with the element. *)
 let height_js =
   Js.Unsafe.pure_js_expr
     "(function (el) { var r = el.getBoundingClientRect(); return r ? r.height : 0; })"
 ;;
 
-let now_ms () : float = Js.to_float (Js.Unsafe.coerce (Js.Unsafe.fun_call now_ms_js [||]))
+let now_ms () : float = Js.to_float (Js.Unsafe.coerce (Js.Unsafe.eval_string "Date.now()"))
 
 let add_listener (el : el) (kind : string) (listener : Js.Unsafe.any) =
   ignore
