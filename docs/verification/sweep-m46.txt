@@ -35,8 +35,8 @@ ok    every ported entry names its own file and module
 === transcript line counts ===
   733 docs/verification/ocaml-tests.txt
    92 docs/verification/verify-dom.txt
-  282 docs/verification/browser-verify.txt
+  579 docs/verification/browser-verify.txt
   110 docs/verification/responsive.txt
- 1217 total
+ 1514 total
 
 SWEEP GREEN: every gate passed
