@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   70 sections
+  ok   71 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   440 examples across the page
+  ok   451 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 CheckboxList:10
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10
 
 navigation
-  ok   70 nav links
+  ok   71 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 68 ported / 35 not / 103 total
-  ok   unported list rendered 35 entries
+  ok   coverage stats are 69 ported / 34 not / 103 total
+  ok   unported list rendered 34 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -541,6 +541,19 @@ CheckboxList (live)
   ok   a group-disabled row stays put, while its box remains focusable for the reason
   ok   a read-only row refuses the toggle: the value cannot move
   ok   the described item's checkbox links its own description
+
+Banner (live)
+  ok   a collapsible banner starts closed — no content, aria-expanded=false
+  ok   clicking the toggle opens it: content region appears, aria-expanded=true, aria-controls links it
+  ok   clicking again closes it, and the toggle stops pointing at a region that is gone
+  ok   collapsible with defaultIsOpen=true renders its content on first paint
+  ok   collapsible=Never pins the content open with no toggle
+  ok   the four statuses each carry their own fill class
+  ok   the end area's ghost button compensates its edge (negative margin, not auto)
+  ok   a controlled banner starts on the application's state
+  ok   the toggle reports to the application, and the readout follows
+  ok   toggling again reports the close — controlled state never moves on its own
+  ok   the status icon wrapper is aria-hidden everywhere
   ok   the README's showcase row matches the page it describes
 
 OverflowList (live)
@@ -557,7 +570,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-471/471 checks passed, 0 failure(s)
+482/482 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

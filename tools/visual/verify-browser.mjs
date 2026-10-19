@@ -256,6 +256,7 @@ if (mode === "showcase") {
     "TreeList",
     "NumberInput",
     "CheckboxList",
+    "Banner",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -618,7 +619,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("70 sections", sections.length === 70, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("71 sections", sections.length === 71, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -639,10 +640,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("440 examples across the page", totalExamples === 440, `got ${totalExamples}`);
+  check("451 examples across the page", totalExamples === 451, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -655,7 +656,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("70 nav links", nav.length === 70, `got ${nav.length}`);
+  check("71 nav links", nav.length === 71, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4041,11 +4042,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 68 ported / 35 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["68", "35", "103"]),
+    "coverage stats are 69 ported / 34 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["69", "34", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 35 entries", cov.unported === 35, `got ${cov.unported}`);
+  check("unported list rendered 34 entries", cov.unported === 34, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4337,6 +4338,104 @@ check(
         .getAttribute("aria-describedby") ?? null);
     check("the described item's checkbox links its own description",
       described?.includes("showcase-checkbox-described-item-1-description"), String(described));
+  }
+
+  console.log("\nBanner (live)");
+  {
+    const hasContent = (id) =>
+      page.evaluate((id) => !!document.querySelector(`#${id} .astryx-banner__content`), id);
+    const toggleState = (id) =>
+      page.evaluate((id) => {
+        const b = document.querySelector(`#${id} .astryx-banner__end button`);
+        return b ? { expanded: b.getAttribute("aria-expanded"), controls: b.getAttribute("aria-controls") } : null;
+      }, id);
+
+    // Disclosure starts closed: no content region, toggle says false, no dangling aria-controls.
+    check("a collapsible banner starts closed — no content, aria-expanded=false",
+      (await hasContent("showcase-banner-collapsible")) === false &&
+        (await toggleState("showcase-banner-collapsible"))?.expanded === "false",
+      JSON.stringify(await toggleState("showcase-banner-collapsible")));
+    await page.click("#showcase-banner-collapsible .astryx-banner__end button");
+    await page.waitForTimeout(200);
+    const opened = await toggleState("showcase-banner-collapsible");
+    check("clicking the toggle opens it: content region appears, aria-expanded=true, aria-controls links it",
+      (await hasContent("showcase-banner-collapsible")) === true &&
+        opened.expanded === "true" &&
+        opened.controls === "showcase-banner-collapsible-content" &&
+        (await page.evaluate(() =>
+          document.getElementById("showcase-banner-collapsible-content") !== null)),
+      JSON.stringify(opened));
+    await page.click("#showcase-banner-collapsible .astryx-banner__end button");
+    await page.waitForTimeout(200);
+    check("clicking again closes it, and the toggle stops pointing at a region that is gone",
+      (await hasContent("showcase-banner-collapsible")) === false &&
+        (await toggleState("showcase-banner-collapsible"))?.controls === null,
+      JSON.stringify(await toggleState("showcase-banner-collapsible")));
+
+    // Starts-open: the config's defaultIsOpen makes it open on first paint.
+    check("collapsible with defaultIsOpen=true renders its content on first paint",
+      (await hasContent("showcase-banner-open")) === true);
+
+    // Pinned open: collapsible=Never — no toggle at all, and the content is always there.
+    const pinned = await page.evaluate(() => {
+      const root = document.getElementById("showcase-banner-pinned");
+      return {
+        toggle: root.querySelector(".astryx-banner__end button") !== null,
+        content: root.querySelector(".astryx-banner__content") !== null,
+      };
+    });
+    check("collapsible=Never pins the content open with no toggle",
+      pinned.toggle === false && pinned.content === true, JSON.stringify(pinned));
+
+    // Status fills: each known status paints its own header class. Checked BEFORE the
+    // dismissal below unmounts the only error example.
+    const statusClasses = await page.evaluate(() =>
+      [...document.querySelectorAll("[data-showcase-component='Banner'] .astryx-banner__header")].map((h) =>
+        [...h.classList].find((c) => c.includes("--info") || c.includes("--warning")
+          || c.includes("--error") || c.includes("--success")) ?? null));
+    const wantStatus = ["--info", "--warning", "--error", "--success"];
+    check("the four statuses each carry their own fill class",
+      wantStatus.every((s) => statusClasses.some((c) => c?.includes(s))),
+      JSON.stringify(statusClasses));
+
+    // Dismissal: the banner removes itself even though no callback is wired.
+    await page.click("#showcase-banner-dismiss .astryx-banner__end button");
+
+    // Edge compensation: a ghost button at the start of the end area pulls the slot
+    // inward, so the transparent padding does not double up with the header's.
+    const edgeMargin = await page.evaluate(() => {
+      const end = document.querySelector("#showcase-banner-warning .astryx-banner__end") ??
+        [...document.querySelectorAll("[data-showcase-component='Banner'] .astryx-banner__end")]
+          .find((e) => e.querySelector("[data-astryx-edge-comp]"));
+      return end ? getComputedStyle(end).marginInlineStart : null;
+    });
+    // The end slot's base rule is margin-inline-start: auto; only the :has() compensation
+    // turns it into the negative step, so auto/0px proves the compensation is absent.
+    check("the end area's ghost button compensates its edge (negative margin, not auto)",
+      typeof edgeMargin === "string" && !edgeMargin.includes("auto") && edgeMargin.startsWith("-"),
+      String(edgeMargin));
+
+    // Controlled: the readout the application renders follows the toggle in both directions.
+    const ctlReadout = () =>
+      page.evaluate(() => document.getElementById("showcase-banner-controlled-state")?.textContent ?? null);
+    check("a controlled banner starts on the application's state",
+      (await ctlReadout()) === "open: false", String(await ctlReadout()));
+    await page.click("#showcase-banner-controlled .astryx-banner__end button");
+    await page.waitForTimeout(200);
+    check("the toggle reports to the application, and the readout follows",
+      (await ctlReadout()) === "open: true" &&
+        (await toggleState("showcase-banner-controlled"))?.expanded === "true",
+      String(await ctlReadout()));
+    await page.click("#showcase-banner-controlled .astryx-banner__end button");
+    await page.waitForTimeout(200);
+    check("toggling again reports the close — controlled state never moves on its own",
+      (await ctlReadout()) === "open: false", String(await ctlReadout()));
+
+    // The status icon is decorative: the icon wrapper is aria-hidden in every banner.
+    const iconHidden = await page.evaluate(() =>
+      [...document.querySelectorAll("[data-showcase-component='Banner'] .astryx-banner__icon")]
+        .every((i) => i.getAttribute("aria-hidden") === "true"));
+    check("the status icon wrapper is aria-hidden everywhere", iconHidden === true);
   }
 
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed

@@ -1977,6 +1977,84 @@ section("FieldLabel");
       && end.querySelector(".astryx-checkbox-list__end").textContent === "Popular");
 }
 
+// ---------------------------------------------------------------- Banner (M49)
+{
+  const bn = (id) => document.getElementById(id);
+  section("Banner");
+
+  const info = bn("rt-bn-info");
+  check("the info banner is a marked Banner carrying its status",
+    !!info && attr(info, "data-astryx-component") === "Banner" && attr(info, "data-astryx-status") === "info");
+  check("its header paints the info fill on the section container",
+    !!info && !!info.querySelector(".astryx-banner__header--info")
+      && info.classList.contains("astryx-banner--section")
+      && info.classList.contains("astryx-banner--elevation-none"));
+  check("the description sits in its own slot",
+    !!info && !!info.querySelector(".astryx-banner__description"));
+  check("the status glyph is present and its wrapper is aria-hidden",
+    !!info && !!info.querySelector(".astryx-banner__icon")
+      && attr(info.querySelector(".astryx-banner__icon"), "aria-hidden") === "true");
+  // The default call: null config is forced to closed by the banner (the hook's own
+  // default is open, so a banner that forgot its override would leak open content).
+  check("a default collapsible banner starts closed: no content region",
+    !!info && !info.querySelector(".astryx-banner__content"));
+  const toggle = info && info.querySelector(".astryx-banner__end button");
+  check("its Expand toggle names itself and reports closed",
+    !!toggle && attr(toggle, "aria-label") === "Expand" && attr(toggle, "aria-expanded") === "false");
+  check("the collapsed toggle carries no aria-controls (nothing mounted to point at)",
+    !!toggle && !toggle.hasAttribute("aria-controls"));
+  check("a non-dismissable banner has no close control",
+    !!info && !info.querySelector(".astryx-banner__end [aria-label='Dismiss']"));
+
+  const open = bn("rt-bn-open");
+  const openToggle = open && open.querySelector(".astryx-banner__end button");
+  check("an explicitly open collapsible mounts its content and links it",
+    !!open && !!open.querySelector("#rt-bn-open-content")
+      && !!openToggle && attr(openToggle, "aria-expanded") === "true"
+      && attr(openToggle, "aria-controls") === "rt-bn-open-content"
+      && attr(openToggle, "aria-label") === "Collapse");
+
+  const never = bn("rt-bn-never");
+  check("Never pins the content open with no toggle and no end area",
+    !!never && !!never.querySelector(".astryx-banner__content")
+      && !never.querySelector(".astryx-banner__end"));
+  check("a pinned content region is not given an id (nothing links it)",
+    !!never && !never.querySelector(".astryx-banner__content").hasAttribute("id"));
+  check("Never carries the warning fill",
+    !!never && !!never.querySelector(".astryx-banner__header--warning"));
+  check("no aria-expanded or aria-controls anywhere on a Never banner",
+    !!never && !never.querySelector("[aria-expanded]") && !never.querySelector("[aria-controls]"));
+
+  const err = bn("rt-bn-error");
+  check("end content sits in the end area and marks the body",
+    !!err && !!err.querySelector(".astryx-banner__end span")
+      && err.querySelector(".astryx-banner__end").textContent === "Retry"
+      && err.querySelector(".astryx-banner__body").classList.contains("astryx-banner__body--with-end"));
+  check("the error banner paints the error fill",
+    !!err && !!err.querySelector(".astryx-banner__header--error"));
+
+  const dis = bn("rt-bn-dismiss");
+  const dismiss = dis && dis.querySelector(".astryx-banner__end button");
+  check("the dismiss control is named by the caller's label",
+    !!dismiss && attr(dismiss, "aria-label") === "Dismiss Saved" && attr(dismiss, "title") === "Dismiss Saved");
+  check("the success banner paints the success fill",
+    !!dis && !!dis.querySelector(".astryx-banner__header--success"));
+
+  const card = bn("rt-bn-card");
+  check("a Card banner with content starts closed as a standalone elevated card",
+    !!card && card.classList.contains("astryx-banner--card")
+      && card.classList.contains("astryx-banner--rounded")
+      && card.classList.contains("astryx-banner--elevation-med")
+      && !card.querySelector(".astryx-banner__content")
+      && card.querySelector(".astryx-banner__header").classList.contains("astryx-banner__header--card-standalone"));
+
+  const unknown = bn("rt-bn-unknown");
+  check("an unknown status renders no fill and no default glyph",
+    !!unknown
+      && !unknown.querySelector(".astryx-banner__header--info, .astryx-banner__header--warning, .astryx-banner__header--error, .astryx-banner__header--success")
+      && !unknown.querySelector(".astryx-banner__icon"));
+}
+
 // ---------------------------------------------------------------- FormLayout (M13)
 {
   section("FormLayout");

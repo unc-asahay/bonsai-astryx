@@ -4161,3 +4161,128 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   visibility: visible;
   opacity: 1;
 }
+
+/* ---- Banner (M49) ---- */
+.astryx-banner {
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+}
+/* An elevated card banner rounds its root so the shadow follows the same
+   silhouette as the header/content border-radius. */
+.astryx-banner--rounded { border-radius: var(--radius-container); }
+.astryx-banner--elevation-none { box-shadow: none; }
+.astryx-banner--elevation-low { box-shadow: var(--shadow-low); }
+.astryx-banner--elevation-med { box-shadow: var(--shadow-med); }
+.astryx-banner--elevation-high { box-shadow: var(--shadow-high); }
+.astryx-banner__header {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  column-gap: var(--spacing-2);
+  /* The end area carries a -4px block margin (see __end), so the wrapped row
+     reads as one step of spacing rather than two. */
+  row-gap: var(--spacing-3);
+  padding-block: var(--spacing-3);
+  padding-inline: var(--spacing-4);
+}
+.astryx-banner__header--info { background-color: var(--color-accent-muted); }
+.astryx-banner__header--warning { background-color: var(--color-warning-muted); }
+.astryx-banner__header--error { background-color: var(--color-error-muted); }
+.astryx-banner__header--success { background-color: var(--color-success-muted); }
+/* All corners when standalone, top-only when content is visible. */
+.astryx-banner__header--card-standalone {
+  border-radius: var(--radius-container);
+}
+.astryx-banner__header--card-with-content {
+  border-start-start-radius: var(--radius-container);
+  border-start-end-radius: var(--radius-container);
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.astryx-banner__header--centered { align-items: center; }
+.astryx-banner__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.astryx-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+/* The wrap threshold: flex breaks a line when items no longer fit at their
+   base size, so this basis moves the end area to its own row instead of
+   letting it squeeze the title (WCAG 1.4.10 reflow). Dismiss/expand alone are
+   narrow enough never to need it. */
+.astryx-banner__body--with-end { flex-basis: 8rem; }
+.astryx-banner__title {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--text-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-label-leading);
+  color: var(--color-text-primary);
+  /* A single unbroken token would otherwise set the flex item's min-content
+     width and push the page into horizontal scrolling at 320px. */
+  overflow-wrap: anywhere;
+}
+.astryx-banner__description {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--text-supporting-size);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.astryx-banner__end {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  /* Bounded so a group of actions wider than the row wraps within itself
+     rather than pushing the banner past the viewport. */
+  max-width: 100%;
+  margin-inline-start: auto;
+  margin-block: calc(-1 * (var(--spacing-3) - var(--spacing-2)));
+}
+/* the end area is a ghost-button container: when its first child carries the
+   edge-compensation marker the slot pulls itself inward by one step, so the
+   transparent padding of a ghost button does not double up with the header's. */
+.astryx-banner__end:has(> [data-astryx-edge-comp]:first-child) {
+  margin-inline-start: calc(-1 * var(--spacing-2));
+}
+.astryx-banner__content {
+  background-color: var(--color-background-card);
+  padding-block: var(--spacing-3);
+  padding-inline: var(--spacing-4);
+  border-inline-start-width: var(--border-width);
+  border-inline-end-width: var(--border-width);
+  border-block-end-width: var(--border-width);
+  border-inline-start-style: solid;
+  border-inline-end-style: solid;
+  border-block-end-style: solid;
+  border-inline-start-color: var(--color-border);
+  border-inline-end-color: var(--color-border);
+  border-block-end-color: var(--color-border);
+}
+.astryx-banner__content--card {
+  border-end-start-radius: var(--radius-container);
+  border-end-end-radius: var(--radius-container);
+}
+/* The chevron classes ride on the Icon's wrapper span — the element that
+   rotates is the element a theme would target. */
+.astryx-banner__chevron {
+  transition-property: transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .astryx-banner__chevron { transition-duration: 0s; }
+}
+.astryx-banner__chevron--expanded { transform: rotate(180deg); }

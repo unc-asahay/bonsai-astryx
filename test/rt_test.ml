@@ -3038,3 +3038,67 @@ let () =
   in
   mount "checkbox-list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Banner (M49) *)
+
+let banner_component (graph : Bonsai.graph) =
+  let open Astryx in
+  let t text = [ Vdom.Node.text text ] in
+  let mk ?(id = "rt-bn") ?description ?is_dismissable ?dismiss_label ?end_content
+      ?(container = Banner.Section) ?elevation ?collapsible ?children ~status ~title graph =
+    Banner.view ~id ?description ?is_dismissable ?dismiss_label ?end_content
+      ~container ?elevation ?collapsible ~status ~title ?children graph
+  in
+  let trees =
+    [ (* The default call: collapsible with the hook's default overridden to closed,
+         so no content region and an aria-expanded=false toggle. *)
+      mk ~id:"rt-bn-info" ~status:"info" ~title:(t "Updates available")
+        ~description:(t "The release notes were refreshed.")
+        ~children:(t "New sections and a search bar.")
+        graph
+      (* An explicitly open collapsible: content mounted and linked on first paint. *)
+    ; mk ~id:"rt-bn-open" ~status:"success" ~title:(t "Open by default")
+        ~collapsible:(Banner.Enabled
+            { Use_collapsible.default_is_open = Some true
+            ; is_open = None
+            ; on_open_change = None
+            })
+        ~children:(t "Visible content")
+        graph
+      (* Never: pinned open, no toggle, no aria-expanded/controls. *)
+    ; mk ~id:"rt-bn-never" ~status:"warning" ~title:(t "Pinned")
+        ~collapsible:Banner.Never ~children:(t "Always shown")
+        graph
+      (* Error with end content in the end area. *)
+    ; mk ~id:"rt-bn-error" ~status:"error" ~title:(t "Failed to sync")
+        ~end_content:(Vdom.Node.span [ Vdom.Node.text "Retry" ])
+        graph
+      (* Dismissable: a close control named by its own label. *)
+    ; mk ~id:"rt-bn-dismiss" ~status:"success" ~title:(t "Saved")
+        ~is_dismissable:true ~dismiss_label:"Dismiss Saved"
+        graph
+      (* Card container with elevation and mounted content. *)
+    ; mk ~id:"rt-bn-card" ~status:"info" ~title:(t "Elevated")
+        ~container:Banner.Card ~elevation:Button.Med
+        ~children:(t "Card content")
+        graph
+      (* Unknown status: no fill class, no default glyph. *)
+    ; mk ~id:"rt-bn-unknown" ~status:"urgent" ~title:(t "Custom")
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "banner-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      banner_component
+  in
+  mount "banner-all" (Bonsai_web_test.Handle.last_result handle)
+;;

@@ -2054,6 +2054,95 @@ let checkbox_list_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------------------- banner (state) *)
+
+(* A banner with children owns its disclosure state, and a dismissable one removes itself
+   even when no callback is wired — both are Bonsai state, so like the other stateful
+   components its checks live in the browser gate, where the toggle and the dismiss can
+   actually be clicked. The one thing worth a dedicated live example is the controlled
+   mode: the application owns the open state and the banner only reports it back, which
+   is what the readout next to it shows. *)
+let banner_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let open_config =
+    { Use_collapsible.default_is_open = None; is_open = None; on_open_change = None }
+  in
+  let controlled_open, set_controlled_open = Bonsai.state false graph in
+  let controlled =
+    let banner =
+      Banner.view
+        ~id:"showcase-banner-controlled"
+        ~status:"warning"
+        ~title:[ Vdom.Node.text "Controlled disclosure" ]
+        ~description:[ Vdom.Node.text "The application owns this banner's open state." ]
+        ~collapsible:
+          (Banner.Enabled
+             { Use_collapsible.default_is_open = None
+             ; is_open = Some controlled_open
+             ; on_open_change = Some (Bonsai.map set_controlled_open ~f:(fun set value -> set value))
+             })
+        ~children:
+          [ Vdom.Node.text "This content follows the application's state, not this banner's."
+          ]
+        graph
+    in
+    let readout =
+      Bonsai.map controlled_open ~f:(fun open_ ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-banner-controlled-state" ]
+          [ Vdom.Node.text (sprintf "open: %b" open_) ])
+    in
+    Bonsai.map (unwrap_all [ banner; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let simple ?description ?(status = "info") ?id ?is_dismissable ?on_dismiss
+        ?(collapsible = Banner.Enabled open_config) ?end_content ?icon
+        ?(container = Banner.Card) ?elevation title children =
+    Banner.view
+      ?id
+      ~status
+      ~title:[ Vdom.Node.text title ]
+      ?description
+      ?is_dismissable
+      ?on_dismiss
+      ?end_content
+      ?icon
+      ~container
+      ?elevation
+      ~collapsible
+      ~children
+      graph
+  in
+  let examples =
+    [ ex_tree "info: the persistent status" (simple "Update available" [])
+    ; ex_tree "title + description" (simple ~description:[ Vdom.Node.text "Read what changed and decide what to do." ] "Weekly digest" [])
+    ; ex_tree "warning with an action" (simple ~status:"warning" ~end_content:(Button.view ~label:"Retry" ~variant:Button.Ghost []) "Connection lost" [])
+    ; ex_tree "error, dismissable" (simple ~status:"error" ~id:"showcase-banner-dismiss" ~is_dismissable:true "Something went wrong" [])
+    ; ex_tree "success with collapsible content (starts closed)" (simple ~status:"success" ~id:"showcase-banner-collapsible" "Migrated" [ Vdom.Node.text "All 3 workspaces moved. Details below." ])
+    ; ex_tree "collapsible, starts open" (simple ~status:"info" ~id:"showcase-banner-open" ~collapsible:(Banner.Enabled { open_config with default_is_open = Some true }) "Configuration" [ Vdom.Node.text "Shown from the start." ])
+    ; ex_tree "pinned open: collapsible = Never" (simple ~status:"info" ~id:"showcase-banner-pinned" ~collapsible:Banner.Never "Always visible" [ Vdom.Node.text "No toggle, no aria-expanded." ])
+    ; ex_tree "full-width section banner" (simple ~status:"warning" ~container:Banner.Section ~id:"showcase-banner-section" "Section banner" [])
+    ; ex_tree "elevated card" (simple ~status:"info" ~elevation:Button.Med ~id:"showcase-banner-elevated" "Floating" [])
+    ; ex_tree "a custom icon" (simple ~status:"info" ~icon:(Icon.view ~size:Icon.Lg ~name:"search" ()) "Custom glyph" [])
+    ; ex_tree "controlled: the readout follows the toggle" controlled
+    ]
+  in
+  Bonsai.map (unwrap_all examples) ~f:(fun examples ->
+    section
+      ~id:"banner"
+      ~title:"Banner"
+      ~note:
+        "A persistent status notification. The header carries the message — icon, title, \
+         description, actions — and the content area below it is collapsible by default: \
+         the toggle starts the content closed, because the message lives in the header and \
+         the content is supplementary. The disclosure state machine is the shared \
+         useCollapsible one, set to the one default a banner overrides (closed, not open). \
+         A dismissable banner removes itself and hands focus back to wherever it came \
+         from, even when no callback is wired. Status controls only the icon and fill; the \
+         caller chooses the live-region role when the semantics need one."
+      examples)
+;;
+
 (* ------------------------------------------------- form layout (state) *)
 
 (* Upstream's FormLayout does two jobs: it arranges fields, and it supplies the form's
@@ -4435,6 +4524,7 @@ let nav_items =
   ; "list", "List"
   ; "tree-list", "TreeList"
   ; "number-input", "NumberInput"
+  ; "banner", "Banner"
   ; "checkbox-list", "CheckboxList"
   ]
 ;;
@@ -5262,17 +5352,19 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful tree_list_section in
   let number_input_section = number_input_demo graph in
   let stateful = pair stateful number_input_section in
+  let banner_section = banner_demo graph in
+  let stateful = pair stateful banner_section in
   let checkbox_list_section = checkbox_list_demo graph in
   let stateful = pair stateful checkbox_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), checkbox_list)
+    ~f:(fun (((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; checkbox_list ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list ])
       ])
 ;;
 

@@ -587,6 +587,27 @@ CheckboxList
   ok   density and dividers ride as data attributes on the list
   ok   end content sits in its own slot inside the row
 
+Banner
+  ok   the info banner is a marked Banner carrying its status
+  ok   its header paints the info fill on the section container
+  ok   the description sits in its own slot
+  ok   the status glyph is present and its wrapper is aria-hidden
+  ok   a default collapsible banner starts closed: no content region
+  ok   its Expand toggle names itself and reports closed
+  ok   the collapsed toggle carries no aria-controls (nothing mounted to point at)
+  ok   a non-dismissable banner has no close control
+  ok   an explicitly open collapsible mounts its content and links it
+  ok   Never pins the content open with no toggle and no end area
+  ok   a pinned content region is not given an id (nothing links it)
+  ok   Never carries the warning fill
+  ok   no aria-expanded or aria-controls anywhere on a Never banner
+  ok   end content sits in the end area and marks the body
+  ok   the error banner paints the error fill
+  ok   the dismiss control is named by the caller's label
+  ok   the success banner paints the success fill
+  ok   a Card banner with content starts closed as a standalone elevated card
+  ok   an unknown status renders no fill and no default glyph
+
 FormLayout
   ok   a layout renders a div, not a form
   ok   and names its direction
@@ -766,5 +787,5 @@ DialogHeader
   ok   the controlled value starts at 42 and the readout echoes it
   ok   the label names the control through a real for=/id pair
 
-677 checks, 0 failure(s)
+696 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -18,7 +18,7 @@ To stop debugging, type: stopDebugging([app_id])
 [page log] Available logging filters for "astryx-demo":
         all
   none
-mounted: 8397 chars of DOM
+mounted: 8422 chars of DOM
 
 structure
   ok   Stack rendered x12

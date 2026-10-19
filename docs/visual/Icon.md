@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Icon` (`src/icon.ml`, M8)
-- rendered instances in the demo: 89
-- classes: `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`
+- rendered instances in the demo: 104
+- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`
 
 ## layout
 
@@ -46,7 +46,16 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `height` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
+| `transform` | `rotate(180deg)` | `.astryx-banner__chevron--expanded` |
 | `width` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
+
+## effects
+
+| property | value | source class |
+| --- | --- | --- |
+| `transition-duration` | `175ms` _(from `var(--duration-fast)`)_ | `.astryx-banner__chevron` |
+| `transition-property` | `transform` | `.astryx-banner__chevron` |
+| `transition-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-banner__chevron` |
 
 ## tokens referenced
 
@@ -60,6 +69,8 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-icon-secondary` | `light-dark(#4E606F, #AAAFB5)` |
 | `--color-success` | `light-dark(#0D8626, #0D8626)` |
 | `--color-warning` | `light-dark(#E9AF08, #F2C00B)` |
+| `--duration-fast` | `175ms` |
+| `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
 
 ## image-generation prompt
 

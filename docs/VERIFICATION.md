@@ -3646,3 +3646,87 @@ action and row-surface clicks delegate to it, upstream's
 - Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m48.txt`. PORT-STATUS
   68/35.
 
+
+## Gate 66 — M49: Banner (coverage 68 -> 69)
+
+A persistent status notification (info / warning / error / success), ported from
+`facebook/astryx` `Banner/Banner.tsx` as `Astryx.Banner` (registered in
+`astryx.ml`, `src/banner.ml` + `.mli`), preceded by its core: `Use_collapsible`
+(`src/use_collapsible.ml` + `.mli`) is the shared collapsible state machine
+ported from `Collapsible/useCollapsible.ts` so Banner's disclosure and the
+coming Collapsible port run the same hook — controlled / uncontrolled /
+disabled, decided by whether `is_open` was provided, exactly as upstream
+decides by whether `isOpen` was.
+
+- The banner is two parts, as upstream's is: the colored status header
+  (icon, title, description, end area) and an optional card-background content
+  area. `title`/`description` are node lists — never `<p>` — because a
+  paragraph cannot legally contain block-level children and these slots take
+  arbitrary content (the port's own judgment, upstream's stated rule).
+- `status` is a string, not a variant: upstream's `BannerStatus` is extensible by
+  a theme package and this port cannot express module augmentation, so the
+  status leaves the type system and the lookups stay partial — an unknown
+  status falls through to the base treatment (no fill class, no default
+  glyph). Status never selects a live-region role; callers pass `role` through
+  `attrs`, exactly as upstream says.
+- Disclosure: children are collapsible by default and a collapsible banner
+  **starts closed** — the banner's one departure from the hook's own default
+  (open), applied here so `Use_collapsible` stays upstream's machine for
+  everyone else; a `Never` banner pins the content open with no toggle, no
+  `aria-expanded`, no `aria-controls`, and no end area at all. When mounted,
+  the toggle links the content through `aria-controls = <id>-content`; the
+  reference disappears with the region, so no dangling pointer exists.
+- Dismissal: `is_dismissable` mounts a close control; the banner removes
+  itself even when `on_dismiss` is absent (the dismissal is owned here, not by
+  the caller, and `on_dismiss` fires alongside), and before it disappears focus
+  is handed back to the element it came from — recorded on `focusin` /
+  `pointerdown` capture, kept only when it is outside the banner and not
+  `body`, refocused only if still connected — the same handoff
+  `Toast_viewport` makes.
+- The header is the color surface; `container` is `Card` (rounded, standalone)
+  or `Section` (full-width, square); `elevation` rides `Button`'s enumerated
+  shadow; the icon wrapper is `aria-hidden` (the glyph is decoration — the
+  message is the title and description, told twice would be noise).
+- `src/button.ml`: ghost buttons now carry `data-astryx-edge-comp`
+  (upstream `EDGE_COMP_ATTR`), and the banner's CSS compensates for a ghost
+  action's protruding edge with a `:has(> [data-astryx-edge-comp]:first-child)`
+  negative margin. Recorded divergences in `port.json` and the `.mli`: no
+  `themeProps` (styled by class, as every component here); fixed English
+  labels (`dismiss_label` default "Dismiss", `expand_label`/`collapse_label`);
+  `id` is caller-scoped — no `useId`, so a distinct id per banner; no
+  `className`/`style`/`xstyle` per the class convention.
+
+- Component fixture: `test/rt_test.ml` mounts `banner-all` — seven banners
+  covering the default closed collapsible, an explicitly open one, `Never`,
+  end content, dismissal, a Card container with elevation, and an unknown
+  status. `node test/run.mjs` **696 checks, 0 failures** (19 new Banner
+  checks: the marked root and its status, the per-status fill classes, the
+  closed-start contract — no content region, `Expand` toggle reporting
+  `aria-expanded=false` with no `aria-controls`, because nothing is mounted to
+  point at — the open banner's linked content region, `Never`'s pinned content
+  with no toggle and no ids, the aria-hidden glyph wrapper, the end-slot
+  placement and body modifier, the caller-named dismiss control, and the
+  unknown-status fall-through).
+- jsdom DOM + accessibility gate: **ALL CHECKS PASSED**.
+- Browser showcase: **482/482** (12 new Banner checks) and demo **25/25**. The
+  interaction half belongs here because jsdom cannot pump Bonsai effects: a
+  collapsible banner starts closed with no content region and an
+  `aria-expanded=false` toggle; clicking it opens the content and links it
+  through `aria-controls`, which disappears with the region; `defaultIsOpen`
+  renders content on first paint; `Never` pins it open with no toggle; the four
+  statuses paint their own fill; a ghost action's compensating edge margin is
+  read from computed style rather than assumed; the controlled banner's readout
+  follows the toggle in both directions; a banner dismisses itself even with no
+  callback wired; the status icon wrapper is `aria-hidden`.
+- Example count map: 451 examples, 71 sections, 71 nav links (Banner section:
+  eleven examples, all marked). Coverage panel: 69 / 34 / 103.
+- Responsive: **66/66** — re-baselined (Banner moving into the ported list
+  changed the coverage panel's text); update run green, clean verify 66/66.
+- Visual contract: Banner.md generated; 70 pages total.
+- Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m49.txt`.
+  PORT-STATUS 69/34. One catch along the way: after the generators moved the
+  coverage.json numbers, the browser gate's own expected values still said
+  `68 / 35` and caught itself — 480/482 with the only failures being the two
+  coverage-stat checks. The expected counts were moved to 69 / 34 / 103 and
+  the rerun is green, which is the gate doing exactly its job: a real
+  mismatch, found by itself, fixed, and re-proven.

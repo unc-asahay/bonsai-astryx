@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 68,
-    "unported": 35,
+    "ported": 69,
+    "unported": 34,
     "total": 103,
     "documented": 103
   },
@@ -40,6 +40,12 @@
       "module": "Astryx.Badge",
       "file": "src/badge.ml",
       "milestone": "M1"
+    },
+    {
+      "name": "Banner",
+      "module": "Astryx.Banner",
+      "file": "src/banner.ml",
+      "milestone": "M49"
     },
     {
       "name": "Blockquote",
@@ -422,7 +428,6 @@
   ],
   "unported": [
     "AppShell",
-    "Banner",
     "BottomSheet",
     "Breadcrumbs",
     "Calendar",

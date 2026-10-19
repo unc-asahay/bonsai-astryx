@@ -134,6 +134,7 @@ let view
     Common.Attr.class_ classes
     @ Common.Attr.data "component" component_name
     @ Common.Attr.data "variant" (variant_string variant)
+    @ (match variant with Ghost -> Common.Attr.data "edge-comp" "" | _ -> [])
     @ label_attrs
     @ state_attrs
     @ disabled_attrs
