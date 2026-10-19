@@ -11,6 +11,14 @@ files and runs the gates.
 - **Upstream**: `/home/noor/src/astryx/packages/core/src/<Component>/` —
   the TypeScript source you are porting. `*.tsx` is the component,
   `hooks/` its logic, `*.styles.ts` the CSS.
+- **The behaviour contract is upstream's own**: each component directory
+  also has `<Name>.spec.md` (the contract: intent, public API, ARIA,
+  accessibility and layout requirements) and `*.test.ts(x)` files (the
+  expected behaviour, case by case). Read both. When the spec and the
+  implementation disagree, the spec explains the intent and the tests
+  show the expected behaviour — the port should satisfy the tests.
+  `<Name>.doc.mjs` lists the props and variants, which is the fastest
+  way to learn the public API.
 - **Reference ports already in this repo**: `src/` holds every ported
   component. Read the closest ones before writing anything — they show the
   house style. `src/timestamp.ml` (host Intl, date/time), `src/outline.ml`
