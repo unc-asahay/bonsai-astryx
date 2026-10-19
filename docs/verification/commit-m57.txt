@@ -1,0 +1,89 @@
+M57: ComplexSelector - the field-shaped custom selector (native popover surface)
+
+Port of facebook/astryx ComplexSelector (ComplexSelector.tsx 1895 LOC as one
+Astryx.Complex_selector) — the rich custom-selector shell: the component owns
+the field, the trigger, the popup and the focus contract, and hands the
+application a render function for the selection surface
+(children value commit close state).
+
+What is ported, exactly (all upstream):
+- The trigger is OURS: the port builds the field (its own Field, composed),
+  the control box, the button, the spinner and the chevron, so there is no
+  need for the layer-trigger hook that finds a button — the ARIA
+  (aria-haspopup=dialog, aria-expanded, aria-controls, aria-labelledby,
+  aria-required/aria-invalid/aria-busy, aria-describedby) and the handlers go
+  on the button it builds.
+- The popup is the platform's native popover mechanism, exactly as Popover
+  uses it: popover="auto" plus the shared Layer_hook, the same CSS anchor
+  positioning, role=dialog + aria-modal=true + aria-label = the field's label,
+  tabindex=-1 as the fallback focus target, no close button (upstream
+  configures usePopover so here). It is not composed through Popover, because
+  that composition would inherit Popover's marker, close button and content
+  class. NOT the same as Popover: the surface is always in the DOM and the
+  application's children fill it.
+- Focus: opening moves focus into the first focusable control of the content
+  (or the surface itself) one frame late — the surface is display:none until
+  the layer mechanism shows it and the two hooks run in unspecified order
+  after the same DOM patch; the platform's own dismissal (Escape, outside
+  pointer) restores focus to the trigger. ArrowDown on the trigger opens it,
+  as upstream's own button does; the caller's onClick/onKeyDown run first and
+  may preventDefault to keep the surface closed (upstream's
+  composeEventHandlers contract).
+- The trigger label is a computation (string Bonsai.t), not a string:
+  upstream builds triggerContent from the caller's state in render
+  (triggerLabel ?? placeholder — confirmed against the source), and the port
+  caller derives it the same way. Omit it and the trigger reads the
+  placeholder ("Choose...", upstream's own en catalogue) with the
+  --placeholder class. commit calls on_change and nothing else; close dimisses
+  the same way every other route does.
+- State is owned the DropdownMenu way: both is_open and on_open_change given
+  — the caller owns it; neither — the selector owns its state; on_open_change
+  alone — observation; is_open alone is refused with a raise rather than
+  silently ignored. is_loading drives the trigger spinner, aria-busy and the
+  child's state.is_busy. Variant (Input/Secondary/Ghost), size (sm/md/lg),
+  status (colour + aria-invalid + message through Field), placement and
+  alignment all render as classes on the same box; Secondary/Ghost demote an
+  Attached status to Detached, as upstream does.
+
+Divergences, stated in src/complex_selector.mli rather than hidden:
+changeAction and the optimistic value are not ported (the standing M48 house
+call — is_loading replaces the pair; the application owns the async work);
+renderTrigger (a caller-rendered opener cannot be wired to the layer
+mechanism, which must sit on the trigger element); no imperative handleRef —
+is_open/on_open_change are the non-imperative equivalent; startIcon is an
+icon name, not a node; children is a plain function and cannot own Bonsai
+state; no labelTooltip; the container/control styling props and the caller's
+aria-describedby override are not exposed; English strings are fixed (no i18n
+provider); the press-feedback data-astryx-press overlay is the campaign-wide
+named omission (the :active scale is reproduced); Start/End placements fall
+back to the fade-in entry because there is no horizontal-slide house preset
+(named in the CSS block).
+
+Build lessons worth recording (each caught by the compiler):
+- module Field_ = Field must be bound BEFORE open! Core (Core defines a
+  module named Field — first-class fields); the .mli reference paths need the
+  alias too. Same arrangement text_input.ml already makes.
+- Core API aligned to the house idiom: Bonsai.state returns trees, so value /
+  on_change / is_open / on_open_change / trigger_label are all Bonsai.t
+  computations (mirroring dropdown_menu.mli / text_input.mli), not plain
+  values; trigger_label in particular would freeze at first render as a
+  plain string.
+- The doc-comment lexer trap: backslash-quoted strings inside (** ... **)
+  comments break the lexer — use plain quotes.
+
+Gates: dune build clean; jsdom component gate 762 checks, 0 failures (11 new
+— trigger ARIA contract, dialog/popover contract, option buttons, variant/
+status/disabled/busy classes, placeholder reading, chevron indicator);
+browser gate 560/560 (10 new live checks on :popover-open/aria-expanded: a
+click opens and focus enters the first option, choosing commits through the
+caller and renames the trigger from the caller's label computation, ArrowDown
+opens, Escape dismisses and returns focus, is_loading reaches the child's
+render state as aria-busy and a spinner, the controlled selector follows the
+caller's own button and reports Escape back); responsive 66/66 (showcase
+baselines re-captured — the page grew by the new section, then verified on a
+separate run with 0.00% drift); showcase 11 ComplexSelector examples, 79
+sections, 511 examples, 79 nav links; README 77 of 103 (M41-M57), 762
+component checks, 560 browser checks, coverage 77/26/103, visual 78 pages +
+INDEX; docs/visual/ComplexSelector.md generated; generators re-ran clean
+(gen-coverage, gen-visual-contract, gen-references, gen-port-status —
+references before port-status); Gate 74 in docs/VERIFICATION.md; sweep GREEN.

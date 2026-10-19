@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   78 sections
+  ok   79 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   500 examples across the page
+  ok   511 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Timestamp:10
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Timestamp:10 ComplexSelector:11
 
 navigation
-  ok   78 nav links
+  ok   79 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 76 ported / 27 not / 103 total
-  ok   unported list rendered 27 entries
+  ok   coverage stats are 77 ported / 26 not / 103 total
+  ok   unported list rendered 26 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -650,9 +650,21 @@ Timestamp (live)
   ok   the open card is a named dialog the trigger advertises and points at
   ok   leaving the trigger unmounts the card
 
+ComplexSelector (live)
+  ok   the selector starts closed, announcing it, with the placeholder reading
+  ok   clicking the trigger opens the native popover and announces it
+  ok   focus enters the first option in the surface, not the trigger
+  ok   choosing an option commits it via the caller, closes the surface and renames the trigger
+  ok   ArrowDown on the trigger opens it, as upstream's own button does
+  ok   Escape dismisses it and returns focus to the trigger
+  ok   is_loading announces aria-busy, shows the spinner and reaches the child's render state
+  ok   the controlled selector starts closed, owned by the caller
+  ok   the caller's own button opens it — is_open drives the surface
+  ok   Escape reports back through on_open_change and the surface follows
+
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-550/550 checks passed, 0 failure(s)
+560/560 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

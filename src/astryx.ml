@@ -19,6 +19,7 @@ module List_item = List_item
 module More_menu = More_menu
 
 module Popover = Popover
+module Complex_selector = Complex_selector
 module Common = Common
 module Progress_bar = Progress_bar
 module Spinner = Spinner

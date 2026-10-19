@@ -5072,3 +5072,101 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-timestamp-card--label { grid-template-columns: auto 1fr; }
 .astryx-timestamp-card--action { grid-template-columns: 1fr auto; }
 .astryx-timestamp-card--value { grid-template-columns: 1fr; }
+
+/* -------------------------------------------------------- ComplexSelector */
+
+.astryx-complex-selector {
+  anchor-name: --astryx-complex-selector-anchor;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+.astryx-complex-selector[data-astryx-size="sm"] { height: var(--size-element-sm); }
+.astryx-complex-selector[data-astryx-size="md"] { height: var(--size-element-md); }
+.astryx-complex-selector[data-astryx-size="lg"] { height: var(--size-element-lg); }
+
+/* Variants: secondary keeps the input-family width contract while reusing
+   the neutral resting fill of a secondary button; ghost reuses the borderless
+   paint. Both drop the input border, as upstream's stylex does. */
+.astryx-complex-selector--secondary {
+  border-color: transparent;
+  background-color: var(--color-neutral);
+}
+.astryx-complex-selector--ghost {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.astryx-complex-selector--warning { border-color: var(--color-warning); }
+.astryx-complex-selector--error { border-color: var(--color-error); }
+.astryx-complex-selector--success { border-color: var(--color-success); }
+
+.astryx-complex-selector--disabled { cursor: default; }
+
+.astryx-complex-selector__start-icon { flex-shrink: 0; }
+.astryx-complex-selector__spinner { flex-shrink: 0; }
+
+/* The trigger button is the control the field label points at; it takes the
+   whole intrinsic width and the box's click routes to it. */
+.astryx-complex-selector__trigger-text {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+}
+.astryx-complex-selector--placeholder,
+.astryx-complex-selector__placeholder { color: var(--color-text-secondary); }
+
+/* Rotation lives on the chevron glyph's flex wrapper. */
+.astryx-complex-selector__indicator {
+  flex-shrink: 0;
+  transition-property: transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  transform-origin: center;
+}
+.astryx-complex-selector__indicator--open { transform: rotate(180deg); }
+
+.astryx-complex-selector__popover {
+  position: fixed;
+  margin: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background-color: var(--color-background-popover);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-low);
+  padding: 0;
+  position-anchor: --astryx-complex-selector-anchor;
+  min-inline-size: anchor-size(--astryx-complex-selector-anchor width);
+  max-inline-size: calc(100vi - var(--spacing-4));
+}
+.astryx-complex-selector__popover:not(:popover-open) { display: none; }
+
+.astryx-complex-selector__popover--below { position-area: block-end; }
+.astryx-complex-selector__popover--above { position-area: block-start; }
+.astryx-complex-selector__popover--start { position-area: inline-start; }
+.astryx-complex-selector__popover--end { position-area: inline-end; }
+
+.astryx-complex-selector__popover--align-start { justify-self: start; align-self: start; }
+.astryx-complex-selector__popover--align-center { justify-self: center; align-self: center; }
+.astryx-complex-selector__popover--align-end { justify-self: end; align-self: end; }
+
+.astryx-complex-selector__content {
+  box-sizing: border-box;
+  max-height: min(480px, calc(100vh - 32px));
+  overflow: auto;
+  padding: var(--spacing-3);
+}

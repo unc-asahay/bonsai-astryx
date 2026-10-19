@@ -842,6 +842,7 @@ module Tb = Astryx.Tab_list
 module Lb = Astryx.Lightbox
 module Hc = Astryx.Hover_card
 module Ts = Astryx.Timestamp
+module Cx = Astryx.Complex_selector
 
 let demo_menu_item
       ?description
@@ -3159,6 +3160,188 @@ let timestamp_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* --------------------------------------------------- complex selector *)
+
+(* A field-shaped trigger with a popup surface the application fills: the selector owns the
+   trigger, the popover layer and the focus contract, and hands the surface a render function.
+   What the interface says plainly: children are a plain function of the current value, so every
+   live example keeps its value in the demo's own Bonsai state and derives the trigger label from
+   it (the label is a computation, exactly as upstream builds triggerContent in render);
+   changeAction is not ported, so [is_loading] is the busy signal; a caller that wants to drive
+   the selector hands it both [is_open] and [on_open_change] (the last example); and the surface
+   is a native popover, so the platform owns dismissal and focus. *)
+let complex_selector_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let colors = [ "Red"; "Green"; "Blue" ] in
+  let option_button (value : string option) (option : string) commit close =
+    Vdom.Node.button
+      ~attrs:
+        [ Vdom.Attr.class_ "showcase-option"
+        ; Vdom.Attr.create "data-astryx-option" option
+        ; Vdom.Attr.create "data-astryx-selected"
+            (Bool.to_string (Poly.equal value (Some option)))
+        ; Vdom.Attr.on_click (fun _ -> Effect.Many [ commit (Some option); close () ])
+        ]
+      [ Vdom.Node.text option ]
+  in
+  let on_change setter = Bonsai.map setter ~f:(fun set value -> set value) in
+  let examples =
+    [ ex_tree
+        "basic — options, select and close"
+        (let selected, set_selected = Bonsai.state (None : string option) graph in
+         Cx.view
+           ~id:"showcase-cs-basic"
+           ~label:"Color"
+           ~value:selected
+           ~on_change:(on_change set_selected)
+           ~trigger_label:
+             (Bonsai.map selected ~f:(fun v ->
+                match v with None -> "Choose..." | Some name -> name))
+           ~children:(fun value commit close _ ->
+             List.map colors ~f:(fun option -> option_button value option commit close))
+           graph)
+    ; ex_tree
+        "with description and a start icon"
+        (let selected, set_selected = Bonsai.state (Some "Quarterly") graph in
+         Cx.view
+           ~id:"showcase-cs-described"
+           ~label:"Report period"
+           ~description:"The span of time the report aggregates"
+           ~start_icon:"calendar"
+           ~value:selected
+           ~on_change:(on_change set_selected)
+           ~children:(fun value commit close _ ->
+             List.map [ "Weekly"; "Monthly"; "Quarterly"; "Yearly" ] ~f:(fun option ->
+               option_button value option commit close))
+           graph)
+    ; ex_tree
+        "secondary variant"
+        (Cx.view
+           ~id:"showcase-cs-secondary"
+           ~label:"Plan"
+           ~variant:Cx.Secondary
+           ~value:(Bonsai.return (Some "Enterprise"))
+           ~children:(fun value commit close _ ->
+             List.map [ "Starter"; "Business"; "Enterprise" ] ~f:(fun option ->
+               option_button value option commit close))
+           graph)
+    ; ex_tree
+        "ghost variant"
+        (Cx.view
+           ~id:"showcase-cs-ghost"
+           ~label:"Theme"
+           ~variant:Cx.Ghost
+           ~value:(Bonsai.return None)
+           ~children:(fun value commit close _ ->
+             List.map [ "Light"; "Dark"; "System" ] ~f:(fun option ->
+               option_button value option commit close))
+           graph)
+    ; ex_tree
+        "disabled"
+        (Cx.view
+           ~id:"showcase-cs-disabled"
+           ~label:"Locked choice"
+           ~is_disabled:true
+           ~value:(Bonsai.return (Some "Blue"))
+           ~children:(fun value commit close _ ->
+             List.map colors ~f:(fun option -> option_button value option commit close))
+           graph)
+    ; ex_tree
+        "error status"
+        (Cx.view
+           ~id:"showcase-cs-error"
+           ~label:"Timezone"
+           ~status:{ Cx.type_ = Error; message = Some "This zone no longer exists" }
+           ~value:(Bonsai.return (Some "PST"))
+           ~children:(fun value commit close _ ->
+             List.map [ "PST"; "CET"; "JST" ] ~f:(fun option ->
+               option_button value option commit close))
+           graph)
+    ; ex_tree
+        "size sm"
+        (Cx.view
+           ~id:"showcase-cs-size-sm"
+           ~label:"Small"
+           ~size:Cx.Sm
+           ~value:(Bonsai.return (Some "Red"))
+           ~children:(fun value commit close _ ->
+             List.map colors ~f:(fun option -> option_button value option commit close))
+           graph)
+    ; ex_tree
+        "size md"
+        (Cx.view
+           ~id:"showcase-cs-size-md"
+           ~label:"Medium"
+           ~size:Cx.Md
+           ~value:(Bonsai.return (Some "Red"))
+           ~children:(fun value commit close _ ->
+             List.map colors ~f:(fun option -> option_button value option commit close))
+           graph)
+    ; ex_tree
+        "size lg"
+        (Cx.view
+           ~id:"showcase-cs-size-lg"
+           ~label:"Large"
+           ~size:Cx.Lg
+           ~value:(Bonsai.return (Some "Red"))
+           ~children:(fun value commit close _ ->
+             List.map colors ~f:(fun option -> option_button value option commit close))
+           graph)
+    ; ex_tree
+        "busy — is_loading drives the spinner, aria-busy and the child's state"
+        (Cx.view
+           ~id:"showcase-cs-busy"
+           ~label:"Winner"
+           ~is_loading:true
+           ~value:(Bonsai.return (Some "Red"))
+           ~children:(fun value commit close state ->
+             List.map colors ~f:(fun option -> option_button value option commit close)
+             @ [ Vdom.Node.span
+                   ~attrs:[ Vdom.Attr.class_ "showcase-cs-state" ]
+                   [ Vdom.Node.text
+                       (sprintf "busy=%b open=%b" state.is_busy state.is_open) ] ])
+           graph)
+    ; ex_tree
+        "controlled — the demo owns is_open with a separate button"
+        (let open_, set_open = Bonsai.state false graph in
+         let selector =
+           Cx.view
+             ~id:"showcase-cs-controlled"
+             ~label:"Controlled"
+             ~is_open:open_
+             ~on_open_change:set_open
+             ~value:(Bonsai.return (Some "Red"))
+             ~children:(fun value commit close _ ->
+               List.map colors ~f:(fun option -> option_button value option commit close))
+             graph
+         in
+         Bonsai.map3 selector open_ set_open ~f:(fun node is_open set_open ->
+           Vdom.Node.div
+             ~attrs:[ Vdom.Attr.class_ "showcase-control" ]
+             [ node
+             ; Vdom.Node.button
+                 ~attrs:
+                   [ Vdom.Attr.class_ "showcase-button"
+                   ; Vdom.Attr.create "data-astryx-toggle" "controlled"
+                   ; Vdom.Attr.on_click (fun _ -> set_open (not is_open))
+                   ]
+                 [ Vdom.Node.text "Toggle from outside" ]
+             ]))
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"complex-selector"
+      ~title:"ComplexSelector"
+      ~note:
+        "A field-shaped trigger that opens a native popover surface the application fills. The \\\n         selector hands the surface its value, a commit callback, a close callback and the \\\n         render state; the trigger label is a computation the caller derives, as upstream builds \\\n         its triggerContent in render. What the interface says plainly: changeAction and the \\\n         optimistic value are not ported, so is_loading is the busy signal; children cannot own \\\n         state; and a caller that wants to drive the selector passes both is_open and \\\n         on_open_change."
+      examples)
+;;
+
 (* ------------------------------------------------- dialog (state, and the platform) *)
 
 (* The only component so far whose behaviour is the browser's: a <dialog> opened with showModal() is
@@ -5341,6 +5524,7 @@ let nav_items =
   ; "lightbox", "Lightbox"
   ; "hover-card", "HoverCard"
   ; "timestamp", "Timestamp"
+  ; "complex-selector", "ComplexSelector"
   ]
 ;;
 
@@ -6185,15 +6369,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful hover_card_section in
   let timestamp_section = timestamp_demo graph in
   let stateful = pair stateful timestamp_section in
+  let complex_selector_section = complex_selector_demo graph in
+  let stateful = pair stateful complex_selector_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp)
+    ~f:(fun (((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp), complex_selector)
     text_area ->
-Vdom.Node.div
+      Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp; complex_selector ])
       ])
 let () =
   Bonsai_web.Start.start ~bind_to_element_with_id:"astryx-showcase" page

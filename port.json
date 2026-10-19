@@ -768,6 +768,13 @@
       "file": "src/timestamp.ml",
       "milestone": "M56",
       "module": "Astryx.Timestamp"
+    },
+    {
+      "class": "C",
+      "component": "ComplexSelector",
+      "file": "src/complex_selector.ml",
+      "milestone": "M57",
+      "module": "Astryx.Complex_selector"
     }
   ],
   "schema": 1,

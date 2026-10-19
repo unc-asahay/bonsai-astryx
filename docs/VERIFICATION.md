@@ -4068,3 +4068,95 @@ render without `href`), and there is no themeProps.
   dev-only console warn; touch handling is the hover card's own (no touch
   mode either, as upstream).
 
+
+## Gate 74 — M57: ComplexSelector (coverage 76 -> 77)
+
+- `src/complex_selector.ml` + `src/complex_selector.mli` — a rich custom
+  selector shell, ported from upstream `ComplexSelector/ComplexSelector.tsx`
+  (1895 LOC): the component owns the field, the trigger, the popup and the
+  focus contract, and hands the application a render function for the
+  selection surface (`children value commit close state`). The trigger is
+  OURS — the port builds the field, the control box, the button, the spinner
+  and the chevron, so there is no need for the layer-trigger hook that *finds*
+  a button (the arrangement DropdownMenu reached for the same reason); the
+  ARIA and the handlers go on the button it builds.
+- The popup is the platform's native popover mechanism, exactly as `Popover`
+  uses it: `popover="auto"` plus the shared `Layer_hook`, the same CSS anchor
+  positioning, `role="dialog"` + `aria-modal="true"` + `aria-label` = the
+  field's label, `tabindex="-1"` so the surface itself is a fallback focus
+  target, and no close button — the application's content speaks for itself,
+  as upstream configures `usePopover` here. It is NOT composed through
+  `Popover`, because that composition would inherit Popover's marker, close
+  button and content class. Opening moves focus into the first focusable
+  control of the content (or the surface itself) one frame late — the surface
+  is `display:none` until the layer mechanism shows it and the two hooks run
+  in unspecified order after the same DOM patch (the same trap Popover and
+  the dialog hit) — and the platform's own dismissal restores focus to the
+  trigger, because the trigger is the anchor of the whole widget.
+- The surface is always in the DOM; the application's `children` returns the
+  option nodes, which live inside the popup's content container and are
+  hidden by the platform. The trigger label is a *computation* (`string
+  Bonsai.t`), not a string: upstream builds `triggerContent` from the
+  caller's state in render (`triggerLabel ?? placeholder` — confirmed against
+  the source), and so does the caller here; omit it and the trigger reads the
+  placeholder ("Choose...", upstream's own en catalogue) with the
+  `--placeholder` class. `commit` calls `on_change` and nothing else;
+  `close` dismisses the same way every other route does.
+- State is owned the DropdownMenu way: both `~is_open` and `~on_open_change`
+  given — the caller owns it; neither — the selector owns its state; only
+  `on_open_change` — observation; `is_open` alone is refused with a `raise`
+  rather than silently ignored. `is_loading` drives the trigger spinner and
+  `aria-busy` and reaches the child's `state.is_busy`. Variant (`Input`/
+  `Secondary`/`Ghost`), `size` (sm/md/lg from the shared scale), status
+  (colour + `aria-invalid` + message via the port's Field), placement and
+  alignment all render as classes on the same box.
+- The port's own Field is composed and is the reason for the build lesson of
+  this milestone: `module Field_ = Field` must be bound **before** `open!
+  Core` (Core defines a module named Field — the first-class-fields module),
+  and the `.mli` reference paths use the alias too. The same lesson is
+  already documented at `text_input.ml`; a fresh module is where the repo's
+  old lessons get forgotten.
+- Showcase: 11 ComplexSelector examples (basic interactive select+close,
+  description + start icon, secondary, ghost, disabled, error status, sizes
+  sm/md/lg, busy/`is_loading`, externally controlled open/close), 79
+  sections, 511 examples, 79 nav links. The controlled example is run for
+  real: the caller's own button drives `is_open`, and Escape rides back
+  through `on_open_change`.
+- Component gate (jsdom, structural): 762 checks, 0 failures — 11 new. The
+  trigger's full ARIA contract, the popup's dialog contract, three option
+  buttons in the content, variant/status/disabled/busy classes, the
+  placeholder reading and the chevron indicator are all asserted; the
+  open/close behaviour is the platform's popover mechanism, which jsdom
+  cannot run, so it lives in the browser gate.
+- Real-browser gate: 560 checks, 0 failures — 10 new, all on
+  `:popover-open`/`aria-expanded` rather than geometry (the same stance
+  Popover took): a click opens the native popover and focus enters the first
+  option, choosing one commits through the caller and renames the trigger
+  from the caller's own label computation, ArrowDown opens it from the
+  keyboard, Escape dismisses it and returns focus to the trigger,
+  `is_loading` announces `aria-busy`, shows the spinner and reaches the
+  child's render state, and the controlled selector follows the caller's own
+  button and reports Escape back. Two of the first run's three failures were
+  gate timing (the check read `aria-expanded` before the state round-trip —
+  the wait now targets the attribute, not `:popover-open`); the third was a
+  wrong probe (the child's readout renders in the popup content, not the
+  control box). No component change was needed.
+- README: 77 of 103 ported (M41–M57), 762 component checks, 560 browser
+  checks, showcase 77/511/79, coverage 77/26/103, visual 78 pages + INDEX;
+  PORT-STATUS 77/103; `docs/visual/ComplexSelector.md` generated. Generators
+  re-ran clean (gen-coverage, gen-visual-contract, gen-references,
+  gen-port-status — references before port-status).
+- Divergences named in the mli: `changeAction` and the optimistic value are
+  not ported (the standing M48 house call — `is_loading` replaces the pair,
+  the application owns the async work); `renderTrigger` (a caller-rendered
+  opener cannot be wired to the layer mechanism, which must sit on the
+  trigger element); no imperative `handleRef` — `is_open`/`on_open_change`
+  are the non-imperative equivalent; `startIcon` is an icon *name*, not a
+  node; `children` is a plain function and cannot own Bonsai state (a child
+  that needs state is driven by the application); no `labelTooltip`; the
+  container/control styling props and the caller's `aria-describedby`
+  override are not exposed; English strings are fixed (no i18n provider); the
+  press-feedback `data-astryx-press` overlay is the campaign-wide named
+  omission (`:active` scale reproduced); `Start`/`End` placements fall back
+  to the fade-in entry because there is no horizontal-slide house preset
+  (named in the CSS block).

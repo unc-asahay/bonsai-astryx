@@ -3454,6 +3454,94 @@ let () =
   mount "timestamp-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ------------------------------------------------------- complex selector *)
+
+let complex_selector_component (graph : Bonsai.graph) =
+  let colors = [ "Red"; "Green"; "Blue" ] in
+  let option_buttons _value commit close =
+    List.map colors ~f:(fun option ->
+      Vdom.Node.button
+        ~attrs:
+          [ Vdom.Attr.class_ "showcase-option"
+          ; Vdom.Attr.create "data-astryx-option" option
+          ; Vdom.Attr.on_click (fun _ -> Effect.Many [ commit (Some option); close () ])
+          ]
+        [ Vdom.Node.text option ])
+  in
+  let on_change setter = Bonsai.map setter ~f:(fun set value -> set value) in
+  let basic, set_basic = Bonsai.state (None : string option) graph in
+  let trees =
+    [ Astryx.Complex_selector.view
+        ~id:"rt-cs-basic"
+        ~label:"Color"
+        ~value:basic
+        ~on_change:(on_change set_basic)
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-secondary"
+        ~label:"Plan"
+        ~variant:Astryx.Complex_selector.Secondary
+        ~value:(Bonsai.return (Some "Enterprise"))
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-ghost"
+        ~label:"Theme"
+        ~variant:Astryx.Complex_selector.Ghost
+        ~value:(Bonsai.return None)
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-disabled"
+        ~label:"Locked"
+        ~is_disabled:true
+        ~value:(Bonsai.return (Some "Blue"))
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-error"
+        ~label:"Timezone"
+        ~status:
+          { Astryx.Input_types.type_ = Astryx.Input_types.Error
+          ; message = Some "This zone no longer exists"
+          }
+        ~value:(Bonsai.return (Some "PST"))
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-lg"
+        ~label:"Large"
+        ~size:Astryx.Complex_selector.Lg
+        ~value:(Bonsai.return (Some "Red"))
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ; Astryx.Complex_selector.view
+        ~id:"rt-cs-busy"
+        ~label:"Winner"
+        ~is_loading:true
+        ~value:(Bonsai.return (Some "Red"))
+        ~children:(fun value commit close _ -> option_buttons value commit close)
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "complex-selector-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      complex_selector_component
+  in
+  mount "complex-selector-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

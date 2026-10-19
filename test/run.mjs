@@ -3150,6 +3150,77 @@ check("a disabled group says so once, on the box", (() => {
     && host?.querySelectorAll("time").length === 6);
 }
 
+// --- ComplexSelector (M57)
+// Structural only: the open/close behaviour is the platform's popover mechanism,
+// which jsdom cannot run, so the interaction assertions live in the browser gate.
+{
+  const host = document.querySelector('[data-case="complex-selector-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const box = (id) => g(id)?.parentElement; // the control box the button sits in
+  const content = (id) => host && host.querySelector(`#${id}-content`);
+  const all = (sel) => [...(host?.querySelectorAll(sel) ?? [])];
+
+  check("seven selectors mounted under their case, each marking itself and its size",
+    !!host && ["rt-cs-basic", "rt-cs-secondary", "rt-cs-ghost", "rt-cs-disabled",
+      "rt-cs-error", "rt-cs-lg", "rt-cs-busy"].every((id) => !!g(id))
+      && all('.astryx-complex-selector[data-astryx-component="ComplexSelector"]').length === 7
+      && box("rt-cs-basic")?.getAttribute("data-astryx-size") === "md"
+      && box("rt-cs-lg")?.getAttribute("data-astryx-size") === "lg");
+
+  check("the trigger is a real button with the full popover ARIA contract",
+    g("rt-cs-basic")?.tagName.toLowerCase() === "button"
+      && g("rt-cs-basic")?.getAttribute("type") === "button"
+      && g("rt-cs-basic")?.getAttribute("aria-haspopup") === "dialog"
+      && g("rt-cs-basic")?.getAttribute("aria-expanded") === "false"
+      && g("rt-cs-basic")?.getAttribute("aria-controls") === "rt-cs-basic-content"
+      && g("rt-cs-basic")?.getAttribute("aria-labelledby") === "rt-cs-basic-label");
+
+  check("the label the button names itself with is on the page and carries the text",
+    g("rt-cs-basic-label")?.textContent.includes("Color") === true);
+
+  check("the popup is a named native-popover dialog anchored to the trigger",
+    !!content("rt-cs-basic")
+      && content("rt-cs-basic")?.getAttribute("popover") === "auto"
+      && content("rt-cs-basic")?.getAttribute("role") === "dialog"
+      && content("rt-cs-basic")?.getAttribute("aria-modal") === "true"
+      && content("rt-cs-basic")?.getAttribute("aria-label") === "Color"
+      && content("rt-cs-basic")?.getAttribute("tabindex") === "-1"
+      && content("rt-cs-basic")?.classList.contains("astryx-complex-selector__popover")
+      && content("rt-cs-basic")?.classList.contains("astryx-complex-selector__popover--below")
+      && content("rt-cs-basic")?.classList.contains("astryx-complex-selector__popover--align-start"));
+
+  check("the application's options render inside the content, three of them",
+    content("rt-cs-basic")?.querySelectorAll(".astryx-complex-selector__content > button").length === 3
+      && ["Red", "Green", "Blue"].every((o) =>
+        content("rt-cs-basic")?.querySelector(`[data-astryx-option="${o}"]`) !== null));
+
+  check("secondary and ghost are variant classes on the same box, not new elements",
+    box("rt-cs-secondary")?.classList.contains("astryx-complex-selector--secondary")
+      && box("rt-cs-ghost")?.classList.contains("astryx-complex-selector--ghost"));
+
+  check("error status colours the box, marks the trigger invalid and renders the message",
+    box("rt-cs-error")?.classList.contains("astryx-complex-selector--error")
+      && g("rt-cs-error")?.getAttribute("aria-invalid") === "true"
+      && g("rt-cs-error-status")?.textContent.includes("no longer exists"));
+
+  check("disabled locks the trigger (native disabled) and marks the box",
+    g("rt-cs-disabled")?.hasAttribute("disabled")
+      && g("rt-cs-disabled")?.getAttribute("aria-disabled") === null
+      && box("rt-cs-disabled")?.classList.contains("astryx-complex-selector--disabled"));
+
+  check("busy announces itself and shows the spinner, not the chevron's friend",
+    g("rt-cs-busy")?.getAttribute("aria-busy") === "true"
+      && !!g("rt-cs-busy")?.parentElement?.querySelector(".astryx-complex-selector__spinner"));
+
+  check("the trigger reads the placeholder until the caller supplies a label",
+    g("rt-cs-basic")?.textContent.trim() === "Choose..."
+      && box("rt-cs-basic")?.classList.contains("astryx-complex-selector--placeholder"));
+
+  check("the indicator is the chevron and starts closed (no --open class)",
+    box("rt-cs-basic")?.querySelector(".astryx-complex-selector__indicator > svg") !== null
+      && box("rt-cs-basic")?.querySelector(".astryx-complex-selector__indicator--open") === null);
+}
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");

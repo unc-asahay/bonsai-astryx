@@ -264,6 +264,7 @@ if (mode === "showcase") {
     "Lightbox",
     "HoverCard",
     "Timestamp",
+    "ComplexSelector",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -626,7 +627,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("78 sections", sections.length === 78, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("79 sections", sections.length === 79, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -647,10 +648,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7, Timestamp: 10,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7, Timestamp: 10, ComplexSelector: 11,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("500 examples across the page", totalExamples === 500, `got ${totalExamples}`);
+  check("511 examples across the page", totalExamples === 511, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -664,7 +665,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("78 nav links", nav.length === 78, `got ${nav.length}`);
+  check("79 nav links", nav.length === 79, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4050,11 +4051,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 76 ported / 27 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["76", "27", "103"]),
+    "coverage stats are 77 ported / 26 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["77", "26", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 27 entries", cov.unported === 27, `got ${cov.unported}`);
+  check("unported list rendered 26 entries", cov.unported === 26, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5129,6 +5130,109 @@ check(
   await page.mouse.move(10, 10);
   await page.waitForFunction(() => document.getElementById("showcase-ts-card") === null, { timeout: 30000 });
   check("leaving the trigger unmounts the card", (await tsCard()) === null);
+
+  // ---------------------------------------------------------------- ComplexSelector (M57)
+  // The popup is the platform's native popover, so the interaction contract is
+  // asserted on :popover-open / aria-expanded rather than pixel geometry — the
+  // same stance Popover took.
+  console.log("\nComplexSelector (live)");
+  const csBtn = () =>
+    page.evaluate(() => {
+      const b = document.getElementById("showcase-cs-basic");
+      const c = document.getElementById("showcase-cs-basic-content");
+      return {
+        expanded: b?.getAttribute("aria-expanded") ?? null,
+        controls: b?.getAttribute("aria-controls") ?? null,
+        open: !!c && c.matches(":popover-open"),
+        text: b?.querySelector(".astryx-complex-selector__trigger-text")?.textContent?.trim() ?? null,
+        focusedOption: document.activeElement?.getAttribute?.("data-astryx-option") ?? null,
+        focusedTrigger: document.activeElement?.id === "showcase-cs-basic",
+      };
+    });
+
+  const csClosed = await csBtn();
+  check("the selector starts closed, announcing it, with the placeholder reading",
+    csClosed.expanded === "false" && csClosed.open === false && csClosed.text === "Choose..."
+      && csClosed.controls === "showcase-cs-basic-content",
+    JSON.stringify(csClosed));
+
+  await page.click("#showcase-cs-basic");
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-basic-content")?.matches(":popover-open"),
+    { timeout: 30000 },
+  ).catch(() => {});
+  const csOpened = await csBtn();
+  check("clicking the trigger opens the native popover and announces it",
+    csOpened.expanded === "true" && csOpened.open === true, JSON.stringify(csOpened));
+  check("focus enters the first option in the surface, not the trigger",
+    csOpened.focusedOption === "Red", JSON.stringify(csOpened));
+
+  await page.click('[data-astryx-option="Red"]');
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-basic")?.getAttribute("aria-expanded") === "false",
+    { timeout: 30000 },
+  ).catch(() => {});
+  const csPicked = await csBtn();
+  check("choosing an option commits it via the caller, closes the surface and renames the trigger",
+    csPicked.text === "Red" && csPicked.expanded === "false" && csPicked.open === false,
+    JSON.stringify(csPicked));
+
+  await page.focus("#showcase-cs-basic");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-basic-content")?.matches(":popover-open"),
+    { timeout: 30000 },
+  ).catch(() => {});
+  check("ArrowDown on the trigger opens it, as upstream's own button does",
+    (await csBtn()).open === true);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-basic")?.getAttribute("aria-expanded") === "false",
+    { timeout: 30000 },
+  ).catch(() => {});
+  const csEsc = await csBtn();
+  check("Escape dismisses it and returns focus to the trigger",
+    csEsc.open === false && csEsc.expanded === "false" && csEsc.focusedTrigger === true,
+    JSON.stringify(csEsc));
+
+  const csBusy = await page.evaluate(() => {
+    const b = document.getElementById("showcase-cs-busy");
+    // The child's readout renders inside the popup content, not the control box.
+    const s = document.getElementById("showcase-cs-busy-content")?.querySelector(".showcase-cs-state");
+    return {
+      busy: b?.getAttribute("aria-busy"),
+      spinner: !!b?.parentElement?.querySelector(".astryx-complex-selector__spinner"),
+      state: s?.textContent ?? null,
+    };
+  });
+  check("is_loading announces aria-busy, shows the spinner and reaches the child's render state",
+    csBusy.busy === "true" && csBusy.spinner === true && csBusy.state === "busy=true open=false",
+    JSON.stringify(csBusy));
+
+  const csControlled = () =>
+    page.evaluate(() => {
+      const b = document.getElementById("showcase-cs-controlled");
+      return {
+        expanded: b?.getAttribute("aria-expanded") ?? null,
+        open: !!document.getElementById("showcase-cs-controlled-content")?.matches(":popover-open"),
+      };
+    });
+  check("the controlled selector starts closed, owned by the caller",
+    (await csControlled()).expanded === "false");
+  await page.click('[data-astryx-toggle="controlled"]');
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-controlled-content")?.matches(":popover-open"),
+    { timeout: 30000 },
+  ).catch(() => {});
+  check("the caller's own button opens it — is_open drives the surface",
+    (await csControlled()).open === true && (await csControlled()).expanded === "true");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    () => document.getElementById("showcase-cs-controlled")?.getAttribute("aria-expanded") === "false",
+    { timeout: 30000 },
+  ).catch(() => {});
+  check("Escape reports back through on_open_change and the surface follows",
+    (await csControlled()).open === false && (await csControlled()).expanded === "false");
   }
 
 // ---------------------------------------------------------------- screenshot
