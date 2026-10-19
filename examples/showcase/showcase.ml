@@ -21,6 +21,7 @@ module A = Astryx.Common.Alignment
 module Size = Astryx.Common.Size_value
 module Text = Astryx.Text
 module Layer = Astryx.Layer
+module It = Astryx.Item
 
 (* ---------------------------------------------------------------- chrome *)
 
@@ -4312,6 +4313,7 @@ let nav_items =
   ; "file-input", "FileInput"
   ; "layout", "Layout"
   ; "slider", "Slider"
+  ; "item", "Item"
   ]
 ;;
 
@@ -4655,6 +4657,161 @@ let slider_demo (graph : Bonsai.graph) =
       [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
 ;;
 
+let item_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let glyph s = Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "glyph" ] [ Vdom.Node.text s ] in
+  (* A demo-level counter: Item's [on_click] is a plain function (this port has no
+     React context), so the readout is written into the DOM by the handler itself
+     and the browser gate reads it back — the click path is what is being shown. *)
+  let clicks : int ref = ref 0 in
+  let on_click_demo _ev =
+    clicks := !clicks + 1;
+    let (_ : string) =
+      Js_of_ocaml.Js.Unsafe.eval_string
+        (sprintf
+           "var e=document.getElementById(%S); if(e) e.textContent=%S;"
+           "item-click-readout"
+           (sprintf "clicked %d times" !clicks))
+    in
+    Bonsai.Effect.Ignore
+  in
+  let no_activate () = Bonsai.Effect.Ignore in
+  let swipe_action ?(is_disabled = false) ?(has_removal = false)
+      ?(variant = It.Accent) label =
+    { It.label; icon = None; on_activate = no_activate; is_disabled;
+      variant; has_removal }
+  in
+  let swipe_reveal_actions =
+    { It.leading = [ swipe_action ~variant:It.Neutral "Unread" ]
+    ; It.trailing =
+        [ swipe_action "Archive"
+        ; swipe_action ~variant:It.Destructive ~has_removal:true "Delete"
+        ]
+    }
+  in
+  let row ?(id = "") ?(as_ = It.Div) ?marker ?start_content ?description ?end_content
+      ?(align = It.Center) ?(density = It.Balanced) ?label_lines ?description_lines
+      ?(layout = It.Stacked) ?on_click ?interactive_selector ?href ?target ?rel
+      ?is_highlighted ?is_selected ?is_disabled ?swipe_actions ?swipe_behavior ?role
+      label graph =
+    let attrs = if String.equal id "" then [] else [ Vdom.Attr.id id ] in
+    It.view ~as_ ?marker ?start_content ?description ?end_content ~align ~density
+      ?label_lines ?description_lines ~layout ?on_click ?interactive_selector ?href
+      ?target ?rel ?is_highlighted ?is_selected ?is_disabled ?swipe_actions
+      ?swipe_behavior ?role ~attrs ~label graph
+  in
+  let rows (trees : Vdom.Node.t Bonsai.t list) =
+    Bonsai.map (join_all trees) ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-col" ] nodes)
+  in
+  let examples =
+    [ ex_tree "basic row"
+        (row ~id:"item-basic" ~marker:(glyph "●")
+           ~start_content:(glyph "✉")
+           ~end_content:(glyph "›")
+           ~description:(Vdom.Node.text "3 unread")
+           (Vdom.Node.text "Inbox") graph)
+    ; ex_tree "align start, with end slot"
+        (row ~id:"item-align-start" ~align:It.Start ~density:It.Compact
+           ~start_content:(glyph "◆") ~end_content:(glyph "›")
+           ~description:(Vdom.Node.text "A wider description line under the label, top-aligned.")
+           (Vdom.Node.text "Alignment") graph)
+    ; ex_tree "density"
+        (rows
+           [ row ~density:It.Compact ~description:(Vdom.Node.text "compact") (Vdom.Node.text "Spacing one") graph
+           ; row ~density:It.Balanced ~description:(Vdom.Node.text "balanced") (Vdom.Node.text "Spacing two") graph
+           ; row ~density:It.Spacious ~description:(Vdom.Node.text "spacious") (Vdom.Node.text "Spacing three") graph
+           ])
+    ; ex_tree "truncation"
+        (rows
+           [ row ~id:"item-truncate-1" ~label_lines:1
+               ~description:(Vdom.Node.text "This description is long enough that a single line with an ellipsis is guaranteed to overflow the row.")
+               (Vdom.Node.text "One line, label ellipsized") graph
+           ; row ~id:"item-truncate-multi" ~label_lines:1 ~description_lines:2
+               ~description:(Vdom.Node.text "Two clamped lines: the description runs on far enough to need the second line and the clamp, exactly as a two-line summary would.")
+               (Vdom.Node.text "Two lines, clamped") graph
+           ])
+    ; ex_tree "selected and highlighted"
+        (rows
+           [ row ~id:"item-selected" ~is_selected:true
+               ~description:(Vdom.Node.text "aria-selected on the row") (Vdom.Node.text "Selected") graph
+           ; row ~id:"item-highlighted" ~is_highlighted:true
+               ~description:(Vdom.Node.text "the hover overlay, held on") (Vdom.Node.text "Highlighted") graph
+           ])
+    ; ex_tree "disabled"
+        (row ~id:"item-disabled" ~is_disabled:true ~density:It.Compact
+           ~start_content:(glyph "⊘")
+           ~description:(Vdom.Node.text "The whole row is inert; the content is at half opacity.")
+           (Vdom.Node.text "Locked") graph)
+    ; ex_tree "interactive (click)"
+        (Bonsai.map
+           (row ~id:"item-click" ~on_click:on_click_demo
+              ~end_content:(Vdom.Node.span ~attrs:[ Vdom.Attr.id "item-click-readout" ]
+                               [ Vdom.Node.text "clicked 0 times" ])
+              ~description:(Vdom.Node.text "A plain on_click; the row's surface is the hit target.")
+              (Vdom.Node.text "Clickable row") graph)
+           ~f:Fn.id)
+    ; ex_tree "link (invisible anchor)"
+        (row ~id:"item-link" ~href:"#item" ~target:"" ~rel:""
+           ~description:(Vdom.Node.text "The whole row is the anchor; the label is its accessible name.")
+           (Vdom.Node.text "Open the docs") graph)
+    ; ex_tree "link root (custom a)"
+        (row ~id:"item-link-root" ~as_:(It.Custom (fun attrs kids -> Vdom.Node.a ~attrs kids))
+           ~href:"#item-link-root"
+           ~description:(Vdom.Node.text "The root element itself is the anchor.")
+           (Vdom.Node.text "Custom root link") graph)
+    ; ex_tree "inline layout"
+        (row ~id:"item-inline" ~layout:It.Inline
+           ~description:(Vdom.Node.text "one line — fits a fixed-height host")
+           (Vdom.Node.text "Inline item") graph)
+    ; ex_tree "delegated control"
+        (let delegated_clicks : int ref = ref 0 in
+         let on_delegate_demo _ev =
+           delegated_clicks := !delegated_clicks + 1;
+           let (_ : string) =
+             Js_of_ocaml.Js.Unsafe.eval_string
+               (sprintf
+                  "var e=document.getElementById(%S); if(e) e.textContent=%S;"
+                  "item-delegated-readout"
+                  (sprintf "delegated %d times" !delegated_clicks))
+           in
+           Bonsai.Effect.Ignore
+         in
+         row ~id:"item-delegated" ~interactive_selector:"button, a, input, select, textarea"
+           ~end_content:
+             (Vdom.Node.span
+                ~attrs:[ Vdom.Attr.class_ "delegate-controls" ]
+                [ Vdom.Node.span ~attrs:[ Vdom.Attr.id "item-delegated-readout" ]
+                    [ Vdom.Node.text "delegated 0 times" ]
+                ; Astryx.Button.view ~label:"Choose" ~variant:Astryx.Button.Secondary
+                    ~on_click:on_delegate_demo []
+                ])
+           ~description:
+             (Vdom.Node.text
+                "A click on the nested control stays with it; a click on the row surface is proxied to it.")
+           (Vdom.Node.text "Delegate") graph)
+    ; ex_tree "swipe — reveal"
+        (row ~id:"item-swipe-reveal" ~swipe_actions:swipe_reveal_actions
+           ~description:(Vdom.Node.text "Swipe left to reveal Archive / Delete; tap Delete to hold the row out.")
+           (Vdom.Node.text "Revealing") graph)
+    ; ex_tree "swipe — commit"
+        (row ~id:"item-swipe-commit" ~swipe_actions:swipe_reveal_actions
+           ~swipe_behavior:It.Commit
+           ~description:(Vdom.Node.text "A long swipe fires the outermost action and the row slides out.")
+           (Vdom.Node.text "Committing") graph)
+    ]
+  in
+  let nodes = join_all examples in
+  Bonsai.map nodes ~f:(fun nodes ->
+    section ~id:"item" ~title:"Item"
+      ~note:"The universal row: a marker, start slot, label + description and end slot, with the interactive paths (click, link, delegated control, parent role) and a touch-only swipe layer. Swipes work on a touch screen; on a desktop they are demonstrated by the geometry below (reduced motion is set here, so a gesture settles at once)."
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -4719,15 +4876,18 @@ let page (graph : Bonsai.graph) =
 
   let slider_section = slider_demo graph in
   let stateful = pair stateful slider_section in
+
+  let item_section = item_demo graph in
+  let stateful = pair stateful item_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider)
+    ~f:(fun ((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item ])
       ])
 ;;
 

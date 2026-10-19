@@ -251,6 +251,7 @@ if (mode === "showcase") {
     "FileInput",
     "Layout",
     "Slider",
+    "Item",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -613,7 +614,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("65 sections", sections.length === 65, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("66 sections", sections.length === 66, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -634,10 +635,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("394 examples across the page", totalExamples === 394, `got ${totalExamples}`);
+  check("407 examples across the page", totalExamples === 407, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -650,7 +651,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("65 nav links", nav.length === 65, `got ${nav.length}`);
+  check("66 nav links", nav.length === 66, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -3514,6 +3515,204 @@ check(
       Math.abs(v4 - expected) <= 2, `got ${s4.thumb}, expected ~${expected}`);
   }
 
+  // --------------------------------------------------------------- Item (M44)
+  console.log("\nItem (live)");
+  {
+    const marked = () =>
+      page.evaluate(() =>
+        document.querySelectorAll('#item [data-astryx-component="Item"]').length);
+    const examples = await page.evaluate(() =>
+      document.querySelectorAll('#item [data-example]').length);
+    check("thirteen examples, seventeen marked rows under the Item section",
+      examples === 13 && (await marked()) === 17, `examples=${examples} rows=${await marked()}`);
+
+    // Click path: the row's surface is the hit target; the handler writes a readout.
+    const clickRead = () =>
+      page.evaluate(() => document.getElementById("item-click-readout")?.textContent ?? null);
+    check("the click readout starts at zero", (await clickRead()) === "clicked 0 times", String(await clickRead()));
+    await page.click("#item-click");
+    await page.waitForTimeout(120);
+    check("clicking the row fires its on_click once",
+      (await clickRead()) === "clicked 1 times", String(await clickRead()));
+    await page.click("#item-click");
+    await page.waitForTimeout(120);
+    check("...and again — the handler is the caller's, bound to the row",
+      (await clickRead()) === "clicked 2 times", String(await clickRead()));
+
+    const linkFacts = await page.evaluate(() => {
+      const row = document.getElementById("item-link");
+      const root = document.getElementById("item-link-root");
+      const a = row && row.querySelector("a.astryx-item__invisible-anchor");
+      return {
+        href: a && a.getAttribute("href"),
+        tag: root && root.tagName.toLowerCase(),
+        rootClass: root && root.className,
+        rootHref: root && root.getAttribute("href"),
+      };
+    });
+    check("a row with href wraps an invisible anchor carrying the href",
+      linkFacts.href === "#item", JSON.stringify(linkFacts));
+    check("a Custom root with href makes the root itself the anchor",
+      linkFacts.tag === "a" && /--link-root/.test(linkFacts.rootClass ?? "") && linkFacts.rootHref === "#item-link-root",
+      JSON.stringify(linkFacts));
+
+    const delegateFacts = await page.evaluate(() => {
+      const row = document.getElementById("item-delegated");
+      return {
+        interactive: row && /--interactive/.test(row.className),
+        invisibleButton: !!row && !!row.querySelector("button.astryx-item__invisible-button"),
+        nested: !!row && !!row.querySelector("button"),
+        label: row && row.querySelector(".astryx-item__label")?.textContent,
+        readout: document.getElementById("item-delegated-readout")?.textContent ?? null,
+      };
+    });
+    check("a delegated row keeps its own interactive surface and really holds the control",
+      delegateFacts.interactive && !delegateFacts.invisibleButton && delegateFacts.nested,
+      JSON.stringify(delegateFacts));
+    // Clear any hash an earlier section's anchor demo left behind (the nav-menu demo
+    // navigates to #dashboard), so the no-navigation assertion checks THIS click only.
+    await page.evaluate(() => history.replaceState(null, null, location.pathname + location.search));
+    await page.click("#item-delegated button");
+    await page.waitForTimeout(150);
+    const delegateAfter = await page.evaluate(() => ({
+      hash: location.hash,
+      rowClass: document.getElementById("item-delegated")?.className,
+      readout: document.getElementById("item-delegated-readout")?.textContent ?? null,
+    }));
+    check("clicking the nested control stays with it — one activation, no navigation",
+      delegateAfter.hash === "" && delegateAfter.readout === "delegated 1 times"
+        && /--interactive/.test(delegateAfter.rowClass ?? ""),
+      JSON.stringify(delegateAfter));
+    // The row's own surface proxies the click to the nested control (upstream
+    // useClickableContainer): a label-surface click is one more activation of the
+    // same control, and the row gets no second tab stop.
+    const labelBox = await page.evaluate(() => {
+      const r = document.querySelector("#item-delegated .astryx-item__label").getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    });
+    await page.mouse.click(labelBox.x, labelBox.y);
+    await page.waitForTimeout(150);
+    const delegateProxy = await page.evaluate(() => ({
+      hash: location.hash,
+      rowClass: document.getElementById("item-delegated")?.className,
+      readout: document.getElementById("item-delegated-readout")?.textContent ?? null,
+    }));
+    check("a row-surface click is proxied to the nested control — the label is one activation",
+      delegateProxy.hash === "" && delegateProxy.readout === "delegated 2 times"
+        && /--interactive/.test(delegateProxy.rowClass ?? ""),
+      JSON.stringify(delegateProxy));
+
+    // Swipe: touch-only pointer stream via CDP. The row owns horizontal movement
+    // (touch-action: pan-y); a left drag at the inline end reveals the trailing
+    // panel, whose width is exactly the settled travel.
+    await page.evaluate(() => document.getElementById("item-swipe-reveal").scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(300);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+    const swipeRect = await page.evaluate(() => {
+      const r = document.getElementById("item-swipe-reveal").getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height };
+    });
+    const yMid = swipeRect.y + swipeRect.h / 2;
+    const touch = async (type, x) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: type === "touchEnd" ? [] : [{ x, y: yMid, id: 1, radiusX: 4, radiusY: 4, force: 1 }],
+      });
+    const drag = async (fromX, toX, steps, stepMs) => {
+      await touch("touchStart", fromX);
+      for (let i = 1; i <= steps; i++) {
+        await touch("touchMove", fromX + ((toX - fromX) * i) / steps);
+        await page.waitForTimeout(stepMs);
+      }
+      await touch("touchEnd", toX);
+      await page.waitForTimeout(250);
+    };
+    const swipeState = () =>
+      page.evaluate(() => {
+        const el = document.getElementById("item-swipe-reveal");
+        const panel = el && el.querySelector('[data-swipe-panel="trailing"]');
+        return {
+          travel: el ? el.style.getPropertyValue("--_item-swipe-travel") : null,
+          inert: panel ? panel.hasAttribute("inert") : null,
+        };
+      });
+    // A "reveal"-grade drag: past the half-panel open point, short of the
+    // commit point (max(panel+48, 50% of the row's width)), and slow enough
+    // that it is not a fling. The distance is anchored to the MEASURED panel
+    // width, not the row width: the showcase gives a row the container's
+    // width, and a row-width formula (0.55w, as once used) drifts into the
+    // commit zone the moment the row gets wide.
+    const panelWidth = await page.evaluate(() => {
+      const panel = document.querySelector(
+        '#item-swipe-reveal [data-swipe-panel="trailing"]');
+      const entries = panel
+        ? [...panel.querySelectorAll(".astryx-item__swipe-entry")]
+        : [];
+      return entries.reduce((s, e) => s + e.getBoundingClientRect().width, 0);
+    });
+    const revealDist = Math.round(Math.max(panelWidth * 1.3 + 30, 140));
+    const revealDrag = () =>
+      drag(swipeRect.x + swipeRect.w - 40, swipeRect.x + swipeRect.w - 40 - revealDist, 10, 30);
+    // (Travel is signed: a trailing swipe moves the row left, so settle writes a
+    // negative translation; the CSS derives the panel width with a -1 factor.)
+    await revealDrag();
+    const open = await swipeState();
+    check("a swipe past the half-panel point reveals the trailing panel (no longer inert)",
+      Math.abs(parseFloat(open.travel ?? "0")) > 0 && open.inert === false, JSON.stringify(open));
+
+    // Tap the first (Archive) entry: the action fires and the row closes back.
+    // (A cleared inline style, not "0px", is the settled closed state — the
+    // Idle landing removes the custom properties.)
+    await page.click('#item-swipe-reveal [data-swipe-panel="trailing"] .astryx-item__swipe-entry');
+    await page.waitForTimeout(250);
+    const afterTap = await swipeState();
+    check("tapping an entry fires the action and the row returns to rest",
+      (parseFloat(afterTap.travel ?? "0") || 0) === 0 && afterTap.inert === true, JSON.stringify(afterTap));
+
+    // Escape closes an open row. The keydown listener sits on the row itself,
+    // so it only sees Escape when focus is inside the row: a touch drag focuses
+    // nothing (touch leaves focus on the body), so focus an entry first.
+    await revealDrag();
+    await page.evaluate(() =>
+      document.querySelector('#item-swipe-reveal [data-swipe-panel="trailing"] .astryx-item__swipe-entry').focus());
+    await page.waitForTimeout(100);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    const afterEsc = await swipeState();
+    check("Escape closes a revealed row back to rest",
+      (parseFloat(afterEsc.travel ?? "0") || 0) === 0 && afterEsc.inert === true, JSON.stringify(afterEsc));
+
+    // An outside pointerdown closes it too (the document-level listener).
+    await revealDrag();
+    await page.mouse.click(6, 6);
+    await page.waitForTimeout(250);
+    const afterOutside = await swipeState();
+    check("a pointerdown outside the row closes it",
+      (parseFloat(afterOutside.travel ?? "0") || 0) === 0 && afterOutside.inert === true, JSON.stringify(afterOutside));
+
+    // Commit mode: a long, fast drag fires the outermost action (Delete, has_removal)
+    // and the row slides out and stays out.
+    await page.evaluate(() => document.getElementById("item-swipe-commit").scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(300);
+    const cRect = await page.evaluate(() => {
+      const r = document.getElementById("item-swipe-commit").getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height };
+    });
+    await drag(cRect.x + cRect.w - 40, cRect.x + cRect.w * 0.15, 10, 15);
+    const commitState = () =>
+      page.evaluate(() => {
+        const el = document.getElementById("item-swipe-commit");
+        return { travel: el ? el.style.getPropertyValue("--_item-swipe-travel") : null };
+      });
+    const held = await commitState();
+    await page.waitForTimeout(400);
+    const heldLater = await commitState();
+    check("a long swipe commits: the row slides out past its own content and stays",
+      Math.abs(parseFloat(held.travel ?? "0")) > 0 && held.travel === heldLater.travel,
+      JSON.stringify({ held, heldLater }));
+  }
+
   // -------------------------------------------------------- SelectableCard (M28)
   console.log("\nSelectableCard (live)");
   const scState = (id) =>
@@ -3838,11 +4037,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 63 ported / 40 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["63", "40", "103"]),
+    "coverage stats are 64 ported / 39 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["64", "39", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 40 entries", cov.unported === 40, `got ${cov.unported}`);
+  check("unported list rendered 39 entries", cov.unported === 39, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 

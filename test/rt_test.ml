@@ -2724,3 +2724,73 @@ let () =
   in
   mount "slider-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------ Item (M44) *)
+let item_component (graph : Bonsai.graph) =
+  let join trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let text s = Vdom.Node.text s in
+  let no_activate () = Effect.Many [] in
+  let action ?(is_disabled = false) ?(has_removal = false)
+      ?(variant = Astryx.Item.Accent) label =
+    { Astryx.Item.label; icon = None; on_activate = no_activate;
+      is_disabled; variant; has_removal }
+  in
+  let swipe_actions =
+    { Astryx.Item.leading = [ action ~variant:Astryx.Item.Neutral "Unread" ]
+    ; trailing = [ action "Archive"
+                 ; action ~variant:Astryx.Item.Destructive ~has_removal:true "Delete" ]
+    }
+  in
+  let row ?(id = "it") ?(as_ = Astryx.Item.Div) ?description
+      ?(align = Astryx.Item.Center) ?(density = Astryx.Item.Balanced)
+      ?label_lines ?description_lines ?(layout = Astryx.Item.Stacked)
+      ?on_click ?href ?is_selected ?is_highlighted ?is_disabled
+      ?swipe_actions ?swipe_behavior label graph =
+    Astryx.Item.view ~as_ ?description ~align ~density ?label_lines ?description_lines
+      ~layout ?on_click ?href ?is_selected ?is_highlighted ?is_disabled
+      ?swipe_actions ?swipe_behavior
+      ~attrs:[ Vdom.Attr.id id ] ~label graph
+  in
+  let trees =
+    [ row ~id:"it-basic" ~description:(text "a description") (text "Basic") graph
+    ; row ~id:"it-align" ~align:Astryx.Item.Start ~density:Astryx.Item.Compact
+        ~description:(text "top aligned") (text "Align start") graph
+    ; row ~id:"it-compact" ~density:Astryx.Item.Compact (text "compact") graph
+    ; row ~id:"it-balanced" ~density:Astryx.Item.Balanced (text "balanced") graph
+    ; row ~id:"it-spacious" ~density:Astryx.Item.Spacious (text "spacious") graph
+    ; row ~id:"it-truncate1" ~label_lines:1
+        ~description:(text "a long description that a single line must ellipsize")
+        (text "single line") graph
+    ; row ~id:"it-truncate2" ~label_lines:1 ~description_lines:2
+        ~description:(text "two clamped lines: this one runs on long enough to exceed the second line")
+        (text "two lines") graph
+    ; row ~id:"it-selected" ~is_selected:true (text "Selected") graph
+    ; row ~id:"it-highlighted" ~is_highlighted:true (text "Highlighted") graph
+    ; row ~id:"it-disabled" ~is_disabled:true ~description:(text "inert") (text "Disabled") graph
+    ; row ~id:"it-click" ~on_click:(fun _ -> Effect.Many []) (text "Click") graph
+    ; row ~id:"it-link" ~href:"#it" (text "Link") graph
+    ; row ~id:"it-link-root"
+        ~as_:(Astryx.Item.Custom (fun attrs kids -> Vdom.Node.a ~attrs kids))
+        ~href:"#it-root" (text "Root link") graph
+    ; row ~id:"it-inline" ~layout:Astryx.Item.Inline
+        ~description:(text "one line") (text "Inline") graph
+    ; row ~id:"it-swipe" ~swipe_actions (text "Swipe") graph
+    ; row ~id:"it-swipe-commit" ~swipe_actions ~swipe_behavior:Astryx.Item.Commit
+        (text "Swipe commit") graph
+    ]
+  in
+  Bonsai.map (join trees) ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "it-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      item_component
+  in
+  mount "item-all" (Bonsai_web_test.Handle.last_result handle)
+;;

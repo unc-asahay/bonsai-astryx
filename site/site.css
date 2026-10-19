@@ -187,7 +187,9 @@ code {
    in a real page they sit in a block container. So give them the row's width here
    instead of letting the showcase's own layout lie about how they behave. */
 .ex-render > .astryx-stack[data-astryx-direction="vertical"],
-.ex-render > .astryx-grid {
+.ex-render > .astryx-grid,
+.ex-render > .astryx-item,
+.ex-render > .showcase-col {
   flex: 1 1 100%;
   min-width: 0;
 }

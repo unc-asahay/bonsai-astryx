@@ -663,6 +663,13 @@
       "file": "src/layer.ml",
       "milestone": "M43",
       "module": "Astryx.Layer"
+    },
+    {
+      "class": "C",
+      "component": "Item",
+      "file": "src/item.ml",
+      "milestone": "M44",
+      "module": "Astryx.Item"
     }
   ],
   "schema": 1,

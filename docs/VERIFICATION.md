@@ -3407,3 +3407,77 @@ group.
 - appearance contract — regenerated; `docs/visual/Layer.md` exists (64 pages in total).
 - agent layer — `ported: 63 of 103`, `Astryx.Layer` attributed, MCP truthful.
 - **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m43.txt`).
+
+## Gate 61 — M44: Item (coverage 63 -> 64)
+
+The universal row, ported from `facebook/astryx` `Item/Item.tsx` +
+`Item/ItemSwipeLayer.tsx` + `Item/useSwipeAction.ts` as `Astryx.Item`: marker, start
+slot, label + description, end slot on a single DOM element ([div], [li], [span] or a
+[Custom] root), with the four exclusive interactive paths — [on_click] (invisible
+button), [href] (invisible anchor), [interactive_selector] (delegation: the row
+becomes a live region that proxies a surface click to the nested control, which keeps
+its own activation), and a parent-owned [role] (clicks pass upward; label/description
+render invisible). The swipe layer is a touch-only pointer stream: a drag claims the
+inline axis (`touch-action: pan-y`), and the gestures are upstream's — past the commit
+threshold (`max(panel+48px, 50% of the row width)`) or a fling fires the outermost
+action and slides the row out; [Reveal] settles at half the panel width with the
+panels live (row content goes inert, Escape/outside pointer closes, a focused control
+in the row activates as a side effect of closing), [Commit] settles at the panel width
+with the actions presentational and `aria-hidden`. Settle duration honours
+`prefers-reduced-motion` (read at settle time; a zero clock lands the phase instantly).
+
+Named divergences, stated in `item.mli`: no React key on actions; panels are
+out-of-flow children of the row rather than portal-swapped (the row's DOM shape does
+not change on split; swipe markup exists only on rows that have actions); native
+wiring is limited to three listeners vdom cannot express (pointercancel, non-passive
+touchmove, document-level pointerdown that closes a resting row) with pointer capture
+via pointer attrs like Slider; reduced-motion is read at settle time rather than
+subscribed; click suppression happens in the row's own handler rather than at
+container capture; no id on the row itself; invisible links are plain anchors (use
+[as_] [Custom] for a `isLinkRoot`-style root, exactly as upstream's isLinkRoot).
+
+### What ran
+
+- `dune build` — clean.
+- component tests — **624 checks, 0 failures** (19 new Item checks: the four
+  interactive paths, marker/start/end slot structure, the density/align variants,
+  truncation classes, disabled inertness, and the swipe surface's custom properties
+  at rest).
+- DOM + accessibility (jsdom) — all passed (fixture unchanged).
+- real browser, showcase — **438/438 checks**, demo **25/25**, 0 failures. 18 new
+  live Item checks: click readout fires once and again, link/invisible anchor wiring,
+  custom root link, delegated control activation (nested control keeps its own click;
+  a row-surface click proxies to it), touch drag via CDP reveals the trailing panel
+  (`inert:false`), entry tap fires the action and returns the row to rest, Escape and
+  outside-pointerdown close, and a long swipe commits — the row slides out and stays.
+- responsive + visual regression — re-baselined (the new section grows the page); 66
+  checks, 0 failures, 0.00% drift.
+- appearance contract — regenerated; `docs/visual/Item.md` exists (65 pages in total).
+- agent layer — `ported: 64 of 103`, `Astryx.Item` attributed, MCP truthful.
+- **SWEEP GREEN: every gate passed, exit 0** (`docs/verification/sweep-m44.txt`).
+
+*Two late findings this run, both worth recording.*
+
+**The real port bug this milestone already fixed** (found in the prior run's session,
+probe6 confirmed): `focus_row_content` in `src/item.ml` passed an over-escaped eval
+string to `Js.Unsafe.eval_string`, so the runtime JS literally contained `\'button…`
+— a backslash before the quote — and every row-descendant focus threw a SyntaxError.
+That is the entry-activation path: the swipe tap on an entry aborted in the handler
+before the settle ran, which had masked the port as working everywhere else. The
+string is now built correctly and the entry activation path really runs.
+
+**Item's row needs a width from its host** (nothing upstream omitted — upstream rows
+are shape, not width). The showcase's `.ex-render` is a flex row and flex rows do not
+offer a width (documented rule in `site/site.css` for Stack/Grid); an Item inside it
+sized itself to content, so the nowrap truncation description forced 535px of
+max-content and the page overflowed at 320px (`scrollWidth 576`). Applied the same
+rule to Item (and the `.showcase-col` wrapper): `.ex-render > .astryx-item,
+.ex-render > .showcase-col { flex: 1 1 100%; min-width: 0; }`. Side effect: the swipe
+rows grew to the container's width, which silently moved the browser gate's reveal
+drag (computed as `0.55 × row width`) past the component's commit point
+(`max(panel+48, 50% × width)`) — a reveal test was now doing a commit drag. Re-anchored
+the three reveal drags in `verify-browser.mjs` to the *measured panel width*
+(`panelWidth × 1.3 + 30`), which is invariant to host width, and left commit drags
+unchanged (they are deliberately 0.85w, far past the threshold). Responsive then
+re-baselined clean: 66 checks, 0 failures.
+

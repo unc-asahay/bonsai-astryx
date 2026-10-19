@@ -52,6 +52,8 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -230,6 +232,21 @@ the ported components render in isolation
   ok   an error status surfaces its message
   ok   marks render with labels
   ok   the vertical variant carries the vertical class
+  ok   sixteen item rows render marked
+  ok   a basic row carries the row classes and a description
+  ok   align start + compact carry their classes
+  ok   density variations carry their classes
+  ok   truncation: one line is ellipsized, two lines are clamped
+  ok   selected and highlighted rows carry their classes
+  ok   a disabled row is told so, and its content fades
+  ok   a row with on_click renders an invisible button
+  ok   a row with href renders an invisible anchor carrying the href
+  ok   a Custom root with href makes the root the anchor
+  ok   inline layout puts label and description on one line
+  ok   a swipeable row carries the swipe classes and both panels
+  ok   at rest the panels are inert, and reveal entries are buttons
+  ok   variants paint per action: neutral, accent and destructive
+  ok   commit panels are presentational: aria-hidden and no buttons
   ok   five dividers render
   ok   dividers are separators
   ok   the labelled divider shows its label
@@ -694,5 +711,5 @@ DialogHeader
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
 
-609 checks, 0 failure(s)
+624 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

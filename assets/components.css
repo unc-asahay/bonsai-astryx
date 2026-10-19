@@ -3559,3 +3559,187 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
    handle to install one from (upstream's ensureSlideRules). The names are produced by
    Astryx.Layer.slide_rule_name and referenced from position-try-fallbacks. */
 @position-try --astryx-layer-slide-above-start-same{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-above-start-opposite{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-above-center-same{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-above-center-opposite{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-above-end-same{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-above-end-opposite{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-start-same{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-start-opposite{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-center-same{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-center-opposite{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-end-same{position-area:self-block-end span-all;margin-block-start:var(--_astryx-layer-clearance, 0px);margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-below-end-opposite{position-area:self-block-start span-all;margin-block-end:var(--_astryx-layer-clearance, 0px);margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));inset-inline-start:0;inset-inline-end:0;}@position-try --astryx-layer-slide-start-start-same{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-start-start-opposite{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-start-center-same{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-start-center-opposite{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-start-end-same{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-start-end-opposite{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-start-same{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-start-opposite{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-center-same{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-center-opposite{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-end-same{position-area:self-inline-end span-all;margin-inline-start:var(--_astryx-layer-clearance, 0px);margin-inline-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-end:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}@position-try --astryx-layer-slide-end-end-opposite{position-area:self-inline-start span-all;margin-inline-end:var(--_astryx-layer-clearance, 0px);margin-inline-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-inline-start:calc(max(var(--spacing-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) + max(var(--astryx-layer-inset-inline-start, 0px), var(--astryx-layer-inset-inline-end, 0px)));margin-block-start:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-start:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(var(--spacing-4) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));margin-block-end:calc(max(var(--spacing-4), env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px)) + max(var(--astryx-layer-inset-block-start, 0px), var(--astryx-layer-inset-block-end, 0px)));inset-block-start:0;inset-block-end:0;}
+
+/* ---- Item ---- */
+/* The universal row: marker, start slot, label + description, end slot. The row
+   is a single element (div/li/span/Custom) whose interactive paths come from
+   Item.tsx: the invisible button/anchor share the content's flex shape. The
+   inline inset is published as --_item-inset-inline and every rule that cares
+   reads it, so a spacing-compensating container (List's edgeCompensation) can
+   pull it back out of the same place upstream does. */
+.astryx-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  --_item-inset-inline: var(--spacing-2);
+  padding-inline: var(--_item-inset-inline);
+  position: relative;
+  box-sizing: border-box;
+  text-align: start;
+  border-radius: var(--radius-element);
+}
+.astryx-item--align-start { align-items: flex-start; }
+.astryx-item--interactive {
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: var(--duration-fast-min);
+  transition-timing-function: var(--ease-standard);
+}
+.astryx-item--interactive:is(:disabled, [aria-disabled="true"]) { cursor: default; }
+.astryx-item--highlighted { background-color: var(--color-overlay-hover); }
+.astryx-item--selected { background-color: var(--color-accent-muted); }
+/* A disabled row is inert, exactly like upstream's `disabled` StyleX arm. */
+.astryx-item[aria-disabled="true"] { cursor: default; pointer-events: none; }
+.astryx-item--link-root { color: inherit; text-decoration: none; }
+.astryx-item__content-disabled { opacity: 0.5; }
+/* The invisible button/anchor: the row's own focusable body. It is a plain
+   element with no visible chrome; the label/description inside carry the text
+   and the truncation, and the root's ARIA lives on the row. */
+.astryx-item__invisible-button,
+.astryx-item__invisible-anchor {
+  cursor: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  outline: none;
+}
+.astryx-item__invisible-anchor { text-decoration: none; }
+.astryx-item__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+}
+/* layout="inline": label and description share one line, so the row fits a
+   fixed-height host. Centered, not baseline-aligned: two font sizes on a shared
+   baseline make a line box taller than either line, which would push a
+   fixed-height host a pixel off its size token (upstream's own comment). */
+.astryx-item__inline-content {
+  flex-direction: row;
+  align-items: center;
+  column-gap: var(--spacing-1);
+}
+.astryx-item__inline-label { flex-shrink: 0; }
+.astryx-item__inline-description { flex-shrink: 1; min-width: 0; }
+.astryx-item__label {
+  color: var(--_item-label-color, var(--color-text-primary));
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+}
+.astryx-item__description {
+  color: var(--_item-description-color, var(--color-text-secondary));
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+.astryx-item--truncate-single {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.astryx-item--truncate-multi {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  /* WebkitLineClamp is the caller's count, written inline by the port. */
+}
+.astryx-item--density-compact { padding-block: var(--spacing-1); }
+.astryx-item--density-balanced { padding-block: var(--spacing-2); }
+.astryx-item--density-spacious {
+  padding-block: var(--spacing-3);
+  --_item-inset-inline: var(--spacing-3);
+}
+.astryx-item__start-content { flex: 0 0 auto; display: flex; }
+.astryx-item__end-content { flex: 0 0 auto; display: flex; margin-inline-start: auto; }
+/* The swipe surface (ItemSwipeLayer.tsx). The root translates by the drag's
+   travel and settles on the clock the gesture writes; pan-y lets the browser
+   keep scrolling the list while the row owns horizontal movement. The hover
+   transition keeps its own clock beside the transform's. The three custom
+   properties are written by the port: travel in px, dir (+1/-1), duration in
+   ms (0s under prefers-reduced-motion). */
+.astryx-item--swipe {
+  isolation: isolate;
+  touch-action: pan-y;
+  transform: translate3d(var(--_item-swipe-travel, 0px), 0, 0);
+  transition-property: background-color, transform;
+  transition-duration: var(--duration-fast-min), var(--_item-swipe-duration, 0s);
+  transition-timing-function: var(--ease-standard), ease-out;
+}
+/* A side's panel: an out-of-flow child of the root at the inline start or end,
+   counter-translated so it appears fixed in the space the row vacates, and
+   exactly as wide as the travel toward its side — a padded box at width:0
+   would still paint its padding, so the panel has none; its entries carry
+   their own. Not a pixel of it shows at rest. */
+.astryx-item__swipe-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: inherit;
+  transform: translate3d(calc(-1 * var(--_item-swipe-travel, 0px)), 0, 0);
+  transition-property: transform, width;
+  transition-duration: var(--_item-swipe-duration, 0s), var(--_item-swipe-duration, 0s);
+  transition-timing-function: ease-out, ease-out;
+}
+.astryx-item__swipe-panel--leading {
+  inset-inline-start: 0;
+  justify-content: flex-start;
+  width: max(0px, calc(var(--_item-swipe-travel, 0px) * var(--_item-swipe-dir, 1)));
+}
+.astryx-item__swipe-panel--trailing {
+  inset-inline-end: 0;
+  justify-content: flex-end;
+  width: max(0px, calc(-1 * var(--_item-swipe-travel, 0px) * var(--_item-swipe-dir, 1)));
+}
+.astryx-item__swipe-entries {
+  display: flex;
+  flex-shrink: 0;
+  height: 100%;
+  /* The entries sit on the surface, not on the panel's own colour: the neutral
+     variant is translucent and would otherwise take the outermost entry's
+     colour through it. */
+  background-color: var(--color-background-surface);
+}
+.astryx-item__swipe-entries--leading { flex-direction: row-reverse; }
+.astryx-item__swipe-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  min-width: 72px;
+  height: 100%;
+  padding-inline: var(--spacing-3);
+  box-sizing: border-box;
+  margin: 0;
+  border-width: 0;
+  border-style: none;
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-supporting-leading);
+  white-space: nowrap;
+}
+.astryx-item__swipe-entry:disabled { cursor: default; }
+.astryx-item__swipe-entry--disabled { opacity: 0.5; }
+.astryx-item__swipe-entry--neutral {
+  background-color: var(--color-neutral);
+  color: var(--color-text-primary);
+}
+.astryx-item__swipe-entry--accent {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.astryx-item__swipe-entry--destructive {
+  background-color: var(--color-error);
+  color: var(--color-on-error);
+}

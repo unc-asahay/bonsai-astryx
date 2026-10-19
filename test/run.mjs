@@ -788,6 +788,57 @@ check("every case mounted something", document.querySelectorAll("[data-case]").l
     || !!g("sl-vertical").querySelector(".astryx-slider__track--vertical"));
 }
 
+// --- Item (M44)
+{
+  const host = document.querySelector('[data-case="item-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const items = inCaseOf("item-all", "Item");
+  check("sixteen item rows render marked", items.length === 16, `${items.length}`);
+  check("a basic row carries the row classes and a description",
+    hasClass(g("it-basic"), /^astryx-item$/) && hasClass(g("it-basic"), /--density-balanced/)
+    && !!g("it-basic").querySelector(".astryx-item__label")
+    && g("it-basic").querySelector(".astryx-item__description")?.id?.startsWith("astryx-item-description-"));
+  check("align start + compact carry their classes",
+    hasClass(g("it-align"), /--align-start/) && hasClass(g("it-align"), /--density-compact/));
+  check("density variations carry their classes",
+    hasClass(g("it-spacious"), /--density-spacious/));
+  check("truncation: one line is ellipsized, two lines are clamped",
+    hasClass(g("it-truncate1").querySelector(".astryx-item__description"), /--truncate-single/)
+    && hasClass(g("it-truncate2").querySelector(".astryx-item__description"), /--truncate-multi/)
+    && (g("it-truncate2").querySelector(".astryx-item__description").getAttribute("style") || "").includes("WebkitLineClamp: 2"));
+  check("selected and highlighted rows carry their classes",
+    hasClass(g("it-selected"), /--selected/) && hasClass(g("it-highlighted"), /--highlighted/));
+  check("a disabled row is told so, and its content fades",
+    attr(g("it-disabled"), "aria-disabled") === "true"
+    && !!g("it-disabled").querySelector(".astryx-item__content-disabled"));
+  check("a row with on_click renders an invisible button",
+    !!g("it-click").querySelector("button.astryx-item__invisible-button"));
+  check("a row with href renders an invisible anchor carrying the href",
+    attr(g("it-link").querySelector("a.astryx-item__invisible-anchor"), "href") === "#it");
+  check("a Custom root with href makes the root the anchor",
+    g("it-link-root").tagName.toLowerCase() === "a" && hasClass(g("it-link-root"), /--link-root/)
+    && attr(g("it-link-root"), "href") === "#it-root");
+  check("inline layout puts label and description on one line",
+    !!g("it-inline").querySelector(".astryx-item__inline-content")
+    && !!g("it-inline").querySelector(".astryx-item__inline-label")
+    && !!g("it-inline").querySelector(".astryx-item__inline-description"));
+  check("a swipeable row carries the swipe classes and both panels",
+    hasClass(g("it-swipe"), /--swipe/)
+    && g("it-swipe").querySelectorAll('[data-swipe-panel="leading"]').length === 1
+    && g("it-swipe").querySelectorAll('[data-swipe-panel="trailing"]').length === 1);
+  check("at rest the panels are inert, and reveal entries are buttons",
+    attr(g("it-swipe").querySelector('[data-swipe-panel="leading"]'), "inert") === "true"
+    && g("it-swipe").querySelectorAll("button.astryx-item__swipe-entry").length === 3);
+  check("variants paint per action: neutral, accent and destructive",
+    !!g("it-swipe").querySelector(".astryx-item__swipe-entry--neutral")
+    && !!g("it-swipe").querySelector(".astryx-item__swipe-entry--accent")
+    && !!g("it-swipe").querySelector(".astryx-item__swipe-entry--destructive"));
+  check("commit panels are presentational: aria-hidden and no buttons",
+    attr(g("it-swipe-commit").querySelector('[data-swipe-panel="trailing"]'), "aria-hidden") === "true"
+    && g("it-swipe-commit").querySelectorAll("button.astryx-item__swipe-entry").length === 0
+    && g("it-swipe-commit").querySelectorAll("span.astryx-item__swipe-entry").length === 3);
+}
+
 // --- Divider
 {
   const ds = inCase("divider-all");
