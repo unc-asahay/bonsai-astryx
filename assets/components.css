@@ -4957,3 +4957,71 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 .astryx-lightbox__control { color: var(--color-on-dark); }
 [dir="rtl"] .astryx-lightbox__nav-icon { transform: scaleX(-1); }
+
+/* ---------------------------------------------------------------- HoverCard (M55) */
+
+/* The wrapper: relative, so the absolutely positioned card can sit beside the trigger. The
+   display:contents variant is for element triggers — the wrapper participates in layout only
+   through its children, so a card cannot be clipped by the wrapper itself, and the trigger's
+   own box is what the pointer enters. */
+.astryx-hover-card-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.astryx-hover-card-anchor--inline {
+  display: inline;
+}
+
+.astryx-hover-card-anchor--contents {
+  display: contents;
+}
+
+/* A text-only trigger hints that it has a companion. */
+.astryx-hover-card--indication {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--color-border-emphasized);
+  text-underline-offset: var(--spacing-0-5);
+}
+
+.astryx-hover-card {
+  position: absolute;
+  z-index: 50;
+  box-sizing: border-box;
+  max-width: 20rem;
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+  box-shadow: var(--shadow-med);
+}
+
+.astryx-hover-card__content {
+  display: block;
+  padding: var(--spacing-3);
+}
+
+.astryx-hover-card--above { bottom: calc(100% + var(--spacing-1)); }
+.astryx-hover-card--below { top: calc(100% + var(--spacing-1)); }
+.astryx-hover-card--start { right: calc(100% + var(--spacing-1)); top: 0; }
+.astryx-hover-card--end { left: calc(100% + var(--spacing-1)); top: 0; }
+
+.astryx-hover-card--above.astryx-hover-card--align-start,
+.astryx-hover-card--below.astryx-hover-card--align-start { left: 0; }
+.astryx-hover-card--above.astryx-hover-card--align-center,
+.astryx-hover-card--below.astryx-hover-card--align-center { left: 50%; transform: translateX(-50%); }
+.astryx-hover-card--above.astryx-hover-card--align-end,
+.astryx-hover-card--below.astryx-hover-card--align-end { right: 0; }
+
+/* A small panel used by the showcase examples and the browser gate. */
+.showcase-hover-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  align-items: flex-start;
+}
+
+.showcase-hover-panel a {
+  color: var(--color-text-link);
+}
+>>>>>>> 00b58f9 (wip: HoverCard port (M55) — src, showcase, css, gates, port.json)

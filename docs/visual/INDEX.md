@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-75 ported component(s). Each page records the appearance the port
+76 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -20,7 +20,7 @@ for image generation.
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Carousel | 8 | 1 | 7 | 0 | [Carousel.md](Carousel.md) |
-| Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
+| Center | 6 | 5 | 3 | 0 | [Center.md](Center.md) |
 | CheckboxInput | 42 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
 | CheckboxList | 11 | 2 | 1 | 0 | [CheckboxList.md](CheckboxList.md) |
 | Citation | 6 | 4 | 25 | 16 | [Citation.md](Citation.md) |
@@ -38,8 +38,9 @@ for image generation.
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
+| HoverCard | 8 | 7 | 14 | 6 | [HoverCard.md](HoverCard.md) |
 | Icon | 141 | 24 | 14 | 11 | [Icon.md](Icon.md) |
-| IconButton | 11 | 15 | 26 | 15 | [IconButton.md](IconButton.md) |
+| IconButton | 11 | 15 | 31 | 16 | [IconButton.md](IconButton.md) |
 | Indicator | 79 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
 | InputGroupText | 2 | 1 | 8 | 5 | [InputGroupText.md](InputGroupText.md) |
@@ -47,7 +48,7 @@ for image generation.
 | Kbd | 15 | 1 | 4 | 1 | [Kbd.md](Kbd.md) |
 | Layer | 3 | 5 | 12 | 5 | [Layer.md](Layer.md) |
 | Layout | 6 | 3 | 7 | 5 | [Layout.md](Layout.md) |
-| Lightbox | 3 | 1 | 0 | 0 | [Lightbox.md](Lightbox.md) |
+| Lightbox | 3 | 1 | 12 | 0 | [Lightbox.md](Lightbox.md) |
 | Link | 5 | 4 | 3 | 1 | [Link.md](Link.md) |
 | List | 6 | 4 | 7 | 1 | [List.md](List.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
@@ -84,6 +85,6 @@ for image generation.
 | TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 28 components with no OCaml port. They
+Not listed: the 27 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

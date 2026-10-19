@@ -262,6 +262,7 @@ if (mode === "showcase") {
     "Carousel",
     "TabList",
     "Lightbox",
+    "HoverCard",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -624,7 +625,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("76 sections", sections.length === 76, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("77 sections", sections.length === 77, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -645,10 +646,11 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("483 examples across the page", totalExamples === 483, `got ${totalExamples}`);
+  check("490 examples across the page", totalExamples === 490, `got ${totalExamples}`);
+
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -661,7 +663,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("76 nav links", nav.length === 76, `got ${nav.length}`);
+  check("77 nav links", nav.length === 77, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4047,11 +4049,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 74 ported / 29 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["74", "29", "103"]),
+    "coverage stats are 75 ported / 28 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["75", "28", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 29 entries", cov.unported === 29, `got ${cov.unported}`);
+  check("unported list rendered 28 entries", cov.unported === 28, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4928,6 +4930,113 @@ check(
     String(olAfter?.indicator));
   if (olViewportBefore) await page.setViewportSize(olViewportBefore);
 }
+
+
+// ---------------------------------------------------------------- HoverCard (M55)
+  //
+  // The contract is presence: a card is in the DOM only while it is open, and
+  // it is owned by hover, focus, Escape and a controlled flag. We drive a real
+  // hover through the Bonsai graph and assert the surface, its role and the
+  // trigger's ARIA relationship.
+  if (mode === "showcase") {
+  console.log("\nHoverCard (live)");
+  const hcSurf = (id) =>
+    page.evaluate((surfaceId) => {
+      const root = document.getElementById(surfaceId);
+      if (!root) return null;
+      const s = root.closest(".astryx-hover-card");
+      if (!s) return null;
+      return {
+        role: s.getAttribute("role"),
+        label: s.getAttribute("aria-label"),
+        cls: s.className,
+        content: !!s.querySelector(".astryx-hover-card__content"),
+      };
+    }, id);
+  const hcWrap = (id) =>
+    page.evaluate((triggerId) => {
+      const root = document.getElementById(triggerId);
+      const w = root?.closest(".astryx-hover-card-anchor");
+      if (!w) return null;
+      return {
+        describedby: w.getAttribute("aria-describedby"),
+        haspopup: w.getAttribute("aria-haspopup"),
+        controls: w.getAttribute("aria-controls"),
+        indication: w.classList.contains("astryx-hover-card--indication"),
+        tabindex: w.getAttribute("tabindex"),
+      };
+    }, id);
+
+  let hc = null;
+  check("all closed cards are absent from the DOM, the controlled one is present",
+    (await hcSurf("showcase-hc-above")) === null
+      && (await hcSurf("showcase-hc-below")) === null
+      && (await hcSurf("showcase-hc-start")) === null
+      && (await hcSurf("showcase-hc-end")) === null
+      && (await hcSurf("showcase-hc-disabled")) === null
+      && (await hcSurf("showcase-hc-hide")) === null
+      && (await hcSurf("showcase-hc-controlled")) !== null);
+  hc = await hcSurf("showcase-hc-controlled");
+  check("the controlled card is a named dialog with its label",
+    hc?.role === "dialog" && hc?.label === "Controlled card" && hc?.content === true,
+    JSON.stringify(hc));
+  check("the labelled wrapper advertises the dialog relationship",
+    (await hcWrap("showcase-hc-above-trigger"))?.haspopup === "dialog"
+      && (await hcWrap("showcase-hc-above-trigger"))?.controls === null,
+    JSON.stringify(await hcWrap("showcase-hc-above-trigger")));
+  check("the controlled wrapper points aria-controls at the open card",
+    (await hcWrap("showcase-hc-controlled-trigger"))?.controls === "showcase-hc-controlled",
+    JSON.stringify(await hcWrap("showcase-hc-controlled-trigger")));
+
+  await page.hover("#showcase-hc-above-trigger");
+  await page.waitForFunction(() => { const el = document.getElementById("showcase-hc-above"); return el !== null && el.closest(".astryx-hover-card") !== null; }, { timeout: 30000 });
+  hc = await hcSurf("showcase-hc-above");
+  check("hovering opens the card after the delay, as the named dialog",
+    hc?.role === "dialog" && hc?.label === "Profile card",
+    JSON.stringify(hc));
+  check("the open wrapper then points aria-controls at the card",
+    (await hcWrap("showcase-hc-above-trigger"))?.controls === "showcase-hc-above",
+    JSON.stringify(await hcWrap("showcase-hc-above-trigger")));
+  check("the card opens against the 'above' placement class",
+    hc?.cls?.includes("astryx-hover-card--above") ?? false,
+    String(hc?.cls));
+
+  await page.hover("#showcase-hc-below-trigger");
+  await page.waitForFunction(() => { const el = document.getElementById("showcase-hc-below"); return el !== null && el.closest(".astryx-hover-card") !== null; }, { timeout: 30000 });
+  hc = await hcSurf("showcase-hc-below");
+  check("the unnamed card is a group and the text trigger is described by it",
+    hc?.role === "group"
+      && (await hcWrap("showcase-hc-below-trigger"))?.describedby === "showcase-hc-below",
+    JSON.stringify({ hc, wrap: await hcWrap("showcase-hc-below-trigger") }));
+  check("a text-only trigger takes the auto-indication and a tab stop",
+    (await hcWrap("showcase-hc-below-trigger"))?.indication === true
+      && (await hcWrap("showcase-hc-below-trigger"))?.tabindex === "0",
+    JSON.stringify(await hcWrap("showcase-hc-below-trigger")));
+  check("an element trigger gets no indication",
+    (await hcWrap("showcase-hc-above-trigger"))?.indication === false,
+    JSON.stringify(await hcWrap("showcase-hc-above-trigger")));
+  check("Indicate_hide overrides the auto indication",
+    (await hcWrap("showcase-hc-hide-trigger"))?.indication === false,
+    JSON.stringify(await hcWrap("showcase-hc-hide-trigger")));
+
+  await page.focus("#showcase-hc-below-trigger");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => document.getElementById("showcase-hc-below") === null, { timeout: 30000 });
+  check("Escape closes the focused card (group is unmounted)",
+    (await hcSurf("showcase-hc-below")) === null);
+
+  await page.hover("#showcase-hc-disabled-trigger");
+  await page.waitForTimeout(800); // well past the 300 ms show delay
+  check("a disabled card does not open on hover",
+    (await hcSurf("showcase-hc-disabled")) === null);
+
+  await page.hover("#showcase-hc-above-trigger");
+  await page.waitForFunction(() => { const el = document.getElementById("showcase-hc-above"); return el !== null && el.closest(".astryx-hover-card") !== null; }, { timeout: 30000 });
+  await page.mouse.move(10, 10); // leave the trigger; the hide delay then unmounts
+  await page.waitForFunction(() => document.getElementById("showcase-hc-above") === null, { timeout: 30000 });
+  check("leaving the trigger closes the card after the hide delay",
+    (await hcSurf("showcase-hc-above")) === null);
+  }
 
 // ---------------------------------------------------------------- screenshot
 

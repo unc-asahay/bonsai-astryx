@@ -1,0 +1,56 @@
+M55: HoverCard - the hover/focus companion (HoverCard + useHoverCard)
+
+Port of facebook/astryx HoverCard (HoverCard.tsx, 453 lines; useHoverCard.ts,
+725 lines) — the layer surface that appears beside its trigger while the
+trigger, or the card itself, is hovered or focused. A tooltip is a short text
+note; a hover card is for interactive content: an info panel with links, a
+mini profile, a set of actions.
+
+What is in the port (all upstream defaults):
+- Hover opens after delay_ms (300 ms), focus opens at once; leaving closes
+  after hide_delay_ms (200 ms), and a pointer or focus that lands on the card
+  keeps it open (the card's own mouseenter/leave and focusin/out are wired).
+- role="dialog" with aria-label when labelled; role="group" when unnamed —
+  upstream's rule: a group may be unnamed, an unnamed dialog may not. The
+  trigger carries aria-haspopup="dialog" always and aria-controls the card's
+  id while it is open (labelled case), or aria-describedby while open
+  (unnamed case). A role-less trigger never gets aria-expanded, exactly as
+  upstream computes from EXPANDABLE_ROLES.
+- Controlled mode: ~is_open hands the answer to the caller (events no longer
+  drive it); Escape still reports on_open_change false, as for any layer.
+  ~is_default_open opens the card on mount.
+- has_hover_indication Auto/Show/Hide: the dashed underline auto only for
+  text-only triggers, which the port detects by pattern-matching the trigger
+  Vdom.Node.t (upstream asks whether children are string/number).
+- is_enabled=false attaches no open/dismiss events; focus_trigger
+  Auto/Always/Never gates the focus listeners (Auto reads as Always — see
+  divergences).
+- placement Above/Below/Start/End + alignment Start/Center/End, defaulting to
+  above + center. The card mounts as a sibling of the trigger and is not in
+  the DOM at all while closed, so aria-controls never points at nothing.
+
+Divergences, stated in src/hover_card.mli rather than hidden:
+- No touch mode (upstream touchTrigger auto/tap/none): the port has touch
+  handling nowhere, same standing as Tooltip; a tap's synthesized mouseenter
+  opens after the delay.
+- No outside-click dismissal and no top-layer portal: the card is an ordinary
+  absolutely positioned element beside its anchor, the convention Tooltip and
+  DropdownMenu established and documented.
+- Auto focus trigger reads as always: a Vdom tree cannot ask whether its first
+  DOM child is focusable; a text-only trigger carries tabindex=0 so the
+  wrapper is focusable, and an element child's focusin bubbles to the wrapper.
+- No focus restore after Escape (state, not DOM, closes; focus falls to body),
+  the same standing as Tooltip.
+
+House mechanics reused: Common.Delay_hook (the input-==Some while pending ==
+cancel-on-change pattern that Tooltip proved) for both the show delay and the
+hide delay; separate Bonsai.state cells composed with map2 chains; the
+data-astryx-component marker on both the anchor and the surface for the
+visual contract and the coverage scan.
+
+Gates: jsdom n/a (fully stateful — interaction checks in the browser gate);
+browser gate 14 live checks (closed cards absent, controlled dialog present,
+hover-open after delay, above placement class, group+describedby for the
+unnamed text trigger, auto indication + tab stop, Indicate_hide override,
+Escape closes, disabled never opens, leave-after-hide-delay closes);
+showcase section 7 examples; PORT-STATUS 75/103.

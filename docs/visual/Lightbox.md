@@ -19,6 +19,48 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 - rendered instances in the demo: 3
 - classes: `astryx-lightbox`
 
+## layout
+
+| property | value | source class |
+| --- | --- | --- |
+| `position` | `fixed` | `.astryx-lightbox` |
+
+## other
+
+| property | value | source class |
+| --- | --- | --- |
+| `height` | `100vh` | `.astryx-lightbox` |
+| `inset` | `0` | `.astryx-lightbox` |
+| `max-height` | `none` | `.astryx-lightbox` |
+| `max-width` | `none` | `.astryx-lightbox` |
+| `width` | `100vw` | `.astryx-lightbox` |
+
+## spacing
+
+| property | value | source class |
+| --- | --- | --- |
+| `margin` | `0` | `.astryx-lightbox` |
+| `padding` | `0` | `.astryx-lightbox` |
+
+## borders
+
+| property | value | source class |
+| --- | --- | --- |
+| `border` | `none` | `.astryx-lightbox` |
+
+## background
+
+| property | value | source class |
+| --- | --- | --- |
+| `background-color` | `transparent` | `.astryx-lightbox` |
+
+## effects
+
+| property | value | source class |
+| --- | --- | --- |
+| `outline` | `none` | `.astryx-lightbox` |
+| `overflow` | `hidden` | `.astryx-lightbox` |
+
 ## tokens referenced
 
 _(none — this component styles itself with literals only)_
@@ -26,5 +68,5 @@ _(none — this component styles itself with literals only)_
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Lightbox in its documented states, on a neutral surface. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Lightbox in its documented states, on a neutral surface. Surface fills: transparent. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

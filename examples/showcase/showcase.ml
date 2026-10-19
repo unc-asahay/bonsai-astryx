@@ -840,6 +840,7 @@ module Li = Astryx.List_item
 module Cr = Astryx.Carousel
 module Tb = Astryx.Tab_list
 module Lb = Astryx.Lightbox
+module Hc = Astryx.Hover_card
 
 let demo_menu_item
       ?description
@@ -2954,6 +2955,105 @@ let tooltip_demo (graph : Bonsai.graph) =
          ancestor with overflow hidden clips it, and the hover delay is not ported — opening after a \
          pause needs a timer that can write back into the component's state, which this release has \
          no primitive for."
+      examples)
+;;
+
+
+(* ------------------------------------------------- hover-card (hover/focus, with delays) *)
+
+(* The card is a layer surface of its own: content that is interactive, shown while the trigger
+   (or the card itself) is hovered or focused. The triggers here are plain spans with ids, so the
+   browser gate can hover them and assert the surface appears. Three of the six examples are
+   non-default placements; the fourth is controlled open; the fifth hides the hover indication
+   (the dashed underline that auto mode gives text-only triggers); the sixth is disabled. The
+   divergences the interface names are real: no touch mode, no outside-click dismissal, no
+   portal, and focus_trigger = auto reads as always because a Vdom trigger cannot be asked
+   whether its first DOM child is focusable. *)
+let hover_card_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let trigger id label =
+    Vdom.Node.span ~attrs:[ Vdom.Attr.create "id" id ] [ Vdom.Node.text label ]
+  in
+  let panel id text =
+    Vdom.Node.div
+      ~attrs:(Astryx.Common.Attr.class_ [ "showcase-hover-panel" ])
+      [ Vdom.Node.p [ Vdom.Node.text text ]
+      ; Vdom.Node.a ~attrs:[ Vdom.Attr.create "href" "#"; Vdom.Attr.create "id" id ]
+          [ Vdom.Node.text "Learn more" ]
+      ]
+  in
+  let examples =
+    [ ex_tree "above the trigger — named dialog, default placement"
+        (Hc.view
+           ~label:"Profile card"
+           ~id:"showcase-hc-above"
+           ~trigger:(trigger "showcase-hc-above-trigger" "Hover me")
+           ~content:(panel "showcase-hc-above-link" "Account settings, billing and team members live on this card.")
+           graph)
+    ; ex_tree "below, centred — text trigger, unnamed group, auto indication"
+        (Hc.view
+           ~placement:Hc.Below
+           ~alignment:Hc.Center
+           ~attrs:[ Vdom.Attr.create "id" "showcase-hc-below-trigger" ]
+           ~id:"showcase-hc-below"
+           ~trigger:(Vdom.Node.text "Hover this word")
+           ~content:(panel "showcase-hc-below-link" "A group because it has no label; the trigger carries aria-describedby. The underlined dashed text marks it as text-only.")
+           graph)
+    ; ex_tree "start — the card opens on the trigger's left"
+        (Hc.view
+           ~placement:Hc.Start
+           ~id:"showcase-hc-start"
+           ~trigger:(trigger "showcase-hc-start-trigger" "Hover me")
+           ~content:(panel "showcase-hc-start-link" "Start placement, default alignment.")
+           graph)
+    ; ex_tree "end — aligned to the trigger's start edge"
+        (Hc.view
+           ~placement:Hc.End
+           ~alignment:Hc.Start
+           ~id:"showcase-hc-end"
+           ~trigger:(trigger "showcase-hc-end-trigger" "Hover me")
+           ~content:(panel "showcase-hc-end-link" "End placement, alignment start.")
+           graph)
+    ; ex_tree "controlled — the caller's is_open, not hover"
+        (Hc.view
+           ~label:"Controlled card"
+           ~is_open:true
+           ~id:"showcase-hc-controlled"
+           ~trigger:(trigger "showcase-hc-controlled-trigger" "Controlled")
+           ~content:(panel "showcase-hc-controlled-link" "is_open is the caller's answer; hover and focus do nothing.")
+           graph)
+    ; ex_tree "indication hidden — a text trigger with no dashed underline"
+        (Hc.view
+           ~has_hover_indication:Hc.Indicate_hide
+           ~attrs:[ Vdom.Attr.create "id" "showcase-hc-hide-trigger" ]
+           ~id:"showcase-hc-hide"
+           ~trigger:(Vdom.Node.text "Hover me")
+           ~content:(panel "showcase-hc-hide-link" "No underline, even though this trigger is text-only.")
+           graph)
+    ; ex_tree "disabled — hover and focus do nothing"
+        (Hc.view
+           ~is_enabled:false
+           ~id:"showcase-hc-disabled"
+           ~trigger:(trigger "showcase-hc-disabled-trigger" "Disabled trigger")
+           ~content:(panel "showcase-hc-disabled-link" "This card can never open.")
+           graph)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"hover-card"
+      ~title:"HoverCard"
+      ~note:
+        "The trigger (or the card itself) brings content up beside it while hovered or focused: \
+         hovering opens after a pause, focusing opens at once, leaving closes after a pause, and a \
+         pointer or focus that lands on the card keeps it open. The card is a dialog when labelled \
+         and a group when it is not. What the interface says plainly: no touch mode, no \
+         outside-click dismissal, no portal, and auto focus trigger is read as always because a \
+         Vdom trigger cannot be asked whether its first DOM child is focusable."
       examples)
 ;;
 
@@ -5137,6 +5237,7 @@ let nav_items =
   ; "carousel", "Carousel"
   ; "tab-list", "TabList"
   ; "lightbox", "Lightbox"
+  ; "hover-card", "HoverCard"
   ]
 ;;
 
@@ -5977,18 +6078,18 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful tab_list_section in
   let lightbox_section = lightbox_demo graph in
   let stateful = pair stateful lightbox_section in
+  let hover_card_section = hover_card_demo graph in
+  let stateful = pair stateful hover_card_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox)
+    ~f:(fun (((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card ])
       ])
-;;
-
 let () =
   Bonsai_web.Start.start ~bind_to_element_with_id:"astryx-showcase" page
 ;;

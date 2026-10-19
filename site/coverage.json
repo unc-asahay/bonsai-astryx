@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 74,
-    "unported": 29,
+    "ported": 75,
+    "unported": 28,
     "total": 103,
     "documented": 103
   },
@@ -184,6 +184,12 @@
       "module": "Astryx.Heading",
       "file": "src/heading.ml",
       "milestone": "M1"
+    },
+    {
+      "name": "HoverCard",
+      "module": "Astryx.Hover_card",
+      "file": "src/hover_card.ml",
+      "milestone": "M55"
     },
     {
       "name": "HStack",
@@ -468,7 +474,6 @@
     "DateInput",
     "DateRangeInput",
     "DateTimeInput",
-    "HoverCard",
     "Markdown",
     "MobileNav",
     "MultiSelector",

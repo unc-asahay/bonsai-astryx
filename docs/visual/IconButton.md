@@ -29,7 +29,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `gap` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-button` |
 | `justify-content` | `center` | `.astryx-button` |
 | `min-width` | `0` | `.astryx-button` |
-| `position` | `relative` | `.astryx-button` |
+| `position` | `relative`<br>`absolute`<br>`absolute` | `.astryx-button`<br>`.astryx-lightbox__close`<br>`.astryx-lightbox__nav` |
 
 ## spacing
 
@@ -62,7 +62,12 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | --- | --- | --- |
 | `cursor` | `pointer`<br>`default`<br>`progress` | `.astryx-button`<br>`.astryx-button--disabled`<br>`.astryx-button--loading` |
 | `height` | `28px` _(from `var(--size-element-sm)`)_<br>`32px` _(from `var(--size-element-md)`)_<br>`36px` _(from `var(--size-element-lg)`)_ | `.astryx-button--sm`<br>`.astryx-button--md`<br>`.astryx-button--lg` |
+| `inset-inline-end` | `0.75rem` _(from `var(--spacing-3)`)_<br>`0.75rem` _(from `var(--spacing-3)`)_ | `.astryx-lightbox__close`<br>`.astryx-lightbox__nav--next` |
+| `inset-inline-start` | `0.75rem` _(from `var(--spacing-3)`)_ | `.astryx-lightbox__nav--prev` |
 | `max-width` | `100%` | `.astryx-button` |
+| `top` | `0.75rem` _(from `var(--spacing-3)`)_<br>`50%` | `.astryx-lightbox__close`<br>`.astryx-lightbox__nav` |
+| `translate` | `0 -50%` | `.astryx-lightbox__nav` |
+| `z-index` | `1`<br>`1` | `.astryx-lightbox__close`<br>`.astryx-lightbox__nav` |
 
 ## effects
 
@@ -83,7 +88,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `color` | `#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_ | `.astryx-button--primary`<br>`.astryx-button--secondary`<br>`.astryx-button--ghost` |
+| `color` | `#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-dark)`)_ | `.astryx-button--primary`<br>`.astryx-button--secondary`<br>`.astryx-button--ghost`<br>`.astryx-lightbox__control` |
 
 ## tokens referenced
 
@@ -92,6 +97,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-accent` | `light-dark(#0064E0, #2694FE)` |
 | `--color-neutral` | `light-dark(rgba(5, 54, 89, 0.1), rgba(223, 226, 229, 0.2))` |
 | `--color-on-accent` | `light-dark(#FFFFFF, #FFFFFF)` |
+| `--color-on-dark` | `light-dark(#FFFFFF, #FFFFFF)` |
 | `--color-text-primary` | `light-dark(#0A1317, #DFE2E5)` |
 | `--duration-fast` | `175ms` |
 | `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
@@ -108,5 +114,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx IconButton in its documented states, on a neutral surface. Surface fills: #0064E0 (light) / #2694FE (dark) / rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark) / transparent. Content colours: #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #DFE2E5 (dark) / #0A1317 (light) / #DFE2E5 (dark). Corner radius 8px. Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx IconButton in its documented states, on a neutral surface. Surface fills: #0064E0 (light) / #2694FE (dark) / rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark) / transparent. Content colours: #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #DFE2E5 (dark) / #0A1317 (light) / #DFE2E5 (dark) / #FFFFFF (light) / #FFFFFF (dark). Corner radius 8px. Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

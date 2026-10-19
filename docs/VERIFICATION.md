@@ -3942,3 +3942,50 @@ render without `href`), and there is no themeProps.
   counter and announce strings), simple single-lock body scroll (no nested
   counter), and the zoom/pan transform written as one inline style (no other
   style lives on that element to collide with).
+
+## Gate 72 — M55: HoverCard (coverage 74 -> 75)
+
+- `src/hover_card.ml` + `src/hover_card.mli` (the layer surface that appears
+  beside its trigger while the trigger, or the card itself, is hovered or
+  focused — a tooltip is a short text note, a hover card is for interactive
+  content): hover opens after `delay_ms` (300 ms), focus opens at once,
+  leaving closes after `hide_delay_ms` (200 ms), a pointer or focus that
+  lands on the card keeps it open; `role="dialog"`/`aria-label` when
+  labelled, `role="group"` when unnamed, the trigger carrying
+  `aria-haspopup="dialog"` and `aria-controls`/`aria-describedby` only while
+  open; controlled mode via `~is_open` (+ `~is_default_open`);
+  `has_hover_indication` Auto/Show/Hide (auto only for text-only triggers,
+  detected by pattern-matching the trigger node); `is_enabled`;
+  `focus_trigger`; placement/alignment; the card is absent from the DOM
+  while closed; registered `module Hover_card`.
+- The show and hide delays share one `Common.Delay_hook` whose input says
+  which timer is live — two same-named hooks on one element would fuse (the
+  hook map is keyed by name and `combine` keeps the left input's delay with
+  both effects), which read as "never opens"; that is the one non-obvious
+  house lesson from this milestone.
+- jsdom component gate: **743 checks, 0 failures** (no new — HoverCard is
+  fully stateful, like Tooltip, so its checks live in the browser gate).
+- Browser gate: **540/540** (14 new live checks: closed cards absent from the
+  DOM while the controlled one is present, the controlled card is a named
+  dialog with its label, the labelled wrapper advertises the dialog
+  relationship, `aria-controls` while open, hover-open after the delay as the
+  named dialog, the open wrapper's `aria-controls`, the `above` placement
+  class, the unnamed text-trigger card as a group described by it, auto
+  indication + tab stop on a text-only trigger, no indication on an element
+  trigger, `Indicate_hide` override, Escape closes the focused group, a
+  disabled card never opens, leaving closes after the hide delay).
+- Responsive gate: **66/66**; showcase baselines updated (demo untouched).
+- Showcase: 7 examples (named dialog above, unnamed text-trigger group below,
+  start/end placements, disabled, always-indicated, controlled open), section
+  + nav + page wiring; CSS block appended (anchor/surface/content/arrow
+  classes, placement + alignment modifiers, auto indication).
+- README: 75 of 103 ported (M41–M55), 743 checks, 490 examples, 77 sections,
+  coverage 75/28; PORT-STATUS 75/103; docs/visual/HoverCard.md generated.
+- Recorded divergences (stated in the mli): no touch mode; no outside-click
+  dismissal and no top-layer portal (the card is an ordinary absolutely
+  positioned element beside its anchor, the convention Tooltip and
+  DropdownMenu established); auto focus trigger reads as always (a Vdom tree
+  cannot ask whether its first DOM child is focusable — a text-only trigger
+  carries `tabindex=0` so the wrapper is focusable, and an element child's
+  focusin bubbles to the wrapper); no focus restore after Escape (state, not
+  DOM, closes), the same standing as Tooltip.
