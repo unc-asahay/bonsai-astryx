@@ -3439,6 +3439,201 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 
+// ------------------------------------------- the cases that were missing
+{
+  const host = document.querySelector('[data-case="avatar-group-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const basic = g("rt-ag-basic");
+  const over = g("rt-ag-overflow");
+
+  check("an avatar group is a labelled group with its avatars and the keyboard hint",
+    basic !== null
+      && basic.getAttribute("data-astryx-component") === "AvatarGroup"
+      && basic.getAttribute("role") === "group"
+      && basic.getAttribute("aria-label") === "Team"
+      && basic.querySelectorAll(".astryx-avatar-group > div").length === 2
+      && basic.querySelector(".astryx-visually-hidden")?.textContent.includes("arrow keys") === true,
+    basic ? basic.outerHTML.slice(0, 240) : "missing");
+
+  check("the overflow slot is rendered alongside the avatars",
+    over !== null
+      && over.querySelectorAll(".astryx-avatar-group > div").length === 3
+      && over.textContent.includes("+3"),
+    over ? over.outerHTML.slice(0, 240) : "missing");
+}
+
+{
+  const host = document.querySelector('[data-case="clickable-card-all"]');
+  const all = [...(host?.querySelectorAll('[data-astryx-component="ClickableCard"]') ?? [])];
+  const link = all[0]?.querySelector("a");
+  const button = all[1]?.querySelector("button");
+
+  check("a clickable card with a href is a real link, named and focusable",
+    all.length === 2
+      && link !== null
+      && link.getAttribute("href") === "https://example.com/report"
+      && link.getAttribute("aria-label") === "Open the report"
+      && link.getAttribute("tabindex") === "0",
+    link ? link.outerHTML.slice(0, 200) : "missing");
+
+  check("a disabled clickable card is a disabled button, not a link",
+    button !== null
+      && button.hasAttribute("disabled")
+      && button.getAttribute("aria-label") === "Disabled card"
+      && all[1].getAttribute("class").includes("astryx-clickable-card--disabled"),
+    button ? button.outerHTML.slice(0, 200) : "missing");
+
+  check("the card's own content is rendered next to the control",
+    all[0]?.textContent.includes("The report") === true
+      && all[1]?.textContent.includes("Nothing here") === true);
+}
+
+{
+  const host = document.querySelector('[data-case="selectable-card-all"]');
+  const all = [...(host?.querySelectorAll('[data-astryx-component="SelectableCard"]') ?? [])];
+
+  check("a selected card says so, and the selection is a real checkbox",
+    all.length === 2
+      && all[0].getAttribute("data-astryx-selected") === "true"
+      && all[0].getAttribute("class").includes("astryx-selectable-card--selected")
+      && all[0].querySelector('input[type="checkbox"]')?.getAttribute("aria-label") === "First",
+    all[0] ? all[0].outerHTML.slice(0, 220) : "missing");
+
+  check("an unselected card says so too",
+    all[1]?.getAttribute("data-astryx-selected") === "false"
+      && !all[1].getAttribute("class").includes("astryx-selectable-card--selected")
+      && all[1].querySelector('input[type="checkbox"]')?.getAttribute("aria-label") === "Second",
+    all[1] ? all[1].outerHTML.slice(0, 220) : "missing");
+}
+
+{
+  const host = document.querySelector('[data-case="toggle-button-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+
+  check("a toggle button reports its pressed state",
+    g("rt-tb-pressed")?.getAttribute("aria-pressed") === "true"
+      && g("rt-tb-unpressed")?.getAttribute("aria-pressed") === "false",
+    JSON.stringify({
+      pressed: g("rt-tb-pressed")?.getAttribute("aria-pressed"),
+      unpressed: g("rt-tb-unpressed")?.getAttribute("aria-pressed"),
+    }));
+
+  check("a disabled toggle button is disabled, and says it is not pressed",
+    g("rt-tb-disabled")?.hasAttribute("disabled") === true
+      && g("rt-tb-disabled")?.getAttribute("aria-pressed") === "false"
+      && g("rt-tb-disabled")?.getAttribute("data-astryx-component") === "ToggleButton",
+    g("rt-tb-disabled") ? g("rt-tb-disabled").outerHTML.slice(0, 200) : "missing");
+
+  check("the toggle's label is its visible text",
+    g("rt-tb-pressed")?.textContent.includes("Bold") === true
+      && g("rt-tb-unpressed")?.textContent.includes("Italic") === true);
+}
+
+{
+  const host = document.querySelector('[data-case="metadata-list-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const basic = g("rt-ml-basic");
+  const multi = g("rt-ml-multi");
+
+  check("a metadata list is a description list, with its title and its items",
+    basic !== null
+      && basic.getAttribute("data-astryx-component") === "MetadataList"
+      && basic.querySelector("dl") !== null
+      && basic.querySelector(".astryx-metadata-list__title")?.textContent === "Details"
+      && basic.querySelectorAll("dl > div").length === 4,
+    basic ? basic.outerHTML.slice(0, 260) : "missing");
+
+  check("the columns change the list's layout class",
+    multi !== null
+      && multi.querySelector("dl") !== null
+      && multi.querySelector("dl").getAttribute("class").includes("astryx-metadata-list__grid--stacked-multi")
+      && basic.querySelector("dl").getAttribute("class").includes("astryx-metadata-list__grid--single"),
+    multi ? multi.outerHTML.slice(0, 220) : "missing");
+}
+
+{
+  const host = document.querySelector('[data-case="more-menu-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const closedTrigger = g("rt-mm-closed-trigger");
+  const openTrigger = g("rt-mm-open-trigger");
+
+  check("a more menu's trigger says what it opens and whether it is open",
+    closedTrigger !== null
+      && closedTrigger.getAttribute("aria-haspopup") === "menu"
+      && closedTrigger.getAttribute("aria-expanded") === "false"
+      && closedTrigger.getAttribute("aria-controls") === "rt-mm-closed-menu"
+      && openTrigger?.getAttribute("aria-expanded") === "true",
+    JSON.stringify({
+      closed: closedTrigger?.getAttribute("aria-expanded"),
+      open: openTrigger?.getAttribute("aria-expanded"),
+    }));
+
+  check("the closed menu's surface is hidden, and the open one is not",
+    g("rt-mm-closed-menu") !== null
+      && g("rt-mm-closed-menu").getAttribute("role") === "menu"
+      && g("rt-mm-closed-menu").closest("[data-astryx-state]")?.getAttribute("data-astryx-state") === "closed"
+      && g("rt-mm-open-menu")?.closest("[data-astryx-state]")?.getAttribute("data-astryx-state") === "open",
+    JSON.stringify({
+      closed: g("rt-mm-closed-menu")?.closest("[data-astryx-state]")?.getAttribute("data-astryx-state"),
+      open: g("rt-mm-open-menu")?.closest("[data-astryx-state]")?.getAttribute("data-astryx-state"),
+    }));
+
+  check("the open menu holds its rows, and the closed one does not",
+    (g("rt-mm-open-menu")?.querySelectorAll('[role="menuitem"]').length ?? 0) === 1
+      && (g("rt-mm-closed-menu")?.querySelectorAll('[role="menuitem"]').length ?? 0) === 0,
+    JSON.stringify({
+      openRows: g("rt-mm-open-menu")?.querySelectorAll('[role="menuitem"]').length,
+      closedRows: g("rt-mm-closed-menu")?.querySelectorAll('[role="menuitem"]').length,
+    }));
+}
+
+{
+  const host = document.querySelector('[data-case="overflow-list-all"]');
+  const all = [...(host?.querySelectorAll(".astryx-overflow-list__item") ?? [])];
+  const indicator = host?.querySelector(".astryx-overflow-list__indicator");
+
+  check("an overflow list measures its items and shows the overflow",
+    host?.querySelector('[data-astryx-component="OverflowList"]') !== null
+      && all.length === 10
+      && indicator !== null
+      && indicator.textContent.trim() === "+5",
+    JSON.stringify({ items: all.length, indicator: indicator?.textContent.trim() }));
+}
+
+{
+  const host = document.querySelector('[data-case="progress-bar-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const bar = g("rt-pb-value")?.querySelector('[role="progressbar"]');
+
+  check("a progress bar is a progressbar with its value, its bounds and its text",
+    bar !== null
+      && bar.getAttribute("aria-valuenow") === "40"
+      && bar.getAttribute("aria-valuemin") === "0"
+      && bar.getAttribute("aria-valuemax") === "100"
+      && bar.getAttribute("aria-valuetext") === "40%"
+      && g("rt-pb-value")?.querySelector(".astryx-progress-bar__label")?.textContent === "Upload",
+    bar ? bar.outerHTML.slice(0, 240) : "missing");
+
+  check("the fill is the value's share of the track",
+    g("rt-pb-value")?.querySelector(".astryx-progress-bar__fill")?.getAttribute("style")?.includes("40") === true,
+    g("rt-pb-value")?.querySelector(".astryx-progress-bar__fill")?.getAttribute("style") ?? null);
+
+  check("a completed bar reads 100% and the indeterminate one is marked",
+    g("rt-pb-success")?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext") === "100%"
+      && g("rt-pb-indeterminate")?.querySelector('[role="progressbar"]') !== null,
+    JSON.stringify({
+      success: g("rt-pb-success")?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext"),
+    }));
+
+  // The mark is a tick on the track, and its label lives in the tooltip that
+  // wraps it - the tick itself carries the label for assistive technology.
+  const mark = g("rt-pb-marks")?.querySelector(".astryx-progress-bar__mark");
+  check("a bar with marks renders the mark, and the tick carries its label",
+    mark !== null && mark.getAttribute("aria-label") === "Quarter",
+    mark ? mark.outerHTML.slice(0, 220) : "missing");
+}
+
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");

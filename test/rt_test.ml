@@ -3782,3 +3782,227 @@ let () =
   in
   mount "mobile-nav-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------- the cases that were missing *)
+(* Eight ported components had no case in this gate. They have one now.
+   Some of them render a node and some are graphs; the two are mounted
+   differently, the way the rest of the file does it. *)
+
+let avatar_group_component =
+  let avatar label = Vdom.Node.div ~attrs:[] [ Vdom.Node.text label ] in
+  Vdom.Node.div
+    ~attrs:[ Vdom.Attr.id "avatar-group-all" ]
+    [ Astryx.Avatar_group.view
+        ~id:"rt-ag-basic"
+        ~label:"Team"
+        ~size:Astryx.Avatar.Md
+        ~shape:Astryx.Avatar.Circle
+        ~avatars:[ avatar "Ada"; avatar "Grace" ]
+        ()
+    ; Astryx.Avatar_group.view
+        ~id:"rt-ag-overflow"
+        ~label:"Many"
+        ~overflow:(Vdom.Node.text "+3")
+        ~avatars:[ avatar "Ada"; avatar "Grace"; avatar "Alan" ]
+        ()
+    ]
+;;
+
+let clickable_card_component =
+  Vdom.Node.div
+    ~attrs:[ Vdom.Attr.id "clickable-card-all" ]
+    [ Astryx.Clickable_card.view
+        ~href:"https://example.com/report"
+        ~label:"Open the report"
+        [ Vdom.Node.text "The report" ]
+    ; Astryx.Clickable_card.view
+        ~is_disabled:true
+        ~label:"Disabled card"
+        [ Vdom.Node.text "Nothing here" ]
+    ]
+;;
+
+let selectable_card_component =
+  let on_change _ = Bonsai.Effect.Ignore in
+  Vdom.Node.div
+    ~attrs:[ Vdom.Attr.id "selectable-card-all" ]
+    [ Astryx.Selectable_card.view ~label:"First" ~is_selected:true ~on_change [ Vdom.Node.text "One" ]
+    ; Astryx.Selectable_card.view ~label:"Second" ~is_selected:false ~on_change [ Vdom.Node.text "Two" ]
+    ]
+;;
+
+let toggle_button_component =
+  let on_pressed_change _ = Bonsai.Effect.Ignore in
+  Vdom.Node.div
+    ~attrs:[ Vdom.Attr.id "toggle-button-all" ]
+    [ Astryx.Toggle_button.view ~id:"rt-tb-pressed" ~is_pressed:true ~on_pressed_change ~label:"Bold" ()
+    ; Astryx.Toggle_button.view ~id:"rt-tb-unpressed" ~is_pressed:false ~on_pressed_change ~label:"Italic" ()
+    ; Astryx.Toggle_button.view ~id:"rt-tb-disabled" ~is_disabled:true ~on_pressed_change ~label:"Off" ()
+    ]
+;;
+
+(* MetadataList: the items, the columns, and the label's position. *)
+let metadata_list_component (graph : Bonsai.graph) =
+  let item label = Vdom.Node.div ~attrs:[] [ Vdom.Node.text label ] in
+  let items = Bonsai.return [ [ item "Role"; item "Owner" ]; [ item "Team"; item "Core" ] ] in
+  let trees =
+    [ Astryx.Metadata_list.view
+        ~id:"rt-ml-basic"
+        ~title:(Vdom.Node.text "Details")
+        ~columns:Astryx.Metadata_list.Single
+        ~label_position:Astryx.Metadata_list.Start
+        ~items
+        graph
+    ; Astryx.Metadata_list.view
+        ~id:"rt-ml-multi"
+        ~columns:Astryx.Metadata_list.Multi
+        ~label_position:Astryx.Metadata_list.Top
+        ~items
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "metadata-list-all" ] nodes)
+;;
+
+(* MoreMenu: the button, the entries, and the menu it opens. *)
+let more_menu_component (graph : Bonsai.graph) =
+  let item id label =
+    { Astryx.Dropdown_menu.id
+    ; label
+    ; description = None
+    ; end_content = None
+    ; icon = None
+    ; variant = Astryx.Dropdown_menu.Default
+    ; is_disabled = false
+    ; href = None
+    ; has_close_on_select = None
+    }
+  in
+  let on_select = Bonsai.map (Bonsai.return ()) ~f:(fun () -> fun _ -> Bonsai.Effect.Ignore) in
+  let trees =
+    [ Astryx.More_menu.view
+        ~id:"rt-mm-closed"
+        ~label:"More"
+        ~is_open:(Bonsai.return false)
+        ~on_open_change:(Bonsai.map (Bonsai.return ()) ~f:(fun () -> fun _ -> Bonsai.Effect.Ignore))
+        ~on_select
+        ~items:[ Astryx.Dropdown_menu.Item (item "edit" "Edit"); Astryx.Dropdown_menu.Divider ]
+        graph
+    ; Astryx.More_menu.view
+        ~id:"rt-mm-open"
+        ~label:"More"
+        ~is_open:(Bonsai.return true)
+        ~on_open_change:(Bonsai.map (Bonsai.return ()) ~f:(fun () -> fun _ -> Bonsai.Effect.Ignore))
+        ~on_select
+        ~items:[ Astryx.Dropdown_menu.Item (item "edit" "Edit") ]
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "more-menu-all" ] nodes)
+;;
+
+(* OverflowList: the rows it shows, and the overflow it collapses into. *)
+let overflow_list_component (graph : Bonsai.graph) =
+  let row n = Vdom.Node.div ~attrs:[] [ Vdom.Node.text (sprintf "row %d" n) ] in
+  let items = [ row 1; row 2; row 3; row 4; row 5 ] in
+  let trees =
+    [ Astryx.Overflow_list.view
+        ~max_rows:2
+        ~min_visible_items:1
+        ~items
+        graph
+        ()
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "overflow-list-all" ] nodes)
+;;
+
+(* ProgressBar: the value, the variants, the marks, and the indeterminate
+   state. *)
+let progress_bar_component (graph : Bonsai.graph) =
+  let trees =
+    [ Astryx.Progress_bar.view ~id:"rt-pb-value" ~value:40. ~max:100. ~label:"Upload" graph
+    ; Astryx.Progress_bar.view
+        ~id:"rt-pb-success"
+        ~value:100.
+        ~variant:Astryx.Progress_bar.Success
+        ~label:"Done"
+        graph
+    ; Astryx.Progress_bar.view
+        ~id:"rt-pb-indeterminate"
+        ~is_indeterminate:true
+        ~label:"Working"
+        graph
+    ; Astryx.Progress_bar.view
+        ~id:"rt-pb-marks"
+        ~value:50.
+        ~marks:[ { Astryx.Progress_bar.value = 25.; label = "Quarter" } ]
+        ~label:"With marks"
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "progress-bar-all" ] nodes)
+;;
+
+let () =
+  mount "avatar-group-all" avatar_group_component;
+  mount "clickable-card-all" clickable_card_component;
+  mount "selectable-card-all" selectable_card_component;
+  mount "toggle-button-all" toggle_button_component
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      metadata_list_component
+  in
+  mount "metadata-list-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      more_menu_component
+  in
+  mount "more-menu-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      overflow_list_component
+  in
+  mount "overflow-list-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      progress_bar_component
+  in
+  mount "progress-bar-all" (Bonsai_web_test.Handle.last_result handle)
+;;
