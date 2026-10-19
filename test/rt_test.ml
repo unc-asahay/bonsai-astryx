@@ -3205,7 +3205,56 @@ let breadcrumbs_component (_ : Bonsai.graph) =
            ()
        ])
 ;;
+let carousel_component (graph : Bonsai.graph) =
+  let open! Astryx in
+  let box id color =
+    Vdom.Node.div
+      ~attrs:[ Vdom.Attr.id id; Vdom.Attr.create "style" ("background-color:" ^ color) ]
+      []
+  in
+  let trees =
+    [ Carousel.view
+        ~id:"rt-car-basic"
+        ~items:
+          [ box "rt-car-b1" "#8b5cf6"; box "rt-car-b2" "#ec4899"
+          ; box "rt-car-b3" "#f59e0b"; box "rt-car-b4" "#10b981" ]
+        graph
+    ; Carousel.view
+        ~id:"rt-car-loop"
+        ~has_loop:true
+        ~items:
+          [ box "rt-car-c1" "#3b82f6"; box "rt-car-c2" "#ef4444"
+          ; box "rt-car-c3" "#14b8a6"; box "rt-car-c4" "#a855f7" ]
+        graph
+    ; Carousel.view
+        ~id:"rt-car-snap"
+        ~has_snap:true
+        ~items: [ box "rt-car-d1" "#f97316"; box "rt-car-d2" "#22c55e" ]
+        graph
+    ; Carousel.view
+        ~id:"rt-car-nobuttons"
+        ~has_buttons:false
+        ~items: [ box "rt-car-e1" "#eab308"; box "rt-car-e2" "#06b6d4" ]
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "carousel-all" ] nodes)
+;;
 
+
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      carousel_component
+  in
+  mount "carousel-all" (Bonsai_web_test.Handle.last_result handle)
+;;
 
 let () =
   let handle =

@@ -2966,6 +2966,49 @@ check("a disabled group says so once, on the box", (() => {
     g("rt-bc-unsafe").querySelector('a')?.getAttribute("href") === null);
 }
 
+
+// --- Carousel (M52)
+{
+  const host = document.querySelector('[data-case="carousel-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const slidesOf = (id) => g(id)?.querySelectorAll('.astryx-carousel__item') || [];
+  const btn = (id, side) => g(id)?.querySelector(`[data-astryx-nav="${side}"]`);
+  check("four carousels render in the fixture",
+    !!g("rt-car-basic") && !!g("rt-car-loop") && !!g("rt-car-snap") && !!g("rt-car-nobuttons"));
+  check("a carousel is a labelled region with carousel role description",
+    g("rt-car-basic")?.getAttribute("role") === "region"
+    && g("rt-car-basic")?.getAttribute("aria-roledescription") === "carousel"
+    && (g("rt-car-basic")?.getAttribute("aria-label") || "") === "Carousel"
+    && g("rt-car-basic")?.getAttribute("data-astryx-component") === "Carousel");
+  const sc = g("rt-car-basic")?.querySelector('.astryx-carousel__scroller');
+  check("the scroller is focusable and carries the default gap token",
+    !!sc && sc.getAttribute("tabindex") === "0"
+    && sc.getAttribute("data-astryx-gap") === "1"
+    && !sc.hasAttribute("data-astryx-snap"));
+  const slides = slidesOf("rt-car-basic");
+  check("each item is a slide group named N of M",
+    slides.length === 4
+    && slides[0].getAttribute("role") === "group"
+    && slides[0].getAttribute("aria-roledescription") === "slide"
+    && slides[0].getAttribute("aria-label") === "Slide 1 of 4"
+    && slides[3].getAttribute("aria-label") === "Slide 4 of 4");
+  check("nav pills are present and disabled at both edges (no overflow yet)",
+    !!btn("rt-car-basic", "start") && !!btn("rt-car-basic", "end")
+    && btn("rt-car-basic", "start").hasAttribute("disabled")
+    && btn("rt-car-basic", "end").hasAttribute("disabled")
+    && btn("rt-car-basic", "start").parentElement.classList.contains("astryx-carousel__pill--hidden")
+    && btn("rt-car-basic", "start").getAttribute("aria-label") === "Scroll left");
+  check("loop mode starts with the same edge-disabled contract",
+    !!btn("rt-car-loop", "start") && !!btn("rt-car-loop", "end")
+    && btn("rt-car-loop", "start").hasAttribute("disabled"));
+  check("snap mode marks the scroller as snap-enabled",
+    g("rt-car-snap")?.querySelector('.astryx-carousel__scroller')?.hasAttribute("data-astryx-snap"));
+  check("has_buttons false renders no nav controls",
+    g("rt-car-nobuttons")?.querySelector('[data-astryx-controls]') === null);
+  check("no edge fade is applied before the first measurement",
+    sc && sc.getAttribute("data-astryx-fade") === null);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

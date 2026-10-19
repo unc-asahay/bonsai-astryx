@@ -1,0 +1,46 @@
+M52: Carousel - the horizontal scroll container (Carousel)
+
+Port upstream packages/core/src/Carousel/Carousel.tsx (727 LOC) over
+hooks/useScrollOverflow.ts (152) + hooks/isRtlElement.ts (27) as
+Astryx.Carousel.
+
+What is ported, exactly:
+- The measured scroll contract: a vdom overflow hook attached to the scroller
+  (the house pattern from Scrollable_area's Scroll_hook) measures
+  scrollLeft/scrollWidth/clientWidth on mount and re-measures on scroll,
+  resize, ResizeObserver, mutations, load and transitions; the result lives
+  in Bonsai.state and drives the fade mask (start/end/both), the per-edge
+  pill enabledness and everything below.
+- Native-scroll navigation: the Shift+wheel mapping (only a purely-vertical
+  delta with Shift, never a trackpad deltaX), and the pills calling the same
+  scrollBy arithmetic as upstream - RTL sign flip, wrap-around overshoot by
+  the full scroll width, one viewport minus half the first item (at least one
+  item), reduced-motion 'auto' behavior.
+- APG semantics: labelled region + aria-roledescription="carousel", and each
+  item wrapped in a group with aria-roledescription="slide" named
+  "Slide N of M" with 1-based numbering; the scroller is keyboard focusable.
+- The config surface via data attributes + CSS: gap (spacing scale 0..4),
+  inline padding (0..10 with matching scroll-padding), scroll-snap
+  (x mandatory), edge fades, pill overlay with start/end transform and
+  hidden-at-edge state.
+
+Recorded divergences (see carousel.mli):
+1. No imperative handle (upstream handleRef with scrollNext/scrollPrev/
+   scrollTo + canScroll queries) - Bonsai exposes no ref/handle API; the
+   built-in buttons replicate the scroll semantics.
+2. No post-commit focus handoff when a nav button disables under the user -
+   upstream runs a React post-commit effect over refs; the port lets the
+   browser default apply (buttons stay mounted, removed from tab order while
+   disabled).
+3. The button overlay renders inline, absolutely positioned, instead of on
+   the popup top layer (upstream useLayer); the visual contract is the same,
+   but an ancestor that clips absolutely-positioned children clips the pills.
+4. Labels are English strings (i18n not ported).
+
+Verification: dune build green; jsdom component gate 728/0 (9 carousel
+checks); real-browser gate 511/511 (8 live checks: rest-state edge disables,
+fade mask, slide numbering, click-scroll + state flip, wrap-around keeps
+both pills, no-fade never masks, data config); showcase 8 examples + nav
++ CSS; README 72 of 103, 728 checks, 476 examples, 74 sections.
+
+Co-authored-by: Anupam <anupam@users.noreply.github.com>

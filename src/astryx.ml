@@ -123,3 +123,4 @@ module Tree_list = Tree_list
 module Number_input = Number_input
 module Breadcrumbs = Breadcrumbs
 module Breadcrumb_item = Breadcrumb_item
+module Carousel = Carousel

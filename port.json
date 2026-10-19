@@ -733,6 +733,13 @@
    "file": "src/field_status.ml",
    "milestone": "M9",
    "module": "Astryx.Field_status"
+  },
+  {
+   "class": "A",
+   "component": "Carousel",
+   "file": "src/carousel.ml",
+   "milestone": "M52",
+   "module": "Astryx.Carousel"
   }
  ],
  "schema": 1,

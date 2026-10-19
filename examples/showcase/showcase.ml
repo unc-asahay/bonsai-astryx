@@ -837,6 +837,7 @@ module Ni = Astryx.Number_input
 module Bc = Astryx.Breadcrumbs
 module Bci = Astryx.Breadcrumb_item
 module Li = Astryx.List_item
+module Cr = Astryx.Carousel
 
 let demo_menu_item
       ?description
@@ -2517,6 +2518,111 @@ let breadcrumbs_demo () =
            moved from a post-render effect into the same (data-driven) view, \
            and the crumb menu trigger is a pending named gap."
         examples)
+
+(* ------------------------------------------------- carousel *)
+let carousel_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let box ?(w = 168) ?(h = 96) color label =
+    Vdom.Node.div
+      ~attrs:
+        [ Vdom.Attr.create "class" "showcase-carousel-box"
+        ; Vdom.Attr.create
+            "style"
+            (sprintf "width:%dpx;height:%dpx;background-color:%s" w h color)
+        ]
+      [ Vdom.Node.text label ]
+  in
+  let items colors =
+    List.map colors ~f:(fun (color, label) -> box color label)
+  in
+  let palette =
+    [ ("#8b5cf6", "One"); ("#ec4899", "Two"); ("#f59e0b", "Three")
+    ; ("#10b981", "Four"); ("#3b82f6", "Five"); ("#ef4444", "Six")
+    ; ("#14b8a6", "Seven"); ("#a855f7", "Eight") ]
+  in
+  let basic =
+    Cr.view
+      ~id:"showcase-carousel-basic"
+      ~items:(items palette)
+      graph
+  in
+  let wide_gap =
+    Cr.view
+      ~id:"showcase-carousel-gap"
+      ~gap:Common.Spacing.S4
+      ~items:(items palette)
+      graph
+  in
+  let snapping =
+    Cr.view
+      ~id:"showcase-carousel-snap"
+      ~has_snap:true
+      ~items:(items palette)
+      graph
+  in
+  let looping =
+    Cr.view
+      ~id:"showcase-carousel-loop"
+      ~has_loop:true
+      ~items:(items palette)
+      graph
+  in
+  let no_buttons =
+    Cr.view
+      ~id:"showcase-carousel-no-buttons"
+      ~has_buttons:false
+      ~items:(items palette)
+      graph
+  in
+  let no_fade =
+    Cr.view
+      ~id:"showcase-carousel-no-fade"
+      ~has_edge_fade:false
+      ~items:(items palette)
+      graph
+  in
+  let padded =
+    Cr.view
+      ~id:"showcase-carousel-padded"
+      ~padding:Common.Spacing.S2
+      ~gap:Common.Spacing.S1
+      ~items:(items palette)
+      graph
+  in
+  let long_trail =
+    Cr.view
+      ~id:"showcase-carousel-long"
+      ~has_snap:true
+      ~items:(items (List.mapi palette ~f:(fun i (color, label) -> color, sprintf "%s-%d" label (i + 1))))
+      graph
+  in
+  [ ex_tree "carousel (default)" basic
+  ; ex_tree "gap = 4" wide_gap
+  ; ex_tree "scroll snap" snapping
+  ; ex_tree "wrap-around" looping
+  ; ex_tree "no nav buttons" no_buttons
+  ; ex_tree "no edge fade" no_fade
+  ; ex_tree "inline padding" padded
+  ; ex_tree "long trail" long_trail
+  ]
+  |> fun examples ->
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+      section ~id:"carousel" ~title:"Carousel"
+        ~note:
+          "A horizontal scroll container: measured edge fades, prev/next pills \
+           that disable at the edges, optional wrap-around and scroll-snap, \
+           RTL-aware and reduced-motion aware scrolling. Port of \
+           facebook/astryx Carousel (useScrollOverflow + isRtlElement); the \
+           imperative handle, the focus-handoff effect and the popup top \
+           layer are not ported (see carousel.mli)."
+        examples)
+;;
+
 ;;
 let tooltip_demo (graph : Bonsai.graph) =
   let open Astryx in
@@ -4806,6 +4912,7 @@ let nav_items =
   ; "checkbox-list", "CheckboxList"
   ; "collapsible", "Collapsible"
   ; "breadcrumbs", "Breadcrumbs"
+  ; "carousel", "Carousel"
   ]
 ;;
 
@@ -5640,15 +5747,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful collapsible_section in
   let breadcrumbs_section = breadcrumbs_demo () in
   let stateful = pair stateful breadcrumbs_section in
+  let carousel_section = carousel_demo graph in
+  let stateful = pair stateful carousel_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs)
+    ~f:(fun ((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel ])
       ])
 ;;
 

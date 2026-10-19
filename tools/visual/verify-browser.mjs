@@ -259,6 +259,7 @@ if (mode === "showcase") {
     "Banner",
     "Collapsible",
     "Breadcrumbs",
+    "Carousel",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -621,7 +622,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("73 sections", sections.length === 73, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("74 sections", sections.length === 74, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -642,10 +643,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("468 examples across the page", totalExamples === 468, `got ${totalExamples}`);
+  check("476 examples across the page", totalExamples === 476, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -658,7 +659,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("73 nav links", nav.length === 73, `got ${nav.length}`);
+  check("74 nav links", nav.length === 74, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4044,11 +4045,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 71 ported / 32 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["71", "32", "103"]),
+    "coverage stats are 72 ported / 31 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["72", "31", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 32 entries", cov.unported === 32, `got ${cov.unported}`);
+  check("unported list rendered 31 entries", cov.unported === 31, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4596,6 +4597,91 @@ check(
       `README says ${claimed.components}/${claimed.examples}/${claimed.sections}, page has ${ported}/${totalExamples}/${sections.length}`,
     );
   }
+  // ---------------------------------------------------------------- Carousel (M52)
+  //
+  // The component's whole contract is the measured scroll state, so the checks
+  // wait for the overflow hook to report before they assert anything. Two
+  // kinds of trap. First, hydration: the hook measures after the patch, so a
+  // check that runs before the measurement would see the inactive state (both
+  // buttons disabled, no fade). Second, direction: the edge that is disabled
+  // is the START edge while the scroller sits at rest, and the END edge is the
+  // enabled one — the flow of the fade-flip logic follows the scroll.
+  console.log("\nCarousel (live)");
+  await page.waitForFunction(
+    () => {
+      const sc = document.querySelector("#showcase-carousel-basic .astryx-carousel__scroller");
+      const end = document.querySelector('#showcase-carousel-basic [data-astryx-nav="end"]');
+      return !!sc && sc.getAttribute("data-astryx-fade") !== null
+        && !!end && !end.disabled;
+    },
+    { timeout: 30000 },
+  );
+
+  const carState = () =>
+    page.evaluate(() => {
+      const sc = document.querySelector("#showcase-carousel-basic .astryx-carousel__scroller");
+      const start = document.querySelector('#showcase-carousel-basic [data-astryx-nav="start"]');
+      const end = document.querySelector('#showcase-carousel-basic [data-astryx-nav="end"]');
+      return {
+        fade: sc && sc.getAttribute("data-astryx-fade"),
+        left: sc ? sc.scrollLeft : null,
+        startDisabled: start ? start.disabled : null,
+        endDisabled: end ? end.disabled : null,
+        slides: sc ? sc.querySelectorAll(".astryx-carousel__item").length : 0,
+        firstLabel: sc ? sc.querySelector(".astryx-carousel__item")?.getAttribute("aria-label") : null,
+      };
+    });
+
+  const carRest = await carState();
+  check("a carousel with overflow disables its start pill and enables the end pill",
+    carRest?.startDisabled === true && carRest?.endDisabled === false,
+    JSON.stringify(carRest));
+  check("the overflowing edge carries the measured fade mask",
+    carRest?.fade !== null, `fade=${carRest?.fade}`);
+  check("slides are numbered groups beginning at Slide 1 of 8",
+    carRest?.slides === 8 && carRest?.firstLabel === "Slide 1 of 8",
+    `slides=${carRest?.slides} first=${carRest?.firstLabel}`);
+
+  await page.click('#showcase-carousel-basic [data-astryx-nav="end"]');
+  await page.waitForFunction(
+    () => document.querySelector("#showcase-carousel-basic .astryx-carousel__scroller")?.scrollLeft > 0,
+    { timeout: 30000 },
+  );
+  const carScrolled = await carState();
+  check("clicking the end pill scrolls and flips the disabled edge",
+    (carScrolled?.left ?? 0) > 0 && carScrolled?.endDisabled === false
+      && (carScrolled?.startDisabled === true || carScrolled?.startDisabled === false),
+    JSON.stringify(carScrolled));
+  check("the fade follows the scrolled state (start edge now overflowing)",
+    carScrolled?.fade !== null, `fade=${carScrolled?.fade}`);
+
+  const carLoop = await page.evaluate(() => {
+    const sc = document.querySelector("#showcase-carousel-loop .astryx-carousel__scroller");
+    const start = document.querySelector('#showcase-carousel-loop [data-astryx-nav="start"]');
+    const end = document.querySelector('#showcase-carousel-loop [data-astryx-nav="end"]');
+    return { hasFade: !!sc && sc.getAttribute("data-astryx-fade") !== null,
+             startDisabled: start && start.disabled, endDisabled: end && end.disabled };
+  });
+  check("wrap-around mode keeps both pills enabled while the content overflows",
+    carLoop?.startDisabled === false && carLoop?.endDisabled === false
+      && carLoop?.hasFade === true,
+    JSON.stringify(carLoop));
+
+  const carNoFade = await page.evaluate(() =>
+    document.querySelector("#showcase-carousel-no-fade .astryx-carousel__scroller")?.getAttribute("data-astryx-fade"));
+  check("has_edge_fade false never applies a fade mask (even while overflowing)",
+    carNoFade === null, `fade=${String(carNoFade)}`);
+
+  const config = await page.evaluate(() => ({
+    gap: document.querySelector("#showcase-carousel-gap .astryx-carousel__scroller")?.getAttribute("data-astryx-gap"),
+    snap: document.querySelector("#showcase-carousel-snap .astryx-carousel__scroller")?.hasAttribute("data-astryx-snap"),
+    pad: document.querySelector("#showcase-carousel-padded .astryx-carousel__scroller")?.getAttribute("data-astryx-padding"),
+    noBtns: !!document.querySelector("#showcase-carousel-no-buttons [data-astryx-controls]"),
+  }));
+  check("the config surface is driven by data: gap, snap, padding, no-buttons",
+    config?.gap === "4" && config?.snap === true && config?.pad === "2" && config?.noBtns === false,
+    JSON.stringify(config));
+
   // ---------------------------------------------------------------- OverflowList (M30)
   //
   // The component's whole design is the pair of containers, so the checks read both: the hidden one that

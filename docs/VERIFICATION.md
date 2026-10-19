@@ -3848,3 +3848,20 @@ named gap), the auto-current crumb is computed before first render instead of
 a post-render DOM scan, the crumb menu trigger is a named gap pending a
 trigger-less menu renderer, hrefs pass `Citation.is_safe_url` (unsafe URLs
 render without `href`), and there is no themeProps.
+
+## Gate 69 — M52: Carousel (coverage 71 -> 72)
+
+- `src/carousel.ml` (Overflow_hook measurement + listener hook, scroll_by_js /
+  wheel_js helpers, slide groups, nav pills) + `src/carousel.mli`; registered
+  `module Carousel`.
+- jsdom component gate: **728 checks, 0 failures** (9 new carousel checks).
+- Browser gate: **511/511** (8 new live checks: edge-pill disabled at rest,
+  fade mask at the overflowing edge, slide numbering, click-the-end-pill scroll
+  with state following, wrap-around keeps both pills enabled, no-fade never
+  masks, gap/snap/padding/no-buttons config on data).
+- Showcase: 8 examples, section + nav + wiring; CSS block appended
+  (gap/padding/fade/snap/pill/RTL mirror).
+- README: 72 of 103 ported (M41–M52), 728 checks, 476 examples, 74 sections;
+  PORT-STATUS 72/103; docs/visual/Carousel.md generated.
+- Recorded divergences: no imperative handle, no post-commit focus handoff,
+  inline button overlay (no popup top layer), English labels.
