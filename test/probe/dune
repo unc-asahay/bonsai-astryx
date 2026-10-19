@@ -1,0 +1,6 @@
+(executable
+ (name plain_date_probe)
+ (modes js)
+ (libraries astryx bonsai bonsai_web)
+ (preprocess
+  (pps bonsai.ppx_bonsai js_of_ocaml-ppx)))
