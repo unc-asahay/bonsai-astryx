@@ -37,22 +37,16 @@ ALIASES = {
 def parse_sections(text):
     """The gate prints one line of `Name:count` pairs for the whole page."""
     sections = {}
+    # A section name may contain a space and a plus ("Field + TextInput"), so
+    # the name is matched up to its colon rather than split on whitespace.
+    pair_re = re.compile(r"([A-Za-z][A-Za-z0-9]*(?: \+ [A-Za-z0-9]+)?):(\d+)")
     for line in text.splitlines():
         line = line.strip()
         if not line or ":" not in line:
             continue
-        parts = line.split()
-        pairs = []
-        for p in parts:
-            if ":" not in p:
-                continue
-            name, _, count = p.partition(":")
-            if not count.isdigit():
-                continue
-            if re.fullmatch(r"[A-Za-z][A-Za-z0-9 +_]*", name):
-                pairs.append((name, int(count)))
-        # A section line is long and every token is a name:count pair.
-        if len(pairs) >= 10 and len(pairs) == len(parts):
+        pairs = [(m.group(1), int(m.group(2))) for m in pair_re.finditer(line)]
+        # The section list is the one line that holds a long run of pairs.
+        if len(pairs) >= 10:
             for name, count in pairs:
                 sections[name] = count
     return sections
@@ -87,21 +81,46 @@ def main():
     # 1. the per-section map, rebuilt from the page
     m = re.search(r"(const expectedExamples = \{\n)(.*?)(\n  \};)", g, re.S)
     assert m, "expectedExamples map not found"
-    body = "".join(f"    {name}: {count},\n" for name, count in sections.items())
+    def key(name):
+        # A section name with a space ("Field + TextInput") needs quoting to be
+        # a valid JS object key.
+        if re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*", name):
+            return name
+        return json.dumps(name)
+
+    body = "".join(f"    {key(name)}: {count},\n" for name, count in sections.items())
     g = g[: m.start(2)] + body + g[m.end(2) :]
     print(f"  expectedExamples: {len(sections)} entries")
 
     # 2. the totals
-    def set_num(pattern, value, what):
+    def set_pair(pattern, value, what, template):
+        """A count site names the number twice: in the label and in the
+        comparison. Both have to move together."""
         nonlocal g
         mm = re.search(pattern, g)
         assert mm, f"count site not found: {what}"
-        g = g[: mm.start(1)] + str(value) + g[mm.end(1) :]
+        before = mm.group(0)
+        g = g[: mm.start()] + template.format(v=value) + g[mm.end() :]
         print(f"  {what}: {value}")
 
-    set_num(r'check\("(\d+) examples across the page"', total_examples, "examples total")
-    set_num(r'check\("(\d+) sections"', len(sections), "sections")
-    set_num(r'check\("(\d+) nav links"', len(sections), "nav links")
+    set_pair(
+        r'check\("\d+ examples across the page", totalExamples === \d+',
+        total_examples,
+        "examples total",
+        'check("{v} examples across the page", totalExamples === {v}',
+    )
+    set_pair(
+        r'check\("\d+ sections", sections\.length === \d+',
+        len(sections),
+        "sections",
+        'check("{v} sections", sections.length === {v}',
+    )
+    set_pair(
+        r'check\("\d+ nav links", nav\.length === \d+',
+        len(sections),
+        "nav links",
+        'check("{v} nav links", nav.length === {v}',
+    )
 
     # 3. EXPECTED: keep the curated list, add any ported component's section
     mm = re.search(r"(const EXPECTED = \[\n)(.*?)(\n  \];)", g, re.S)
@@ -149,7 +168,7 @@ def main():
     component_checks = 0
     ocaml = ROOT / "docs" / "verification" / "ocaml-tests.txt"
     if ocaml.exists():
-        mm = re.search(r"(\d+) checks, 0 failures", ocaml.read_text())
+        mm = re.search(r"(\d+) checks", ocaml.read_text())
         if mm:
             component_checks = int(mm.group(1))
 
@@ -162,8 +181,9 @@ def main():
         return text_[: mm.start()] + repl + text_[mm.end() :]
 
     r = sub(r"🚧 \d+ of \d+ ported", f"🚧 {ported_count} of {total_components} ported", "ported", r)
-    r = sub(r"✅ \d+ checks, 0 failures \| `node test/run\.mjs`",
-            f"✅ {component_checks} checks, 0 failures | `node test/run.mjs`", "component checks", r)
+    if component_checks:
+        r = sub(r"✅ \d+ checks, 0 failures \| `node test/run\.mjs`",
+                f"✅ {component_checks} checks, 0 failures | `node test/run.mjs`", "component checks", r)
     r = sub(r"all \d+ ported components \+ DialogHeader \+ InputGroupText \+ MetadataListItem \+ the layer mechanism, \d+ examples, \d+ sections",
             f"all {ported_count} ported components + DialogHeader + InputGroupText + MetadataListItem + the layer mechanism, {total_examples} examples, {len(sections)} sections",
             "showcase row", r)
