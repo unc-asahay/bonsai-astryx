@@ -789,6 +789,13 @@
       "file": "src/resizable.ml",
       "milestone": "M61",
       "module": "Astryx.resizable"
+    },
+    {
+      "class": "C",
+      "component": "Toast",
+      "file": "src/toast.ml",
+      "milestone": "M59",
+      "module": "Astryx.toast"
     }
   ],
   "schema": 1,

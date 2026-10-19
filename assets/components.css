@@ -5545,3 +5545,214 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* toast */
+/* Toast — the transient notification card, and the viewport that stacks them.
+
+   Ported from upstream's Toast.styles (the card) and ToastViewport.styles
+   (the stack). The values are the design tokens, not literals; the only
+   exceptions are the two upstream constants that have no token of their own:
+   the card's 400px width and the viewport's z-index. */
+
+.astryx-toast {
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-4);
+  border-radius: var(--radius-container);
+  box-sizing: border-box;
+  width: 400px;
+  max-width: 100%;
+  box-shadow: var(--shadow-med);
+  opacity: var(--_toast-swipe-opacity, 1);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  transform: translateY(var(--_toast-swipe-y, 0px)) scale(var(--_toast-swipe-scale, 1));
+  transition-property: opacity, transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  /* The default card is the inverted surface, so its text is the one that
+     reads on it: white on the dark surface in a light document, black on the
+     white surface in a dark one. */
+  color: light-dark(var(--color-on-dark), var(--color-on-light));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-toast {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* The card drifts in from the edge the stack is anchored to. */
+@starting-style {
+  .astryx-toast {
+    opacity: 0;
+    transform: translateY(var(--_toast-slide-y, var(--spacing-2)));
+  }
+}
+
+.astryx-toast--info {
+  background-color: var(--color-background-inverted);
+}
+
+.astryx-toast--error {
+  background-color: var(--color-background-error-inverted);
+  color: var(--color-on-error);
+}
+
+.astryx-toast--exiting {
+  opacity: 0;
+  transform: translateY(var(--_toast-swipe-exit-y, var(--_toast-swipe-y, var(--_toast-slide-y, var(--spacing-2)))))
+    scale(var(--_toast-swipe-scale, 1));
+}
+
+.astryx-toast__inner {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.astryx-toast__content {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.astryx-toast__end {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  /* Keep every trailing control centered on the first body line, even when
+     the body wraps or a consumer supplies a control taller than the dismiss
+     button. */
+  block-size: calc(var(--text-body-size) * var(--text-body-leading));
+  margin-inline-end: calc(var(--spacing-1) * -1);
+}
+
+/* The dismiss control sits on the card's own surface, so it takes the
+   card's text colour rather than the page's. */
+.astryx-toast .astryx-button--ghost {
+  color: inherit;
+}
+
+/* ---------------------------------------------------------------- the stack */
+
+.astryx-toast-viewport {
+  position: fixed;
+  z-index: 500;
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  padding-block-start: max(var(--spacing-4), env(safe-area-inset-top, 0px));
+  padding-block-end: max(var(--spacing-4), env(safe-area-inset-bottom, 0px));
+  padding-inline-start: max(var(--spacing-4), env(safe-area-inset-left, 0px));
+  padding-inline-end: max(var(--spacing-4), env(safe-area-inset-right, 0px));
+  pointer-events: none;
+  inset: unset;
+  width: auto;
+  margin: 0;
+  border-width: 0;
+  border-style: none;
+  background-color: transparent;
+  overflow: visible;
+  /* The viewport sits at the inset the app declared for a bar floating over
+     that edge; unset, each reads 0px. */
+  inset-inline-start: var(--astryx-layer-inset-inline-start, 0px);
+  inset-inline-end: var(--astryx-layer-inset-inline-end, 0px);
+}
+
+.astryx-toast-viewport--bottom-end {
+  bottom: var(--astryx-layer-inset-block-end, 0px);
+  align-items: flex-end;
+}
+
+.astryx-toast-viewport--bottom-start {
+  bottom: var(--astryx-layer-inset-block-end, 0px);
+  align-items: flex-start;
+}
+
+.astryx-toast-viewport--top-end {
+  top: var(--astryx-layer-inset-block-start, 0px);
+  align-items: flex-end;
+  flex-direction: column-reverse;
+}
+
+.astryx-toast-viewport--top-start {
+  top: var(--astryx-layer-inset-block-start, 0px);
+  align-items: flex-start;
+  flex-direction: column-reverse;
+}
+
+/* The row is the grid track the card opens and closes inside. */
+.astryx-toast-viewport__row {
+  pointer-events: auto;
+  display: grid;
+  width: 100%;
+  max-width: 400px;
+  min-width: 0;
+  grid-template-rows: 1fr;
+  transition-property: grid-template-rows, padding;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  /* The gap between toasts is padding on the row, so it collapses with the
+     track. The row nearest the viewport edge drops it. */
+  padding-block-end: var(--spacing-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-toast-viewport__row {
+    transition-duration: 0.01ms;
+  }
+}
+
+@starting-style {
+  .astryx-toast-viewport__row {
+    grid-template-rows: 0fr;
+    padding-block-end: 0;
+  }
+}
+
+/* A bottom stack grows upwards, so its edge row is the last one; a top stack
+   is reversed, and its edge row is the first one. */
+.astryx-toast-viewport--bottom-end .astryx-toast-viewport__row:last-child,
+.astryx-toast-viewport--bottom-start .astryx-toast-viewport__row:last-child {
+  padding-block-end: 0;
+}
+
+.astryx-toast-viewport--top-end .astryx-toast-viewport__row:first-child,
+.astryx-toast-viewport--top-start .astryx-toast-viewport__row:first-child {
+  padding-block-end: 0;
+}
+
+.astryx-toast-viewport__row--exiting {
+  grid-template-rows: 0fr;
+  padding-block-end: 0;
+}
+
+/* The card drifts in from the edge the stack is anchored to. */
+.astryx-toast-viewport--bottom-end .astryx-toast-viewport__row,
+.astryx-toast-viewport--bottom-start .astryx-toast-viewport__row {
+  --_toast-slide-y: var(--spacing-2);
+}
+
+.astryx-toast-viewport--top-end .astryx-toast-viewport__row,
+.astryx-toast-viewport--top-start .astryx-toast-viewport__row {
+  --_toast-slide-y: calc(-1 * var(--spacing-2));
+}
+
+.astryx-toast-viewport__row-inner {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  /* Clip while the track opens and closes, so the card reads as folding into
+     the stack. Once the entry transition settles, the companion style below
+     releases the clip and the card's shadow can paint. */
+  overflow: hidden;
+}
+
+.astryx-toast-viewport__row-inner--settled {
+  overflow: visible;
+}
