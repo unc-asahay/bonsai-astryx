@@ -25,43 +25,9 @@ module It = Astryx.Item
 
 (* ---------------------------------------------------------------- chrome *)
 
-(* A placeholder box, so layout demos have something to lay out. Not a component;
-   it deliberately has no data-astryx-component attribute, so component counts in
-   the harness stay meaningful. *)
-let chip s = Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "chip" ] [ Vdom.Node.text s ]
-
-let ex name node =
-  Vdom.Node.div
-    ~attrs:[ Vdom.Attr.class_ "ex"; Vdom.Attr.create "data-example" name ]
-    [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ex-render" ] [ node ]
-    ; Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "ex-name" ] [ Vdom.Node.text name ]
-    ]
-;;
-
-let section ~id ~title ~note examples =
-  Vdom.Node.section
-    ~attrs:
-      [ Vdom.Attr.class_ "sec"
-      ; Vdom.Attr.create "id" id
-      ; Vdom.Attr.create "data-showcase-component" title
-      ]
-    [ Vdom.Node.h2 ~attrs:[ Vdom.Attr.class_ "sec-title" ] [ Vdom.Node.text title ]
-    ; Vdom.Node.p ~attrs:[ Vdom.Attr.class_ "sec-note" ] [ Vdom.Node.text note ]
-    ; Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "sec-body" ] examples
-    ]
-;;
-
-let label s = Astryx.Text.view ~type_:Text.Label [ Vdom.Node.text s ]
-
-(* Every section renders values in the graph, and a section can only render unwrapped nodes. This
-   Bonsai offers map2/both rather than a list combinator, so the trees are combined pairwise and
-   read back by position: the names next to [nth] below make the order checkable at a glance, and a
-   missing example fails loudly instead of quietly rendering the wrong node. *)
-let unwrap_all nodes =
-  List.fold nodes ~init:(Bonsai.return []) ~f:(fun acc node ->
-    Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
-  |> Bonsai.map ~f:List.rev
-;;
+(* The shared helpers (chip/ex/section/label/unwrap_all) live in [Prelude] so that
+   each component's showcase section can be its own module. *)
+open Prelude
 
 (* ---------------------------------------------------------------- sections *)
 
@@ -6496,86 +6462,53 @@ let page (graph : Bonsai.graph) =
   let overflow_list_section = overflow_list_demo graph in
   let thumbnail_section = thumbnail_demo graph in
   let scrollable_area_section = scrollable_area_demo graph in
-  let pair a b = Bonsai.map2 a b ~f:(fun a b -> a, b) in
-  let stateful =
-    pair
-      (pair interactive_section checkbox_section)
-      (pair dropdown_section field_section)
-  in
-  let stateful = pair stateful switch_section in
-  let stateful = pair stateful radio_list_section in
-  let stateful = pair stateful form_layout_section in
-  let stateful = pair stateful tooltip_section in
-  let stateful = pair stateful dialog_section in
-  let stateful = pair stateful alert_dialog_section in
-  let stateful = pair stateful dialog_header_section in
-  let stateful = pair stateful layer_section in
-  let stateful = pair stateful popover_section in
-  let stateful = pair stateful metadata_list_section in
-  let stateful = pair stateful more_menu_section in
-  let stateful = pair stateful progress_bar_section in
-  let stateful = pair stateful avatar_section in
-  let stateful = pair stateful avatar_group_section in
-  let stateful = pair stateful toggle_button_section in
-  let stateful = pair stateful selectable_card_section in
-  let stateful = pair stateful overflow_list_section in
-  let stateful = pair stateful thumbnail_section in
-  let stateful = pair stateful scrollable_area_section in
   let nav_heading_menu_section = nav_heading_menu_demo graph in
-  let stateful = pair stateful nav_heading_menu_section in
   let segmented_control_section = segmented_control_demo graph in
-  let stateful = pair stateful segmented_control_section in
   let overlay_section = overlay_demo graph in
-  let stateful = pair stateful overlay_section in
 
   let file_input_section = file_input_demo graph in
-  let stateful = pair stateful file_input_section in
   let layout_section = layout_demo graph in
-  let stateful = pair stateful layout_section in
 
   let slider_section = slider_demo graph in
-  let stateful = pair stateful slider_section in
 
   let item_section = item_demo graph in
-  let stateful = pair stateful item_section in
   let list_section = list_demo graph in
-  let stateful = pair stateful list_section in
   let tree_list_section = tree_list_demo graph in
-  let stateful = pair stateful tree_list_section in
   let number_input_section = number_input_demo graph in
-  let stateful = pair stateful number_input_section in
   let banner_section = banner_demo graph in
-  let stateful = pair stateful banner_section in
   let checkbox_list_section = checkbox_list_demo graph in
-  let stateful = pair stateful checkbox_list_section in
   let collapsible_section = collapsible_demo graph in
-  let stateful = pair stateful collapsible_section in
   let breadcrumbs_section = breadcrumbs_demo () in
-  let stateful = pair stateful breadcrumbs_section in
   let carousel_section = carousel_demo graph in
-  let stateful = pair stateful carousel_section in
   let tab_list_section = tab_list_demo graph in
-  let stateful = pair stateful tab_list_section in
   let lightbox_section = lightbox_demo graph in
-  let stateful = pair stateful lightbox_section in
   let hover_card_section = hover_card_demo graph in
-  let stateful = pair stateful hover_card_section in
   let timestamp_section = timestamp_demo graph in
-  let stateful = pair stateful timestamp_section in
   let complex_selector_section = complex_selector_demo graph in
-  let stateful = pair stateful complex_selector_section in
   let outline_section = outline_demo graph in
-  let stateful = pair stateful outline_section in
-  Bonsai.map2
-    stateful
-    text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp), complex_selector), outline))
-    text_area ->
-      Vdom.Node.div
+  (* One entry per stateful section, in the order the page shows them. The
+     sections are combined pairwise (Bonsai offers map2/both rather than a
+     list combinator) and read back in order, so adding a component is one
+     line here rather than a new arm in a 50-wide tuple pattern. *)
+  let stateful_sections =
+    [ field_section; text_area_section; checkbox_section; switch_section
+    ; radio_list_section; form_layout_section; tooltip_section; dialog_section
+    ; alert_dialog_section; dialog_header_section; layer_section; popover_section
+    ; dropdown_section; interactive_section; metadata_list_section; more_menu_section
+    ; progress_bar_section; avatar_section; avatar_group_section; toggle_button_section
+    ; selectable_card_section; overflow_list_section; thumbnail_section
+    ; scrollable_area_section; nav_heading_menu_section; segmented_control_section
+    ; overlay_section; file_input_section; layout_section; slider_section
+    ; item_section; list_section; tree_list_section; number_input_section
+    ; banner_section; checkbox_list_section; collapsible_section; breadcrumbs_section
+    ; carousel_section; tab_list_section; lightbox_section; hover_card_section
+    ; timestamp_section; complex_selector_section; outline_section ]
+  in
+  let stateful = unwrap_all stateful_sections in
+  Bonsai.map stateful ~f:(fun sections ->
+    Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
-      [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp; complex_selector; outline ])
-      ])
+      [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ] (specs @ sections) ])
 let () =
   Bonsai_web.Start.start ~bind_to_element_with_id:"astryx-showcase" page
 ;;
