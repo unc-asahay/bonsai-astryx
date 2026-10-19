@@ -17,7 +17,8 @@ type media =
   }
 
 val view
-  :  ?attrs:Vdom.Attr.t list
+  :  ?id:string
+  -> ?attrs:Vdom.Attr.t list
   -> ?index:int Bonsai.t
   (** Controlled gallery index. When given, the caller owns the position and the
       component only reports [~on_index_change]. Default: uncontrolled. *)

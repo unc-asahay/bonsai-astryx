@@ -3062,6 +3062,43 @@ check("a disabled group says so once, on the box", (() => {
     && (tabsOf("rt-tb-fill")[0]?.classList.contains("astryx-tab--sm")));
 }
 
+// --- Lightbox (M54)
+{
+  const host = document.querySelector('[data-case="lightbox-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const navBtn = (id, side) => g(id)?.querySelector(`.astryx-lightbox__nav--${side}`);
+  check("three lightboxes mount in the fixture",
+    !!g("rt-lb-gallery") && !!g("rt-lb-single") && !!g("rt-lb-video"));
+  check("the gallery is a closed native dialog named by the current media",
+    g("rt-lb-gallery")?.tagName.toLowerCase() === "dialog"
+    && !g("rt-lb-gallery").hasAttribute("open")
+    && g("rt-lb-gallery").getAttribute("data-astryx-component") === "Lightbox"
+    && g("rt-lb-gallery").getAttribute("aria-label") === "A");
+  check("the gallery renders the first item: image alt + zoomable wrapper",
+    g("rt-lb-gallery")?.querySelector("img")?.getAttribute("src") === "rt-img-a"
+    && g("rt-lb-gallery")?.querySelector("img")?.getAttribute("alt") === "A"
+    && g("rt-lb-gallery")?.querySelector(".astryx-lightbox__wrapper")?.classList
+        .contains("astryx-lightbox__wrapper--zoomable"));
+  check("gallery nav: prev disabled at the first edge, next enabled, counter 1 / 3",
+    !!navBtn("rt-lb-gallery", "prev")
+    && navBtn("rt-lb-gallery", "prev").hasAttribute("disabled")
+    && navBtn("rt-lb-gallery", "next")?.hasAttribute("disabled") === false
+    && g("rt-lb-gallery")?.querySelector(".astryx-lightbox__counter")?.textContent.trim() === "1 / 3");
+  check("a single-image lightbox has no nav or counter",
+    g("rt-lb-single")?.querySelector(".astryx-lightbox__nav--prev") === null
+    && g("rt-lb-single")?.querySelector(".astryx-lightbox__counter") === null
+    && g("rt-lb-single")?.querySelector("img")?.getAttribute("alt") === "D");
+  check("a video item renders a video element with controls and autoplay",
+    g("rt-lb-video")?.querySelector("video")?.getAttribute("src") === "rt-clip.mp4"
+    && g("rt-lb-video")?.querySelector("video")?.hasAttribute("controls")
+    && g("rt-lb-video")?.querySelector("video")?.hasAttribute("autoplay")
+    && !g("rt-lb-video")?.querySelector(".astryx-lightbox__wrapper")?.classList
+        .contains("astryx-lightbox__wrapper--zoomable"));
+  check("controls and the polite live region are present",
+    !!g("rt-lb-gallery")?.querySelector(".astryx-lightbox__close")
+    && !!g("rt-lb-gallery")?.querySelector('[aria-live="polite"]'));
+}
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");

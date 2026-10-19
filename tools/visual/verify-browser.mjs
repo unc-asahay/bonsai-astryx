@@ -261,6 +261,7 @@ if (mode === "showcase") {
     "Breadcrumbs",
     "Carousel",
     "TabList",
+    "Lightbox",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -623,7 +624,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("75 sections", sections.length === 75, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("76 sections", sections.length === 76, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -644,10 +645,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("480 examples across the page", totalExamples === 480, `got ${totalExamples}`);
+  check("483 examples across the page", totalExamples === 483, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -660,7 +661,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("75 nav links", nav.length === 75, `got ${nav.length}`);
+  check("76 nav links", nav.length === 76, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4046,11 +4047,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 73 ported / 30 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["73", "30", "103"]),
+    "coverage stats are 74 ported / 29 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["74", "29", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 30 entries", cov.unported === 30, `got ${cov.unported}`);
+  check("unported list rendered 29 entries", cov.unported === 29, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4777,6 +4778,68 @@ check(
   check("layout=fill classifies the wrapper and every tab",
     tlFill?.fill === true && tlFill?.fillTabCount === 3 && tlFill?.fillTabs === 3,
     JSON.stringify(tlFill));
+
+  // ---------------------------------------------------------------- Lightbox (M54)
+  console.log("\nLightbox (live)");
+  const lbState = () =>
+    page.evaluate(() => {
+      const d = document.getElementById("showcase-lightbox-gallery");
+      if (!d) return null;
+      const img = d.querySelector(".astryx-lightbox__image");
+      return {
+        open: !!d.open,
+        modal: d.matches(":modal"),
+        label: d.getAttribute("aria-label"),
+        counter: d.querySelector(".astryx-lightbox__counter")?.textContent?.trim() ?? null,
+        imgAlt: img?.getAttribute("alt") ?? null,
+        transform: img?.getAttribute("style") ?? null,
+        prevDisabled: d.querySelector(".astryx-lightbox__nav--prev")?.hasAttribute("disabled") ?? null,
+        nextDisabled: d.querySelector(".astryx-lightbox__nav--next")?.hasAttribute("disabled") ?? null,
+        focusIn: !!d && d.contains(document.activeElement),
+        bodyOverflow: getComputedStyle(document.body).overflow,
+      };
+    });
+  await page.click("#showcase-lightbox-open-gallery");
+  await page.waitForTimeout(180);
+  let lb = await lbState();
+  check("opening the lightbox puts the dialog in the top layer modally",
+    lb?.open === true && lb?.modal === true && lb?.focusIn === true, JSON.stringify(lb));
+  check("the page scroll lock engages (body overflow hidden)",
+    lb?.bodyOverflow === "hidden", JSON.stringify(lb));
+  check("the first item names the dialog and the counter reads 1 / 3",
+    lb?.label === "Violet plateau" && lb?.counter === "1 / 3"
+      && lb?.imgAlt === "Violet plateau"
+      && lb?.prevDisabled === true && lb?.nextDisabled === false, JSON.stringify(lb));
+  await page.click('#showcase-lightbox-gallery .astryx-lightbox__nav--next');
+  await page.waitForTimeout(180);
+  lb = await lbState();
+  check("next drives the gallery to item 2 and re-names the dialog",
+    lb?.counter === "2 / 3" && lb?.imgAlt === "Green valley"
+      && lb?.prevDisabled === false, JSON.stringify(lb));
+  await page.dblclick("#showcase-lightbox-gallery .astryx-lightbox__wrapper");
+  await page.waitForTimeout(250);
+  lb = await lbState();
+  check("double-click zooms the image (scale written onto it)",
+    (lb?.transform ?? "").includes("scale(2)"), JSON.stringify(lb));
+  await page.dblclick("#showcase-lightbox-gallery .astryx-lightbox__wrapper");
+  await page.waitForTimeout(250);
+  lb = await lbState();
+  check("a second double-click zooms back out",
+    !(lb?.transform ?? "").includes("scale(2)"), JSON.stringify(lb));
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(180);
+  lb = await lbState();
+  check("Escape closes it and unlocks the page scroll",
+    lb?.open === false && lb?.bodyOverflow !== "hidden", JSON.stringify(lb));
+  const lbFocusBack = await page.evaluate(() => document.activeElement?.id ?? null);
+  check("and focus returns to the trigger that opened it",
+    lbFocusBack === "showcase-lightbox-open-gallery", `focus is on ${lbFocusBack}`);
+  await page.click("#showcase-lightbox-open-gallery");
+  await page.waitForTimeout(180);
+  await page.click("#showcase-lightbox-gallery .astryx-lightbox__close");
+  await page.waitForTimeout(180);
+  lb = await lbState();
+  check("the close button closes it too", lb?.open === false, JSON.stringify(lb));
 
   // ---------------------------------------------------------------- OverflowList (M30)
   //

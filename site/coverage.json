@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 73,
-    "unported": 30,
+    "ported": 74,
+    "unported": 29,
     "total": 103,
     "documented": 103
   },
@@ -240,6 +240,12 @@
       "milestone": "M41"
     },
     {
+      "name": "Lightbox",
+      "module": "Astryx.Lightbox",
+      "file": "src/lightbox.ml",
+      "milestone": "M54"
+    },
+    {
       "name": "Link",
       "module": "Astryx.Link",
       "file": "src/link.ml",
@@ -463,7 +469,6 @@
     "DateRangeInput",
     "DateTimeInput",
     "HoverCard",
-    "Lightbox",
     "Markdown",
     "MobileNav",
     "MultiSelector",

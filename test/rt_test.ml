@@ -3318,6 +3318,66 @@ let () =
   mount "tab-list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* jsdom has no dialog behaviour at all (same caveat as Dialog above), and the modal path only
+   calls showModal/close when the open state changes — so the fixture mounts everything closed and
+   the live open/close/zoom interactions belong to the browser gate. What jsdom can still assert:
+   the <dialog> structure, the per-index rendering, the gallery maths, and the class/data contract. *)
+let lightbox_component (graph : Bonsai.graph) =
+  let open! Astryx in
+  let no_change = Bonsai.return (fun (_ : bool) -> Effect.Many []) in
+  let closed = Bonsai.return false in
+  let media ?(caption = None) src alt =
+    { Lightbox.src; alt; caption; type_ = Lightbox.Image }
+  in
+  let trees =
+    [ Lightbox.view
+        ~id:"rt-lb-gallery"
+        ~has_zoom:true
+        ~is_open:closed
+        ~on_open_change:no_change
+        ~media:
+          [ media "rt-img-a" "A"
+          ; media "rt-img-b" "B"
+          ; media ~caption:(Some (Vdom.Node.text "Caption")) "rt-img-c" "C"
+          ]
+        graph
+    ; Lightbox.view
+        ~id:"rt-lb-single"
+        ~is_open:closed
+        ~on_open_change:no_change
+        ~media:[ media "rt-img-d" "D" ]
+        graph
+    ; Lightbox.view
+        ~id:"rt-lb-video"
+        ~has_auto_play:true
+        ~is_open:closed
+        ~on_open_change:no_change
+        ~media:
+          [ { Lightbox.src = "rt-clip.mp4"
+            ; alt = "Clip"
+            ; caption = None
+            ; type_ = Lightbox.Video
+            }
+          ]
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "lightbox-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      lightbox_component
+  in
+  mount "lightbox-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

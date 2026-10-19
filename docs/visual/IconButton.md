@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.IconButton` (`src/icon_button.ml`, M6)
-- rendered instances in the demo: 6
-- classes: `astryx-button`, `astryx-button--disabled`, `astryx-button--icon-only`, `astryx-button--lg`, `astryx-button--loading`, `astryx-button--md`, `astryx-button--primary`, `astryx-button--secondary`
+- rendered instances in the demo: 11
+- classes: `astryx-button`, `astryx-button--disabled`, `astryx-button--ghost`, `astryx-button--icon-only`, `astryx-button--lg`, `astryx-button--loading`, `astryx-button--md`, `astryx-button--primary`, `astryx-button--secondary`, `astryx-button--sm`, `astryx-lightbox__close`, `astryx-lightbox__control`, `astryx-lightbox__nav`, `astryx-lightbox__nav--next`, `astryx-lightbox__nav--prev`
 
 ## layout
 
@@ -61,7 +61,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `cursor` | `pointer`<br>`default`<br>`progress` | `.astryx-button`<br>`.astryx-button--disabled`<br>`.astryx-button--loading` |
-| `height` | `32px` _(from `var(--size-element-md)`)_<br>`36px` _(from `var(--size-element-lg)`)_ | `.astryx-button--md`<br>`.astryx-button--lg` |
+| `height` | `28px` _(from `var(--size-element-sm)`)_<br>`32px` _(from `var(--size-element-md)`)_<br>`36px` _(from `var(--size-element-lg)`)_ | `.astryx-button--sm`<br>`.astryx-button--md`<br>`.astryx-button--lg` |
 | `max-width` | `100%` | `.astryx-button` |
 
 ## effects
@@ -77,13 +77,13 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `background-color` | `#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark)` _(from `var(--color-neutral)`)_ | `.astryx-button--primary`<br>`.astryx-button--secondary` |
+| `background-color` | `#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark)` _(from `var(--color-neutral)`)_<br>`transparent` | `.astryx-button--primary`<br>`.astryx-button--secondary`<br>`.astryx-button--ghost` |
 
 ## colour
 
 | property | value | source class |
 | --- | --- | --- |
-| `color` | `#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_ | `.astryx-button--primary`<br>`.astryx-button--secondary` |
+| `color` | `#FFFFFF (light) / #FFFFFF (dark)` _(from `var(--color-on-accent)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-text-primary)`)_ | `.astryx-button--primary`<br>`.astryx-button--secondary`<br>`.astryx-button--ghost` |
 
 ## tokens referenced
 
@@ -98,6 +98,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--radius-element` | `8px` |
 | `--size-element-lg` | `36px` |
 | `--size-element-md` | `32px` |
+| `--size-element-sm` | `28px` |
 | `--spacing-2` | `0.5rem` |
 | `--spacing-3` | `0.75rem` |
 | `--text-label-leading` | `1.4286` |
@@ -107,5 +108,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx IconButton in its documented states, on a neutral surface. Surface fills: #0064E0 (light) / #2694FE (dark) / rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark). Content colours: #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #DFE2E5 (dark). Corner radius 8px. Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx IconButton in its documented states, on a neutral surface. Surface fills: #0064E0 (light) / #2694FE (dark) / rgba(5, 54, 89, 0.1) (light) / rgba(223, 226, 229, 0.2) (dark) / transparent. Content colours: #FFFFFF (light) / #FFFFFF (dark) / #0A1317 (light) / #DFE2E5 (dark) / #0A1317 (light) / #DFE2E5 (dark). Corner radius 8px. Type size 0.875rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

@@ -3895,3 +3895,50 @@ render without `href`), and there is no themeProps.
 - Recorded divergences: data-driven (`items` list, no React context),
   horizontal arrows only (no vertical axis), no per-tab onClick, no keyboard
   hint, CSS hover/active instead of the touch-press overlay.
+
+## Gate 71 — M54: Lightbox (coverage 73 -> 74)
+
+- `src/lightbox.ml` + `src/lightbox.mli` (a fullscreen native `<dialog>`
+  opened with `showModal()` — the top layer, the inert page and the focus trap
+  are the platform's, as for Dialog — over a `Lightbox_hook` vdom hook that
+  keeps the element in step with the caller's `is_open`, remembers and
+  restores the trigger, saves/restores the body scroll lock, resets zoom/pan
+  on every media change and mirrors navigation into the polite live region);
+  registered `module Lightbox`.
+- The gallery index is controlled or uncontrolled (`?index` / `?default_index`
+  / `?on_index_change`); prev/next stay mounted and disabled at the edges so
+  driving to a boundary never unmounts the focused control. Zoom/pan (images
+  only): double-click / Enter / Space / `+` / `-` zoom, drag with pointer
+  capture and arrow-key pan while zoomed, with the transform written straight
+  onto the image (upstream's own dynamic-style mechanism). Dismissal matrix:
+  Escape always, backdrop click, close button — with the drag-release guard so
+  a pan that ends over the backdrop does not dismiss. `data-astryx-*`
+  attributes per house style; one `class` attribute per element.
+- jsdom component gate: **743 checks, 0 failures** (7 new lightbox checks:
+  three cases mount, the gallery is a closed native dialog named by the
+  current media, the first item renders with the zoomable wrapper, prev
+  disabled at the first edge / next enabled / counter `1 / 3`, a single-image
+  lightbox has no nav or counter, video renders controls + autoplay and no
+  zoom target, close + polite live region present).
+- Browser gate: **526/526** (9 new live checks: opening puts the dialog in the
+  top layer (`:modal`) with focus taken in, the body scroll lock engages, the
+  first item names the dialog and the counter reads `1 / 3` with prev
+  disabled, Next drives to item 2 and re-names the dialog, a double-click
+  zooms the image and a second zooms back out, Escape closes with scroll
+  restored and focus back on the trigger, the close button closes it too).
+- Responsive gate: **66/66**; showcase + demo baselines updated.
+- Showcase: 3 examples (gallery + zoom + caption, single image with zoom,
+  video with auto-play — each with a real trigger button), section + nav +
+  page wiring; `media/sample.mp4` (generated 1-frame clip) served from the
+  repo root; CSS block appended (dialog/backdrop/container/media-group/
+  wrapper/image/video/caption/close/nav/counter classes, reduced-motion aware).
+- README: 74 of 103 ported (M41–M54), 743 checks, 483 examples, 76 sections,
+  coverage 74/29, 73 visual pages; PORT-STATUS 74/103; docs/visual/Lightbox.md
+  generated.
+- Recorded divergences: `useLightbox` not ported (the caller owns `is_open` /
+  `on_index_change` and builds its own trigger — a plain Button already
+  carries the trigger contract), no layer-dismissal stack (Escape always
+  closes, as Dialog's own matrix does), i18n not ported (English labels,
+  counter and announce strings), simple single-lock body scroll (no nested
+  counter), and the zoom/pan transform written as one inline style (no other
+  style lives on that element to collide with).

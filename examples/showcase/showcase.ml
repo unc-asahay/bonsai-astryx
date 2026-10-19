@@ -839,6 +839,7 @@ module Bci = Astryx.Breadcrumb_item
 module Li = Astryx.List_item
 module Cr = Astryx.Carousel
 module Tb = Astryx.Tab_list
+module Lb = Astryx.Lightbox
 
 let demo_menu_item
       ?description
@@ -2740,6 +2741,109 @@ let tab_list_demo (graph : Bonsai.graph) =
            vertical arrow axes and the touch press overlay are not ported \
            (see tab_list.mli)."
         examples)
+;;
+
+(* ------------------------------------------------- lightbox *)
+let lightbox_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let svg_data color label =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
+     width='600' height='400'%3E%3Crect width='100%25' height='100%25' \
+     fill='%23"
+    ^ color
+    ^ "'/%3E%3Ctext x='50%25' y='50%25' fill='white' \
+       text-anchor='middle' dominant-baseline='middle' font-size='44' \
+       font-family='sans-serif'%3E"
+    ^ label
+    ^ "%3C/text%3E%3C/svg%3E"
+  in
+  let media ?(caption = None) ?(video = false) src alt =
+    { Lb.src; alt; caption; type_ = (if video then Lb.Video else Lb.Image) }
+  in
+  let trigger set_open id label =
+    Bonsai.map set_open ~f:(fun set_open ->
+        Button.view
+          ~variant:Button.Secondary
+          ~label
+          ~attrs:[ Vdom.Attr.create "id" id ]
+          ~on_click:(fun _ -> set_open true)
+          [])
+  in
+  (* Gallery with zoom, uncontrolled index. *)
+  let gallery_open, set_gallery_open = Bonsai.state false graph in
+  let gallery =
+    Lb.view
+      ~id:"showcase-lightbox-gallery"
+      ~has_zoom:true
+      ~is_open:gallery_open
+      ~on_open_change:set_gallery_open
+      ~media:
+        [ media (svg_data "8b5cf6" "One") "Violet plateau"
+        ; media (svg_data "10b981" "Two") "Green valley"
+        ; media ~caption:(Some (Vdom.Node.text "The third frame, captioned."))
+            (svg_data "f59e0b" "Three") "Amber ridge"
+        ]
+      graph
+  in
+  (* Single image with zoom. *)
+  let single_open, set_single_open = Bonsai.state false graph in
+  let single =
+    Lb.view
+      ~id:"showcase-lightbox-single"
+      ~has_zoom:true
+      ~is_open:single_open
+      ~on_open_change:set_single_open
+      ~media:[ media (svg_data "3b82f6" "Solo") "A single frame" ]
+      graph
+  in
+  (* Video with auto-play. *)
+  let video_open, set_video_open = Bonsai.state false graph in
+  let video =
+    Lb.view
+      ~id:"showcase-lightbox-video"
+      ~has_auto_play:true
+      ~is_open:video_open
+      ~on_open_change:set_video_open
+      ~media:[ media ~video:true "/media/sample.mp4" "A short demo clip" ]
+      graph
+  in
+  [ ex_tree
+      "gallery with zoom and caption"
+      (Bonsai.map2 (trigger set_gallery_open "showcase-lightbox-open-gallery" "Open gallery")
+         gallery ~f:(fun trigger dialog ->
+           Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-lightbox-entry" ]
+             [ trigger; dialog ]))
+  ; ex_tree
+      "single image with zoom"
+      (Bonsai.map2 (trigger set_single_open "showcase-lightbox-open-single" "Open single")
+         single ~f:(fun trigger dialog ->
+           Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-lightbox-entry" ]
+             [ trigger; dialog ]))
+  ; ex_tree
+      "video with auto-play"
+      (Bonsai.map2 (trigger set_video_open "showcase-lightbox-open-video" "Open video")
+         video ~f:(fun trigger dialog ->
+           Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-lightbox-entry" ]
+             [ trigger; dialog ]))
+  ]
+  |> fun examples ->
+  Bonsai.map (join_all examples) ~f:(fun nodes ->
+      section ~id:"lightbox" ~title:"Lightbox"
+          ~note:
+            "A fullscreen native-dialog media viewer: gallery prev/next with \
+             arrow-key navigation, double-click/Enter/Space zoom and drag/arrow \
+             pan on images (with the zoom reset on every media change), Esc / \
+             backdrop / close dismissals, a polite live region mirroring \
+             navigation, and body scroll lock while open. Port of \
+             facebook/astryx Lightbox (+ useLightbox); useLightbox, the \
+             layer-dismissal stack, i18n and the nested-lock scroll counter are \
+             not ported (see lightbox.mli)."
+          nodes)
 ;;
 
 let tooltip_demo (graph : Bonsai.graph) =
@@ -5032,6 +5136,7 @@ let nav_items =
   ; "breadcrumbs", "Breadcrumbs"
   ; "carousel", "Carousel"
   ; "tab-list", "TabList"
+  ; "lightbox", "Lightbox"
   ]
 ;;
 
@@ -5870,15 +5975,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful carousel_section in
   let tab_list_section = tab_list_demo graph in
   let stateful = pair stateful tab_list_section in
+  let lightbox_section = lightbox_demo graph in
+  let stateful = pair stateful lightbox_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list)
+    ~f:(fun ((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox ])
       ])
 ;;
 
