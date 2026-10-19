@@ -3610,3 +3610,175 @@ let () =
   in
   mount "breadcrumbs-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Resizable *)
+(* The region and its separator: the horizontal one, the vertical one, a
+   disabled one, and one with snap points. The separator is a WAI-ARIA
+   separator and a tab stop - the browser gate drives it; here the contract
+   is the structure. *)
+let resizable_component (graph : Bonsai.graph) =
+  let panel label = Vdom.Node.div ~attrs:[] [ Vdom.Node.text label ] in
+  let trees =
+    [ Astryx.Resizable.view
+        ~id:"rt-rz-horizontal"
+        ~default_size:(Astryx.Resizable.Px 220.)
+        ~min_size:(Astryx.Resizable.Px 120.)
+        ~max_size:(Astryx.Resizable.Px 400.)
+        ~label:"Resize sidebar"
+        ~panel:(fun _ -> [ panel "Sidebar" ])
+        ~content:[ panel "Content" ]
+        graph
+    ; Astryx.Resizable.view
+        ~id:"rt-rz-vertical"
+        ~direction:Astryx.Resizable.Vertical
+        ~default_size:(Astryx.Resizable.Px 130.)
+        ~min_size:(Astryx.Resizable.Px 80.)
+        ~max_size:(Astryx.Resizable.Px 260.)
+        ~label:"Resize editor"
+        ~panel:(fun _ -> [ panel "Editor" ])
+        ~content:[ panel "Terminal" ]
+        graph
+    ; Astryx.Resizable.view
+        ~id:"rt-rz-disabled"
+        ~is_disabled:true
+        ~default_size:(Astryx.Resizable.Px 200.)
+        ~label:"Resize disabled"
+        ~panel:(fun _ -> [ panel "Sidebar" ])
+        ~content:[ panel "Content" ]
+        graph
+    ; Astryx.Resizable.view
+        ~id:"rt-rz-snaps"
+        ~default_size:(Astryx.Resizable.Px 220.)
+        ~min_size:(Astryx.Resizable.Px 120.)
+        ~max_size:(Astryx.Resizable.Px 400.)
+        ~snaps:[ 120.; 220.; 320. ]
+        ~label:"Resize snapped"
+        ~panel:(fun _ -> [ panel "Sidebar" ])
+        ~content:[ panel "Content" ]
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "resizable-all" ] nodes)
+;;
+
+(* ------------------------------------------------------------------- Toast *)
+(* The card is a live region: polite for information, assertive for an
+   error. The viewport is the element an application mounts once. *)
+let toast_component (graph : Bonsai.graph) =
+  (* The stack starts with one toast in it: the viewport only takes the role
+     and the label of a region once it actually holds something. *)
+  let toasts, set_toasts =
+    Bonsai.state'
+      ([ Astryx.Toast.entry
+           (Astryx.Toast.options ~body:(Vdom.Node.text "In the stack") ()) ]
+       : Astryx.Toast.entry list)
+      graph
+  in
+  let on_dismiss =
+    Bonsai.map2 toasts set_toasts ~f:(fun _toasts set_toasts ->
+      fun id _reason ->
+        set_toasts (fun toasts ->
+          List.filter toasts ~f:(fun (entry : Astryx.Toast.entry) ->
+            not (String.equal entry.id id))))
+  in
+  let trees =
+    [ Astryx.Toast.view
+        ~id:"rt-toast-info"
+        ~type_:Astryx.Toast.Info
+        ~body:(Vdom.Node.text "Saved successfully")
+        graph
+    ; Astryx.Toast.view
+        ~id:"rt-toast-error"
+        ~type_:Astryx.Toast.Error
+        ~is_auto_hide:false
+        ~body:(Vdom.Node.text "The upload failed. Try again.")
+        graph
+    ; Astryx.Toast.viewport
+        ~id:"rt-toast-viewport"
+        ~position:Astryx.Toast.Bottom_end
+        ~toasts
+        ~on_dismiss
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "toast-all" ] nodes)
+;;
+
+(* --------------------------------------------------------------- MobileNav *)
+(* The drawer is a modal dialog that follows the caller's value: the drawer
+   never opens or closes itself. *)
+let mobile_nav_component (graph : Bonsai.graph) =
+  let _is_open, set_is_open = Bonsai.state false graph in
+  let on_open_change =
+    Bonsai.map set_is_open ~f:(fun set_is_open value -> set_is_open value)
+  in
+  let content = Bonsai.return [ Vdom.Node.text "Drawer content" ] in
+  let trees =
+    [ Astryx.Mobile_nav.view
+        ~id:"rt-mn-closed"
+        ~header:(Astryx.Mobile_nav.Title "Navigation")
+        ~is_open:(Bonsai.return false)
+        ~on_open_change
+        ~children:content
+        ()
+    ; Astryx.Mobile_nav.view
+        ~id:"rt-mn-open"
+        ~header:(Astryx.Mobile_nav.Title "Navigation")
+        ~is_open:(Bonsai.return true)
+        ~on_open_change
+        ~children:content
+        ()
+    ; Astryx.Mobile_nav.view
+        ~id:"rt-mn-inline"
+        ~is_inline:true
+        ~header:(Astryx.Mobile_nav.Title "Navigation")
+        ~is_open:(Bonsai.return true)
+        ~on_open_change
+        ~children:content
+        ()
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "mobile-nav-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      resizable_component
+  in
+  mount "resizable-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      toast_component
+  in
+  mount "toast-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      mobile_nav_component
+  in
+  mount "mobile-nav-all" (Bonsai_web_test.Handle.last_result handle)
+;;

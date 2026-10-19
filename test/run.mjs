@@ -3277,6 +3277,168 @@ check("a disabled group says so once, on the box", (() => {
       && g("rt-ol-label")?.querySelector(".astryx-outline__list") !== null);
 }
 
+// ---------------------------------------------------------------- Resizable
+{
+  const host = document.querySelector('[data-case="resizable-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const all = (sel) => [...(host?.querySelectorAll(sel) ?? [])];
+  const sep = (id) => {
+    const el = g(id);
+    if (!el) return null;
+    const num = (a) => {
+      const v = el.getAttribute(a);
+      return v === null ? null : Number(v);
+    };
+    return {
+      role: el.getAttribute("role"),
+      orientation: el.getAttribute("aria-orientation"),
+      now: num("aria-valuenow"),
+      min: num("aria-valuemin"),
+      max: num("aria-valuemax"),
+      label: el.getAttribute("aria-label"),
+      tabindex: el.getAttribute("tabindex"),
+    };
+  };
+
+  check("four resizable regions mounted, each with its own separator",
+    !!host
+      && all('[data-astryx-component="Resizable"]').length === 4
+      && ["rt-rz-horizontal", "rt-rz-vertical", "rt-rz-disabled", "rt-rz-snaps"]
+        .every((id) => !!g(id)),
+    JSON.stringify({ regions: all('[data-astryx-component="Resizable"]').length }));
+
+  const h = sep("rt-rz-horizontal-handle");
+  check("the horizontal separator is a WAI-ARIA separator with a value, a label and a tab stop",
+    h !== null
+      && h.role === "separator"
+      && h.orientation === "vertical"
+      && h.now !== null
+      && h.min !== null
+      && h.max !== null
+      && h.now >= h.min
+      && h.now <= h.max
+      && h.label === "Resize sidebar"
+      && h.tabindex === "0",
+    JSON.stringify(h));
+
+  const v = sep("rt-rz-vertical-handle");
+  check("the vertical region reports the horizontal orientation",
+    v !== null && v.orientation === "horizontal",
+    JSON.stringify(v));
+
+  const d = sep("rt-rz-disabled-handle");
+  check("a disabled separator is out of the tab order",
+    d !== null && d.tabindex === "-1",
+    JSON.stringify(d));
+
+  const s = sep("rt-rz-snaps-handle");
+  check("a region with snap points starts on one of them",
+    s !== null && s.now !== null && [120, 220, 320].includes(s.now),
+    JSON.stringify(s));
+
+  check("the panel and the content are both rendered, and the panel carries the size",
+    g("rt-rz-horizontal")?.textContent.includes("Sidebar") === true
+      && g("rt-rz-horizontal")?.textContent.includes("Content") === true
+      && g("rt-rz-horizontal")?.querySelector(".astryx-resizable__panel") !== null);
+}
+
+// -------------------------------------------------------------------- Toast
+{
+  const host = document.querySelector('[data-case="toast-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const all = (sel) => [...(host?.querySelectorAll(sel) ?? [])];
+
+  const info = g("rt-toast-info");
+  const error = g("rt-toast-error");
+  check("an informational toast is a polite live region",
+    info !== null
+      && info.getAttribute("data-astryx-component") === "Toast"
+      && info.getAttribute("role") === "status"
+      && info.getAttribute("aria-live") === "polite"
+      && info.getAttribute("aria-atomic") === "true"
+      && info.getAttribute("data-astryx-toast-type") === "info",
+    info ? info.outerHTML.slice(0, 200) : "missing");
+
+  check("an error toast is an assertive live region",
+    error !== null
+      && error.getAttribute("role") === "alert"
+      && error.getAttribute("aria-live") === "assertive"
+      && error.getAttribute("data-astryx-toast-type") === "error",
+    error ? error.outerHTML.slice(0, 200) : "missing");
+
+  check("both toasts carry their dismissal control",
+    !!info?.querySelector('[aria-label="Dismiss notification"]')
+      && !!error?.querySelector('[aria-label="Dismiss notification"]'));
+
+  check("the toast's body is rendered",
+    info?.querySelector(".astryx-toast__content")?.textContent.trim() === "Saved successfully",
+    info?.querySelector(".astryx-toast__content")?.textContent.trim() ?? null);
+
+  const viewport = g("rt-toast-viewport");
+  check("the viewport holds the stack it was given, and names the position",
+    viewport !== null
+      && viewport.getAttribute("data-astryx-component") === "ToastViewport"
+      && viewport.getAttribute("data-astryx-position") === "bottom-end"
+      && viewport.querySelectorAll("[data-toast-id]").length === 1
+      && viewport.textContent.includes("In the stack"),
+    viewport ? viewport.outerHTML.slice(0, 240) : "missing");
+
+  // The viewport becomes a labelled region once it holds something - and the
+  // announcement region the screen reader reads is mounted by an effect, so
+  // the browser gate is where that one is asserted.
+  check("the viewport is a labelled region once it holds a toast",
+    viewport !== null
+      && viewport.getAttribute("role") === "region"
+      && viewport.getAttribute("aria-label") === "Notifications",
+    viewport ? viewport.outerHTML.slice(0, 240) : "missing");
+}
+
+// ----------------------------------------------------------------- MobileNav
+{
+  const host = document.querySelector('[data-case="mobile-nav-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const all = (sel) => [...(host?.querySelectorAll(sel) ?? [])];
+
+  const closed = g("rt-mn-closed");
+  const open = g("rt-mn-open");
+  const inline = g("rt-mn-inline");
+  check("three drawers mounted: closed, open and inline",
+    !!host && all('[data-astryx-component="MobileNav"]').length === 3
+      && !!closed && !!open && !!inline,
+    JSON.stringify({ drawers: all('[data-astryx-component="MobileNav"]').length }));
+
+  check("the drawer is a modal dialog with a label and a close control",
+    open !== null
+      && open.tagName.toLowerCase() === "dialog"
+      && open.getAttribute("aria-modal") === "true"
+      && open.getAttribute("aria-label") === "Navigation"
+      && !!open.querySelector('[aria-label="Close navigation"]'),
+    open ? open.outerHTML.slice(0, 200) : "missing");
+
+  // The drawer is opened with showModal(), which jsdom does not implement -
+  // so the `open` attribute is the browser gate's business - but the port's
+  // own open-state class is there in both.
+  check("the drawer follows the caller's value: the open one carries the open state",
+    closed !== null && !closed.getAttribute("class").includes("astryx-mobile-nav--open")
+      && open !== null && open.getAttribute("class").includes("astryx-mobile-nav--open"),
+    JSON.stringify({
+      closedClass: closed?.getAttribute("class"),
+      openClass: open?.getAttribute("class"),
+    }));
+
+  check("the inline drawer is ordinary markup: no top layer, no modal",
+    inline !== null
+      && inline.tagName.toLowerCase() !== "dialog"
+      && inline.getAttribute("aria-modal") === null,
+    inline ? inline.outerHTML.slice(0, 200) : "missing");
+
+  check("the drawer holds its content and the header's heading",
+    open?.querySelector(".astryx-mobile-nav__drawer") !== null
+      && open?.textContent.includes("Drawer content") === true
+      && open?.querySelector('[data-astryx-component="Heading"]') !== null);
+}
+
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
