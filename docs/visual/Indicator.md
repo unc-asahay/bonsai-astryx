@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Indicator` (`src/indicator.ml`, M12)
-- rendered instances in the demo: 55
+- rendered instances in the demo: 79
 - classes: `astryx-indicator`, `astryx-indicator--checkbox`, `astryx-indicator--checked`, `astryx-indicator--disabled`, `astryx-indicator--indeterminate`, `astryx-indicator--radio`, `astryx-indicator--unchecked`
 
 ## layout

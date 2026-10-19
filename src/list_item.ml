@@ -25,6 +25,7 @@ let view
     ?(is_selected = false)
     ?swipe_actions
     ?(swipe_behavior = Item.Reveal)
+    ?description_id
     ?(attrs = [])
     ~label
     ?description
@@ -47,6 +48,7 @@ let view
     ~attrs:
       (attrs
        @ (match id with Some s -> [ Vdom.Attr.id s ] | None -> []))
+    ?description_id
     ~label
     graph
 ;;

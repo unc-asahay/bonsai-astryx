@@ -563,6 +563,30 @@ RadioList
   ok   the orientation is on the element
   ok   a hidden label is clipped rather than removed
 
+CheckboxList
+  ok   the group is a group
+  ok   its label is a group label, not a <label for>
+  ok   one checkbox per item, the selected one checked
+  ok   checked is a property, not an attribute
+  ok   each box has its own label, and none is aria-checked
+  ok   the visible row label is plain text, not a second <label for>
+  ok   the selected row is marked
+  ok   an item description is linked from its own checkbox
+  ok   the group links its status message
+  ok   and says it is invalid
+  ok   a disabled group is on the element
+  ok   its reason bubble is mounted with role=tooltip
+  ok   its checkboxes stay focusable (aria-disabled, not native disabled)
+  ok   the group links its disabled reason
+  ok   one disabled item disables only its own checkbox
+  ok   a loading item is busy on its row, not on its box alone
+  ok   the loading item's checkbox is click-blocked by the spinner
+  ok   a read-only group keeps its values visible, drops the interactive tint, and stays focusable
+  ok   required is the set's, not each box's: aria-required on the group, no required on the boxes
+  ok   a hidden label is clipped rather than removed
+  ok   density and dividers ride as data attributes on the list
+  ok   end content sits in its own slot inside the row
+
 FormLayout
   ok   a layout renders a div, not a form
   ok   and names its direction
@@ -742,5 +766,5 @@ DialogHeader
   ok   the controlled value starts at 42 and the readout echoes it
   ok   the label names the control through a real for=/id pair
 
-655 checks, 0 failure(s)
+677 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

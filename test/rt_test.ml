@@ -2958,3 +2958,83 @@ let () =
   in
   mount "tree-list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* -------------------------------------------------------------- CheckboxList (M48) *)
+
+let checkbox_list_static_component (_ : Bonsai.graph) =
+  let open Astryx in
+  let no_change = Bonsai.return (fun (_ : string list) -> Effect.Many []) in
+  let item ?(description = None) ?(is_disabled = false) ?(is_loading = false) ?end_content
+        value label =
+    { Checkbox_list.value; label; description; is_disabled; is_loading; end_content }
+  in
+  let group ?(is_disabled = false) ?disabled_message ?(is_read_only = false)
+        ?(is_label_hidden = false) ?(is_optional = false) ?(is_required = false)
+        ?(density = List_container.Balanced) ?(has_dividers = false) ?status
+        ?description ?(value = []) ~label ~id items
+    =
+    Checkbox_list.view
+      ~label
+      ~id
+      ~items
+      ~is_disabled
+      ?disabled_message
+      ~is_read_only
+      ~is_label_hidden
+      ~is_optional
+      ~is_required
+      ~density
+      ~has_dividers
+      ?status
+      ?description
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let join_all trees =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let groups =
+    [ group ~label:"Extras" ~id:"rt-cl-live" ~value:[ "a" ]
+        ~description:"Choose your extras."
+        [ item "a" "Support"
+        ; item ~description:(Some "New items weekly.") "b" "Updates"
+        ; item "c" "Beta"
+        ]
+    ; group ~label:"Mail" ~id:"rt-cl-status" ~value:[ "x" ]
+        ~status:{ Input_types.type_ = Input_types.Error; message = Some "Pick at least one." }
+        [ item "x" "Weekly"; item "y" "Daily" ]
+    ; group ~label:"Plan" ~id:"rt-cl-disabled" ~value:[ "a" ] ~is_disabled:true
+        ~disabled_message:"Billing is paused."
+        [ item "a" "Basic"; item "b" "Pro" ]
+    ; group ~label:"Period" ~id:"rt-cl-disabled-item" ~value:[ "monthly" ]
+        [ item "monthly" "Monthly"; item ~is_disabled:true "annual" "Annual" ]
+    ; group ~label:"Delivery" ~id:"rt-cl-loading"
+        [ item ~is_loading:true "email" "Email me"; item "sms" "Text me" ]
+    ; group ~label:"Drivers" ~id:"rt-cl-readonly" ~value:[ "a" ] ~is_read_only:true
+        [ item "a" "USB"; item "b" "Thunderbolt" ]
+    ; group ~label:"Contact" ~id:"rt-cl-required" ~is_required:true
+        [ item "email" "Email"; item "phone" "Phone" ]
+    ; group ~label:"Theme" ~id:"rt-cl-hidden" ~is_label_hidden:true
+        [ item "light" "Light"; item "dark" "Dark" ]
+    ; group ~label:"Sizes" ~id:"rt-cl-compact" ~density:List_container.Compact
+        ~has_dividers:true
+        [ item "s" "Small"; item "m" "Medium" ]
+    ; group ~label:"Plans" ~id:"rt-cl-end" ~value:[ "b" ]
+        [ item "a" "Basic"
+        ; item ~end_content:(Vdom.Node.span [ Vdom.Node.text "Popular" ]) "b" "Pro"
+        ]
+    ]
+  in
+  Bonsai.map (join_all groups) ~f:(fun groups -> Vdom.Node.div groups)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      checkbox_list_static_component
+  in
+  mount "checkbox-list-all" (Bonsai_web_test.Handle.last_result handle)
+;;

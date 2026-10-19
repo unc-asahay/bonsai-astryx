@@ -3594,3 +3594,55 @@ deterministic and testable.
 - Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m47.txt`. PORT-STATUS
   67/36.
 
+## Gate 65 — M48: CheckboxList (coverage 67 -> 68)
+
+Several choices out of one question, ported from `facebook/astryx`
+`CheckboxList/CheckboxList.tsx` + `CheckboxListItem.tsx`. Exposed as
+`Astryx.Checkbox_list` (registered in `astryx.ml`, `src/checkbox_list.ml` +
+`.mli`). Collection mode: `value : string list Bonsai.t` / `on_change`, each box
+deriving `checked` from membership, the application staying the source of truth.
+Recorded divergences in `port.json` and the `.mli`: items are data rather than
+composed children (the port has no React context for a child to read the value
+array, the same call Radio_list already made); `changeAction` is an async React
+form action a Bonsai effect cannot await, so per-item `is_loading` replaces it
+(with the in-checkbox spinner); the rows are built by this component rather than
+through `List_item`, because a row's checkbox is driven by the list's value tree
+and `List_item`'s start slot is a static node — `density`/`has_dividers` ride as
+data attributes styled by this component's CSS (the same data route
+`List_container` uses); no `onClick` on an item (the checkbox is the row's
+action and row-surface clicks delegate to it, upstream's
+`useClickableContainer`); a rich ReactNode label, `xstyle`, and per-item
+`CheckboxListItem` as a public component are not ported; fixed English "Loading".
+
+- `Checkbox_input.render` gained `?is_focusable_disabled` (ml + mli): a disabled
+  checkbox that stays keyboard-focusable via `aria-disabled` + `form=""` without
+  mounting its own reason bubble — the group-disabled-with-message case, where
+  one bubble describes the whole set (the group links it through
+  `aria-describedby`, so a keyboard/AT user reaches it without hovering).
+- The visible row label is `[<span>]` plain text, never a second `[<label for>]`:
+  the checkbox is named once by its own hidden label, and row-surface clicks
+  activate it — upstream's arrangement. Verified: one `<label>` per checkbox,
+  none over the row text.
+- The value order is preserved: a newly selected value is *appended*, never
+  re-sorted (documented in the `.mli`; the browser gate caught the initial
+  expectation of sorted order).
+- CSS: `.astryx-checkbox-list__*` block in `assets/components.css` (density
+  paddings, dividers, selected tint, disabled-message bubble selectors).
+- Fixture in `test/rt_test.ml` (`checkbox-list-all`: ten groups covering live
+  selection, status, group+item disabled, loading, read-only, required, hidden
+  label, compact/dividers, end content) — `node test/run.mjs` **677 checks, 0
+  failures**. jsdom DOM+accessibility gate **ALL CHECKS PASSED**.
+- Browser showcase: **471/471** (demo page **25/25**) — a click on the row's
+  surface checks it and the application's readout follows, a click on a selected
+  row removes it, Space on a focused box toggles it (a checkbox answers Space by
+  itself), a group disabled with a reason refuses the click while its boxes stay
+  focusable for the reason, a read-only row refuses the toggle, and the
+  described item's checkbox links its own description.
+- Example count map: 440 examples, 70 sections, 70 nav links (CheckboxList
+  section: ten examples, all marked). Coverage panel: 68 / 35 / 103.
+- Responsive: **66/66** — re-baselined because CheckboxList moving into the
+  ported list changed the coverage panel's text; update run 58 diffable checks,
+  clean verify 66/66.
+- Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m48.txt`. PORT-STATUS
+  68/35.
+

@@ -1940,6 +1940,120 @@ let radio_list_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- checkbox list (state) *)
+
+(* The group grows from RadioList by one axis: the value is a list, so a checkbox's checked
+   property derives from membership and never has to be written back by the component — the
+   application stays the source of truth. The browser gate toggles items and asserts the readout,
+   because what is interesting here is the delegation: the whole row is one generous hit target,
+   and a record (one label an item's description) is what must survive both. *)
+let checkbox_list_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let row nodes = Vdom.Node.div ~attrs:(Astryx.Common.Attr.class_ [ "showcase-radio-row" ]) nodes in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let no_change = Bonsai.return (fun (_ : string list) -> Effect.Many []) in
+  let item ?(description = None) ?(is_disabled = false) ?(is_loading = false) ?end_content value label =
+    { Checkbox_list.value; label; description; is_disabled; is_loading; end_content }
+  in
+  let topics =
+    [ item "sports" "Sports"
+    ; item ~description:(Some "New episodes daily.") "news" "News"
+    ; item "music" "Music"
+    ]
+  in
+  let selected, set_selected = Bonsai.state [ "news"; "music" ] graph in
+  let live =
+    let group =
+      Checkbox_list.view
+        ~label:"Notifications"
+        ~id:"showcase-checkbox-list-live"
+        ~description:"Choose what the weekly digest contains."
+        ~items:topics
+        ~value:selected
+        ~on_change:(Bonsai.map set_selected ~f:(fun set value -> set value))
+        ()
+    in
+    let readout =
+      Bonsai.map selected ~f:(fun values ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-checkbox-list-state" ]
+          [ Vdom.Node.text ("selected: " ^ String.concat values ~sep:", ") ])
+    in
+    Bonsai.map (join_all [ group; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let plain ?(is_disabled = false) ?disabled_message ?(is_read_only = false)
+        ?(is_label_hidden = false) ?(is_optional = false) ?(is_required = false)
+        ?(density = List_container.Balanced) ?(has_dividers = false) ?status ?(value = []) ~label ~id items =
+    Checkbox_list.view
+      ~label
+      ~id
+      ~items
+      ~is_disabled
+      ?disabled_message
+      ~is_read_only
+      ~is_label_hidden
+      ~is_optional
+      ~is_required
+      ~density
+      ~has_dividers
+      ?status
+      ~value:(Bonsai.return value)
+      ~on_change:no_change
+      ()
+  in
+  let loading_item =
+    item ~is_loading:true "email" "Email me the summary"
+  in
+  let examples =
+    [ ex_tree "a live group: the selection prints beside it" live
+    ; ex_tree "an item with its own description" (plain ~label:"Weekly digest" ~id:"showcase-checkbox-described" topics)
+    ; ex_tree "one item loading" (plain ~label:"Delivery" ~id:"showcase-checkbox-loading" [ loading_item; item "sms" "Text me" ])
+    ; ex_tree "one item disabled, the others not" (plain ~value:[ "basic" ] ~label:"Plan" ~id:"showcase-checkbox-disabled-item" [ item "basic" "Basic"; item ~is_disabled:true "pro" "Pro" ])
+    ; ex_tree "the whole group disabled, with a reason" (plain ~is_disabled:true ~disabled_message:"Billing is paused." ~label:"Extras" ~id:"showcase-checkbox-disabled-group" [ item "a" "Support"; item "b" "Backups" ])
+    ; ex_tree "read-only: the boxes are inert" (plain ~is_read_only:true ~value:[ "a" ] ~label:"Drivers" ~id:"showcase-checkbox-readonly" [ item "a" "USB"; item "b" "Thunderbolt" ])
+    ; ex_tree "dividers between compact rows"
+        (plain ~has_dividers:true ~density:List_container.Compact ~label:"Sizes" ~id:"showcase-checkbox-dividers"
+           [ item "s" "Small"; item "m" "Medium"; item "l" "Large" ])
+    ; ex_tree "required, and optional"
+        (Bonsai.map
+           (join_all
+              [ plain ~is_required:true ~label:"Skills" ~id:"showcase-checkbox-required"
+                  [ item "ocaml" "OCaml"; item "ts" "TypeScript" ]
+              ; plain ~is_optional:true ~label:"Welcome pack" ~id:"showcase-checkbox-optional"
+                  [ item "sticker" "Stickers"; item "shirt" "T-shirt" ]
+              ])
+           ~f:row)
+    ; ex_tree "an error status below the group"
+        (plain ~label:"Recipients"
+           ~id:"showcase-checkbox-status"
+           ~status:{ Input_types.type_ = Input_types.Error; message = Some "Pick at least one." }
+           [ item "a" "Team"; item "b" "Managers" ])
+    ; ex_tree "a hidden label still names the group"
+        (plain ~is_label_hidden:true ~label:"Contents" ~id:"showcase-checkbox-hidden"
+           [ item "a" "Changelog"; item "b" "Releases" ])
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"checkbox-list"
+      ~title:"CheckboxList"
+      ~note:
+        "Several choices out of one question. The value is a list, so each box derives its checked \
+         property from membership — the application owns the selection and the component only \
+         reports it. The label is a group label (the whole set is one field), the description and \
+         status sit below the set, and each row is a single generous hit target: any click proxies \
+         to the row's own checkbox, labelled once by a hidden label, because a real <label for> \
+         next to it would announce the same text twice. A collection is data here, not a context \
+         for composed children, and upstream's async changeAction is the one feature that has no \
+         Bonsai equivalent — it waits on a promise before clearing an item's spinner, and an effect \
+         cannot await one, so loading is per-item [is_loading] instead."
+      examples)
+;;
+
 (* ------------------------------------------------- form layout (state) *)
 
 (* Upstream's FormLayout does two jobs: it arranges fields, and it supplies the form's
@@ -4321,6 +4435,7 @@ let nav_items =
   ; "list", "List"
   ; "tree-list", "TreeList"
   ; "number-input", "NumberInput"
+  ; "checkbox-list", "CheckboxList"
   ]
 ;;
 
@@ -5147,15 +5262,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful tree_list_section in
   let number_input_section = number_input_demo graph in
   let stateful = pair stateful number_input_section in
+  let checkbox_list_section = checkbox_list_demo graph in
+  let stateful = pair stateful checkbox_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input)
+    ~f:(fun ((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), checkbox_list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; checkbox_list ])
       ])
 ;;
 

@@ -26,8 +26,10 @@ open! Bonsai_web
 open Js_of_ocaml
 
 (** [view ?id ?start_content ?end_content ?on_click ?interactive_selector ?href
-    ?target ?rel ?is_disabled ?is_selected ?swipe_actions ?swipe_behavior ?attrs
-    ~label ?description graph]. *)
+    ?target ?rel ?is_disabled ?is_selected ?swipe_actions ?swipe_behavior
+    ?description_id ?attrs ~label ?description graph]. [description_id] names the
+    row's description element, for a control inside the row that wants to point at
+    it with [aria-describedby] — the id is derived by [Item] when it is omitted. *)
 val view
   :  ?id:string
   -> ?start_content:Vdom.Node.t
@@ -41,6 +43,7 @@ val view
   -> ?is_selected:bool
   -> ?swipe_actions:Item.swipe_actions
   -> ?swipe_behavior:Item.swipe_behavior
+  -> ?description_id:string
   -> ?attrs:Vdom.Attr.t list
   -> label:Vdom.Node.t
   -> ?description:Vdom.Node.t

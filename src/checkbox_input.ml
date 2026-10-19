@@ -42,11 +42,16 @@ let message_bubble ~id ~content =
     [ Vdom.Node.text content ]
 ;;
 
-let view
+(* The control built from plain values: the mechanism Checkbox_list uses to place a checkbox inside
+   a row it builds inside a Bonsai.map (where components cannot be called). Public because a second
+   consumer appeared; [view] below just unwraps its trees and calls this. *)
+let render
       ?(attrs = [])
       ?(is_disabled = false)
       ?disabled_message
       ?(is_read_only = false)
+      ?(is_loading = false)
+      ?(is_focusable_disabled = false)
       ?(is_label_hidden = false)
       ?(is_optional = false)
       ?(is_required = false)
@@ -54,6 +59,7 @@ let view
       ?label_icon
       ?description
       ?description_id
+      ?described_by
       ?status
       ?(size = Indicator.Md)
       ~label
@@ -62,157 +68,216 @@ let view
       ~on_change
       ()
   =
-  Bonsai.both value on_change
-  |> Bonsai.map ~f:(fun (value, on_change) ->
-    let is_indeterminate =
-      match value with
-      | Indeterminate -> true
-      | Checked | Unchecked -> false
-    in
-    let is_checked =
-      match value with
-      | Checked -> true
-      | Unchecked | Indeterminate -> false
-    in
-    (* The description is rendered by FieldLabel, which is also where its id comes from when the
-       caller does not name one; the status message gets its own id so the input can point at both
-       without either being announced as the control's *name*. *)
-    let description_id =
-      match description with
-      | Some _ -> Some (Option.value description_id ~default:(id ^ "-description"))
-      | None -> description_id
-    in
-    let status_message =
-      match status with
-      | Some { Input_types.message = Some message; _ } -> Some message
-      | Some { message = None; _ } | None -> None
-    in
-    let status_type =
-      match status with
-      | Some { Input_types.type_ = type_; _ } -> Some type_
-      | None -> None
-    in
-    let status_message_id = id ^ "-status" in
-    let shows_disabled_message = is_disabled && Option.is_some disabled_message in
-    let disabled_message_id = id ^ "-disabled-message" in
-    let described_by =
-      List.filter_opt
-        [ description_id
-        ; (if Option.is_some status_message then Some status_message_id else None)
-        ]
-      |> String.concat ~sep:" "
-    in
-    (* The reason is described for as long as the control is disabled, not only while the pointer is
-       over it: a description that exists only on hover is one a screen reader never reads. *)
-    let described_by =
-      if shows_disabled_message
-      then
-        String.concat
-          ~sep:" "
-          (List.filter_opt
-             [ (if String.is_empty described_by then None else Some described_by)
-             ; Some disabled_message_id
-             ])
-      else described_by
-    in
-    let message_bubble_nodes =
-      match disabled_message with
-      | Some content when shows_disabled_message -> [ message_bubble ~id:disabled_message_id ~content ]
-      | Some _ | None -> []
-    in
-    let input_attrs =
-      Attr.class_ [ "astryx-checkbox-input__input" ]
-      @ [ Vdom.Attr.create "type" "checkbox"
-        ; Vdom.Attr.create "id" id
-        ; (* Both of these are DOM *properties*. The checked attribute only sets a checkbox's
-             initial state, and there is no indeterminate attribute at all. *)
-          Vdom.Attr.checked_prop is_checked
-        ; Vdom.Attr.bool_property "indeterminate" is_indeterminate
-        ]
-      @ (if shows_disabled_message
-          then (* Focusable-disabled: the native attribute would also refuse focus, which is exactly
-                  what a reason needs to be discoverable. *)
-            Attr.aria "disabled" "true" @ [ Vdom.Attr.create "form" "" ]
-          else if is_disabled
-          then [ Vdom.Attr.create "disabled" "disabled" ]
-          else [])
-      @ (if is_read_only then [ Vdom.Attr.create "readonly" "readonly" ] else [])
-      @ (if is_required then [ Vdom.Attr.create "required" "required" ] else [])
-      @ [ Vdom.Attr.on_click (fun ev ->
-            (* The DOM refuses clicks on a disabled input, but a read-only one still fires them, so
-               the guard is here as well as on the attribute — and it cancels the event rather than
-               only ignoring it, because the browser has already flipped the checkbox by then. *)
-            if is_disabled || is_read_only
-            then (
-              prevent_default ev;
-              Effect.Many [])
-            else on_change (toggled value))
-        ]
-      @ (if is_read_only then Attr.aria "readonly" "true" else [])
-      @ (match status_type with
-         | Some Input_types.Error -> Attr.aria "invalid" "true"
-         | Some (_ : Input_types.status_type) | None -> [])
-      @ (if String.is_empty described_by then [] else Attr.aria "describedby" described_by)
-    in
-    let indicator_slot =
-      Vdom.Node.span
-        ~attrs:(Attr.class_ [ "astryx-checkbox-input__indicator-slot" ])
-        [ Indicator.view ~kind:Indicator.Checkbox ~state:value ~size ~is_disabled () ]
-    in
-    let control =
-      Vdom.Node.div
-        ~attrs:(Attr.class_ [ "astryx-checkbox-input__control" ])
-        ([ Vdom.Node.input ~attrs:input_attrs (); indicator_slot ] @ message_bubble_nodes)
-    in
-    let label_wrapper =
-      Vdom.Node.div
-        ~attrs:(Attr.class_ [ "astryx-checkbox-input__label-wrapper" ])
-        [ Field_label.view
-          ?optionality
-            ~label
-            ~input_id:id
-            ?label_icon
-            ~is_label_hidden
-            ~is_disabled
-            ~is_optional
-            ~is_required
-            ?description
-            ?description_id
+  let is_indeterminate =
+    match value with
+    | Indeterminate -> true
+    | Checked | Unchecked -> false
+  in
+  let is_checked =
+    match value with
+    | Checked -> true
+    | Unchecked | Indeterminate -> false
+  in
+  (* The description is rendered by FieldLabel, which is also where its id comes from when the
+     caller does not name one; the status message gets its own id so the input can point at both
+     without either being announced as the control's *name*. [described_by] is an id the caller
+     owns (a row's description, as CheckboxListItem does) — merged last so all of them are
+     described. *)
+  let description_id =
+    match description with
+    | Some _ -> Some (Option.value description_id ~default:(id ^ "-description"))
+    | None -> description_id
+  in
+  let status_message =
+    match status with
+    | Some { Input_types.message = Some message; _ } -> Some message
+    | Some { message = None; _ } | None -> None
+  in
+  let status_type =
+    match status with
+    | Some { Input_types.type_ = type_; _ } -> Some type_
+    | None -> None
+  in
+  let status_message_id = id ^ "-status" in
+  let shows_disabled_message =
+    is_disabled && (Option.is_some disabled_message || is_focusable_disabled)
+  in
+  let disabled_message_id = id ^ "-disabled-message" in
+  let described_by =
+    List.filter_opt
+      [ description_id
+      ; (if Option.is_some status_message then Some status_message_id else None)
+      ; described_by
+      ]
+    |> String.concat ~sep:" "
+  in
+  (* The reason is described for as long as the control is disabled, not only while the pointer is
+     over it: a description that exists only on hover is one a screen reader never reads. *)
+  let described_by =
+    if shows_disabled_message
+    then
+      String.concat
+        ~sep:" "
+        (List.filter_opt
+           [ (if String.is_empty described_by then None else Some described_by)
+           ; Some disabled_message_id
+           ])
+    else described_by
+  in
+  let message_bubble_nodes =
+    match disabled_message with
+    | Some content when shows_disabled_message -> [ message_bubble ~id:disabled_message_id ~content ]
+    | Some _ | None -> []
+  in
+  let input_attrs =
+    Attr.class_ [ "astryx-checkbox-input__input" ]
+    @ [ Vdom.Attr.create "type" "checkbox"
+      ; Vdom.Attr.create "id" id
+      ; (* Both of these are DOM *properties*. The checked attribute only sets a checkbox's
+           initial state, and there is no indeterminate attribute at all. *)
+        Vdom.Attr.checked_prop is_checked
+      ; Vdom.Attr.bool_property "indeterminate" is_indeterminate
+      ]
+    @ (if shows_disabled_message
+        then (* Focusable-disabled: the native attribute would also refuse focus, which is exactly
+                what a reason needs to be discoverable. *)
+          Attr.aria "disabled" "true" @ [ Vdom.Attr.create "form" "" ]
+        else if is_disabled
+        then [ Vdom.Attr.create "disabled" "disabled" ]
+        else [])
+    @ (if is_read_only then [ Vdom.Attr.create "readonly" "readonly" ] else [])
+    @ (if is_required then [ Vdom.Attr.create "required" "required" ] else [])
+    @ (if is_loading then Attr.aria "busy" "true" else [])
+    @ [ Vdom.Attr.on_click (fun ev ->
+          (* The DOM refuses clicks on a disabled input, but a read-only one still fires them — and
+             a loading one would toggle underneath its spinner — so the guard is here as well as on
+             the attribute, and it cancels the event rather than only ignoring it, because the
+             browser has already flipped the checkbox by then. *)
+          if is_disabled || is_read_only || is_loading
+          then (
+            prevent_default ev;
+            Effect.Many [])
+          else on_change (toggled value))
+      ]
+    @ (if is_read_only then Attr.aria "readonly" "true" else [])
+    @ (match status_type with
+       | Some Input_types.Error -> Attr.aria "invalid" "true"
+       | Some (_ : Input_types.status_type) | None -> [])
+    @ (if String.is_empty described_by then [] else Attr.aria "describedby" described_by)
+  in
+  let indicator_slot =
+    Vdom.Node.span
+      ~attrs:(Attr.class_ [ "astryx-checkbox-input__indicator-slot" ])
+      [ if is_loading
+        then
+          Spinner.view
+            ~size:Spinner.Sm
+            ~label:"Loading"
+            ~attrs:(Attr.class_ [ "astryx-checkbox-input__spinner" ])
             ()
-        ]
-    in
-    (* Hover and focus reach the box through the owning row rather than through props, so hovering
-       the label lights it — the same ancestor scope the standalone indicator uses. A disabled
-       control is not a scope: nothing is going to light up. *)
-    let container =
-      Vdom.Node.div
-        ~attrs:
-          (Attr.class_
-             ([ "astryx-checkbox-input__container" ]
-              @ (if is_label_hidden
-                 then [ "astryx-checkbox-input__container--label-hidden" ]
-                 else [])
-              @ (if is_disabled then [] else [ "astryx-indicator-scope" ])))
-        [ control; label_wrapper ]
-    in
-    let status_node =
-      match status_message, status_type with
-      | Some message, Some type_ ->
-        [ Field_status.view
-            ~variant:Field_status.Detached
-            ~attrs:[ Vdom.Attr.create "id" status_message_id ]
-            ~type_
-            ~message
-            ()
-        ]
-      | (Some _ | None), _ -> []
-    in
+        else Indicator.view ~kind:Indicator.Checkbox ~state:value ~size ~is_disabled ()
+      ]
+  in
+  let control =
+    Vdom.Node.div
+      ~attrs:(Attr.class_ [ "astryx-checkbox-input__control" ])
+      ([ Vdom.Node.input ~attrs:input_attrs (); indicator_slot ] @ message_bubble_nodes)
+  in
+  let label_wrapper =
+    Vdom.Node.div
+      ~attrs:(Attr.class_ [ "astryx-checkbox-input__label-wrapper" ])
+      [ Field_label.view
+        ?optionality
+          ~label
+          ~input_id:id
+          ?label_icon
+          ~is_label_hidden
+          ~is_disabled
+          ~is_optional
+          ~is_required
+          ?description
+          ?description_id
+          ()
+      ]
+  in
+  (* Hover and focus reach the box through the owning row rather than through props, so hovering
+     the label lights it — the same ancestor scope the standalone indicator uses. A disabled
+     control is not a scope: nothing is going to light up. *)
+  let container =
     Vdom.Node.div
       ~attrs:
-        (Attr.class_ [ "astryx-checkbox-input" ]
-         @ Attr.data "component" "CheckboxInput"
-         @ Attr.data "state" (Indicator.state_string value)
-         @ Attr.data "size" (Indicator.size_string size)
-         @ attrs)
-      (container :: status_node))
+        (Attr.class_
+           ([ "astryx-checkbox-input__container" ]
+            @ (if is_label_hidden
+               then [ "astryx-checkbox-input__container--label-hidden" ]
+               else [])
+            @ (if is_disabled then [] else [ "astryx-indicator-scope" ])))
+      [ control; label_wrapper ]
+  in
+  let status_node =
+    match status_message, status_type with
+    | Some message, Some type_ ->
+      [ Field_status.view
+          ~variant:Field_status.Detached
+          ~attrs:[ Vdom.Attr.create "id" status_message_id ]
+          ~type_
+          ~message
+          ()
+      ]
+    | (Some _ | None), _ -> []
+  in
+  Vdom.Node.div
+    ~attrs:
+      (Attr.class_ [ "astryx-checkbox-input" ]
+       @ Attr.data "component" "CheckboxInput"
+       @ Attr.data "state" (Indicator.state_string value)
+       @ Attr.data "size" (Indicator.size_string size)
+       @ attrs)
+    (container :: status_node)
+;;
+
+let view
+      ?attrs
+      ?is_disabled
+      ?disabled_message
+      ?is_read_only
+      ?is_loading
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?optionality
+      ?label_icon
+      ?description
+      ?description_id
+      ?described_by
+      ?status
+      ?size
+      ~label
+      ~id
+      ~value
+      ~on_change
+      ()
+  =
+  Bonsai.map2 value on_change ~f:(fun value on_change ->
+    render
+      ?attrs
+      ?is_disabled
+      ?disabled_message
+      ?is_read_only
+      ?is_loading
+      ?is_label_hidden
+      ?is_optional
+      ?is_required
+      ?optionality
+      ?label_icon
+      ?description
+      ?description_id
+      ?described_by
+      ?status
+      ?size
+      ~label
+      ~id
+      ~value
+      ~on_change
+      ())
 ;;

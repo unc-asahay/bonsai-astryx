@@ -695,6 +695,14 @@
       "milestone": "M47",
       "module": "Astryx.Number_input",
       "note": "M47. Draft-commit semantics: the text is a draft until blur or Enter (upstream's commit-on-blur/Enter policy), only valid numbers reach on_change, blank commits as empty, out-of-range clamps to min/max on commit. Locale-aware decimal parser, wheel support off by default. Divergences: status is the house Input_types record, units/format_value are OCaml-level, no React node in description."
+    },
+    {
+      "class": "C",
+      "component": "CheckboxList",
+      "file": "src/checkbox_list.ml",
+      "milestone": "M48",
+      "module": "Astryx.Checkbox_list",
+      "note": "M48. Collection mode (value : string list Bonsai.t / on_change), rows built here rather than through List_item because a row's checkbox must read the list's value (divergence recorded in src/checkbox_list.mli). changeAction not portable to Bonsai — per-item is_loading instead. Row-surface click delegation replicates upstream useClickableContainer; the visible label is a span (the checkbox is named once by its own hidden label). Group-disabled-with-message keeps every box focusable (aria-disabled + form=\"\", is_focusable_disabled on Checkbox_input.render) with one reason bubble for the set. Standalone CheckboxListItem, rich ReactNode labels, xstyle/className/style not ported."
     }
   ],
   "schema": 1,

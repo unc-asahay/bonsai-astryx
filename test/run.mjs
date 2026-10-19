@@ -1892,6 +1892,91 @@ section("FieldLabel");
     document.getElementById("rt-rl-hidden-label").classList.contains("astryx-visually-hidden"));
 }
 
+// ---------------------------------------------------------------- CheckboxList (M48)
+{
+  const group = (id) => document.querySelector(`#${id}`);
+  const boxes = (id) => [...group(id).querySelectorAll("input[type=checkbox]")];
+  section("CheckboxList");
+
+  const g = group("rt-cl-live");
+  check("the group is a group", g.getAttribute("role") === "group");
+  // Like RadioList, the label is a <span> the group names itself from — the set is one field.
+  const label = document.getElementById("rt-cl-live-label");
+  check("its label is a group label, not a <label for>",
+    !!label && label.tagName.toLowerCase() === "span"
+      && g.getAttribute("aria-labelledby") === "rt-cl-live-label");
+  const inputs = boxes("rt-cl-live");
+  check("one checkbox per item, the selected one checked",
+    inputs.length === 3 && inputs.filter((i) => i.checked).length === 1 && inputs[0].checked === true);
+  check("checked is a property, not an attribute",
+    inputs.every((i) => i.hasAttribute("checked") === false));
+  // Each box names itself from its own hidden label; there is no <label for> on the visible
+  // row text, and no aria-checked shadowing the native property.
+  check("each box has its own label, and none is aria-checked",
+    inputs.every((i) => i.labels.length === 1) && inputs.every((i) => i.getAttribute("aria-checked") === null));
+  check("the visible row label is plain text, not a second <label for>",
+    !!group("rt-cl-live").querySelector(".astryx-checkbox-list__label")
+      && group("rt-cl-live").querySelectorAll("label").length === inputs.length);
+  check("the selected row is marked",
+    !!group("rt-cl-live").querySelector(".astryx-checkbox-list__item--selected"));
+  check("an item description is linked from its own checkbox",
+    (inputs[1].getAttribute("aria-describedby") || "").includes("rt-cl-live-item-1-description"),
+    inputs[1].getAttribute("aria-describedby"));
+
+  const errGroup = group("rt-cl-status");
+  const errDescribed = errGroup.getAttribute("aria-describedby") || "";
+  check("the group links its status message", errDescribed.includes("rt-cl-status-status"), errDescribed);
+  check("and says it is invalid", errGroup.getAttribute("aria-invalid") === "true");
+
+  const dis = group("rt-cl-disabled");
+  check("a disabled group is on the element", dis.classList.contains("astryx-checkbox-list__group--disabled"));
+  check("its reason bubble is mounted with role=tooltip",
+    !!document.getElementById("rt-cl-disabled-disabled-message")
+      && document.getElementById("rt-cl-disabled-disabled-message").getAttribute("role") === "tooltip");
+  check("its checkboxes stay focusable (aria-disabled, not native disabled)",
+    boxes("rt-cl-disabled").every((b) => b.disabled === false && b.getAttribute("aria-disabled") === "true"));
+  // The group linking the reason lets AT discover it without hovering; the individual boxes do not
+  // each mount their own bubble, which is the point of the focusable-disabled path.
+  check("the group links its disabled reason",
+    (dis.getAttribute("aria-describedby") || "").includes("rt-cl-disabled-disabled-message"),
+    dis.getAttribute("aria-describedby"));
+
+  const mixed = group("rt-cl-disabled-item");
+  check("one disabled item disables only its own checkbox",
+    mixed.querySelectorAll(".astryx-checkbox-list__item")[1].querySelector("input").disabled === true
+      && mixed.querySelectorAll(".astryx-checkbox-list__item")[0].querySelector("input").disabled === false);
+
+  const load = group("rt-cl-loading");
+  check("a loading item is busy on its row, not on its box alone",
+    load.querySelectorAll(".astryx-checkbox-list__item")[0].getAttribute("aria-busy") === "true");
+  check("the loading item's checkbox is click-blocked by the spinner",
+    !!load.querySelector(".astryx-checkbox-list__item [data-astryx-component=Spinner]"));
+
+  const ro = group("rt-cl-readonly");
+  check("a read-only group keeps its values visible, drops the interactive tint, and stays focusable",
+    boxes("rt-cl-readonly")[0].checked === true
+      && ro.querySelectorAll(".astryx-checkbox-list__item--selected").length === 0
+      && boxes("rt-cl-readonly").every((b) => b.getAttribute("aria-disabled") === null));
+
+  const required = boxes("rt-cl-required");
+  check("required is the set's, not each box's: aria-required on the group, no required on the boxes",
+    required.every((b) => b.hasAttribute("required") === false)
+      && group("rt-cl-required").getAttribute("aria-required") === "true");
+
+  check("a hidden label is clipped rather than removed",
+    document.getElementById("rt-cl-hidden-label").classList.contains("astryx-visually-hidden"));
+
+  const compact = group("rt-cl-compact");
+  check("density and dividers ride as data attributes on the list",
+    compact.querySelector(".astryx-checkbox-list__list").dataset.astryxDensity === "compact"
+      && compact.querySelector(".astryx-checkbox-list__list").dataset.astryxDividers === "true");
+
+  const end = group("rt-cl-end");
+  check("end content sits in its own slot inside the row",
+    !!end.querySelector(".astryx-checkbox-list__item .astryx-checkbox-list__end")
+      && end.querySelector(".astryx-checkbox-list__end").textContent === "Popular");
+}
+
 // ---------------------------------------------------------------- FormLayout (M13)
 {
   section("FormLayout");

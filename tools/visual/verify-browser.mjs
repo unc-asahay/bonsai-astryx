@@ -255,6 +255,7 @@ if (mode === "showcase") {
     "List",
     "TreeList",
     "NumberInput",
+    "CheckboxList",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -617,7 +618,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("69 sections", sections.length === 69, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("70 sections", sections.length === 70, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -638,10 +639,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("430 examples across the page", totalExamples === 430, `got ${totalExamples}`);
+  check("440 examples across the page", totalExamples === 440, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -654,7 +655,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("69 nav links", nav.length === 69, `got ${nav.length}`);
+  check("70 nav links", nav.length === 70, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4040,11 +4041,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 67 ported / 36 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["67", "36", "103"]),
+    "coverage stats are 68 ported / 35 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["68", "35", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 36 entries", cov.unported === 36, `got ${cov.unported}`);
+  check("unported list rendered 35 entries", cov.unported === 35, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4268,6 +4269,75 @@ check(
       && niStatic.readonly && niStatic.reason === "Deprecated — use Quantity",
     JSON.stringify(niStatic),
   );
+
+  // ---------------------------------------------------------------- CheckboxList (M48)
+  // The row surface is the hit target (upstream's useClickableContainer): a click on the row's
+  // padding, label or description proxies to the row's own checkbox. jsdom cannot pump Bonsai
+  // effects, so the delegation and the refuses are driven here for real.
+  console.log("\nCheckboxList (live)");
+  {
+    const clChecked = (id) =>
+      page.evaluate((id) => document.getElementById(id).checked, id);
+    const clReadout = () =>
+      page.evaluate(() => document.getElementById("showcase-checkbox-list-state")?.textContent ?? null);
+
+    check("the live group starts on the application's value",
+      (await clReadout()) === "selected: news, music", String(await clReadout()));
+    // A click on the row SURFACE — the visible label is plain text with no <label for>, so
+    // clicking it can only reach the checkbox through the row's delegation.
+    await page.click("#showcase-checkbox-list-live-item-0");
+    await page.waitForTimeout(200);
+    check("clicking a row's surface checks it, and the readout follows",
+      (await clReadout()) === "selected: news, music, sports", String(await clReadout()));
+    check("the box's checked property followed the value",
+      (await clChecked("showcase-checkbox-list-live-item-0-checkbox")) === true);
+    // Clicking an already-selected row removes it — collection mode reports the new list.
+    await page.click("#showcase-checkbox-list-live-item-1");
+    await page.waitForTimeout(200);
+    check("clicking a selected row unchecks it",
+      (await clReadout()) === "selected: music, sports", String(await clReadout()));
+    // Keyboard: Space on a focused checkbox is a click — the port's only keyboard path.
+    await page.evaluate(() => document.getElementById("showcase-checkbox-list-live-item-1-checkbox").focus());
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(200);
+    check("Space on a focused box toggles it too",
+      (await clReadout()) === "selected: music, sports, news", String(await clReadout()));
+
+    // Refusals: a group-disabled row must not move its box, but the box stays focusable
+    // (aria-disabled, no native disabled) so a keyboard user can discover the reason.
+    const disBefore = await page.evaluate(() => {
+      const el = document.getElementById("showcase-checkbox-disabled-group-item-0-checkbox");
+      return { checked: el.checked, disabled: el.disabled, ariaDisabled: el.getAttribute("aria-disabled") };
+    });
+    await page.click("#showcase-checkbox-disabled-group-item-0");
+    await page.waitForTimeout(200);
+    const disAfter = await page.evaluate(() =>
+      document.getElementById("showcase-checkbox-disabled-group-item-0-checkbox").checked);
+    check("a group-disabled row stays put, while its box remains focusable for the reason",
+      disBefore.checked === false && disAfter === false && disBefore.disabled === false
+        && disBefore.ariaDisabled === "true", JSON.stringify(disBefore));
+
+    const roBefore = await page.evaluate(() => [
+      document.getElementById("showcase-checkbox-readonly-item-0-checkbox").checked,
+      document.getElementById("showcase-checkbox-readonly-item-1-checkbox").checked,
+    ]);
+    await page.click("#showcase-checkbox-readonly-item-1");
+    await page.waitForTimeout(200);
+    const roAfter = await page.evaluate(() => [
+      document.getElementById("showcase-checkbox-readonly-item-0-checkbox").checked,
+      document.getElementById("showcase-checkbox-readonly-item-1-checkbox").checked,
+    ]);
+    check("a read-only row refuses the toggle: the value cannot move",
+      roBefore[0] === true && roBefore[1] === false && roAfter[0] === true && roAfter[1] === false,
+      JSON.stringify({ roBefore, roAfter }));
+
+    // An item's description is linked from its own checkbox.
+    const described = await page.evaluate(() =>
+      document.getElementById("showcase-checkbox-described-item-1-checkbox")
+        .getAttribute("aria-describedby") ?? null);
+    check("the described item's checkbox links its own description",
+      described?.includes("showcase-checkbox-described-item-1-description"), String(described));
+  }
 
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed
   // 50 ported components, 309 examples and 53 sections while the page it describes had 51, 312 and 54 -

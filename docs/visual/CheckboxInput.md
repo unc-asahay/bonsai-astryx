@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Checkbox_input` (`src/checkbox_input.ml`, M12)
-- rendered instances in the demo: 17
+- rendered instances in the demo: 42
 - classes: `astryx-checkbox-input`
 
 ## layout
