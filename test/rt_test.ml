@@ -3247,6 +3247,59 @@ let carousel_component (graph : Bonsai.graph) =
 
 
 
+
+let tab_list_component (graph : Bonsai.graph) =
+  let open! Astryx in
+  let tab ?(is_label_hidden = false) ?href ?panel_id ?icon ?selected_icon ?end_content
+      ?(is_disabled = false) value label =
+    { Tab_list.value; label; is_label_hidden; href; panel_id; icon; selected_icon
+    ; end_content; is_disabled
+    }
+  in
+  let option_item value label = { Tab_list.value; label; icon = None } in
+  let selected, set_selected = Bonsai.state "one" graph in
+  let nav_items =
+    [ Tab_list.Tab (tab "one" "One")
+    ; Tab_list.Tab (tab "two" "Two" ~icon:"search")
+    ; Tab_list.Tab (tab "three" "Three" ~is_disabled:true)
+    ; Tab_list.Tab (tab "four" "Four" ~end_content:(Vdom.Node.text "4"))
+    ; Tab_list.Menu
+        { label = "More"
+        ; options = [ option_item "five" "Five"; option_item "six" "Six" ]
+        }
+    ]
+  in
+  let nav =
+    Tab_list.view ~id:"rt-tb-basic" ~has_divider:true ~value:selected
+      ~on_change:set_selected ~items:nav_items graph
+  in
+  let aria_sel, aria_set = Bonsai.state "alpha" graph in
+  let aria_items =
+    [ Tab_list.Tab (tab ~panel_id:"rt-tb-p1" "alpha" "Alpha")
+    ; Tab_list.Tab (tab ~panel_id:"rt-tb-p2" "beta" "Beta")
+    ; Tab_list.Tab (tab ~panel_id:"rt-tb-p3" "gamma" "Gamma" ~href:"#ignored")
+    ]
+  in
+  let aria =
+    Tab_list.view ~id:"rt-tb-aria" ~role:"tablist" ~aria_label:"Panels"
+      ~value:aria_sel ~on_change:aria_set ~items:aria_items graph
+  in
+  let fill_sel, fill_set = Bonsai.state "x" graph in
+  let fill_items =
+    [ Tab_list.Tab (tab "x" "X"); Tab_list.Tab (tab "y" "Y"); Tab_list.Tab (tab "z" "Z") ]
+  in
+  let fill =
+    Tab_list.view ~id:"rt-tb-fill" ~layout:Tab_list.Fill ~size:Tab_list.Sm
+      ~value:fill_sel ~on_change:fill_set ~items:fill_items graph
+  in
+  let trees = [ nav; aria; fill ] in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "tab-list-all" ] nodes)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create
@@ -3254,6 +3307,15 @@ let () =
       carousel_component
   in
   mount "carousel-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      tab_list_component
+  in
+  mount "tab-list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
 let () =

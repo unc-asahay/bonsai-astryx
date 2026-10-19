@@ -1,0 +1,46 @@
+M53: TabList - the tab strip (TabList/Tab/TabMenu)
+
+Port upstream packages/core/src/TabList/TabList.tsx (710 LOC) + Tab.tsx
+(471) + TabMenu.tsx (456) + TabListContext.ts (68) over hooks/
+useScrollOverflow.ts (152) + useListFocus.ts (163) + isRtlElement.ts (27)
+as one data-driven Astryx.Tab_list, with the scroll machinery extracted
+into the new shared Astryx.Scroll_overflow (used by Carousel too).
+
+What is ported, exactly:
+- The two semantics in one surface. role unset: a <nav> landmark whose
+  selected tab carries aria-current="true" (and links via <a> when a tab
+  has an href). role="tablist": the strip is role=tablist and each tab is
+  role=tab with aria-selected + aria-controls (only when the record has a
+  panel_id); an href is ignored there, exactly like upstream. Any other
+  role is passed through.
+- Single-tab-stop focus: the selected tab carries tabindex=0 and arrow
+  keys (plus Home/End) move focus over tabs and menu triggers via the
+  house Common.List_focus roving hook, skipping disabled tabs; Enter/Space
+  activate the focused control natively.
+- Measured overflow: the shared Scroll_overflow hook measures the strip
+  (mount + scroll + resize + ResizeObserver + mutations) and drives the
+  edge-fade masks, the pointer-only arrow buttons (aria-hidden, tabindex
+  -1, hidden from AT; they scroll by the house scroll_by_js arithmetic
+  with the RTL sign flip and 'instant' behavior for the selected-tab
+  reveal), and the scroll-padding when focus is inside.
+- The overflow menu: a menu trigger per overflow item opening the house
+  Popover below the trigger (menuitemradio options, aria-checked on the
+  selected option, light + Escape dismissal, focus into the options, Tab
+  closes and lets the browser move focus on).
+- The config surface via data attributes + CSS: size sm/md/lg, layout
+  Hug/Fill, divider rail, full-bleed bleeding against container padding,
+  overflow Auto/Scroll/Visible (off → no measurement machinery at all),
+  label-sizer reserving the selected label's width, icon + selected-icon
+  swap, end_content, hidden labels naming the tab for AT.
+
+Divergences (documented in tab_list.mli): data-driven items list instead
+of React context children; horizontal arrow axes only (upstream also
+accepts vertical); no per-tab onClick callback; no keyboard-hint popup;
+CSS :hover/:active backgrounds instead of the JS touch-press overlay.
+
+Verified: dune build clean; jsdom component gate 736 checks, 0 failures
+(8 new); browser gate 517/517 (6 new live checks, selection roving + menu
+expansion driven for real); responsive 66/66 (probe now understands
+scroll-container content); README 73 of 103 (M41-M53), 480 examples, 75
+sections; PORT-STATUS 73/103; docs/visual/TabList.md generated; Gate 70
+in docs/VERIFICATION.md; sweep GREEN.

@@ -260,6 +260,7 @@ if (mode === "showcase") {
     "Collapsible",
     "Breadcrumbs",
     "Carousel",
+    "TabList",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -622,7 +623,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("74 sections", sections.length === 74, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("75 sections", sections.length === 75, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -643,10 +644,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("476 examples across the page", totalExamples === 476, `got ${totalExamples}`);
+  check("480 examples across the page", totalExamples === 480, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -659,7 +660,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("74 nav links", nav.length === 74, `got ${nav.length}`);
+  check("75 nav links", nav.length === 75, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4045,11 +4046,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 72 ported / 31 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["72", "31", "103"]),
+    "coverage stats are 73 ported / 30 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["73", "30", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 31 entries", cov.unported === 31, `got ${cov.unported}`);
+  check("unported list rendered 30 entries", cov.unported === 30, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4681,6 +4682,101 @@ check(
   check("the config surface is driven by data: gap, snap, padding, no-buttons",
     config?.gap === "4" && config?.snap === true && config?.pad === "2" && config?.noBtns === false,
     JSON.stringify(config));
+
+
+  // ---------------------------------------------------------------- TabList (M53)
+  //
+  // The component's contract is selection (roving tabindex + aria-current /
+  // aria-selected) and the overflow menu. We drive a real click through the
+  // Bonsai graph and assert the focus-and-selection state moved with it.
+  console.log("\nTabList (live)");
+  const tlState = () =>
+    page.evaluate(() => {
+      const root = document.getElementById("showcase-tab-list-nav");
+      const stops = [...(root?.querySelectorAll(".astryx-tab") ?? [])].map((b) => ({
+        value: b.getAttribute("data-tab-value"),
+        current: b.getAttribute("aria-current"),
+        tabindex: b.getAttribute("tabindex"),
+      }));
+      const trigger = root?.querySelector(".astryx-tab-menu__trigger");
+      const aria = document.getElementById("showcase-tab-list-aria");
+      const ariaStrip = aria?.querySelector(".astryx-tab-list__strip");
+      const ariaTabs = [...(aria?.querySelectorAll(".astryx-tab") ?? [])].map((b) => ({
+        role: b.getAttribute("role"),
+        selected: b.getAttribute("aria-selected"),
+        controls: b.getAttribute("aria-controls"),
+        tag: b.tagName,
+      }));
+      const fill = document.getElementById("showcase-tab-list-fill");
+      const menu = document.getElementById("showcase-tab-list-menu");
+      const menuTrigger = menu?.querySelector(".astryx-tab-menu__trigger");
+      return {
+        count: stops.length,
+        current: stops.filter((s) => s.current === "true").map((s) => s.value),
+        zeroTabindex: stops.filter((s) => s.tabindex === "0").map((s) => s.value),
+        expanded: trigger?.getAttribute("aria-expanded") ?? null,
+        ariaRole: ariaStrip?.getAttribute("role") ?? null,
+        ariaLabel: ariaStrip?.getAttribute("aria-label") ?? null,
+        ariaTabs,
+        fill: fill?.classList.contains("astryx-tab-list--fill") ?? null,
+        fillTabCount: fill?.querySelectorAll(".astryx-tab").length ?? -1,
+        fillTabs: fill?.querySelectorAll(".astryx-tab--fill").length ?? -1,
+        menuExpanded: menuTrigger?.getAttribute("aria-expanded") ?? null,
+      };
+    });
+
+  const tlRest = await tlState();
+  check("the nav strip holds five tab stops with the selected one marked",
+    tlRest?.count === 5
+      && tlRest?.current.join(",") === "overview"
+      && tlRest?.zeroTabindex.join(",") === "overview",
+    JSON.stringify(tlRest));
+  await page.click('#showcase-tab-list-nav [data-tab-value="messages"]');
+  await page.waitForFunction(
+    () => document.querySelector('#showcase-tab-list-nav [data-tab-value="messages"]')
+      ?.getAttribute("aria-current") === "true",
+    { timeout: 30000 },
+  );
+  const tlClicked = await tlState();
+  check("clicking a tab moves aria-current and roves the tabindex to it",
+    tlClicked?.current.join(",") === "messages"
+      && tlClicked?.zeroTabindex.join(",") === "messages",
+    JSON.stringify(tlClicked));
+
+  const tlMenuOpen = await page.evaluate(async () => {
+    const root = document.getElementById("showcase-tab-list-nav");
+    root.querySelector(".astryx-tab-menu__trigger").click();
+    await new Promise((r) => setTimeout(r, 120));
+    const trig = root.querySelector(".astryx-tab-menu__trigger");
+    const items = root.querySelectorAll('[data-astryx-component="Popover"] .astryx-tab-menu__item');
+    return {
+      expanded: trig?.getAttribute("aria-expanded") ?? null,
+      items: [...items].map((i) => ({
+        role: i.getAttribute("role"),
+        checked: i.getAttribute("aria-checked"),
+      })),
+    };
+  });
+  check("the trigger expands the overflow menu into menuitemradio options",
+    tlMenuOpen?.expanded === "true" && tlMenuOpen?.items.length >= 3
+      && tlMenuOpen?.items.every((i) => i.role === "menuitemradio"),
+    JSON.stringify(tlMenuOpen));
+
+  const tlAria = await tlState();
+  check("the WAI-ARIA tablist pattern asserts role=tablist + role=tab + aria-selected",
+    tlAria?.ariaRole === "tablist" && tlAria?.ariaLabel === "Tabbed panels"
+      && tlAria?.ariaTabs[0]?.role === "tab"
+      && tlAria?.ariaTabs[0]?.selected === "true"
+      && tlAria?.ariaTabs[1]?.selected === "false"
+      && tlAria?.ariaTabs[0]?.controls === "panel-one",
+    JSON.stringify(tlAria));
+  check("the tablist pattern ignores href (no anchor element is emitted)",
+    tlAria?.ariaTabs[2]?.tag === "BUTTON",
+    JSON.stringify(tlAria?.ariaTabs[2]));
+  const tlFill = await tlState();
+  check("layout=fill classifies the wrapper and every tab",
+    tlFill?.fill === true && tlFill?.fillTabCount === 3 && tlFill?.fillTabs === 3,
+    JSON.stringify(tlFill));
 
   // ---------------------------------------------------------------- OverflowList (M30)
   //

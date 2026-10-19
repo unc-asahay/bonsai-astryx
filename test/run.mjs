@@ -3009,6 +3009,60 @@ check("a disabled group says so once, on the box", (() => {
     sc && sc.getAttribute("data-astryx-fade") === null);
 }
 
+// --- TabList (M53)
+{
+  const host = document.querySelector('[data-case="tab-list-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const stripOf = (id) => g(id)?.querySelector('.astryx-tab-list__strip');
+  const tabsOf = (id) => g(id)?.querySelectorAll('.astryx-tab') || [];
+  check("the TabList fixture mounts three tab lists",
+    !!g("rt-tb-basic") && !!g("rt-tb-aria") && !!g("rt-tb-fill"));
+  const nav = g("rt-tb-basic");
+  check("the nav wrapper is an astryx-tab-list landmark with divider + md size",
+    !!nav
+    && nav.hasAttribute("data-astryx-tab-list")
+    && nav.classList.contains("astryx-tab-list--divider")
+    && nav.classList.contains("astryx-tab-list--md")
+    && nav.tagName.toLowerCase() === "nav"
+    && !!stripOf("rt-tb-basic"));
+  const tabs = tabsOf("rt-tb-basic");
+  check("each tab is a single tab stop and the selected tab is aria-current",
+    tabs.length === 5
+    && tabs[0].getAttribute("tabindex") === "0"
+    && tabs[1].getAttribute("tabindex") === "-1"
+    && tabs[0].getAttribute("aria-current") === "true"
+    && tabs[0].classList.contains("astryx-tab--selected")
+    && tabs[0].getAttribute("data-tab-value") === "one");
+  check("a disabled tab is skipped for activation and flagged to AT",
+    tabs[2].getAttribute("aria-disabled") === "true"
+    && tabs[2].classList.contains("astryx-tab--disabled"));
+  check("the menu trigger expands an options menu (closed here)",
+    !!nav.querySelector('.astryx-tab-menu__trigger')
+    && nav.querySelector('.astryx-tab-menu__trigger').getAttribute("aria-expanded") === "false"
+    && nav.querySelector('.astryx-tab-menu__trigger').getAttribute("aria-haspopup") === "menu");
+  const aria = g("rt-tb-aria");
+  const ariaStrip = stripOf("rt-tb-aria");
+  const ariaTabs = tabsOf("rt-tb-aria");
+  check("the tablist pattern asserts tab semantics on strip and missiles",
+    ariaStrip?.getAttribute("role") === "tablist"
+    && ariaStrip?.getAttribute("aria-label") === "Panels"
+    && ariaTabs.length === 3
+    && ariaTabs[0].getAttribute("role") === "tab"
+    && ariaTabs[0].getAttribute("aria-selected") === "true"
+    && ariaTabs[1].getAttribute("aria-selected") === "false"
+    && ariaTabs[0].getAttribute("aria-controls") === "rt-tb-p1");
+  check("the tabs pattern ignores href (no anchor link is emitted)",
+    ariaTabs[2].tagName.toLowerCase() !== "a"
+    && !ariaTabs[2].hasAttribute("href"));
+  const fill = g("rt-tb-fill");
+  check("fill layout + sm size classify wrapper and tabs",
+    fill?.classList.contains("astryx-tab-list--fill")
+    && fill.classList.contains("astryx-tab-list--sm")
+    && (tabsOf("rt-tb-fill")[0]?.classList.contains("astryx-tab--fill"))
+    && (tabsOf("rt-tb-fill")[0]?.classList.contains("astryx-tab--sm")));
+}
+
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

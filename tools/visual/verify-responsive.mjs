@@ -170,6 +170,21 @@ const GRID_PROBE = () => {
 
 const LAYOUT_PROBE = () => {
   const vw = window.innerWidth;
+  // A component inside a *scrollable* ancestor is content of a scroll viewport, not
+  // an escape: TabList's overflow menu trigger sits beyond the stripped edge of a
+  // horizontally scrollable strip (which is the point — it scrolls into view). Ask
+  // whether any of an element's ancestors actually scrolls, and treat boxes clipped
+  // by that container as inside the viewport rather than off it.
+  const insideScrollable = (el) => {
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      const scrollable =
+        ((s.overflowX === "auto" || s.overflowX === "scroll") && a.scrollWidth > a.clientWidth + 1) ||
+        ((s.overflowY === "auto" || s.overflowY === "scroll") && a.scrollHeight > a.clientHeight + 1);
+      if (scrollable) return true;
+    }
+    return false;
+  };
   const boxes = [...document.querySelectorAll("[data-astryx-component]")]
     // Ask each element whether it renders at all, rather than assuming every marked component has a
     // box. A closed <dialog> is display:none by the platform and its *contents* collapse with it —
@@ -184,6 +199,7 @@ const LAYOUT_PROBE = () => {
       right: Math.round(r.right),
       width: Math.round(r.width),
       height: Math.round(r.height),
+      insideScrollable: insideScrollable(el),
     };
   });
   const ar = document.querySelector("[data-astryx-aspect-ratio]");
@@ -194,7 +210,8 @@ const LAYOUT_PROBE = () => {
     bodyScrollWidth: document.body ? document.body.scrollWidth : 0,
     boxes,
     collapsed: boxes.filter((b) => b.width === 0 || b.height === 0),
-    escaping: boxes.filter((b) => b.right > vw + 1 || b.left < -1),
+    escaping: boxes.filter((b) => b.right > vw + 1 || b.left < -1)
+      .filter((b) => !b.insideScrollable),
     aspect: arBox ? { w: Math.round(arBox.width), h: Math.round(arBox.height) } : null,
     navLinks: [...document.querySelectorAll(".nav-list a")].map((a) => {
       const r = a.getBoundingClientRect();

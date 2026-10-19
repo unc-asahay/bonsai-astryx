@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Icon` (`src/icon.ml`, M8)
-- rendered instances in the demo: 132
-- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-carousel__nav-icon`, `astryx-collapsible__chevron`, `astryx-collapsible__chevron--closed`, `astryx-collapsible__chevron--expanded`, `astryx-collapsible__chevron--start`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`
+- rendered instances in the demo: 136
+- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-carousel__nav-icon`, `astryx-collapsible__chevron`, `astryx-collapsible__chevron--closed`, `astryx-collapsible__chevron--expanded`, `astryx-collapsible__chevron--start`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`, `astryx-tab-menu__chevron-icon`
 
 ## layout
 
@@ -54,9 +54,9 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `transition-duration` | `175ms` _(from `var(--duration-fast)`)_<br>`175ms` _(from `var(--duration-fast)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
-| `transition-property` | `transform`<br>`transform` | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
-| `transition-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_<br>`cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
+| `transition-duration` | `175ms` _(from `var(--duration-fast)`)_<br>`175ms` _(from `var(--duration-fast)`)_<br>`175ms` _(from `var(--duration-fast)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron`<br>`.astryx-tab-menu__chevron-icon` |
+| `transition-property` | `transform`<br>`transform`<br>`transform` | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron`<br>`.astryx-tab-menu__chevron-icon` |
+| `transition-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_<br>`cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_<br>`cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron`<br>`.astryx-tab-menu__chevron-icon` |
 
 ## tokens referenced
 

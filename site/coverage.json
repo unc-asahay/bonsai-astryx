@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 72,
-    "unported": 31,
+    "ported": 73,
+    "unported": 30,
     "total": 103,
     "documented": 103
   },
@@ -372,6 +372,12 @@
       "milestone": "M12"
     },
     {
+      "name": "TabList",
+      "module": "Astryx.Tab_list",
+      "file": "src/tab_list.ml",
+      "milestone": "M53"
+    },
+    {
       "name": "Text",
       "module": "Astryx.Text",
       "file": "src/text.ml",
@@ -468,7 +474,6 @@
     "Selector",
     "SideNav",
     "Stepper",
-    "TabList",
     "Table",
     "TimeInput",
     "Timestamp",

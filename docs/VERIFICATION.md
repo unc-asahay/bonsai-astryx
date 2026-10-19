@@ -3865,3 +3865,33 @@ render without `href`), and there is no themeProps.
   PORT-STATUS 72/103; docs/visual/Carousel.md generated.
 - Recorded divergences: no imperative handle, no post-commit focus handoff,
   inline button overlay (no popup top layer), English labels.
+
+## Gate 70 — M53: TabList (coverage 72 -> 73)
+
+- `src/tab_list.ml` + `src/tab_list.mli` (data-driven `Tab of … | Menu of …`;
+  WAI-ARIA tabs vs nav semantics; roving-tabindex via the shared
+  `Common.List_focus`; measured overflow with edge fades + pointer-only arrow
+  buttons via the shared `Astryx.Scroll_overflow`; overflow menus in the house
+  `Popover` layer with `role="menu"`/`menuitemradio`); registered
+  `module Tab_list`.
+- `src/scroll_overflow.ml` + `src/scroll_overflow.mli` — NEW shared module:
+  the `Overflow_hook` measurement/listener hook, `scroll_by_js`, `wheel_js`
+  and `is_rtl` extracted from carousel.ml (both components use upstream
+  `useScrollOverflow`); registered `module Scroll_overflow`; carousel
+  behavior-neutral proven by the jsdom gate.
+- jsdom component gate: **736 checks, 0 failures** (8 new tab-list checks).
+- Browser gate: **517/517** (6 new live checks: selected tab carries
+  aria-current + roving tabindex and a real click moves both, the overflow
+  trigger expands into menuitemradio options, the tablist pattern asserts
+  role=tablist / role=tab / aria-selected / aria-controls with href ignored,
+  layout=fill classifies wrapper and tabs).
+- Responsive gate: **66/66** (probe now treats content inside a genuinely
+  scrollable ancestor as scrolled content, not an escape — the tab strip's
+  overflow menu trigger sits beyond the strip edge by design).
+- Showcase: 4 examples, section + nav + wiring; CSS block appended
+  (strip/bleed/mask/arrows/tab/menu classes + focus-visible).
+- README: 73 of 103 ported (M41–M53), 736 checks, 480 examples, 75 sections;
+  PORT-STATUS 73/103; docs/visual/TabList.md generated.
+- Recorded divergences: data-driven (`items` list, no React context),
+  horizontal arrows only (no vertical axis), no per-tab onClick, no keyboard
+  hint, CSS hover/active instead of the touch-press overlay.

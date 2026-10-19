@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-73 ported component(s). Each page records the appearance the port
+74 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -38,7 +38,7 @@ for image generation.
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 132 | 22 | 14 | 11 | [Icon.md](Icon.md) |
+| Icon | 136 | 23 | 14 | 11 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 79 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
@@ -57,7 +57,7 @@ for image generation.
 | NumberInput | 10 | 5 | 19 | 9 | [NumberInput.md](NumberInput.md) |
 | OverflowList | 3 | 1 | 3 | 0 | [OverflowList.md](OverflowList.md) |
 | Overlay | 12 | 2 | 2 | 0 | [Overlay.md](Overlay.md) |
-| Popover | 2 | 6 | 15 | 10 | [Popover.md](Popover.md) |
+| Popover | 6 | 6 | 15 | 10 | [Popover.md](Popover.md) |
 | ProgressBar | 8 | 1 | 5 | 1 | [ProgressBar.md](ProgressBar.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
 | ScrollableArea | 7 | 1 | 7 | 1 | [ScrollableArea.md](ScrollableArea.md) |
@@ -70,6 +70,7 @@ for image generation.
 | Stack | 59 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
+| TabList | 4 | 4 | 10 | 4 | [TabList.md](TabList.md) |
 | Text | 74 | 16 | 8 | 27 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
@@ -82,6 +83,6 @@ for image generation.
 | TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 30 components with no OCaml port. They
+Not listed: the 29 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

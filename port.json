@@ -740,6 +740,13 @@
    "file": "src/carousel.ml",
    "milestone": "M52",
    "module": "Astryx.Carousel"
+  },
+  {
+   "class": "A",
+   "component": "TabList",
+   "file": "src/tab_list.ml",
+   "milestone": "M53",
+   "module": "Astryx.Tab_list"
   }
  ],
  "schema": 1,

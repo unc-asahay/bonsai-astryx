@@ -838,6 +838,7 @@ module Bc = Astryx.Breadcrumbs
 module Bci = Astryx.Breadcrumb_item
 module Li = Astryx.List_item
 module Cr = Astryx.Carousel
+module Tb = Astryx.Tab_list
 
 let demo_menu_item
       ?description
@@ -2624,6 +2625,123 @@ let carousel_demo (graph : Bonsai.graph) =
 ;;
 
 ;;
+
+let tab_list_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let tab
+        ?(is_label_hidden = false)
+        ?href
+        ?panel_id
+        ?icon
+        ?selected_icon
+        ?end_content
+        ?(is_disabled = false)
+        value
+        label =
+    { Tb.value; label; is_label_hidden; href; panel_id; icon; selected_icon; end_content; is_disabled }
+  in
+  let option_item value label = { Tb.value; label; icon = None } in
+  let badge n =
+    Vdom.Node.span
+      ~attrs:[ Vdom.Attr.create "class" "showcase-tab-badge" ]
+      [ Vdom.Node.text (sprintf "%d" n) ]
+  in
+  let selected, set_selected = Bonsai.state "overview" graph in
+  let nav_items =
+    [ Tb.Tab (tab "overview" "Overview")
+    ; Tb.Tab (tab "messages" "Messages" ~end_content:(badge 3))
+    ; Tb.Tab (tab "search" "Search" ~icon:"search")
+    ; Tb.Tab (tab "archived" "Archived" ~is_disabled:true)
+    ; Tb.Menu
+        { label = "More"
+        ; options =
+            [ option_item "reports" "Reports"
+            ; option_item "analytics" "Analytics"
+            ; option_item "settings" "Settings"
+            ]
+        }
+    ]
+  in
+  let nav =
+    Tb.view
+      ~id:"showcase-tab-list-nav"
+      ~has_divider:true
+      ~value:selected
+      ~on_change:set_selected
+      ~items:nav_items
+      graph
+  in
+  let tab_sel, tab_set = Bonsai.state "one" graph in
+  let tabs_items =
+    [ Tb.Tab (tab ~panel_id:"panel-one" "one" "One")
+    ; Tb.Tab (tab ~panel_id:"panel-two" "two" "Two")
+    ; Tb.Tab (tab ~panel_id:"panel-three" "three" "Three" ~href:"#ignored")
+    ]
+  in
+  let tabs =
+    Tb.view
+      ~id:"showcase-tab-list-aria"
+      ~role:"tablist"
+      ~aria_label:"Tabbed panels"
+      ~value:tab_sel
+      ~on_change:tab_set
+      ~items:tabs_items
+      graph
+  in
+  let fill_sel, fill_set = Bonsai.state "alpha" graph in
+  let fill_items =
+    [ Tb.Tab (tab "alpha" "Alpha"); Tb.Tab (tab "beta" "Beta"); Tb.Tab (tab "gamma" "Gamma") ]
+  in
+  let fill =
+    Tb.view
+      ~id:"showcase-tab-list-fill"
+      ~layout:Tb.Fill
+      ~value:fill_sel
+      ~on_change:fill_set
+      ~items:fill_items
+      graph
+  in
+  let menu_sel, menu_set = Bonsai.state "analytics" graph in
+  let menu_items =
+    [ Tb.Tab (tab "overview" "Overview"); Tb.Tab (tab "activity" "Activity") ]
+    @ [ Tb.Menu
+          { label = "More"
+          ; options = [ option_item "analytics" "Analytics"; option_item "reports" "Reports" ]
+          }
+      ]
+  in
+  let menu_demo =
+    Tb.view
+      ~id:"showcase-tab-list-menu"
+      ~value:menu_sel
+      ~on_change:menu_set
+      ~items:menu_items
+      graph
+  in
+  [ ex_tree "tabs (navigation, divider, menu, badge, disabled)" nav
+  ; ex_tree "tabs (WAI-ARIA tablist, panel ids)" tabs
+  ; ex_tree "layout = fill" fill
+  ; ex_tree "selected option inside the menu" menu_demo
+  ]
+  |> fun examples ->
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+      section ~id:"tab-list" ~title:"TabList"
+        ~note:
+          "A tab strip: navigation or WAI-ARIA tabs semantics, roving-tabindex \
+           keyboard navigation, measured overflow scrolling with edge fades and \
+           pointer-only arrows, selected-tab reveal, optional full-bleed and \
+           divider, and menu triggers holding overflow options. Port of \
+           facebook/astryx TabList/Tab/TabMenu; the API is data-driven (no \
+           React context, per house rule) and the PHP keyboard hint, the \
+           vertical arrow axes and the touch press overlay are not ported \
+           (see tab_list.mli)."
+        examples)
+;;
+
 let tooltip_demo (graph : Bonsai.graph) =
   let open Astryx in
   let join_all (trees : Vdom.Node.t Bonsai.t list) =
@@ -4913,6 +5031,7 @@ let nav_items =
   ; "collapsible", "Collapsible"
   ; "breadcrumbs", "Breadcrumbs"
   ; "carousel", "Carousel"
+  ; "tab-list", "TabList"
   ]
 ;;
 
@@ -5749,15 +5868,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful breadcrumbs_section in
   let carousel_section = carousel_demo graph in
   let stateful = pair stateful carousel_section in
+  let tab_list_section = tab_list_demo graph in
+  let stateful = pair stateful tab_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel)
+    ~f:(fun (((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list ])
       ])
 ;;
 
