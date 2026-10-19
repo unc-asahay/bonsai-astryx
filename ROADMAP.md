@@ -1056,3 +1056,42 @@ rejects the entire handoff, and the element still renders, without a destination
 granularity, so reusing the helper unexamined would produce a link that quietly keeps a href it should have
 dropped.
 
+## M59 recon — Toast is next (measured, dependency-closure checked)
+
+M58 (Outline) landed as `92ca82d`; the tree is at 78/103. The plan was re-measured from scratch this run:
+`registry.json` (103) minus `port.json.ported` (78) = **25 unported**, and each candidate's honest size is
+its whole directory of non-test `.ts/.tsx`, with each dependency checked against what `src/` actually
+exports (the port's `src/` list, not upstream's).
+
+Smallest first, with the dependency reality:
+
+- **`Toast` (~1,814 LOC, 6 files)** — `Toast.tsx` (339) + `ToastViewport.tsx` (~700) + `useToast.tsx` +
+  `useToastGesture.ts` (~300) + `ToastContext` + `types`. Every import (Button, Dialog,
+  `useAnnounce`, `useClickableContainer`, Icon, Layer surface/inset, i18n, naming, theme) exists in the
+  port. The **one gap is `Layer/modalOutlet`** — upstream renders the viewport in a portal; this port has
+  no portal (in-place layers are the standing divergence, already written in `layer.mli`). So the
+  milestone's real decision: with no portal, the viewport is a caller-mounted top-level element and the
+  toasts flow to it as a value (controlled from app state), or the module owns a registry the viewport
+  reads. Shape is the work; nothing is blocked on an unported component. → **M59 = Toast.**
+- **`CodeBlock` (~2,417 LOC, 5 files)** — `CodeBlock.tsx` (1,164) + `highlightRanges` +
+  `highlightStyles` + `tokenizer` + index. Deps all ported (Code, IconButton, ScrollableArea,
+  useAnnounce, Icon) except `hooks/useClipboard`, which the port does not have — a small new helper
+  (navigator.clipboard via Js_of_ocaml). Second.
+- **`Typeahead` (~2,574 LOC)** — deps present (Field, InputGroup, Popover, Layer `clampInlineSize`,
+  Spinner). A combobox: option highlighting, listbox keyboard, busy lane. Third.
+- **`ContextMenu` (811/862 in dir) is NOT unblocked despite being smallest by size.** Its one real file
+  imports DropdownMenu's phase-2 internals — `useMenuDrillIn`, `useMenuOverflow`, `renderDropdownItems`,
+  `MenuBottomSheetActionList`, `useAdaptivePresentation` — none of which the port's phase-1
+  `DropdownMenu` exposes. Landing ContextMenu without them means a named-divergence subset (no submenu,
+  no overflow, no bottom-sheet presentation); landing them is the DropdownMenu phase-2 milestone,
+  which ContextMenu would then be the consumer of (exactly MoreMenu's story). Either way it is not the
+  cheapest next step.
+- Blocked outright: `DateRangeInput` (Calendar), `AppShell`/`MobileNav` (each other + SideNav),
+  `Pagination` (Selector), `TimeInput` (BottomSheet + DateInput internals), `MultiSelector` (Selector),
+  `Stepper`/`TopNav`/`SideNav`/`Calendar`/`PowerSearch`/`Markdown`/`Chat`/`BottomSheet` — all larger or
+  gated on a pillar (Selector/Calendar).
+
+Correction to the earlier tally: "CodeBlock 1820" and "Resizable 1910" are close but the honest
+CodeBlock is ~2,417 (local `highlightRanges`/`highlightStyles`/`tokenizer` count), and Resizable
+(~2,451) is bigger than Toast either way.
+
