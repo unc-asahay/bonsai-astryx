@@ -1095,3 +1095,48 @@ Correction to the earlier tally: "CodeBlock 1820" and "Resizable 1910" are close
 CodeBlock is ~2,417 (local `highlightRanges`/`highlightStyles`/`tokenizer` count), and Resizable
 (~2,451) is bigger than Toast either way.
 
+
+## Status after the parallel batch (2026-10-19, 81/103)
+
+Landed in this batch: **M59 Toast**, **M61 Resizable**, **M64 MobileNav**.
+The batch runs ten workers in parallel, each in its own git worktree
+(`/home/noor/.hermes/worktrees/bonsai-<name>`, branch `wip-<name>`); a worker
+owns only `src/<name>.ml`, `src/<name>.mli`, `assets/parts/<name>.css`,
+`examples/showcase/sec_<name>.ml` and one line in `src/astryx.ml`, while a
+single integrator owns the shared files. `docs/PORTING-BRIEF.md` is the
+contract; `tools/integrate-port.py` and `tools/sync-counts.py` do the
+integrator's mechanical half.
+
+The 22 still unported, with the honest size of each upstream directory and
+what unblocks it:
+
+| Component | LOC | files | unblocked by |
+|---|---|---|---|
+| SideNav | 3,006 | 14 | MobileNav (landed) |
+| TopNav | 3,149 | 21 | MobileNav (landed) |
+| ContextMenu | 862 | 8 | DropdownMenu phase-2 internals — landing it IS that milestone |
+| TimeInput | 1,577 | 8 | BottomSheet (in flight) |
+| DateRangeInput | 872 | 6 | Calendar (in flight) |
+| Pagination | 939 | 5 | Selector (in flight) |
+| CommandPalette | 1,767 | 29 | Selector + Typeahead (in flight) |
+| DateInput | 5,584 | 20 | Calendar + BottomSheet |
+| DateTimeInput | 4,382 | 13 | Calendar + TimeInput |
+| PowerSearch | 4,926 | 25 | Selector |
+| Table | 11,302 | 49 | Selector |
+| Markdown | 16,271 | 55 | CodeBlock + Table |
+
+In flight in this batch: Toast (landed), CodeBlock, Resizable (landed),
+Typeahead, Tokenizer, Stepper, AppShell, MultiSelector, Selector, MobileNav
+(landed), Calendar, BottomSheet, Chat.
+
+Two lessons from this batch, both now written into the tooling:
+
+1. **A showcase section is not compiled until something references it.** Dune
+   only builds a module in `examples/showcase/` once the section is wired in, so
+   a worker can commit a section with a type error in it and see a green build.
+   The integrator now compiles every section it wires, and the workers are told
+   to compile their own section before committing.
+2. **A count in the gate is named twice** — in the label and in the comparison —
+   and so is the coverage panel, which is generated from `port.json` and has to
+   be regenerated before the gate compares the page against it.
+   `tools/sync-counts.py` moves both halves and regenerates the panel.
