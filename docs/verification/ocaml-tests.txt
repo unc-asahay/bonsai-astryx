@@ -710,6 +710,13 @@ DialogHeader
   ok   every interactive-role case matches upstream's priority order
   ok   the target/rel fixture rendered its cases
   ok   every target/rel case is normalized the way upstream normalizes it
+  ok   four lists render (basic, dividers, ordered, compact)
+  ok   the basic list is a ul with role=list and the list class
+  ok   each list carries three li rows
+  ok   dividers: data flag, header and aria-labelledby pairing
+  ok   the ordered list is an ol with start=4 and decimal marker
+  ok   the compact list carries its density
+  ok   rows are Items carrying marker spans
 
-624 checks, 0 failure(s)
+631 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

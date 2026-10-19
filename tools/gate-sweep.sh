@@ -149,7 +149,12 @@ for e in d["ported"]:
     f, mod = e.get("file", ""), e.get("module", "")
     if not os.path.exists(f):
         bad.append(f"{e['component']}: no such file {f}")
-    elif norm(mod.split(".")[-1]) != norm(e["component"]):
+    elif norm(mod.split(".")[-1]) != norm(e["component"]) and not e.get("divergent_module"):
+        # divergent_module: an explicit opt-out carrying a note — the OCaml module name is
+        # addressable-different from the upstream component (List -> List_container, because
+        # a top-level module named List shadows Stdlib/Core in this unwrapped library).
+        # EVERY exception must be introduced with a note in port.json; the invariant stays
+        # on for every other entry.
         bad.append(f"{e['component']}: module {mod} belongs to a different component")
 print(f"ported entries: {len(d['ported'])}; correctly attributed: {len(d['ported']) - len(bad)}")
 for b in bad:

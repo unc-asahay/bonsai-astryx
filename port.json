@@ -670,6 +670,15 @@
       "file": "src/item.ml",
       "milestone": "M44",
       "module": "Astryx.Item"
+    },
+    {
+      "class": "C",
+      "component": "List",
+      "file": "src/list_container.ml",
+      "milestone": "M45",
+      "module": "Astryx.List_container",
+      "divergent_module": true,
+      "note": "M45. Divergence: the OCaml module is Astryx.List_container (renamed because a top-level module named List shadows Stdlib/Core in this effectively-unwrapped library \u2014 the 'List' name is un-addressable; empirically src/list.ml -> dependency cycle Vstack \u2192 Common \u2192 List \u2192 Common). List_item is the row builder. divergent_module: true."
     }
   ],
   "schema": 1,

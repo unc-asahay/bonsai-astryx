@@ -831,6 +831,8 @@ module Ov = Astryx.Overlay
 module Fi = Astryx.File_input
 module Lay = Astryx.Layout
 module Sl = Astryx.Slider
+module Lc = Astryx.List_container
+module Li = Astryx.List_item
 
 let demo_menu_item
       ?description
@@ -4314,6 +4316,7 @@ let nav_items =
   ; "layout", "Layout"
   ; "slider", "Slider"
   ; "item", "Item"
+  ; "list", "List"
   ]
 ;;
 
@@ -4812,6 +4815,74 @@ let item_demo (graph : Bonsai.graph) =
       [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
 ;;
 
+let list_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let row label = Li.view ~label:(Vdom.Node.text label) graph in
+  let rowd ?(d = "") label =
+    if String.equal d ""
+    then Li.view ~label:(Vdom.Node.text label) graph
+    else Li.view ~label:(Vdom.Node.text label) ~description:(Vdom.Node.text d) graph
+  in
+  let basic =
+    Bonsai.map (join_all [ row "Inbox"; row "Snoozed"; row "Important" ])
+      ~f:(fun nodes -> Lc.view ~items:nodes ())
+  in
+  let dividers =
+    Bonsai.map
+      (join_all
+         [ rowd ~d:"Drag to reorder" "Read later"
+         ; rowd ~d:"Clips from anywhere" "Saved items"
+         ; rowd ~d:"Shared with you" "Shared"
+         ])
+      ~f:(fun nodes ->
+        Lc.view ~has_dividers:true
+          ~header:(Vdom.Node.h3 ~attrs:[ Vdom.Attr.class_ "list-demo-header" ] [ Vdom.Node.text "Saved" ])
+          ~items:nodes ())
+  in
+  let density =
+    Bonsai.map (join_all [ row "Alpha"; row "Beta"; row "Gamma" ])
+      ~f:(fun nodes -> Lc.view ~density:Lc.Compact ~items:nodes ())
+  in
+  let spacious =
+    Bonsai.map
+      (join_all
+         [ Li.view ~label:(Vdom.Node.text "GitHub")
+             ~start_content:(Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "glyph" ] [ Vdom.Node.text "G" ])
+             ~end_content:(Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "badge" ] [ Vdom.Node.text "new" ])
+             graph
+         ; Li.view ~label:(Vdom.Node.text "Linear")
+             ~start_content:(Vdom.Node.span ~attrs:[ Vdom.Attr.class_ "glyph" ] [ Vdom.Node.text "L" ])
+             graph
+         ])
+      ~f:(fun nodes -> Lc.view ~density:Lc.Spacious ~has_dividers:true ~items:nodes ())
+  in
+  let ordered =
+    Bonsai.map (join_all [ row "First"; row "Second"; row "Third" ])
+      ~f:(fun nodes -> Lc.view ~list_style:Lc.Decimal ~start:4 ~items:nodes ())
+  in
+  let disc =
+    Bonsai.map (join_all [ row "Apples"; row "Oranges"; row "Pears" ])
+      ~f:(fun nodes -> Lc.view ~list_style:Lc.Disc ~items:nodes ())
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let examples =
+    [ ex_tree "Basic list" basic
+    ; ex_tree "Dividers + header" dividers
+    ; ex_tree "Compact" density
+    ; ex_tree "Spacious with slot content" spacious
+    ; ex_tree "Ordered, start 4" ordered
+    ; ex_tree "Disc markers" disc
+    ]
+  in
+  let nodes = join_all examples in
+  Bonsai.map nodes ~f:(fun nodes ->
+    section ~id:"list" ~title:"List" ~note:"A vertical list of rows, with dividers, densities and list markers"
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -4879,15 +4950,17 @@ let page (graph : Bonsai.graph) =
 
   let item_section = item_demo graph in
   let stateful = pair stateful item_section in
+  let list_section = list_demo graph in
+  let stateful = pair stateful list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item)
+    ~f:(fun (((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list ])
       ])
 ;;
 

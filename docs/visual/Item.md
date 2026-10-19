@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Item` (`src/item.ml`, M44)
-- rendered instances in the demo: 17
+- rendered instances in the demo: 34
 - classes: `astryx-item`, `astryx-item--align-start`, `astryx-item--density-balanced`, `astryx-item--density-compact`, `astryx-item--density-spacious`, `astryx-item--highlighted`, `astryx-item--interactive`, `astryx-item--link-root`, `astryx-item--selected`, `astryx-item--swipe`
 
 ## layout
@@ -26,7 +26,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `align-items` | `center`<br>`flex-start` | `.astryx-item`<br>`.astryx-item--align-start` |
 | `box-sizing` | `border-box` | `.astryx-item` |
 | `display` | `flex` | `.astryx-item` |
-| `gap` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-item` |
+| `gap` | `8px` | `.astryx-item` |
 | `position` | `relative` | `.astryx-item` |
 
 ## other

@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **64 of 103** components.
+Ported: **65 of 103** components.
 
 ## Milestones
 
@@ -118,9 +118,10 @@ Ported: **64 of 103** components.
 | `Slider` | `Astryx.Slider` | `src/slider.ml` | M42 | C |
 | `Layer` | `Astryx.Layer` | `src/layer.ml` | M43 | C |
 | `Item` | `Astryx.Item` | `src/item.ml` | M44 | C |
+| `List` | `Astryx.List_container` | `src/list_container.ml` | M45 | C |
 
-## Not ported yet (39)
+## Not ported yet (38)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `HoverCard`, `Lightbox`, `List`, `Markdown`, `MobileNav`, `MultiSelector`, `NumberInput`, `Outline`, `Pagination`, `PowerSearch`, `Resizable`, `Selector`, `SideNav`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`
+`AppShell`, `Banner`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CheckboxList`, `CodeBlock`, `Collapsible`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `HoverCard`, `Lightbox`, `Markdown`, `MobileNav`, `MultiSelector`, `NumberInput`, `Outline`, `Pagination`, `PowerSearch`, `Resizable`, `Selector`, `SideNav`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `TreeList`, `Typeahead`

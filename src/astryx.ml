@@ -13,6 +13,9 @@ module Avatar_status_dot = Avatar_status_dot
 module Metadata_list = Metadata_list
 module Metadata_list_item = Metadata_list_item
 
+module List_container = List_container
+module List_item = List_item
+
 module More_menu = More_menu
 
 module Popover = Popover

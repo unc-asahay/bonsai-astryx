@@ -2574,6 +2574,31 @@ check("a disabled group says so once, on the box", (() => {
   );
 }
 
+// --- List (M45)
+{
+  const host = document.querySelector('[data-case="list-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  check("four lists render (basic, dividers, ordered, compact)",
+    !!g("ls-basic") && !!g("ls-dividers") && !!g("ls-ordered") && !!g("ls-compact"));
+  check("the basic list is a ul with role=list and the list class",
+    g("ls-basic").tagName === "UL" && attr(g("ls-basic"), "role") === "list"
+    && hasClass(g("ls-basic"), /astryx-list/),
+    g("ls-basic") && g("ls-basic").outerHTML.slice(0, 120));
+  check("each list carries three li rows", g("ls-basic").querySelectorAll(":scope > li").length === 3);
+  check("dividers: data flag, header and aria-labelledby pairing",
+    attr(g("ls-dividers"), "data-astryx-dividers") === "true"
+    && !!g("ls-dividers").parentElement.querySelector(".astryx-list__header h3")
+    && g("ls-dividers").getAttribute("aria-labelledby")?.length > 0
+    && !!document.getElementById(g("ls-dividers").getAttribute("aria-labelledby")));
+  check("the ordered list is an ol with start=4 and decimal marker",
+    g("ls-ordered").tagName === "OL" && attr(g("ls-ordered"), "start") === "4"
+    && attr(g("ls-ordered"), "data-astryx-marker") === "decimal"
+    && g("ls-ordered").querySelectorAll("li .astryx-list-item__marker").length === 3);
+  check("the compact list carries its density", attr(g("ls-compact"), "data-astryx-density") === "compact"
+    && hasClass(g("ls-compact"), /--density-compact/));
+  check("rows are Items carrying marker spans", g("ls-basic").querySelectorAll("li.astryx-item").length === 3);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

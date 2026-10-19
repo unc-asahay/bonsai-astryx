@@ -3481,3 +3481,33 @@ the three reveal drags in `verify-browser.mjs` to the *measured panel width*
 unchanged (they are deliberately 0.85w, far past the threshold). Responsive then
 re-baselined clean: 66 checks, 0 failures.
 
+
+## Gate 62 — M45: List (coverage 64 -> 65)
+
+The list primitive, ported from `facebook/astryx` `List/List.tsx` + `List/ListHeader.tsx`
++ `List/ListItem.tsx`. **Namespace note:** OCaml cannot name this module `List` here —
+the library is effectively unwrapped (its main module is present), so a top-level
+`List` shadows Stdlib/Core for every linked unit (empirically: `src/list.ml` → dependency
+cycle `Vstack -> Common -> List -> Common` plus `List.fold` errors; the alias-only variant
+→ `Unbound value List.fold`). The public path is `Astryx.List_container` with the
+component rendered by `Astryx.List_item` (an `Item` row composed with `as_:Li` and a
+marker span). Documented divergence in `port.json`.
+
+- `Astryx.List_container.view`: decorates `<ul>`/`<ol>` with `role="list"`,
+  `data-astryx-component`, `data-astryx-density` (spacious/compact/comfortable),
+  `data-astryx-dividers`, `data-astryx-marker` (decimal/none/...), `data-astryx-edge`,
+  CSS-counter-based `start` on `ol`, header (description + heading) paired via generated
+  `id`/`aria-labelledby`, horizontal scroll, alignment. Dividers are an inherited layout
+  rule (rows render borders when the list was given dividers; `List_item`/`Item` rows have
+  no divider class of their own). Custom-counter markers via `--astryx-list-counter`.
+- Verified: `dune build` exit 0; showcase List section (6 examples) + nav entry;
+  jsdom fixture `list-all` (basic 3-row, dividers + header, ordered start=4, compact);
+  component gate **631 checks, 0 failures** (+7); browser gate **442/442** (List live:
+  role=list ul with three rows, divider header aria-labelledby pairing, decimal ol start=4
+  with marker spans, compact density class+data); responsive **66/66** after
+  re-baseline; `gen-references.py` + `gen-port-status.py` + `gen-coverage.mjs` +
+  `gen-visual-contract.mjs` (docs/visual/List.md) regenerated; PORT-STATUS 65/38.
+- Component tests: **631/0**. Browser showcase: **442/442**. Responsive: **66/66**.
+- Files: `src/list_container.ml/.mli`, `src/list_item.ml/.mli`, `assets/components.css`
+  (`.astryx-list__*`), `examples/showcase/showcase.ml` (List section), `test/rt_test.ml`,
+  `test/run.mjs`, `tools/visual/verify-browser.mjs`, `README.md`.

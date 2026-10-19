@@ -1,0 +1,22 @@
+M45: List - the list primitive (List_container)
+
+Port upstream List/List.tsx + ListHeader.tsx + ListItem.tsx as Astryx.List_container
+(a role=list decorator for ul/ol) with rows built by Astryx.List_item (an Item
+composed with as_:Li plus a marker span). Density (spacious/comfortable/compact),
+dividers (inherited row-border rule), CSS-counter numbering with start, custom
+counter markers, header + description paired to the list through aria-labelledby
+with generated ids, horizontal scrolling, edge alignment.
+
+Namespace divergence, documented in port.json: OCaml cannot expose this as
+"List" here — the library is effectively unwrapped, so a top-level List shadows
+Stdlib/Core for every linked unit (src/list.ml -> dependency cycle Vstack ->
+Common -> List -> Common plus List.fold errors; the alias-only variant -> Unbound
+value List.fold). Public path: Astryx.List_container.
+
+Verified: dune build exit 0; showcase List section (6 examples) + nav; jsdom
+fixture list-all; component gate 631 checks / 0 failures (+7); browser gate
+442/442 (List live checks: role=list ul with three rows, divider header through
+aria-labelledby, decimal ol start=4 with marker spans, compact density); responsive
+66/66 after re-baseline; generators regenerated (PORT-STATUS 65/38,
+site/coverage.json 65-38-103, docs/visual/List.md); full sweep in
+docs/verification/sweep-m45.txt.

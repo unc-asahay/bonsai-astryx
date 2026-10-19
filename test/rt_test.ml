@@ -2786,6 +2786,46 @@ let item_component (graph : Bonsai.graph) =
     Vdom.Node.div ~attrs:[ Vdom.Attr.id "it-all" ] nodes)
 ;;
 
+
+let list_component (graph : Bonsai.graph) =
+  let row ?desc label =
+    match desc with
+    | Some d -> Astryx.List_item.view ~id:(sprintf "li-%s" label) ~label:(Vdom.Node.text label)
+                  ~description:(Vdom.Node.text d) graph
+    | None -> Astryx.List_item.view ~id:(sprintf "li-%s" label) ~label:(Vdom.Node.text label) graph
+  in
+  let plain = [ row "Alpha"; row "Beta"; row "Gamma" ] in
+  let join_rows rows =
+    List.fold rows ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let basic =
+    Bonsai.map (join_rows plain)
+      ~f:(fun nodes -> Astryx.List_container.view ~id:"ls-basic" ~items:nodes ())
+  in
+  let dividers =
+    Bonsai.map (join_rows plain)
+      ~f:(fun nodes ->
+        Astryx.List_container.view ~id:"ls-dividers" ~has_dividers:true
+          ~header:(Vdom.Node.h3 [ Vdom.Node.text "Saved" ]) ~items:nodes ())
+  in
+  let ordered =
+    Bonsai.map (join_rows plain)
+      ~f:(fun nodes ->
+        Astryx.List_container.view ~id:"ls-ordered"
+          ~list_style:Astryx.List_container.Decimal ~start:4 ~items:nodes ())
+  in
+  let compact =
+    Bonsai.map (join_rows plain)
+      ~f:(fun nodes ->
+        Astryx.List_container.view ~id:"ls-compact"
+          ~density:Astryx.List_container.Compact ~items:nodes ())
+  in
+  let tree = join_rows [ basic; dividers; ordered; compact ] in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "ls-all" ] nodes)
+;;
+
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create
@@ -2793,4 +2833,14 @@ let () =
       item_component
   in
   mount "item-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      list_component
+  in
+  mount "list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;

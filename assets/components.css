@@ -3743,3 +3743,29 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   background-color: var(--color-error);
   color: var(--color-on-error);
 }
+
+/* ---- List ---- */
+.astryx-list__wrap { display: flex; flex-direction: column; }
+.astryx-list__header { margin-bottom: 8px; }
+.astryx-list__wrap .astryx-list { margin: 0; padding-inline-start: 0; }
+.astryx-list {
+  display: flex; flex-direction: column; gap: 2px;
+  margin: 0; padding-inline-start: 0; list-style-type: none;
+}
+.astryx-list--with-counter { list-style-type: none; counter-reset: astryx-list 0; }
+.astryx-list[data-marker="disc"] .astryx-list-item__marker::before { content: "\2022"; }
+.astryx-list[data-marker="circle"] .astryx-list-item__marker::before { content: "\25E6"; }
+.astryx-list[data-marker="decimal"] { list-style-type: decimal; counter-reset: astryx-list; }
+.astryx-list[data-marker="decimal"] .astryx-list-item__marker { counter-increment: astryx-list; }
+.astryx-list[data-marker="decimal"] .astryx-list-item__marker::before { content: counter(astryx-list) ". "; }
+.astryx-list[data-marker="disc"] .astryx-list-item__marker,
+.astryx-list[data-marker="circle"] .astryx-list-item__marker,
+.astryx-list[data-marker="decimal"] .astryx-list-item__marker { display: inline-block; min-width: 18px; }
+.astryx-list > .astryx-item + .astryx-item[data-dividers="true"],
+.astryx-list[data-dividers="true"] > .astryx-item + .astryx-item { border-top: 1px solid var(--astryx-border, #d0d4dc); }
+.astryx-list > .astryx-item + .astryx-item { gap: 2px; }
+.astryx-list[data-dividers="true"] > .astryx-item + .astryx-item { padding-top: 6px; margin-top: 2px; }
+.astryx-list--density-compact > .astryx-item { padding-block: 2px; }
+.astryx-list--density-balanced > .astryx-item { padding-block: 4px; }
+.astryx-list--density-spacious > .astryx-item { padding-block: 8px; }
+.astryx-item { display: flex; align-items: center; gap: 8px; }

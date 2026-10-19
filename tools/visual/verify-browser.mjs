@@ -252,6 +252,7 @@ if (mode === "showcase") {
     "Layout",
     "Slider",
     "Item",
+    "List",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -614,7 +615,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("66 sections", sections.length === 66, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("67 sections", sections.length === 67, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -635,10 +636,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("407 examples across the page", totalExamples === 407, `got ${totalExamples}`);
+  check("413 examples across the page", totalExamples === 413, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -651,7 +652,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("66 nav links", nav.length === 66, `got ${nav.length}`);
+  check("67 nav links", nav.length === 67, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4037,15 +4038,49 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 64 ported / 39 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["64", "39", "103"]),
+    "coverage stats are 65 ported / 38 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["65", "38", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 39 entries", cov.unported === 39, `got ${cov.unported}`);
+  check("unported list rendered 38 entries", cov.unported === 38, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
 
+
+  // ---------------------------------------------------------------- List (M45)
+  console.log("\nList (live)");
+  const lf = await page.evaluate(() => {
+    const sec = document.querySelector('#list [data-astryx-component="List"]');
+    const grab = (sel) => sec && sec.querySelector(sel);
+    return {
+      found: !!sec,
+      basic: (() => {
+        const el = document.querySelector("#list .astryx-list");
+        return !!el && el.tagName === "UL" && el.getAttribute("role") === "list"
+          && el.querySelectorAll(":scope > li").length === 3;
+      })(),
+      dividers: (() => {
+        const el = document.querySelector("#list [data-astryx-dividers=\"true\"]");
+        const labelled = el && el.getAttribute("aria-labelledby");
+        return !!el && !!labelled && !!document.getElementById(labelled)
+          && !!el.closest(".astryx-list__wrap")?.querySelector(".astryx-list__header h3");
+      })(),
+      ordered: (() => {
+        const el = [...document.querySelectorAll("#list ol.astryx-list")].find((o) => o.getAttribute("start") === "4");
+        return !!el && el.getAttribute("data-astryx-marker") === "decimal"
+          && el.querySelectorAll("li .astryx-list-item__marker").length === 3;
+      })(),
+      compact: (() => {
+        const el = document.querySelector("#list .astryx-list--density-compact");
+        return !!el && el.getAttribute("data-astryx-density") === "compact";
+      })(),
+    };
+  });
+  check("the List section renders a role=list ul with three rows", lf.found && lf.basic, JSON.stringify(lf));
+  check("dividers carry a header paired through aria-labelledby", lf.dividers);
+  check("the ordered demo is a decimal ol starting at 4 with marker spans", lf.ordered);
+  check("the compact demo carries its density class and data", lf.compact);
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed
   // 50 ported components, 309 examples and 53 sections while the page it describes had 51, 312 and 54 -
   // every one of those changed in a single session, and no gate looked. A number a gate can compare is a
