@@ -113,3 +113,4 @@ module Item = Item
 module Token = Token
 module Tree_focus = Tree_focus
 module Tree_list = Tree_list
+module Number_input = Number_input

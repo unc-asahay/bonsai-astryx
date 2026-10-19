@@ -23,41 +23,41 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `position` | `absolute` | `.astryx-visually-hidden` |
+| `position` | `absolute`<br>`absolute` | `.astryx-visually-hidden` |
 
 ## other
 
 | property | value | source class |
 | --- | --- | --- |
 | `clip` | `rect(0 0 0 0)` | `.astryx-visually-hidden` |
-| `clip-path` | `inset(50%)` | `.astryx-visually-hidden` |
-| `height` | `1px` | `.astryx-visually-hidden` |
-| `width` | `1px` | `.astryx-visually-hidden` |
+| `clip-path` | `inset(50%)`<br>`inset(50%)` | `.astryx-visually-hidden` |
+| `height` | `1px`<br>`1px` | `.astryx-visually-hidden` |
+| `width` | `1px`<br>`1px` | `.astryx-visually-hidden` |
 
 ## spacing
 
 | property | value | source class |
 | --- | --- | --- |
-| `margin` | `-1px` | `.astryx-visually-hidden` |
-| `padding` | `0` | `.astryx-visually-hidden` |
+| `margin` | `-1px`<br>`-1px` | `.astryx-visually-hidden` |
+| `padding` | `0`<br>`0` | `.astryx-visually-hidden` |
 
 ## effects
 
 | property | value | source class |
 | --- | --- | --- |
-| `overflow` | `hidden` | `.astryx-visually-hidden` |
+| `overflow` | `hidden`<br>`hidden` | `.astryx-visually-hidden` |
 
 ## type
 
 | property | value | source class |
 | --- | --- | --- |
-| `white-space` | `nowrap` | `.astryx-visually-hidden` |
+| `white-space` | `nowrap`<br>`nowrap` | `.astryx-visually-hidden` |
 
 ## borders
 
 | property | value | source class |
 | --- | --- | --- |
-| `border` | `0` | `.astryx-visually-hidden` |
+| `border` | `0`<br>`0` | `.astryx-visually-hidden` |
 
 ## tokens referenced
 

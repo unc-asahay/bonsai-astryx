@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-67 ported component(s). Each page records the appearance the port
+68 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -27,13 +27,13 @@ for image generation.
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 6 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 60 | 2 | 5 | 1 | [Field.md](Field.md) |
-| FieldStatus | 13 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
+| Field | 70 | 2 | 5 | 1 | [Field.md](Field.md) |
+| FieldStatus | 14 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | FileInput | 6 | 4 | 19 | 11 | [FileInput.md](FileInput.md) |
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 82 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| Icon | 88 | 15 | 9 | 8 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
@@ -49,6 +49,7 @@ for image generation.
 | MoreMenu | 3 | 4 | 25 | 10 | [MoreMenu.md](MoreMenu.md) |
 | NavHeadingMenu | 3 | 4 | 3 | 1 | [NavHeadingMenu.md](NavHeadingMenu.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
+| NumberInput | 10 | 5 | 19 | 9 | [NumberInput.md](NumberInput.md) |
 | OverflowList | 3 | 1 | 3 | 0 | [OverflowList.md](OverflowList.md) |
 | Overlay | 12 | 2 | 2 | 0 | [Overlay.md](Overlay.md) |
 | Popover | 2 | 6 | 15 | 10 | [Popover.md](Popover.md) |
@@ -76,6 +77,6 @@ for image generation.
 | TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 36 components with no OCaml port. They
+Not listed: the 35 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

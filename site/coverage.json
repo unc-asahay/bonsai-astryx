@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 66,
-    "unported": 37,
+    "ported": 67,
+    "unported": 36,
     "total": 103,
     "documented": 103
   },
@@ -246,6 +246,12 @@
       "milestone": "M7"
     },
     {
+      "name": "NumberInput",
+      "module": "Astryx.Number_input",
+      "file": "src/number_input.ml",
+      "milestone": "M47"
+    },
+    {
       "name": "OverflowList",
       "module": "Astryx.Overflow_list",
       "file": "src/overflow_list.ml",
@@ -430,7 +436,6 @@
     "Markdown",
     "MobileNav",
     "MultiSelector",
-    "NumberInput",
     "Outline",
     "Pagination",
     "PowerSearch",

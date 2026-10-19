@@ -728,6 +728,19 @@ DialogHeader
   ok   three chevrons, one per expandable row, each carrying aria-expanded
   ok   guide lines render under the default lineGuides variant
   ok   rows are segmented with level, position and set-size
+  ok   ten NumberInputs render, each marked by the component marker
+  ok   the input is a text spinbutton with inputmode and aria range
+  ok   the controlled field carries steppers and a clear button
+  ok   steppers exist only where asked
+  ok   the clear button appears only when has_clear and there is a value
+  ok   units render inside the wrapper and are described by
+  ok   an integer-only field uses numeric inputmode and marks integer
+  ok   read-only passes readonly on the input and marks the wrapper
+  ok   disabled with a reason stays focusable: aria-disabled, no disabled attr, reason shown
+  ok   required and description land on the input's aria
+  ok   error status colors the wrapper and marks the input invalid
+  ok   the controlled value starts at 42 and the readout echoes it
+  ok   the label names the control through a real for=/id pair
 
-642 checks, 0 failure(s)
+655 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

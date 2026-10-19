@@ -833,6 +833,7 @@ module Lay = Astryx.Layout
 module Sl = Astryx.Slider
 module Lc = Astryx.List_container
 module Tl = Astryx.Tree_list
+module Ni = Astryx.Number_input
 module Li = Astryx.List_item
 
 let demo_menu_item
@@ -4319,6 +4320,7 @@ let nav_items =
   ; "item", "Item"
   ; "list", "List"
   ; "tree-list", "TreeList"
+  ; "number-input", "NumberInput"
   ]
 ;;
 
@@ -4985,6 +4987,93 @@ let tree_list_demo (graph : Bonsai.graph) =
       [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
 ;;
 
+let number_input_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  (* The controlled field: the application holds the committed number, and the readout
+     is what the browser gate types into and reads back — commit happens on blur or
+     Enter, and only valid numbers reach [on_change]. *)
+  let live_value, set_live_value = Bonsai.state (Some 42.) graph in
+  let live_on_change =
+    Bonsai.map set_live_value ~f:(fun set -> fun v -> set v)
+  in
+  let readout =
+    Bonsai.map live_value ~f:(fun v ->
+      Vdom.Node.p
+        ~attrs:[ Vdom.Attr.create "data-showcase-number" "true" ]
+        [ Vdom.Node.text
+            (sprintf "committed=%s"
+               (match v with None -> "empty" | Some x -> Printf.sprintf "%g" x))
+        ])
+  in
+  let live =
+    Ni.view
+      ~id:"showcase-number-live"
+      ~label:"Quantity"
+      ~description:"Commit on blur or Enter; out of range clamps."
+      ~min:(Some 0.) ~max:(Some 1000.) ~step:(Some 5.)
+      ~has_number_steppers:true ~has_clear:true
+      ~value:live_value ~on_change:live_on_change
+      graph
+  in
+  let static
+        ?(id = "ni") ?(min : float option = None) ?(max : float option = None)
+        ?(step : float option = None)
+        ?(is_wheel_enabled = true) ?(has_number_steppers = false)
+        ?(is_integer_only = false) ?(has_clear = false) ?units ?locale
+        ?(is_required = false) ?(is_optional = false) ?description
+        ?(is_disabled = false) ?(is_read_only = false) ?disabled_message
+        ?status ?placeholder ?format_value ~label value graph =
+    Ni.view
+      ~id ~min ~max ~step ~is_wheel_enabled ~has_number_steppers
+      ~is_integer_only ~has_clear ?units ?locale ~is_required ~is_optional
+      ?description ~is_disabled ~is_read_only ?disabled_message ?status
+      ?placeholder ?format_value ~label
+      ~value:(Bonsai.return value)
+      ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
+      graph
+  in
+  let examples =
+    [ ex_tree "Live (controlled)" live
+    ; ex_tree "Steppers, min/max/step"
+        (static ~id:"showcase-number-steppers" ~label:"Score"
+           ~min:(Some 0.) ~max:(Some 100.) ~step:(Some 5.)
+           ~has_number_steppers:true (Some 50.) graph)
+    ; ex_tree "Clear"
+        (static ~id:"showcase-number-clear" ~label:"Budget" ~has_clear:true (Some 25.) graph)
+    ; ex_tree "Units"
+        (static ~id:"showcase-number-units" ~label:"Width" ~units:"px" (Some 240.) graph)
+    ; ex_tree "Integer only"
+        (static ~id:"showcase-number-integer" ~label:"Seats" ~is_integer_only:true
+           ~min:(Some 0.) ~max:(Some 10.) (Some 3.) graph)
+    ; ex_tree "Read-only"
+        (static ~id:"showcase-number-readonly" ~label:"Rate" ~is_read_only:true (Some 4.2) graph)
+    ; ex_tree "Disabled with reason"
+        (static ~id:"showcase-number-disabled" ~label:"Legacy" ~is_disabled:true
+           ~disabled_message:"Deprecated — use Quantity" (Some 9.) graph)
+    ; ex_tree "Required + description"
+        (static ~id:"showcase-number-required" ~label:"Serial" ~is_required:true
+           ~description:"The serial number on the box." (Some 1.) graph)
+    ; ex_tree "Error"
+        (static ~id:"showcase-number-error" ~label:"Port"
+           ~status:{ Astryx.Input_types.type_ = Astryx.Input_types.Error;
+                     message = Some "must be between 0 and 65535" }
+           (Some 70000.) graph)
+    ; ex_tree "Formatted + locale"
+        (static ~id:"showcase-number-locale" ~label:"Total" ~locale:"de-DE"
+           ~format_value:(fun v -> Printf.sprintf "%.2f" v) (Some 1234.5) graph)
+    ]
+  in
+  let nodes = join_all (readout :: examples) in
+  Bonsai.map nodes ~f:(fun nodes ->
+    section ~id:"number-input" ~title:"NumberInput"
+      ~note:"A draft-committing numeric field: the text is a draft until blur or Enter, only valid numbers reach on_change, and steppers/arrows/wheel step through the same arithmetic"
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -5056,15 +5145,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful list_section in
   let tree_list_section = tree_list_demo graph in
   let stateful = pair stateful tree_list_section in
+  let number_input_section = number_input_demo graph in
+  let stateful = pair stateful number_input_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list)
+    ~f:(fun (((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input ])
       ])
 ;;
 

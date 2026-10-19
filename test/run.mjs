@@ -2642,6 +2642,59 @@ check("a disabled group says so once, on the box", (() => {
     && attr(item("a2"), "aria-posinset") === "2");
 }
 
+// --- NumberInput (M47)
+{
+  const host = document.querySelector('[data-case="number-input-all"]');
+  const root = host && host.querySelector("#ni-all");
+  const g = (id) => root && document.getElementById(id);
+  const input = (id) => g(id) && g(id).matches(".astryx-number-input__input") ? g(id) : null;
+  const wrap = (id) => input(id) && input(id).closest(".astryx-number-input");
+  const wraps = () => root ? [...root.querySelectorAll(".astryx-number-input")] : [];
+  check("ten NumberInputs render, each marked by the component marker",
+    wraps().length === 10 && wraps().every((e) => attr(e, "data-astryx-component") === "NumberInput"));
+  check("the input is a text spinbutton with inputmode and aria range",
+    !!(input("ni-controlled")) && attr(input("ni-controlled"), "role") === "spinbutton"
+    && attr(input("ni-controlled"), "inputmode") === "decimal"
+    && attr(input("ni-controlled"), "type") === "text"
+    && attr(input("ni-controlled"), "aria-valuemin") === "0"
+    && attr(input("ni-controlled"), "aria-valuemax") === "20"
+    && attr(input("ni-controlled"), "aria-valuenow") === "42");
+  check("the controlled field carries steppers and a clear button",
+    !!g("ni-controlled") && wrap("ni-controlled").querySelectorAll("[aria-label='Increase value']").length === 1
+    && wrap("ni-controlled").querySelectorAll("[aria-label='Decrease value']").length === 1
+    && !!wrap("ni-controlled").querySelector(".astryx-number-input__clear"));
+  check("steppers exist only where asked",
+    !!g("ni-steppers") && wrap("ni-steppers").querySelectorAll(".astryx-number-input__stepper").length === 2
+    && !wrap("ni-plain").querySelector(".astryx-number-input__stepper"));
+  check("the clear button appears only when has_clear and there is a value",
+    !!g("ni-clear") && !!wrap("ni-clear").querySelector(".astryx-number-input__clear")
+    && !wrap("ni-plain").querySelector(".astryx-number-input__clear"));
+  check("units render inside the wrapper and are described by",
+    !!g("ni-units") && wrap("ni-units").querySelector(".astryx-number-input__units")?.textContent === "px"
+    && attr(input("ni-units"), "aria-describedby")?.includes("ni-units-units"));
+  check("an integer-only field uses numeric inputmode and marks integer",
+    !!g("ni-integer") && attr(input("ni-integer"), "inputmode") === "numeric"
+    && attr(wrap("ni-integer"), "data-astryx-integer") === "true");
+  check("read-only passes readonly on the input and marks the wrapper",
+    !!g("ni-readonly") && !!input("ni-readonly") && attr(input("ni-readonly"), "readonly") !== null
+    && attr(wrap("ni-readonly"), "data-astryx-readonly") === "true");
+  check("disabled with a reason stays focusable: aria-disabled, no disabled attr, reason shown",
+    !!g("ni-disabled") && attr(input("ni-disabled"), "disabled") === null
+    && attr(input("ni-disabled"), "aria-disabled") === "true"
+    && wrap("ni-disabled").querySelector(".astryx-number-input__disabled-reason")?.textContent === "Locked");
+  check("required and description land on the input's aria",
+    !!g("ni-required") && attr(input("ni-required"), "aria-required") === "true"
+    && attr(input("ni-required"), "aria-describedby")?.includes("ni-required-desc"));
+  check("error status colors the wrapper and marks the input invalid",
+    !!g("ni-error") && attr(wrap("ni-error"), "data-astryx-status") === "error"
+    && attr(input("ni-error"), "aria-invalid") === "true"
+    && hasClass(wrap("ni-error"), /--error/));
+  check("the controlled value starts at 42 and the readout echoes it",
+    !!g("ni-controlled") && root.querySelector("[data-ni-state]")?.getAttribute("data-ni-state") === "42");
+  check("the label names the control through a real for=/id pair",
+    !!g("ni-controlled") && !!root.querySelector("label[for='ni-controlled']"));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

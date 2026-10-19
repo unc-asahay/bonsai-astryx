@@ -687,6 +687,14 @@
       "milestone": "M46",
       "module": "Astryx.Tree_list",
       "note": "M46. Divergences (recorded in src/tree_list.ml): on_click is unit -> unit (house API) rather than a DOM event; the toggle aria-label is English \"Toggle children\" (upstream i18n); per-item xstyle/className/style have no counterpart (port emits BEM class names). Tree_focus is a separate module (port of upstream hooks/useTreeFocus.ts); Tree_branches is private."
+    },
+    {
+      "class": "C",
+      "component": "NumberInput",
+      "file": "src/number_input.ml",
+      "milestone": "M47",
+      "module": "Astryx.Number_input",
+      "note": "M47. Draft-commit semantics: the text is a draft until blur or Enter (upstream's commit-on-blur/Enter policy), only valid numbers reach on_change, blank commits as empty, out-of-range clamps to min/max on commit. Locale-aware decimal parser, wheel support off by default. Divergences: status is the house Input_types record, units/format_value are OCaml-level, no React node in description."
     }
   ],
   "schema": 1,

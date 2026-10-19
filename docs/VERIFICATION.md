@@ -3551,3 +3551,46 @@ toggle `aria-label` is a fixed English "Toggle children" (upstream i18n); per-it
   shots) — the update run therefore counts 58 diffable checks — and the clean verify
   counts **66/66**. Both green.
 
+## Gate 64 — M47: NumberInput (coverage 66 -> 67)
+
+The draft-committing numeric field, ported from `facebook/astryx`
+`NumberInput/NumberInput.tsx` + `NumberInputTypes.ts` + `useNumberInput.ts`. Exposed as
+`Astryx.Number_input` (registered in `astryx.ml`, `src/number_input.ml` + `.mli`).
+Recorded divergences in `port.json` and the `.mli`: no `on_key_down` (Enter and IME
+kept, everything else reaches the component through `attrs`); locale via `?locale` (BCP
+47) instead of upstream's i18n context, with grouping/decimal separators resolved from
+the host `Intl` and non-ASCII decimal digits (Arabic-Indic, Devanagari, full-width …)
+folded to ASCII; no `InputGroup` context (pass `is_label_hidden` yourself); the status
+icon is the house `Field`'s message box (passing `status` still colours the control);
+fixed English strings ("Invalid number", "Clear value", "Increase value"/"Decrease
+value"); the live invalid-number region is a visually-hidden `role=alert` div because
+`Visually_hidden.view` cannot take attributes; generated ids derive from `id`
+(`-desc`/`-status`/`-units`/`-reason`) rather than React's `useId`, so markup is
+deterministic and testable.
+
+- `Astryx.Number_input.view`: the draft is a string (so "1,5" and "12.0" are visible
+  while typing) until an explicit commit boundary — blur or Enter; only valid drafts
+  reach `on_change`; an out-of-range draft clamps at `min`/`max` (upstream's policy),
+  an empty draft clears (`has_clear`) or reverts. Arrow keys, the wheel and the stepper
+  buttons step through the same arithmetic (`step`, `min`, `max`, `is_integer_only`,
+  decimal-place rounding, `-0` normalization). `is_read_only` disables editing while
+  keeping the value visible and submitted; `disabled_message` keeps the control
+  focusable (`aria-disabled`) and shows the reason. `value`/`on_change` are graph
+  values, so the DOM follows application state exactly as `Text_input` does.
+- Last browser-gate defect root-caused and fixed: the decrement stepper never got a
+  distinguishing class (only `--increment` was emitted) nor `aria-disabled` on the
+  disabled path — `astryx-number-input__stepper--decrement` + `aria-disabled="true"`.
+- CSS: `.astryx-number-input__*` block in `assets/components.css`.
+- Fixture in `test/rt_test.ml` (`number-input-all`: ten NumberInputs) — `node
+  test/run.mjs` **655 checks, 0 failures**. jsdom DOM+accessibility gate **ALL CHECKS
+  PASSED**.
+- Browser showcase: **463/463** (demo page **25/25**) — live commit on Enter/blur,
+  steppers (both directions, boundary-dimmed decrement), wheel stepping, clear, clamp.
+- Example count map: 430 examples, 69 sections, 69 nav links (NumberInput section:
+  ten examples, all marked).
+- Responsive: **66/66** — re-baselined because moving NumberInput out of the unported
+  list changed the coverage panel's text (and page height at narrow widths); update run
+  counts 58 diffable checks, clean verify 66/66.
+- Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m47.txt`. PORT-STATUS
+  67/36.
+

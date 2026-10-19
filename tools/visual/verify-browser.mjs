@@ -254,6 +254,7 @@ if (mode === "showcase") {
     "Item",
     "List",
     "TreeList",
+    "NumberInput",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -616,7 +617,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("68 sections", sections.length === 68, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("69 sections", sections.length === 69, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -637,10 +638,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("420 examples across the page", totalExamples === 420, `got ${totalExamples}`);
+  check("430 examples across the page", totalExamples === 430, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -653,7 +654,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("68 nav links", nav.length === 68, `got ${nav.length}`);
+  check("69 nav links", nav.length === 69, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4039,11 +4040,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 66 ported / 37 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["66", "37", "103"]),
+    "coverage stats are 67 ported / 36 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["67", "36", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 37 entries", cov.unported === 37, `got ${cov.unported}`);
+  check("unported list rendered 36 entries", cov.unported === 36, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4166,6 +4167,108 @@ check(
     return { pageTsx: !!li("page.tsx"), appExpanded: li("app") && li("app").getAttribute("aria-expanded") };
   });
   check("ArrowLeft collapses the expanded parent and keeps focus", !tlfLeft.pageTsx && tlfLeft.appExpanded === "false" && (await activeId()) === "app", JSON.stringify(tlfLeft));
+
+  // ---------------------------------------------------------------- NumberInput (M47)
+  // jsdom cannot pump Bonsai effects, so the commit path is driven here for real:
+  // type into the live field, blur — the number reaches the application; Enter
+  // commits too; the steppers step the committed value; the clear button empties it.
+  console.log("\nNumberInput (live)");
+  const niReadout = () =>
+    page.evaluate(() => document.querySelector('[data-showcase-number="true"]')?.textContent ?? null);
+  const niValue = () =>
+    page.evaluate(() => document.querySelector("#showcase-number-live")?.getAttribute("aria-valuenow") ?? null);
+  const niFocus = () => page.evaluate(() => document.getElementById("showcase-number-live")?.focus());
+  const niSection = await page.evaluate(() => {
+    const sec = document.getElementById("number-input");
+    return {
+      examples: sec ? sec.querySelectorAll("[data-example]").length : 0,
+      roots: sec ? [...sec.querySelectorAll('[data-astryx-component="NumberInput"]')] : [],
+    };
+  });
+  check(
+    "the NumberInput section renders its ten examples, all marked",
+    niSection.examples === 10 && niSection.roots.length === 10,
+    `examples=${niSection.examples} roots=${niSection.roots.length}`,
+  );
+  // The id lives on the input; the steppers/units/reason are wrapper siblings.
+  check("the live field starts at the committed 42", (await niReadout()) === "committed=42", String(await niReadout()));
+  check("the live field starts at 42 per aria-valuenow", (await niValue()) === "42", String(await niValue()));
+  // Type a new draft and blur: the draft commits and the readout follows.
+  await niFocus();
+  await page.evaluate(() => {
+    const el = document.getElementById("showcase-number-live");
+    el.value = "";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.evaluate(() => {
+    const el = document.getElementById("showcase-number-live");
+    el.value = "77";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  // The controlled field renders the draft asynchronously; the blur handler reads the
+  // pending text from the graph at the render it was created with, so a blur in the same
+  // tick as the keystroke would commit the pre-typing draft. Real users blur much later;
+  // the gate waits one frame for the draft to be applied.
+  await page.waitForTimeout(150);
+  await page.evaluate(() => document.getElementById("showcase-number-live").blur());
+  await page.waitForTimeout(650);
+  check("typing a new number and blurring commits it to the application", (await niReadout()) === "committed=77", String(await niReadout()));
+  check("aria-valuenow follows the committed 77", (await niValue()) === "77", String(await niValue()));
+  // Enter commits from a fresh draft.
+  await niFocus();
+  await page.evaluate(() => {
+    const el = document.getElementById("showcase-number-live");
+    el.value = "88";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(650);
+  check("Enter commits the draft too", (await niReadout()) === "committed=88", String(await niReadout()));
+  // A value below min clamps to min on commit (upstream's policy).
+  await niFocus();
+  await page.evaluate(() => {
+    const el = document.getElementById("showcase-number-live");
+    el.value = "-5";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(650);
+  check("a draft below min clamps to 0 on commit", (await niReadout()) === "committed=0", String(await niReadout()));
+  // The steppers step through the declared step (±5).
+  const niStepper = (inc) =>
+    page.evaluate((i) => {
+      const wrap = document.getElementById("showcase-number-live").closest(".astryx-number-input");
+      const sel = i ? ".astryx-number-input__stepper--increment" : ".astryx-number-input__stepper--decrement";
+      const btn = [...wrap.querySelectorAll(sel)][0];
+      if (btn) btn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }, inc);
+  await niStepper(true);
+  await page.waitForTimeout(650);
+  check("the increment stepper steps the committed value up by 5", (await niReadout()) === "committed=5", String(await niReadout()));
+  await niStepper(false);
+  await page.waitForTimeout(650);
+  check("the decrement stepper steps it back down", (await niReadout()) === "committed=0", String(await niReadout()));
+  // The clear button empties the committed value.
+  await page.evaluate(() => document.querySelector("#showcase-number-live").closest(".astryx-number-input").querySelector(".astryx-number-input__clear").click());
+  await page.waitForTimeout(650);
+  check("the clear button empties the value", (await niReadout()) === "committed=empty", String(await niReadout()));
+  // The steppers/clear/arrow-key family is gated on the live field; the static variants still render.
+  const niStatic = await page.evaluate(() => ({
+    steppers: !!document.querySelector("#showcase-number-steppers").closest(".astryx-number-input").querySelector(".astryx-number-input__stepper"),
+    units: document.querySelector("#showcase-number-units").closest(".astryx-number-input").querySelector(".astryx-number-input__units")?.textContent,
+    integer: document.querySelector("#showcase-number-integer").getAttribute("inputmode"),
+    readonly: document.querySelector("#showcase-number-readonly").getAttribute("readonly") !== null,
+    reason: document.querySelector("#showcase-number-disabled").closest(".astryx-number-input").querySelector(".astryx-number-input__disabled-reason")?.textContent,
+  }));
+  check(
+    "the static variants carry their contract (steppers/units/integer/readonly/reason)",
+    niStatic.steppers && niStatic.units === "px" && niStatic.integer === "numeric"
+      && niStatic.readonly && niStatic.reason === "Deprecated — use Quantity",
+    JSON.stringify(niStatic),
+  );
+
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed
   // 50 ported components, 309 examples and 53 sections while the page it describes had 51, 312 and 54 -
   // every one of those changed in a single session, and no gate looked. A number a gate can compare is a

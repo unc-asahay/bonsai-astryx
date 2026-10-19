@@ -2883,6 +2883,73 @@ let tree_list_component (graph : Bonsai.graph) =
     Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "tree-wrap" ] [ node ])
 ;;
 
+(* ------------------------------------------------------------------ NumberInput (M47) *)
+let number_input_component (graph : Bonsai.graph) =
+  let value, set_value = Bonsai.state (Some 42.) graph in
+  let on_change = Bonsai.map set_value ~f:(fun set_value -> fun v -> set_value v) in
+  let readout =
+    Bonsai.map value ~f:(fun v ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.create "data-ni-state" (match v with None -> "none" | Some x -> Printf.sprintf "%g" x) ]
+        [])
+  in
+  let sr label msg = { Astryx.Input_types.type_ = label; message = Some msg } in
+  let mk ?(id = "ni") ?(label = "ni label") ?(min : float option = None)
+      ?(max : float option = None) ?(step : float option = None)
+      ?(has_number_steppers = false) ?(is_integer_only = false) ?(has_clear = false)
+      ?(is_disabled = false) ?(is_read_only = false) ?(is_required = false) ?description
+      ?disabled_message ?units ?status ?placeholder ?format_value ~value graph =
+    Astryx.Number_input.view
+      ~id ~label ~min ~max ~step ~has_number_steppers ~is_integer_only ~has_clear
+      ~is_disabled ~is_read_only ~is_required ?description ?disabled_message ?units
+      ?status ?placeholder ?format_value
+      ~value:(Bonsai.return value)
+      ~on_change:(Bonsai.return (fun _ -> Effect.Many []))
+      graph
+  in
+  let controlled =
+    Astryx.Number_input.view
+      ~id:"ni-controlled"
+      ~label:"controlled"
+      ~min:(Some 0.) ~max:(Some 20.) ~step:(Some 1.)
+      ~has_number_steppers:true ~has_clear:true
+      ~value ~on_change
+      graph
+  in
+  let trees =
+    [ controlled
+    ; mk ~id:"ni-plain" ~label:"plain" ~value:(Some 1.5) graph
+    ; mk ~id:"ni-integer" ~label:"integer" ~is_integer_only:true ~min:(Some 0.)
+        ~max:(Some 10.) ~value:(Some 3.) graph
+    ; mk ~id:"ni-units" ~label:"units" ~units:"px" ~value:(Some 240.) graph
+    ; mk ~id:"ni-clear" ~label:"clear" ~has_clear:true ~value:(Some 25.) graph
+    ; mk ~id:"ni-steppers" ~label:"steppers" ~has_number_steppers:true
+        ~min:(Some 0.) ~max:(Some 100.) ~step:(Some 5.) ~value:(Some 50.) graph
+    ; mk ~id:"ni-readonly" ~label:"readonly" ~is_read_only:true ~value:(Some 4.2) graph
+    ; mk ~id:"ni-disabled" ~label:"disabled" ~is_disabled:true
+        ~disabled_message:"Locked" ~value:(Some 9.) graph
+    ; mk ~id:"ni-required" ~label:"required" ~is_required:true
+        ~description:"the serial" ~value:(Some 1.) graph
+    ; mk ~id:"ni-error" ~label:"error" ~status:(sr Astryx.Input_types.Error "too big")
+        ~value:(Some 70000.) graph
+    ] @ [ Bonsai.map readout ~f:(fun r -> r) ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "ni-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      number_input_component
+  in
+  mount "number-input-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

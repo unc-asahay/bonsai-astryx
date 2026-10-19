@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   68 sections
+  ok   69 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   420 examples across the page
+  ok   430 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10
 
 navigation
-  ok   68 nav links
+  ok   69 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 66 ported / 37 not / 103 total
-  ok   unported list rendered 37 entries
+  ok   coverage stats are 67 ported / 36 not / 103 total
+  ok   unported list rendered 36 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -518,6 +518,19 @@ TreeList (live)
   ok   after expansion ArrowDown enters the branch (page.tsx)
   ok   ArrowUp returns to the parent
   ok   ArrowLeft collapses the expanded parent and keeps focus
+
+NumberInput (live)
+  ok   the NumberInput section renders its ten examples, all marked
+  ok   the live field starts at the committed 42
+  ok   the live field starts at 42 per aria-valuenow
+  ok   typing a new number and blurring commits it to the application
+  ok   aria-valuenow follows the committed 77
+  ok   Enter commits the draft too
+  ok   a draft below min clamps to 0 on commit
+  ok   the increment stepper steps the committed value up by 5
+  ok   the decrement stepper steps it back down
+  ok   the clear button empties the value
+  ok   the static variants carry their contract (steppers/units/integer/readonly/reason)
   ok   the README's showcase row matches the page it describes
 
 OverflowList (live)
@@ -534,7 +547,7 @@ OverflowList (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-452/452 checks passed, 0 failure(s)
+463/463 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

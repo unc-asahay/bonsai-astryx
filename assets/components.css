@@ -3964,3 +3964,120 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 .astryx-tree-list__guide--full { height: calc(100% + 1px); }
 .astryx-tree-list__guide--last { height: calc(100% - var(--tree-list-row-gap, 0px) / 2); }
+
+/* ---------------------------------------------------------------- NumberInput */
+
+.astryx-number-input {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-number-input { transition-duration: 0s; }
+}
+
+.astryx-number-input:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent-muted);
+}
+
+@media (hover: hover) {
+  .astryx-number-input:hover:not(:focus-within):not(.astryx-number-input--disabled) {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-border-emphasized) 30%, transparent);
+  }
+}
+
+.astryx-number-input--disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+.astryx-number-input--warning { border-color: var(--color-warning); }
+.astryx-number-input--error { border-color: var(--color-error); }
+.astryx-number-input--success { border-color: var(--color-success); }
+
+.astryx-number-input[data-astryx-size="sm"] { height: var(--size-element-sm); }
+.astryx-number-input[data-astryx-size="md"] { height: var(--size-element-md); }
+.astryx-number-input[data-astryx-size="lg"] { height: var(--size-element-lg); }
+
+.astryx-number-input__input {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  padding: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: transparent;
+  outline: none;
+}
+
+.astryx-number-input__input::placeholder { color: var(--color-text-secondary); }
+
+.astryx-number-input__start-icon { display: inline-flex; flex: none; }
+.astryx-number-input__units { flex: none; color: var(--color-text-tertiary); }
+
+.astryx-number-input__clear,
+.astryx-number-input__stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--size-element-sm);
+  height: var(--size-element-sm);
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--radius-element) * 0.5);
+  background-color: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition-property: background-color, color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .astryx-number-input__clear:hover,
+  .astryx-number-input__stepper:hover {
+    background-color: var(--color-background-elevated);
+    color: var(--color-text-primary);
+  }
+}
+
+.astryx-number-input__stepper[aria-disabled="true"] { opacity: 0.35; cursor: default; }
+
+/* The increment glyph is the same chevron rotated half a turn. */
+.astryx-number-input__stepper--increment svg { transform: rotate(180deg); }
+
+.astryx-number-input__steppers {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: none;
+  align-self: center;
+}
+
+.astryx-number-input__invalid-alert,
+.astryx-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
