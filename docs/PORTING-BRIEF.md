@@ -136,7 +136,99 @@ and use them:
 - `chip s` -> a placeholder box for layout demos.
 - `label s` -> a field label.
 
-Rules for the section:
+## Work smart — the budget is real
+
+Three ports in the first batch ran out of iterations in research and
+landed nothing. The fix, and it matters more than anything else in this
+brief:
+
+- **Start coding in the first quarter of your budget.** Read upstream's
+  `.spec.md` and the component's *public surface* — its props, its
+  exported types, its render structure — and then write code. Reading
+  every upstream file before writing a line is what kills these ports:
+  upstream's Selector is 2,120 lines and MultiSelector is 2,720, and a
+  worker that reads all of it has nothing left to write with.
+- **Write the `.mli` early.** It is the contract for the caller, it is
+  the cheapest part of the port, and writing it first forces you to
+  decide the shape of the thing.
+- **Commit in stages.** If you are running out of iterations, commit what
+  compiles and report exactly what is left. A committed, compiling
+  partial port is worth more to the campaign than an uncommitted
+  complete one: the integrator can finish it, and a half-port that
+  builds is a far better hand-off than nothing.
+- **Scope honestly.** Port the core faithfully. If upstream has surfaces
+  you do not port, leave them out and say so in the `.mli` and in your
+  report. Never fake a surface with a stub that renders nothing.
+
+## House facts that will save you an hour
+
+- `Bonsai.graph` appears in signatures; a handler returns
+  `-> Vdom.Node.t Bonsai.t`.
+- `Bonsai.map`, `Bonsai.map2`, `Bonsai.map3` and `Bonsai.both` exist.
+  `Bonsai.all`, `Bonsai.map4` and `Bonsai.map5` do not.
+- `Bonsai.state` takes a `graph` argument; `Bonsai.map` does not.
+  `Bonsai.state'` takes a function of the previous state — that is how
+  you read the CURRENT value at effect time, which matters when several
+  events arrive before the next render.
+- `Bonsai.return`, not `Bonsai.const`.
+- Polymorphic `=` / `<>` are int-only here: use `Poly.equal`,
+  `String.equal`, `Int.equal`, `Option.is_none`, `Float.equal`.
+- `String.strip`, not `String.trim`. `String.concat ~sep:""`.
+  `String.sub s ~pos ~len`.
+- `Float.round_up` / `Float.round_down`. `Char.to_int`.
+  `Hashtbl.Poly.create` / `find` / `set` / `mem`.
+- `Common.Attr.data` returns a list and needs `@` to splice.
+- `Text.view` takes a list of nodes.
+- Merge duplicate class names with `Common.Attr.class_`; there is no
+  reactive `src`.
+- Every component element needs `data-astryx-component` — the visual
+  and coverage contracts key off it.
+- Module aliases must come before `open!`. The library is effectively
+  unwrapped, so never shadow `List`.
+- `Visually_hidden.view` has no `~attrs`.
+- The vdom has no `on_pointercancel`; use pointer down / move / up.
+- There is no `^` operator for JS access: use `Js.Unsafe.meth_call`,
+  `Js.Unsafe.get`, `Common.prop`, or a local helper. `Js.Unsafe.any` is
+  the dynamic JS type in this `js_of_ocaml` version; house JS helpers
+  use `pure_js_expr` for a function and `Js.Unsafe.eval_string` for a
+  value that has to be read at call time.
+- One `Common.Delay_hook.attr` per element with a unified input: two
+  same-named delay hooks fuse incorrectly.
+
+## House rules that will bite
+
+- The showcase section is a GRAPH. `ex` takes a rendered node; `ex_tree`
+  (defined locally in the demo) takes a graph; `join_all` combines them.
+  A `Vdom.Node.t Bonsai.t` cannot go into a node list — use
+  `Bonsai.map` / `Bonsai.map2` / `Bonsai.map3`.
+- **Dune does not compile a showcase section until something references
+  it.** A green `dune build` in your worktree does NOT prove your section
+  compiles. Wire your section into `examples/showcase/showcase.ml` in
+  your worktree, build, fix, then `git checkout --` that file. This is
+  not optional: two ports shipped broken sections because they skipped
+  it.
+- The OCaml Layer has no portal and no outlet, so anything upstream draws
+  in a portal is drawn in place. Say so in the `.mli`, the way
+  `src/layer.mli` documents the same divergence.
+- `data-astryx-component` is required on the component's root.
+
+## Final report
+
+Your report is what the integrator acts on. Give it:
+
+1. **Files created** (paths) and the exact `src/astryx.ml` line to add.
+2. **The public API** — the signatures, so the integrator can wire the
+   showcase section without reading the implementation.
+3. **The example count** and the label of each example.
+4. **The browser-gate check snippet**: a `check(...)` block for
+   `tools/visual/verify-browser.mjs`, inside `if (mode === "showcase")`,
+   asserting the behaviour that only a real browser can see (a click
+   into Bonsai state, a keypress, a measured size). Four to eight real
+   checks beat twenty shallow ones.
+5. **Divergences from upstream**, and what you did NOT port.
+6. **The commit SHA.**
+
+## Rules for the section
 
 - A section is a GRAPH, not a node: the component is stateful, so the
   examples are graphs that have to be combined before they are wrapped.
