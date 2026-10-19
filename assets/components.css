@@ -4286,3 +4286,198 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   .astryx-banner__chevron { transition-duration: 0s; }
 }
 .astryx-banner__chevron--expanded { transform: rotate(180deg); }
+
+/* ---- Collapsible (M50) ---- */
+.astryx-collapsible {
+  width: 100%;
+}
+/* Divider chrome: a hairline above every item except the first, drawn by the
+   row itself because the group cannot reach into its children with CSS — and
+   the wrapper anchors the :first-child suppression (StyleX has no child
+   selectors, and neither does this port). */
+.astryx-collapsible--divided {
+  border-block-start-width: var(--border-width);
+  border-block-start-style: solid;
+  border-block-start-color: var(--color-border);
+}
+.astryx-collapsible--divided:first-child {
+  border-block-start-width: 0;
+}
+.astryx-collapsible__trigger {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  /* Anchors heading-adjacent typography: the trigger reads as a section header
+     (body family, large step, semibold) wherever the Collapsible is placed. */
+  font-family: var(--font-family-body);
+  font-size: var(--text-large-size);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-align: start;
+  padding-block: 0;
+  border: 0;
+  background: none;
+  position: relative;
+}
+.astryx-collapsible__trigger:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--color-accent);
+  outline-offset: var(--focus-outline-offset);
+}
+.astryx-collapsible__trigger--disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+/* The disclosure row's one background is the pressed overlay: the trigger has
+   no hover surface of its own (upstream's own note), and the mouse arm is the
+   only press that paints — the touch press model is a named omission
+   everywhere in this port. */
+.astryx-collapsible__trigger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: background-color var(--duration-fast);
+}
+.astryx-collapsible__trigger:active:not(.astryx-collapsible__trigger--disabled)::after {
+  background-color: var(--color-overlay-pressed);
+}
+.astryx-collapsible__trigger-label {
+  flex-grow: 1;
+  min-width: 0;
+}
+/* The chevron classes ride on the Icon's wrapper span — the element a theme
+   would target is the one that rotates. The box is pinned to the trigger's
+   own type step (--text-large-size, 17px) which sits between Icon sm and md;
+   pinning all three keeps the glyph exactly the size it was as a bare 1em
+   SVG inheriting the trigger's font-size. */
+.astryx-collapsible__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--text-large-size);
+  height: var(--text-large-size);
+  font-size: var(--text-large-size);
+  transition-property: transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+/* A trailing indicator flips a half turn; a leading arrow turns a quarter
+   turn into the row when closed and down when open (the disclosure
+   convention TreeList already uses). */
+.astryx-collapsible__chevron--expanded { transform: rotate(180deg); }
+.astryx-collapsible__chevron--start.astryx-collapsible__chevron--expanded { transform: rotate(90deg); }
+.astryx-collapsible__chevron--start.astryx-collapsible__chevron--closed { transform: rotate(0deg); }
+/* RTL mirrors the leading arrow so "into the row" still means towards the
+   content, spelled per state because a bare transform would overwrite the
+   rotation (upstream's own comment). */
+[dir="rtl"] .astryx-collapsible__chevron--start.astryx-collapsible__chevron--expanded {
+  transform: scaleX(-1) rotate(90deg);
+}
+[dir="rtl"] .astryx-collapsible__chevron--start.astryx-collapsible__chevron--closed {
+  transform: scaleX(-1) rotate(0deg);
+}
+/* Density padding follows Table's scale (spacing-1/2/3); the content only pads
+   its end so text does not sit on the divider below (block-start stays
+   spacing-1, upstream's own choice). */
+.astryx-collapsible__trigger--compact { padding-block: var(--spacing-1); }
+.astryx-collapsible__trigger--balanced { padding-block: var(--spacing-2); }
+.astryx-collapsible__trigger--spacious { padding-block: var(--spacing-3); }
+.astryx-collapsible__content--compact { padding-block-end: var(--spacing-1); }
+.astryx-collapsible__content--balanced { padding-block-end: var(--spacing-2); }
+.astryx-collapsible__content--spacious { padding-block-end: var(--spacing-3); }
+/* Animating elements never animate: reduced motion is the contract (the
+   chevron is the only animated thing here). */
+@media (prefers-reduced-motion: reduce) {
+  .astryx-collapsible__chevron { transition-duration: 0s; }
+}
+.astryx-collapsible__content {
+  padding-block-start: var(--spacing-1);
+  /* Anchors body typography so revealed text renders at the system's body
+     scale instead of inheriting from wherever the Collapsible is placed. */
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+}
+.astryx-collapsible__content--hidden { display: none; }
+.astryx-collapsible-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Breadcrumbs (M51) --- */
+.astryx-breadcrumbs {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  font-family: var(--_astryx-font-family, inherit);
+  color: var(--_astryx-fg-secondary, #4b5563);
+}
+.astryx-breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+  list-style: none;
+}
+.astryx-breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.astryx-breadcrumb-item__separator {
+  display: inline-flex;
+  align-items: center;
+  color: var(--_astryx-fg-tertiary, #9ca3af);
+  padding-block: 4px;
+  user-select: none;
+}
+.astryx-breadcrumb-item:first-child .astryx-breadcrumb-item__separator {
+  display: none;
+}
+[dir="rtl"] .astryx-breadcrumb-item__separator--slash {
+  transform: rotate(180deg);
+}
+.astryx-breadcrumb-item__content,
+.astryx-breadcrumb-item__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 4px;
+  min-height: 24px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.astryx-breadcrumb-item__content--current {
+  color: var(--_astryx-fg-primary, #111827);
+  font-weight: 600;
+}
+.astryx-breadcrumb-item__link {
+  color: var(--_astryx-fg-secondary, #4b5563);
+}
+.astryx-breadcrumb-item__link:hover {
+  color: var(--_astryx-fg-primary, #111827);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.astryx-breadcrumb-item__link--supporting,
+.astryx-breadcrumb-item__content--supporting {
+  font-size: 0.75rem;
+}
+.astryx-breadcrumb-item__icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--_astryx-fg-tertiary, #9ca3af);
+}

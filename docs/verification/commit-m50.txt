@@ -1,0 +1,26 @@
+M50: Collapsible - the disclosure accordion (Collapsible + CollapsibleGroup)
+
+Port upstream Collapsible/Collapsible.tsx + CollapsibleGroup.tsx + context files as
+Astryx.Collapsible, one coverage entry for the directory (as with Avatar),
+driving the shared Use_collapsible hook that Banner already consumes. The trigger
+is a real button with aria-expanded/aria-controls, the content stays mounted and
+hides with display:none so caller node identity stays stable, and the group
+(defaultIsOpen, isDisabled, isFocused, and single/multiple modes) is data-driven:
+the group owns the open set and the row chrome (dividers, density, chevron
+position, focus ring) reaches the rows as arguments, since upstream's React
+context has no counterpart and is not faked.
+
+Showcase: 9 examples (default open/closed, controlled, disabled, never-open, a
+live single-mode group, a multiple-mode group, dividers/density, chevron-end,
+focused) + nav. jsdom fixture rt-col-all with 6 cases and 14 checks; browser gate
+gains 11 live interaction checks (aria-expanded flips, group exclusivity, disabled
+trap) - one fixture bug fixed en route (rt-cl-disabled collided with an existing
+ListContainer id; renamed to rt-col-*). Responsive baselines re-shot for the two
+new section pages, generators refreshed (PORT-STATUS 70/33, coverage 70/33/103,
+71 visual pages), Gate 67 recorded, full sweep GREEN.
+
+Divergences recorded in port.json: no themeProps, no usePressFeedback (port-wide
+omission), ids are caller-scoped (<id>-content, <id>-<value>-content), the group
+always renders its wrapper, on_change reports a string list in single mode, and
+the single-view value prop is deliberately not accepted (the only honest group
+integration is the group's own row list).

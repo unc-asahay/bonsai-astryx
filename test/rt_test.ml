@@ -3102,3 +3102,60 @@ let () =
   in
   mount "banner-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------ Collapsible (M50) *)
+
+let collapsible_component (graph : Bonsai.graph) =
+  let open Astryx in
+  let t text = [ Vdom.Node.text text ] in
+  let tr text = Vdom.Node.text text in
+  let mk ?(id = "rt-cl") ?is_open ?is_disabled ?default_is_open ?(chevron_position = Collapsible.End)
+      ?(children = t "Content") ~trigger graph =
+    Collapsible.view ~id ?is_open ?is_disabled ?default_is_open ~chevron_position ~trigger
+      ~children graph
+  in
+  let item ?(is_disabled = false) ?chevron_position value trigger children =
+    { Collapsible.value; trigger; children; is_disabled; chevron_position }
+  in
+  let trees =
+    [ (* Default: upstream's default is open, content mounted and linked. *)
+      mk ~id:"rt-col-default" ~trigger:(tr "Details") graph
+      (* Explicitly closed: content stays in the DOM but hidden. *)
+    ; mk ~id:"rt-col-closed" ~default_is_open:false ~trigger:(tr "Terms") graph
+      (* Disabled: aria-disabled + tabindex -1, no activation. *)
+    ; mk ~id:"rt-col-disabled" ~is_disabled:true ~default_is_open:false
+        ~trigger:(tr "Locked") graph
+      (* Start chevron: leading glyph, points right when closed. *)
+    ; mk ~id:"rt-col-start" ~default_is_open:false ~chevron_position:Collapsible.Start
+        ~trigger:(tr "Leading") graph
+      (* A single-mode group with dividers, seeded with one item open. *)
+    ; Collapsible.view_group ~id:"rt-col-group" ~mode:Collapsible.Single
+        ~default_value:[ "a" ] ~has_dividers:true
+        ~items:
+          [ item "a" (tr "Alpha") (t "Alpha content")
+          ; item "b" (tr "Beta") (t "Beta content")
+          ; item ~is_disabled:true "c" (tr "Gamma") (t "Gamma content")
+          ]
+        graph
+      (* A multiple-mode group, uncontrolled, nothing open. *)
+    ; Collapsible.view_group ~id:"rt-col-group-multi" ~mode:Collapsible.Multiple
+        ~items:
+          [ item "x" (tr "X") (t "X content"); item "y" (tr "Y") (t "Y content") ]
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "collapsible-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      collapsible_component
+  in
+  mount "collapsible-all" (Bonsai_web_test.Handle.last_result handle)
+;;

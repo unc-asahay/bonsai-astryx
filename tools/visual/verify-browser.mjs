@@ -257,6 +257,7 @@ if (mode === "showcase") {
     "NumberInput",
     "CheckboxList",
     "Banner",
+    "Collapsible",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -619,7 +620,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("71 sections", sections.length === 71, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("72 sections", sections.length === 72, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -640,10 +641,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("451 examples across the page", totalExamples === 451, `got ${totalExamples}`);
+  check("460 examples across the page", totalExamples === 460, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -656,7 +657,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("71 nav links", nav.length === 71, `got ${nav.length}`);
+  check("72 nav links", nav.length === 72, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4042,11 +4043,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 69 ported / 34 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["69", "34", "103"]),
+    "coverage stats are 70 ported / 33 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["70", "33", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 34 entries", cov.unported === 34, `got ${cov.unported}`);
+  check("unported list rendered 33 entries", cov.unported === 33, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4436,6 +4437,100 @@ check(
       [...document.querySelectorAll("[data-showcase-component='Banner'] .astryx-banner__icon")]
         .every((i) => i.getAttribute("aria-hidden") === "true"));
     check("the status icon wrapper is aria-hidden everywhere", iconHidden === true);
+  }
+
+  console.log("\nCollapsible (live)");
+  {
+    // The trigger is a real button; the content stays mounted and shows or hides by class.
+    const clState = (id) =>
+      page.evaluate((id) => {
+        const root = document.getElementById(id);
+        const btn = root?.querySelector(".astryx-collapsible__trigger");
+        const content = root?.querySelector(".astryx-collapsible__content");
+        return {
+          expanded: btn?.getAttribute("aria-expanded"),
+          controls: btn?.getAttribute("aria-controls"),
+          hidden: content?.classList.contains("astryx-collapsible__content--hidden"),
+        };
+      }, id);
+
+    check("a closed collapsible starts hidden with expanded=false",
+      (await clState("showcase-collapsible-closed"))?.expanded === "false"
+        && (await clState("showcase-collapsible-closed"))?.hidden === true,
+      JSON.stringify(await clState("showcase-collapsible-closed")));
+    await page.click("#showcase-collapsible-closed .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    const clOpened = await clState("showcase-collapsible-closed");
+    check("clicking the trigger opens it: expanded=true, controls still linked, content shown",
+      clOpened.expanded === "true"
+        && clOpened.controls === "showcase-collapsible-closed-content"
+        && clOpened.hidden === false, JSON.stringify(clOpened));
+    await page.click("#showcase-collapsible-closed .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    const clClosed = await clState("showcase-collapsible-closed");
+    check("clicking again closes it: expanded=false and the content hides, still mounted",
+      clClosed.expanded === "false" && clClosed.hidden === true, JSON.stringify(clClosed));
+
+    // Disabled: the content stays in its state no matter how often the trigger is clicked.
+    const disBefore = await clState("showcase-collapsible-disabled");
+    const disTrigger = await page.$("#showcase-collapsible-disabled .astryx-collapsible__trigger");
+    check("the disabled trigger is genuinely disabled",
+      disTrigger !== null &&
+        ((await disTrigger.getAttribute("disabled")) !== null ||
+          (await disTrigger.getAttribute("aria-disabled")) === "true"),
+      String(await disTrigger?.evaluate((el) => el.outerHTML)));
+    // force: a disabled button refuses a normal Playwright click, which is exactly the contract under
+    // test — the event, if it reaches the trigger at all, must not change anything.
+    await page.click("#showcase-collapsible-disabled .astryx-collapsible__trigger", { force: true });
+    await page.waitForTimeout(200);
+    const disAfter = await clState("showcase-collapsible-disabled");
+    check("a disabled trigger ignores clicks — the content stays open and expanded stays true",
+      disBefore.expanded === "true" && disAfter.expanded === "true" && disAfter.hidden === false,
+      JSON.stringify([disBefore, disAfter]));
+
+    // Controlled: the readout is the application's own state.
+    const ctlReadout = () =>
+      page.evaluate(() => document.getElementById("showcase-collapsible-controlled-state")?.textContent ?? null);
+    check("a controlled collapsible starts on the application's state",
+      (await ctlReadout()) === "open: false", String(await ctlReadout()));
+    await page.click("#showcase-collapsible-controlled .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    check("the toggle reports to the application, and the readout follows",
+      (await ctlReadout()) === "open: true"
+        && (await clState("showcase-collapsible-controlled"))?.expanded === "true",
+      String(await ctlReadout()));
+
+    // Single mode: opening a row closes the other, and the open one's own trigger closes it.
+    const rows = (id) =>
+      page.evaluate((id) => [...document.querySelectorAll(`#${id} [data-astryx-value]`)]
+        .map((r) => [r.getAttribute("data-astryx-value"), r.getAttribute("data-astryx-open")]), id);
+    await page.waitForFunction(() => document.querySelectorAll("#showcase-collapsible-group-single [data-astryx-value]").length === 3, { timeout: 30000 });
+    check("a single group starts with exactly one row open",
+      JSON.stringify(await rows("showcase-collapsible-group-single")) ===
+        JSON.stringify([["q1", "true"], ["q2", "false"], ["q3", "false"]]),
+      JSON.stringify(await rows("showcase-collapsible-group-single")));
+    await page.click("#showcase-collapsible-group-single [data-astryx-value='q2'] .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    check("opening q2 closes q1 — single mode allows one at a time",
+      JSON.stringify(await rows("showcase-collapsible-group-single")) ===
+        JSON.stringify([["q1", "false"], ["q2", "true"], ["q3", "false"]]),
+      JSON.stringify(await rows("showcase-collapsible-group-single")));
+    await page.click("#showcase-collapsible-group-single [data-astryx-value='q2'] .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    check("toggling the open row in single mode closes everything",
+      JSON.stringify(await rows("showcase-collapsible-group-single")) ===
+        JSON.stringify([["q1", "false"], ["q2", "false"], ["q3", "false"]]),
+      JSON.stringify(await rows("showcase-collapsible-group-single")));
+
+    // Multiple mode, controlled: the readout shows the application's open set.
+    const grpReadout = () =>
+      page.evaluate(() => document.getElementById("showcase-collapsible-group-controlled-state")?.textContent ?? null);
+    check("a controlled multiple group starts on the application's set",
+      (await grpReadout()) === "open: general", String(await grpReadout()));
+    await page.click("#showcase-collapsible-group-controlled [data-astryx-value='advanced'] .astryx-collapsible__trigger");
+    await page.waitForTimeout(200);
+    check("multiple mode adds a second, and the readout follows",
+      (await grpReadout()) === "open: general, advanced", String(await grpReadout()));
   }
 
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed

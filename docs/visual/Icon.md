@@ -16,17 +16,17 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Icon` (`src/icon.ml`, M8)
-- rendered instances in the demo: 104
-- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`
+- rendered instances in the demo: 117
+- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-collapsible__chevron`, `astryx-collapsible__chevron--closed`, `astryx-collapsible__chevron--expanded`, `astryx-collapsible__chevron--start`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`
 
 ## layout
 
 | property | value | source class |
 | --- | --- | --- |
-| `align-items` | `center` | `.astryx-icon` |
-| `display` | `inline-flex` | `.astryx-icon` |
+| `align-items` | `center`<br>`center` | `.astryx-icon`<br>`.astryx-collapsible__chevron` |
+| `display` | `inline-flex`<br>`inline-flex` | `.astryx-icon`<br>`.astryx-collapsible__chevron` |
 | `flex` | `none` | `.astryx-icon` |
-| `justify-content` | `center` | `.astryx-icon` |
+| `justify-content` | `center`<br>`center` | `.astryx-icon`<br>`.astryx-collapsible__chevron` |
 
 ## colour
 
@@ -38,24 +38,25 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `font-size` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
+| `font-size` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem`<br>`1.0625rem` _(from `var(--text-large-size)`)_ | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg`<br>`.astryx-collapsible__chevron` |
 | `line-height` | `1`<br>`1`<br>`1`<br>`1` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
 
 ## other
 
 | property | value | source class |
 | --- | --- | --- |
-| `height` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
-| `transform` | `rotate(180deg)` | `.astryx-banner__chevron--expanded` |
-| `width` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem` | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg` |
+| `flex-shrink` | `0` | `.astryx-collapsible__chevron` |
+| `height` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem`<br>`1.0625rem` _(from `var(--text-large-size)`)_ | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg`<br>`.astryx-collapsible__chevron` |
+| `transform` | `rotate(180deg)`<br>`rotate(180deg)` | `.astryx-banner__chevron--expanded`<br>`.astryx-collapsible__chevron--expanded` |
+| `width` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem`<br>`1.0625rem` _(from `var(--text-large-size)`)_ | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg`<br>`.astryx-collapsible__chevron` |
 
 ## effects
 
 | property | value | source class |
 | --- | --- | --- |
-| `transition-duration` | `175ms` _(from `var(--duration-fast)`)_ | `.astryx-banner__chevron` |
-| `transition-property` | `transform` | `.astryx-banner__chevron` |
-| `transition-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-banner__chevron` |
+| `transition-duration` | `175ms` _(from `var(--duration-fast)`)_<br>`175ms` _(from `var(--duration-fast)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
+| `transition-property` | `transform`<br>`transform` | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
+| `transition-timing-function` | `cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_<br>`cubic-bezier(0.24, 1, 0.4, 1)` _(from `var(--ease-standard)`)_ | `.astryx-banner__chevron`<br>`.astryx-collapsible__chevron` |
 
 ## tokens referenced
 
@@ -71,6 +72,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--color-warning` | `light-dark(#E9AF08, #F2C00B)` |
 | `--duration-fast` | `175ms` |
 | `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
+| `--text-large-size` | `var(--font-size-lg)` |
 
 ## image-generation prompt
 

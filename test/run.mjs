@@ -2055,6 +2055,78 @@ section("FieldLabel");
       && !unknown.querySelector(".astryx-banner__icon"));
 }
 
+// ---------------------------------------------------------------- Collapsible (M50)
+{
+  const cl = (id) => document.getElementById(id);
+  section("Collapsible");
+
+  const def = cl("rt-col-default");
+  const defBtn = def && def.querySelector(".astryx-collapsible__trigger");
+  check("a default collapsible is a marked Collapsible and opens by default",
+    !!def && attr(def, "data-astryx-component") === "Collapsible"
+      && attr(def, "data-astryx-open") === "true");
+  check("its trigger is a real button naming the content it controls",
+    !!defBtn && attr(defBtn, "aria-expanded") === "true"
+      && attr(defBtn, "aria-controls") === "rt-col-default-content");
+  check("the open content region is mounted and not hidden",
+    !!def && !!def.querySelector("#rt-col-default-content")
+      && !def.querySelector("#rt-col-default-content").classList.contains("astryx-collapsible__content--hidden"));
+  const chev = def && def.querySelector(".astryx-collapsible__chevron");
+  check("the chevron is decorative (aria-hidden) and expanded-rotated",
+    !!chev && attr(chev, "aria-hidden") === "true"
+      && chev.classList.contains("astryx-collapsible__chevron--expanded")
+      && !chev.classList.contains("astryx-collapsible__chevron--start"));
+
+  const closed = cl("rt-col-closed");
+  const closedBtn = closed && closed.querySelector(".astryx-collapsible__trigger");
+  check("an explicitly closed collapsible keeps its content in the DOM but hidden",
+    !!closed && !!closed.querySelector("#rt-col-closed-content")
+      && closed.querySelector("#rt-col-closed-content").classList.contains("astryx-collapsible__content--hidden")
+      && attr(closed, "data-astryx-open") === "false"
+      && attr(closedBtn, "aria-expanded") === "false");
+
+  const dis = cl("rt-col-disabled");
+  const disBtn = dis && dis.querySelector(".astryx-collapsible__trigger");
+  check("a disabled trigger uses the system convention: aria-disabled and unfocusable",
+    !!disBtn && attr(disBtn, "aria-disabled") === "true" && attr(disBtn, "tabindex") === "-1"
+      && disBtn.classList.contains("astryx-collapsible__trigger--disabled")
+      && !disBtn.hasAttribute("disabled"));
+
+  const ldr = cl("rt-col-start");
+  const ldrBtn = ldr && ldr.querySelector(".astryx-collapsible__trigger");
+  const ldrChev = ldr && ldr.querySelector(".astryx-collapsible__chevron");
+  check("a Start chevron leads the trigger text and points right until open",
+    !!ldr && ldrBtn.firstChild === ldrChev
+      && ldrChev.classList.contains("astryx-collapsible__chevron--start")
+      && ldrChev.classList.contains("astryx-collapsible__chevron--closed"));
+  check("the trigger text sits in its own label span",
+    !!ldr && !!ldr.querySelector(".astryx-collapsible__trigger-label"));
+
+  const grp = cl("rt-col-group");
+  check("the group is a marked accordion coordinator in single mode",
+    !!grp && attr(grp, "data-astryx-component") === "CollapsibleGroup"
+      && attr(grp, "data-astryx-mode") === "single"
+      && grp.classList.contains("astryx-collapsible-group"));
+  const rowA = grp && grp.querySelector("[data-astryx-value='a']");
+  const rowB = grp && grp.querySelector("[data-astryx-value='b']");
+  check("the seeded item is open and its siblings are closed",
+    !!rowA && attr(rowA, "data-astryx-open") === "true"
+      && !!rowB && attr(rowB, "data-astryx-open") === "false");
+  check("group rows carry the divider chrome when asked",
+    !!grp && grp.querySelectorAll(".astryx-collapsible--divided").length === 3);
+  check("row content ids are scope-and-value derived",
+    !!rowA && !!document.getElementById("rt-col-group-a-content")
+      && !!document.getElementById("rt-col-group-b-content"));
+  const rowC = grp && grp.querySelector("[data-astryx-value='c']");
+  check("a disabled group row still keeps the disabled-trigger convention",
+    !!rowC && attr(rowC.querySelector(".astryx-collapsible__trigger"), "aria-disabled") === "true");
+
+  const multi = cl("rt-col-group-multi");
+  check("a multiple group reports its mode and starts with nothing open",
+    !!multi && attr(multi, "data-astryx-mode") === "multiple"
+      && multi.querySelectorAll("[data-astryx-open='true']").length === 0);
+}
+
 // ---------------------------------------------------------------- FormLayout (M13)
 {
   section("FormLayout");

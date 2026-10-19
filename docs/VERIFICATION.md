@@ -3730,3 +3730,91 @@ decides by whether `isOpen` was.
   coverage-stat checks. The expected counts were moved to 69 / 34 / 103 and
   the rerun is green, which is the gate doing exactly its job: a real
   mismatch, found by itself, fixed, and re-proven.
+
+## Gate 67 — M50: Collapsible (coverage 69 -> 70)
+
+The disclosure accordion, ported from `facebook/astryx`
+`Collapsible/Collapsible.tsx` + `CollapsibleGroup.tsx` +
+`CollapsibleGroupContext.tsx` (+ `useCollapsible.ts`, whose state machine was
+already ported as `Use_collapsible` under M49) as one module `Astryx.Collapsible`
+(`src/collapsible.ml` + `.mli`, registered in `astryx.ml` as `Collapsible`,
+`Collapsible_group`, `CollapsibleGroup`; one coverage entry for the directory,
+the same call Avatar/AvatarStatusDot made).
+
+- The single unit is the shared `Use_collapsible` hook — controlled when
+  `is_open` is provided, uncontrolled seeded by `default_is_open` (upstream's
+  default: **open**, unlike Banner, which overrides the hook to closed). The
+  trigger is a real `<button type="button">` carrying `aria-expanded` and
+  `aria-controls = <id>-content`; the content stays **mounted** and hides with
+  `display: none` (upstream's own choice), so the caller's node identity is
+  stable and the `aria-controls` reference never dangles. The chevron is the
+  Icon, wrapper `aria-hidden`, rotated by `--expanded`/`--closed` classes;
+  `chevron_position` is `End` (down -> up) or `Start` (chevronRight, points
+  into the row).
+- Disabled items use the port's convention: `aria-disabled="true"` +
+  `tabindex="-1"` (never the native `disabled`, which would swallow a wrapping
+  tooltip's hover), activation guarded in the click handler, content left in
+  its state.
+- The group is an accordion: single mode (default, one open at a time — opening
+  a closed row closes the open one, toggling the open one closes all) or
+  multiple (independent toggles). `value`/`default_value`/`on_change` are the
+  controlled/uncontrolled/reporting trio; `has_dividers` draws the row chrome
+  (a wrapper plus per-row hairline suppressed on `:first-child`, because
+  neither StyleX nor this port has child selectors); `density` (Compact /
+  Balanced / Spacious) pads the rows and defaults to Balanced when dividers are
+  shown; each row's own `chevron_position` still wins.
+- **Named divergence, not hidden:** upstream coordinates items through a React
+  context (a `Collapsible` with a `value` inside a `CollapsibleGroup` defers to
+  the context). This port has no React context and does not fake one, so the
+  group is **data-driven** instead — the same judgment TreeList made for its
+  expansion state: each `item` carries its `value`, `trigger`, `children` and
+  disabled state, the group owns the open set and renders the rows. The
+  context has no counterpart, and consequently `value` is deliberately not
+  accepted on `view`. `on_change` reports a `string list` in both modes
+  (upstream's `onChange` returns a string in single mode); an empty list means
+  nothing open. Other recorded divergences: no `themeProps` (styled by class,
+  as every component here), no `usePressFeedback` (the named port-wide omission
+  — `:active` covers the mouse arm, contract attribute emitted), `id` is
+  caller-scoped (content ids `<id>-content`, group rows
+  `<id>-<value>-content`), the group always renders its wrapper (upstream is
+  DOM-less without dividers), no i18n (the chevron is unlabeled).
+- CSS: `.astryx-collapsible`, `__trigger`, `__trigger-label`, `--disabled`,
+  `--compact/balanced/spacious`, `__content` + `--hidden`,
+  `__chevron` + `--start/--expanded/--closed`, `astryx-collapsible-group`,
+  `--divided`; density pads trigger and content, divider chrome on the rows.
+- Showcase: `collapsible` section, nine examples — starts open (the default),
+  starts closed, a leading chevron, disabled (content stays in its state), a
+  composed trigger, a controlled unit with a readout, a single group with
+  dividers (an FAQ), a multiple group with a leading chevron on one row, a
+  controlled multiple group with a readout.
+- jsdom fixture: `collapsible-all` (six cases: default-open, explicit closed,
+  disabled, leading chevron, single group seeded `a` with a disabled row,
+  multiple group) with 14 structural checks — marked roots, `aria-expanded` /
+  `aria-controls` linkage, hidden-but-mounted content, the disabled convention,
+  chevron placement and direction, group mode/data markers, divider chrome,
+  scope-and-value content ids.
+
+Gates (all real runs):
+- Compile: `dune build` exit 0.
+- Component gate: **710/710, 0 failures** (was 696; +14 Collapsible checks).
+- jsdom DOM + accessibility gate: **ALL CHECKS PASSED**.
+- Browser showcase: **493/493** (was 482; +11 live Collapsible checks, and the
+  section/example/nav counts moved to 72 sections / 460 examples / 72 nav
+  links) and demo **25/25**. The interaction half belongs here because jsdom
+  cannot pump Bonsai effects: a closed collapsible starts hidden with
+  `aria-expanded=false`; a real click opens it (expanded=true, content shown,
+  `aria-controls` still linked because the content never unmounts) and a second
+  click closes it; a disabled trigger ignores clicks; a controlled unit's
+  readout follows the toggle; a single-mode group starts with one row open,
+  opening another closes the first, and toggling the open row closes all; a
+  controlled multiple-mode group's readout shows the application's open set.
+- Example count map: 460 examples, 72 sections, 72 nav links (Collapsible
+  section: nine examples, all marked). Coverage panel: 70 / 33 / 103.
+- Responsive: **66/66** — re-baselined (the new section changed the page);
+  update run green, clean verify 66/66.
+- Visual contract: `docs/visual/Collapsible.md` generated; 71 pages total.
+- Full sweep: **SWEEP GREEN** — see `docs/verification/sweep-m50.txt`.
+  PORT-STATUS 70/33. The component gate's own fixture caught the one real bug
+  found on this milestone: `rt-cl-disabled` collided with an existing
+  ListContainer case of the same id, so the disabled check was asserting on the
+  wrong element; the fixture was renamed to the `rt-col-*` prefix and re-run.

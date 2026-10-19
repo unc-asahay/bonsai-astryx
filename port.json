@@ -717,6 +717,14 @@
       "milestone": "M49",
       "module": "Astryx.Banner",
       "note": "M49. Status notification (info/warning/error/success) with optional children under its own disclosure. The collapsible state machine is ported first (Use_collapsible, upstream Collapsible/useCollapsible.ts) so Banner's disclosure shares it with the coming Collapsible port: a banner starts CLOSED (the banner config overrides the hook's default_is_open to false) while the hook's own default is open, and a banner with collapsible=Never renders no toggle with the content permanently visible (the hook is disabled, not the content). Controlled and uncontrolled disclosure; dismiss_label is a parameter with a default, the toggle's aria-labels are fixed strings. Divergences recorded: themeProps/design tokens are CSS classes, no i18n provider, no ReactNode-to-string for the titled dismiss label, the group-controlled mode of the hook has no counterpart (no React context), elevation is Button.elevation."
+    },
+    {
+      "class": "C",
+      "component": "Collapsible",
+      "file": "src/collapsible.ml",
+      "milestone": "M50",
+      "module": "Astryx.Collapsible",
+      "note": "M50. Disclosure accordion (Collapsible + CollapsibleGroup, one coverage entry for the directory as with Avatar/AvatarStatusDot). The single unit is the shared Use_collapsible hook (the one Banner drives) with upstream's default open; the trigger is a real button with aria-expanded/aria-controls, and the content stays mounted and hides with display:none so the caller's node identity is stable. The group is data-driven rather than context-driven (upstream's React context has no counterpart and is not faked): the group owns the open set, single mode (one at a time) or multiple, and the row chrome -- dividers, density, chevron position -- reaches the rows as arguments. Divergences recorded: no themeProps, no usePressFeedback (the named port-wide omission), id is caller-scoped (content ids are <id>-content and <id>-<value>-content), the group always renders its wrapper, and on_change reports a string list in single mode rather than upstream's string. value on the single view is deliberately not accepted: the only honest group integration is the group's own row list."
     }
   ],
   "schema": 1,

@@ -1,0 +1,11 @@
+=== 1. compile ===
+dune build: exit 0
+=== 2. component tests (OCaml builds each component, node asserts on the DOM) ===
+
+710 checks, 0 failure(s)
+COMPONENT CHECKS PASSED
+=== 3. DOM + accessibility (jsdom, real js_of_ocaml bundle) ===
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED
+=== 4. real browser (Chromium over HTTP) ===

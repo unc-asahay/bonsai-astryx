@@ -608,6 +608,22 @@ Banner
   ok   a Card banner with content starts closed as a standalone elevated card
   ok   an unknown status renders no fill and no default glyph
 
+Collapsible
+  ok   a default collapsible is a marked Collapsible and opens by default
+  ok   its trigger is a real button naming the content it controls
+  ok   the open content region is mounted and not hidden
+  ok   the chevron is decorative (aria-hidden) and expanded-rotated
+  ok   an explicitly closed collapsible keeps its content in the DOM but hidden
+  ok   a disabled trigger uses the system convention: aria-disabled and unfocusable
+  ok   a Start chevron leads the trigger text and points right until open
+  ok   the trigger text sits in its own label span
+  ok   the group is a marked accordion coordinator in single mode
+  ok   the seeded item is open and its siblings are closed
+  ok   group rows carry the divider chrome when asked
+  ok   row content ids are scope-and-value derived
+  ok   a disabled group row still keeps the disabled-trigger convention
+  ok   a multiple group reports its mode and starts with nothing open
+
 FormLayout
   ok   a layout renders a div, not a form
   ok   and names its direction
@@ -787,5 +803,5 @@ DialogHeader
   ok   the controlled value starts at 42 and the readout echoes it
   ok   the label names the control through a real for=/id pair
 
-696 checks, 0 failure(s)
+710 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

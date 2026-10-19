@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   71 sections
+  ok   72 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   451 examples across the page
+  ok   460 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9
 
 navigation
-  ok   71 nav links
+  ok   72 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 69 ported / 34 not / 103 total
-  ok   unported list rendered 34 entries
+  ok   coverage stats are 70 ported / 33 not / 103 total
+  ok   unported list rendered 33 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -554,6 +554,20 @@ Banner (live)
   ok   the toggle reports to the application, and the readout follows
   ok   toggling again reports the close — controlled state never moves on its own
   ok   the status icon wrapper is aria-hidden everywhere
+
+Collapsible (live)
+  ok   a closed collapsible starts hidden with expanded=false
+  ok   clicking the trigger opens it: expanded=true, controls still linked, content shown
+  ok   clicking again closes it: expanded=false and the content hides, still mounted
+  ok   the disabled trigger is genuinely disabled
+  ok   a disabled trigger ignores clicks — the content stays open and expanded stays true
+  ok   a controlled collapsible starts on the application's state
+  ok   the toggle reports to the application, and the readout follows
+  ok   a single group starts with exactly one row open
+  ok   opening q2 closes q1 — single mode allows one at a time
+  ok   toggling the open row in single mode closes everything
+  ok   a controlled multiple group starts on the application's set
+  ok   multiple mode adds a second, and the readout follows
   ok   the README's showcase row matches the page it describes
 
 OverflowList (live)
@@ -567,49 +581,3 @@ OverflowList (live)
   ok   with room for all six, nothing is hidden and there is no indicator
   ok   resizing the window re-measures and shows more, with no reload
   ok   and the indicator keeps telling the truth after it
-
-screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
-
-482/482 checks passed, 0 failure(s)
-BROWSER CHECKS PASSED
-
-## demo (examples/demo/index.html)
-mode:     demo
-chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
-url:      http://127.0.0.1:8791/examples/demo/index.html
-
-page
-  ok   HTTP 200 from the local server
-  ok   no failed requests
-  ok   no unexpected 4xx/5xx responses
-  ok   no uncaught page errors
-  ok   no console errors
-  ok   the app mounted in Chromium
-  ok   every stylesheet parsed
-
-mount
-  ok   title is the demo's
-  ok   47 component instances
-  ok   Stack x12
-  ok   Button x7
-  ok   Heading x6
-  ok   Text x6
-  ok   Badge x5
-  ok   one h1
-  ok   five h3
-
-stylesheet applied (what jsdom cannot check)
-  ok   button has the primary fill from the token
-  ok   button text is white-on-accent
-  ok   button radius is 8px
-  ok   button type size is 14px (0.875rem)
-  ok   button padding-inline is --spacing-3 (12px)
-  ok   button gap is --spacing-2 (8px)
-  ok   button aligns its content to the centre
-  ok   button display is blockified to flex (it is a flex item)
-  ok   body picks up the body-background token
-
-screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
-
-25/25 checks passed, 0 failure(s)
-BROWSER CHECKS PASSED

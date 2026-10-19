@@ -2143,6 +2143,161 @@ let banner_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------- collapsible (state) *)
+
+(* A collapsible owns its disclosure state unless the caller controls it, and a
+   group owns the open set for its items — both Bonsai state, so the live checks
+   live in the browser gate, where a real click can toggle them. The one thing
+   worth a dedicated readout is controlled mode: the application owns the state
+   and the component only reports it back, which is what the readout next to it
+   shows. The group is data-driven (upstream coordinates through a React
+   context, which this port has no analogue of), so it owns the rows, not the
+   caller's built children. *)
+let collapsible_demo (graph : Bonsai.graph) =
+  let open Astryx in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let text s = Vdom.Node.text s in
+  let item ~value ~trigger ~children () =
+    { Collapsible.value
+    ; trigger = text trigger
+    ; children = [ text children ]
+    ; is_disabled = false
+    ; chevron_position = None
+    }
+  in
+  let controlled_open, set_controlled_open = Bonsai.state false graph in
+  let controlled =
+    let collapsible =
+      Collapsible.view
+        ~id:"showcase-collapsible-controlled"
+        ~is_open:controlled_open
+        ~on_open_change:(Bonsai.map set_controlled_open ~f:(fun set value -> set value))
+        ~trigger:(text "Controlled disclosure")
+        ~children:[ text "This content follows the application's state, not this collapsible's." ]
+        graph
+    in
+    let readout =
+      Bonsai.map controlled_open ~f:(fun open_ ->
+        Vdom.Node.div
+          ~attrs:[ Vdom.Attr.create "id" "showcase-collapsible-controlled-state" ]
+          [ text (sprintf "open: %b" open_) ])
+    in
+    Bonsai.map (unwrap_all [ collapsible; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let group_controlled, set_group_controlled = Bonsai.state [ "general" ] graph in
+  let controlled_group =
+    let group =
+      Collapsible.view_group
+        ~id:"showcase-collapsible-group-controlled"
+        ~mode:Collapsible.Multiple
+        ~value:group_controlled
+        ~on_change:(Bonsai.map set_group_controlled ~f:(fun set v -> set v))
+        ~items:
+          [ item ~value:"general" ~trigger:"General" ~children:"General settings." ()
+          ; item ~value:"advanced" ~trigger:"Advanced" ~children:"Advanced settings." ()
+          ]
+        graph
+    in
+    let readout =
+      Bonsai.map group_controlled ~f:(fun open_values ->
+        Vdom.Node.div
+          ~attrs:
+            [ Vdom.Attr.create "id" "showcase-collapsible-group-controlled-state" ]
+          [ text (sprintf "open: %s" (String.concat ~sep:", " open_values)) ])
+    in
+    Bonsai.map (unwrap_all [ group; readout ]) ~f:(fun nodes -> Vdom.Node.div nodes)
+  in
+  let examples =
+    [ ex_tree "starts open — the default"
+        (Collapsible.view
+           ~id:"showcase-collapsible-open"
+           ~trigger:(text "What does this do?")
+           ~children:[ text "The default is open: content behind a trigger is worth showing." ]
+           graph)
+    ; ex_tree "starts closed"
+        (Collapsible.view
+           ~id:"showcase-collapsible-closed"
+           ~default_is_open:false
+           ~trigger:(text "Settings")
+           ~children:[ text "Hidden until asked for." ]
+           graph)
+    ; ex_tree "a leading chevron"
+        (Collapsible.view
+           ~id:"showcase-collapsible-start"
+           ~default_is_open:false
+           ~chevron_position:Collapsible.Start
+           ~trigger:(text "How billing works")
+           ~children:[ text "The arrow points into the row, and turns down when open." ]
+           graph)
+    ; ex_tree "disabled — the content stays in its state"
+        (Collapsible.view
+           ~id:"showcase-collapsible-disabled"
+           ~default_is_open:true
+           ~is_disabled:true
+           ~trigger:(text "Locked section")
+           ~children:[ text "A disabled item cannot be toggled, and disabling it did not collapse it." ]
+           graph)
+    ; ex_tree "a composed trigger"
+        (Collapsible.view
+           ~id:"showcase-collapsible-composed"
+           ~default_is_open:false
+           ~trigger:
+             (Vdom.Node.span
+                ~attrs:[ Vdom.Attr.class_ "chip" ]
+                [ text "2.4.7" ])
+           ~children:[ text "The trigger is any node." ]
+           graph)
+    ; ex_tree "controlled — the readout follows the toggle" controlled
+    ; ex_tree "single group with dividers (an FAQ)"
+        (Collapsible.view_group
+           ~id:"showcase-collapsible-group-single"
+           ~mode:Collapsible.Single
+           ~has_dividers:true
+           ~default_value:[ "q1" ]
+           ~items:
+             [ item ~value:"q1" ~trigger:"What is Astryx?" ~children:"A design system for building internal tools." ()
+             ; item ~value:"q2" ~trigger:"How do I start?" ~children:"Install the package and import components." ()
+             ; item ~value:"q3" ~trigger:"Who uses it?" ~children:"Product teams that ship internal tools." ()
+             ]
+           graph)
+    ; ex_tree "multiple mode, a leading chevron on one row"
+        (Collapsible.view_group
+           ~id:"showcase-collapsible-group-multiple"
+           ~mode:Collapsible.Multiple
+           ~has_dividers:true
+           ~chevron_position:Collapsible.End
+           ~items:
+             [ { Collapsible.value = "a"
+               ; trigger = text "Feature A"
+               ; children = [ text "Any number of these can be open at once." ]
+               ; is_disabled = false
+               ; chevron_position = Some Collapsible.Start
+               }
+             ; item ~value:"b" ~trigger:"Feature B" ~children:"This one uses the group's trailing chevron." ()
+             ]
+           graph)
+    ; ex_tree "group controlled — the readout follows" controlled_group
+    ]
+  in
+  Bonsai.map (unwrap_all examples) ~f:(fun examples ->
+    section
+      ~id:"collapsible"
+      ~title:"Collapsible"
+      ~note:
+        "Hides and reveals content behind a disclosure trigger. The trigger is \
+         a real button carrying aria-expanded and aria-controls; the content \
+         stays mounted and hides with display: none, so an open/close never \
+         destroys the caller's node. The disclosure state machine is the shared \
+         useCollapsible one (the hook Banner drives), set to upstream's own \
+         default: open. A disabled item is aria-disabled and out of the tab \
+         order but never collapses its content. The group is data-driven rather \
+         than context-driven: it owns the open set, single mode (one at a time) \
+         or multiple, and the row chrome — dividers, density, chevron position — \
+         reaches the rows as arguments, because a group cannot inject anything \
+         into nodes the caller already built."
+      examples)
+;;
+
 (* ------------------------------------------------- form layout (state) *)
 
 (* Upstream's FormLayout does two jobs: it arranges fields, and it supplies the form's
@@ -4526,6 +4681,7 @@ let nav_items =
   ; "number-input", "NumberInput"
   ; "banner", "Banner"
   ; "checkbox-list", "CheckboxList"
+  ; "collapsible", "Collapsible"
   ]
 ;;
 
@@ -5356,15 +5512,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful banner_section in
   let checkbox_list_section = checkbox_list_demo graph in
   let stateful = pair stateful checkbox_list_section in
+  let collapsible_section = collapsible_demo graph in
+  let stateful = pair stateful collapsible_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list)
+    ~f:(fun ((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible ])
       ])
 ;;
 
