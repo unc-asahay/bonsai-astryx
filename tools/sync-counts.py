@@ -18,6 +18,7 @@ printed by the gate, used when no transcript is at hand.)
 """
 
 import json
+import subprocess
 import re
 import sys
 from pathlib import Path
@@ -137,16 +138,28 @@ def main():
         print(f"  EXPECTED += {add}")
 
     # 4. the coverage panel: ported / not ported / total
-    mm = re.search(r'"coverage stats are (\d+) ported / (\d+) not / (\d+) total"', g)
+    # The coverage count is named twice: in the label and in the array the
+    # page is compared against. Both have to move together.
+    mm = re.search(
+        r'"coverage stats are \d+ ported / \d+ not / \d+ total",\s*'
+        r'JSON\.stringify\(cov\.stats\) === JSON\.stringify\(\["\d+", "\d+", "\d+"\]\)',
+        g,
+    )
     assert mm, "coverage stats literal not found"
     g = (
-        g[: mm.start(1)]
-        + str(ported_count)
-        + g[mm.end(1) : mm.start(2)]
-        + str(not_ported)
-        + g[mm.end(2) : mm.start(3)]
-        + str(total_components)
-        + g[mm.end(3) :]
+        g[: mm.start()]
+        + f'"coverage stats are {ported_count} ported / {not_ported} not / {total_components} total",\n'
+        + f'    JSON.stringify(cov.stats) === JSON.stringify(["{ported_count}", "{not_ported}", "{total_components}"])'
+        + g[mm.end() :]
+    )
+    mu = re.search(
+        r'"unported list rendered \d+ entries", cov\.unported === \d+', g
+    )
+    assert mu, "unported list literal not found"
+    g = (
+        g[: mu.start()]
+        + f'"unported list rendered {not_ported} entries", cov.unported === {not_ported}'
+        + g[mu.end() :]
     )
     # the comparison array beside it
     tail = g[mm.end() :]
@@ -160,6 +173,14 @@ def main():
         g = g[: mm.end()] + new_tail
     print(f"  coverage stats: {ported_count} ported / {not_ported} not / {total_components} total")
     GATE.write_text(g)
+
+    # 4b. the coverage panel is generated from port.json, so it has to be
+    # regenerated before the gate compares the page against these numbers.
+    coverage = ROOT / "tools" / "site" / "gen-coverage.mjs"
+    if coverage.exists():
+        subprocess.run(["node", str(coverage)], cwd=ROOT, check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("  regenerated site/coverage.json")
 
     # 5. the README rows
     r = README.read_text()

@@ -120,7 +120,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
         ~children:(Bonsai.return nav_content)
         ()
     in
-    Bonsai.map2 trigger readout ~f:(fun trigger readout ->
+    Bonsai.map3 trigger readout drawer ~f:(fun trigger readout drawer ->
       Vdom.Node.div [ trigger; readout; drawer ])
   in
   let examples =

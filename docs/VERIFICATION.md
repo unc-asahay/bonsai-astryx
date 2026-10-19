@@ -4265,3 +4265,53 @@ the collapsible separator's bounds; a disabled separator out of the tab
 order; the vertical variant's orientation) · responsive 66/0, 0.00%
 drift (the baseline was updated: the section makes the page ~2,000px
 taller) · coverage 79/24/103 · visual 79 pages + INDEX.
+Gate 77 — M59: Toast and M64: MobileNav (coverage 79 → 81)
+
+Two ports landed together, and the gate found two real bugs that only a
+real browser can find.
+
+M59 Toast. Upstream mounts toasts through a portal (Layer/modalOutlet);
+the OCaml Layer has no outlet, so the port's viewport is a caller-mounted
+node the application places where the toasts belong. The toast itself
+carries its action, its duration and its dismissal.
+
+The bug: the port read the clock through
+`Js.Unsafe.pure_js_expr "Date.now()"` and then called the result as a
+function. The expression evaluates to a number, so every toast that
+tried to time itself threw "now_ms_js is not a function" — and because
+the exception was unhandled, it took the whole Bonsai application down
+with it: the radio group, the tooltip and the dialog all went with it,
+which is what the first gate run reported. The clock is now read per
+call through the house's `Js.Unsafe.eval_string` pattern, the way
+timestamp.ml and timer.ml read it: a constant would have frozen every
+toast's timer at the moment the module loaded.
+
+M64 MobileNav. The narrow-screen navigation: a bar with a menu button
+that opens a sheet, with a title header, a caller's own header, no
+header at all, an end-edge variant and a narrow one.
+
+The bug: the section put a graph where a node belongs — a
+`Vdom.Node.t Bonsai.t` straight into a node list. It compiled in the
+worker's own worktree, because dune only compiles a showcase section
+once something references it, and nothing did until the integrator wired
+the section in. The lesson went back to the other seven workers, who
+now compile their sections before committing. The fix is the house's
+`Bonsai.map3`.
+
+Both ports land their own files only: the implementation and its .mli,
+the CSS part, the showcase section and one line in src/astryx.ml. The
+integrator owns the shared files — showcase.ml, port.json, the
+stylesheet, the gate's counts, the README, the generators and this
+record. The tooling that does it (tools/integrate-port.py and
+tools/sync-counts.py) was rehearsed against a synthetic component first,
+which is how the counting traps were found: a count site names its
+number twice (in the label and in the comparison), a section name with a
+space has to be a quoted JS key, and the coverage panel is generated
+from port.json and has to be regenerated before the gate compares it
+against the page.
+
+Gates: build exit 0 · component 770/0 · DOM + accessibility 59/0 ·
+browser 580/0 (572 + 8 Resizable checks) · responsive 66/0, 0.00% drift
+(baseline updated: the two sections make the page ~2,000px taller) ·
+coverage 81/22/103 · showcase 83 sections / 539 examples · visual 81
+pages + INDEX.

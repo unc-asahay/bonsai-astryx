@@ -796,6 +796,13 @@
       "file": "src/toast.ml",
       "milestone": "M59",
       "module": "Astryx.toast"
+    },
+    {
+      "class": "C",
+      "component": "MobileNav",
+      "file": "src/mobile_nav.ml",
+      "milestone": "M64",
+      "module": "Astryx.mobile_nav"
     }
   ],
   "schema": 1,
