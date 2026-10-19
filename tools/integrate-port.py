@@ -120,10 +120,19 @@ def wire_showcase(module, component, section_id, nav_id):
         s = s.replace(anchor, binding + anchor, 1)
     list_entry = f"; {module}_section "
     if list_entry not in s:
-        # append to the stateful_sections list
-        m = re.search(r"(  let stateful_sections =\n(?:.*\n)*?    \[)(.*?)(\n  \])", s)
-        assert m, "stateful_sections list not found"
-        s = s[: m.end(2)] + f"\n    ; {module}_section" + s[m.end(2) :]
+        # Append to the stateful_sections list. The list opens with "[ " on
+        # its own line and closes on the line of its last element, so find
+        # the opening line and then the first line that carries the "]".
+        lines = s.split("\n")
+        start = next(
+            (i for i, ln in enumerate(lines) if ln.strip().startswith("let stateful_sections =")),
+            None,
+        )
+        assert start is not None, "stateful_sections list not found"
+        end = next((i for i in range(start, len(lines)) if "]" in lines[i]), None)
+        assert end is not None, "stateful_sections list is not closed"
+        lines.insert(end, f"    ; {module}_section")
+        s = "\n".join(lines)
     nav_entry = f'  ; "{nav_id}", "{component}"\n'
     if nav_entry not in s:
         m = re.search(r"(let nav_items =\[.*?\n)(  \])", s, re.S)
