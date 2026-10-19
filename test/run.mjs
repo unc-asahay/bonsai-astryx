@@ -2930,6 +2930,42 @@ check("a disabled group says so once, on the box", (() => {
     !!g("ni-controlled") && !!root.querySelector("label[for='ni-controlled']"));
 }
 
+// --- Breadcrumbs (M51)
+{
+  const host = document.querySelector('[data-case="breadcrumbs-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const liOf = (id, n) => g(id)?.querySelectorAll('li')[n];
+  const sepText = (id, n) => g(id)?.querySelectorAll('.astryx-breadcrumb-item__separator')[n]?.textContent || '';
+  check("five crumb trails render in the fixture",
+    !!g("rt-bc-basic") && !!g("rt-bc-explicit") && !!g("rt-bc-opout")
+    && !!g("rt-bc-supporting") && !!g("rt-bc-unsafe"));
+  check("a trail is a labelled nav wrapping an ol of list items",
+    g("rt-bc-basic").tagName === "NAV" && g("rt-bc-basic").getAttribute("aria-label")?.length > 0
+    && g("rt-bc-basic").querySelector(':scope > ol.astryx-breadcrumbs__list') !== null
+    && g("rt-bc-basic").querySelectorAll(':scope ol > li.astryx-breadcrumb-item').length === 3);
+  check("crumbs are links until the current page",
+    g("rt-bc-basic").querySelectorAll('a.astryx-breadcrumb-item__link').length === 2
+    && !!liOf("rt-bc-basic", 2).querySelector('[aria-current="page"]'));
+  check("the auto-current crumb is the last one, and only it",
+    liOf("rt-bc-basic", 2).querySelectorAll('[aria-current]').length === 1
+    && liOf("rt-bc-basic", 0).querySelectorAll('[aria-current]').length === 0
+    && liOf("rt-bc-basic", 1).querySelectorAll('[aria-current]').length === 0);
+  check("an explicit current wins even when it is not last",
+    liOf("rt-bc-explicit", 1).querySelectorAll('[aria-current="page"]').length === 1
+    && liOf("rt-bc-explicit", 0).querySelectorAll('[aria-current]').length === 0);
+  check("opting out suppresses auto-current entirely",
+    g("rt-bc-opout").querySelectorAll('[aria-current]').length === 0);
+  check("the supporting variant is marked and small",
+    liOf("rt-bc-supporting", 0).getAttribute("data-astryx-variant") === "supporting"
+    && hasClass(liOf("rt-bc-supporting", 0), /--supporting/));
+  check("a custom separator renders its own text, hidden from the AT",
+    sepText("rt-bc-supporting", 0) === "\u203a"
+    && sepText("rt-bc-basic", 0) === "/"
+    && attr(g("rt-bc-basic").querySelector(".astryx-breadcrumb-item__separator"), "aria-hidden") === "true");
+  check("an unsafe href is refused (the crumb renders without href)",
+    g("rt-bc-unsafe").querySelector('a')?.getAttribute("href") === null);
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

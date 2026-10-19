@@ -834,6 +834,8 @@ module Sl = Astryx.Slider
 module Lc = Astryx.List_container
 module Tl = Astryx.Tree_list
 module Ni = Astryx.Number_input
+module Bc = Astryx.Breadcrumbs
+module Bci = Astryx.Breadcrumb_item
 module Li = Astryx.List_item
 
 let demo_menu_item
@@ -2390,11 +2392,132 @@ let form_layout_demo (_ : Bonsai.graph) =
 
 (* ------------------------------------------------- tooltip (state) *)
 
-(* The tooltip owns its open/close state, so it takes the graph — the same shape DropdownMenu uses.
-   Two claims in here are the ones worth pressing rather than reading: that the message element is
-   absent from the DOM while closed (so it cannot be found by a selector or a screen reader), and
-   that aria-describedby appears on the anchor only while it is open, which is what upstream does
-   when its layer opens and restores on close. *)
+(* Breadcrumbs: a data-driven trail — the auto-current crumb is decided by the container
+   before the first render, so every example below can be asserted structurally. The menu
+   trigger is the port's named gap (upstream reuses the DropdownMenu item pipeline). *)
+(* ------------------------------------------------- breadcrumbs *)
+
+(* Breadcrumbs is pure markup: the container decides the current crumb from the
+   item list before the first frame (upstream scans the DOM after render, which
+   this port has no analogue of), and every crumb is data (upstream's children),
+   so a click handler can toggle a readout without any component state. The
+   BreadcrumbItem menu trigger is not demonstrated: the port has no
+   trigger-less menu renderer yet (named gap — upstream pops up a DropdownMenu),
+   and the trail is fully usable without it. *)
+let breadcrumbs_demo () =
+  let open Astryx in
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let text s = Vdom.Node.text s in
+  let item ?href ?on_click ?start_icon ?is_current ?(label = []) () : Bci.t =
+    Bci.item ?href ?on_click ?start_icon ?is_current ~label ()
+  in
+  let trail ?separator ?(variant = Bc.Default) ?label ?id ~items () =
+    Bc.view ?id ?separator ~variant ?label ~items ()
+  in
+  [
+    ex_tree "a basic trail — the last crumb is the current page"
+      (Bonsai.return
+         (trail
+            ~id:"showcase-breadcrumbs-basic"
+            ~items:
+              [ item ~href:"/" ~label:[ text "Home" ] ()
+              ; item ~href:"/library" ~label:[ text "Library" ] ()
+              ; item ~label:[ text "Components" ] ()
+              ] ()));
+    ex_tree "an explicit current crumb — the last one is just another link"
+      (Bonsai.return
+         (trail
+            ~id:"showcase-breadcrumbs-explicit"
+            ~items:
+              [ item ~href:"/" ~label:[ text "Home" ] ()
+              ; item ~href:"/docs" ~is_current:(Some true) ~label:[ text "Docs" ] ()
+              ] ()));
+    ex_tree "an opt-out — the last crumb declines auto-current"
+      (Bonsai.return
+         (trail
+            ~id:"showcase-breadcrumbs-opout"
+            ~items:
+              [ item ~href:"/a" ~label:[ text "Alpha" ] ()
+              ; item ~is_current:(Some false) ~label:[ text "Beta" ] ()
+              ] ()));
+    ex_tree "the supporting variant is smaller and quieter"
+      (Bonsai.return
+         (trail
+            ~variant:Bc.Supporting
+            ~id:"showcase-breadcrumbs-supporting"
+            ~items:
+              [ item ~href:"/workspace" ~label:[ text "Workspace" ] ()
+              ; item ~href:"/project" ~label:[ text "Project" ] ()
+              ; item ~label:[ text "Settings" ] ()
+              ] ()));
+    ex_tree "a custom separator"
+      (Bonsai.return
+         (trail
+            ~separator:(text "\xe2\x80\xba")
+            ~id:"showcase-breadcrumbs-custom-sep"
+            ~items:
+              [ item ~href:"/" ~label:[ text "Home" ] ()
+              ; item ~href:"/news" ~label:[ text "News" ] ()
+              ; item ~label:[ text "Today" ] ()
+              ] ()));
+    ex_tree "a start icon on a crumb"
+      (Bonsai.return
+         (trail
+            ~id:"showcase-breadcrumbs-icon"
+            ~items:
+              [ item ~href:"/calendar" ~start_icon:(Icon.view ~name:"clock" ()) ~label:[ text "Calendar" ] ()
+              ; item ~label:[ text "Week" ] ()
+              ] ()));
+    ex_tree "a click handler — the trail is an application, not a static chain"
+      (let breadcrumb_clicks : int ref = ref 0 in
+       let on_crumb_click () =
+         breadcrumb_clicks := !breadcrumb_clicks + 1;
+         let (_ : string) =
+           Js_of_ocaml.Js.Unsafe.eval_string
+             (sprintf
+                "var e=document.getElementById(%S); if(e) e.textContent=%S;"
+                "showcase-breadcrumbs-click-state"
+                (sprintf "clicks: %d" !breadcrumb_clicks))
+         in
+         Bonsai.Effect.Ignore
+       in
+       Bonsai.return
+         (Vdom.Node.div
+            ~attrs:[ Vdom.Attr.class_ "stack" ]
+            [ Bc.view
+                ~id:"showcase-breadcrumbs-click"
+                ~items:
+                  [ Bci.item ~on_click:on_crumb_click ~label:[ text "One" ] ()
+                  ; Bci.item ~label:[ text "Two" ] ()
+                  ] ()
+            ; Vdom.Node.div
+                ~attrs:[ Vdom.Attr.create "id" "showcase-breadcrumbs-click-state" ]
+                [ text "clicks: 0" ]
+            ]));
+    ex_tree "a vetted href — unsafe URLs render without href"
+      (Bonsai.return
+         (trail
+            ~id:"showcase-breadcrumbs-unsafe"
+            ~items:
+              [ item ~href:"javascript:alert(1)" ~label:[ text "Unsafe" ] ()
+              ; item ~label:[ text "Href-less" ] ()
+              ] ()));
+  ]
+  |> fun examples ->
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+      section ~id:"breadcrumbs" ~title:"Breadcrumbs"
+        ~note:
+          "A nav/ol trail of crumbs; the current crumb is the last item unless \
+           one declares itself current or opts out. Port of \
+           facebook/astryx Breadcrumbs + BreadcrumbItem; the auto-current scan \
+           moved from a post-render effect into the same (data-driven) view, \
+           and the crumb menu trigger is a pending named gap."
+        examples)
+;;
 let tooltip_demo (graph : Bonsai.graph) =
   let open Astryx in
   let join_all (trees : Vdom.Node.t Bonsai.t list) =
@@ -4682,6 +4805,7 @@ let nav_items =
   ; "banner", "Banner"
   ; "checkbox-list", "CheckboxList"
   ; "collapsible", "Collapsible"
+  ; "breadcrumbs", "Breadcrumbs"
   ]
 ;;
 
@@ -5514,15 +5638,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful checkbox_list_section in
   let collapsible_section = collapsible_demo graph in
   let stateful = pair stateful collapsible_section in
+  let breadcrumbs_section = breadcrumbs_demo () in
+  let stateful = pair stateful breadcrumbs_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun ((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible)
+    ~f:(fun (((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs ])
       ])
 ;;
 

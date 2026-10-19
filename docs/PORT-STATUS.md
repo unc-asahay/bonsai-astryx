@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **70 of 103** components.
+Ported: **71 of 103** components.
 
 ## Milestones
 
@@ -64,21 +64,6 @@ Ported: **70 of 103** components.
 | `Stack` | `Astryx.Stack` | `src/stack.ml` | M1 | A |
 | `StatusDot` | `Astryx.StatusDot` | `src/status_dot.ml` | M1 | A |
 | `Text` | `Astryx.Text` | `src/text.ml` | M1 | A |
-| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
-| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
-| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
-| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
-| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
-| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
-| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
-| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
-| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
-| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
-| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
-| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
-| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
-| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
-| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
 | `DropdownMenu` | `Astryx.Dropdown_menu` | `src/dropdown_menu.ml` | M10 | C |
 | `Field` | `Astryx.Field` | `src/field.ml` | M11 | B |
 | `TextInput` | `Astryx.Text_input` | `src/text_input.ml` | M11 | B |
@@ -95,6 +80,10 @@ Ported: **70 of 103** components.
 | `ButtonGroup` | `Astryx.Button_group` | `src/button_group.ml` | M17 | A |
 | `Popover` | `Astryx.Popover` | `src/popover.ml` | M18 | A |
 | `Timer` | `Astryx.Timer` | `src/timer.ml` | M19 | A |
+| `Center` | `Astryx.Center` | `src/center.ml` | M2 | A |
+| `Grid` | `Astryx.Grid` | `src/grid.ml` | M2 | A |
+| `Section` | `Astryx.Section` | `src/section.ml` | M2 | A |
+| `VisuallyHidden` | `Astryx.VisuallyHidden` | `src/visually_hidden.ml` | M2 | A |
 | `InputGroup` | `Astryx.Input_group` | `src/input_group.ml` | M20 | A |
 | `Toolbar` | `Astryx.Toolbar` | `src/toolbar.ml` | M21 | A |
 | `MetadataList` | `Astryx.MetadataList` | `src/metadata_list.ml` | M22 | A |
@@ -124,10 +113,22 @@ Ported: **70 of 103** components.
 | `NumberInput` | `Astryx.Number_input` | `src/number_input.ml` | M47 | C |
 | `CheckboxList` | `Astryx.Checkbox_list` | `src/checkbox_list.ml` | M48 | C |
 | `Banner` | `Astryx.Banner` | `src/banner.ml` | M49 | C |
+| `AspectRatio` | `Astryx.AspectRatio` | `src/aspect_ratio.ml` | M5 | A |
+| `HStack` | `Astryx.HStack` | `src/hstack.ml` | M5 | A |
+| `VStack` | `Astryx.VStack` | `src/vstack.ml` | M5 | A |
 | `Collapsible` | `Astryx.Collapsible` | `src/collapsible.ml` | M50 | C |
+| `Breadcrumbs` | `Astryx.Breadcrumbs` | `src/breadcrumbs.ml` | M51 | C |
+| `Blockquote` | `Astryx.Blockquote` | `src/blockquote.ml` | M6 | A |
+| `Code` | `Astryx.Code` | `src/code.ml` | M6 | A |
+| `IconButton` | `Astryx.IconButton` | `src/icon_button.ml` | M6 | A |
+| `Citation` | `Astryx.Citation` | `src/citation.ml` | M7 | A |
+| `EmptyState` | `Astryx.EmptyState` | `src/empty_state.ml` | M7 | A |
+| `NavIcon` | `Astryx.NavIcon` | `src/nav_icon.ml` | M7 | A |
+| `Icon` | `Astryx.Icon` | `src/icon.ml` | M8 | A |
+| `FieldStatus` | `Astryx.Field_status` | `src/field_status.ml` | M9 | A |
 
-## Not ported yet (33)
+## Not ported yet (32)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `BottomSheet`, `Breadcrumbs`, `Calendar`, `Carousel`, `Chat`, `CodeBlock`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `HoverCard`, `Lightbox`, `Markdown`, `MobileNav`, `MultiSelector`, `Outline`, `Pagination`, `PowerSearch`, `Resizable`, `Selector`, `SideNav`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `Typeahead`
+`AppShell`, `BottomSheet`, `Calendar`, `Carousel`, `Chat`, `CodeBlock`, `CommandPalette`, `ComplexSelector`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `HoverCard`, `Lightbox`, `Markdown`, `MobileNav`, `MultiSelector`, `Outline`, `Pagination`, `PowerSearch`, `Resizable`, `Selector`, `SideNav`, `Stepper`, `TabList`, `Table`, `TimeInput`, `Timestamp`, `Toast`, `Tokenizer`, `TopNav`, `Typeahead`

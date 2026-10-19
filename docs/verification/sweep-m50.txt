@@ -9,3 +9,34 @@ COMPONENT CHECKS PASSED
 
 ALL CHECKS PASSED
 === 4. real browser (Chromium over HTTP) ===
+494/494 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+25/25 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+=== 5. responsive + visual regression (mobile / tablet / desktop) ===
+
+66 checks passed, 0 failure(s)
+RESPONSIVE CHECKS PASSED
+=== 6. agent-facing tool layer ===
+
+ported entries: 70; correctly attributed: 70
+ok    every ported entry names its own file and module
+
+=== sweep result ===
+  ok      component tests (test/run.mjs)
+  ok      DOM + accessibility (verify-dom.mjs)
+  ok      real browser, showcase (verify-browser.mjs)
+  ok      real browser, demo (verify-browser.mjs)
+  ok      responsive + visual regression (verify-responsive.mjs)
+  ok      MCP layer (--cli status)
+  ok      MCP layer (every ported component truthfully reachable)
+  ok      port.json (every entry names its own file and module)
+
+=== transcript line counts ===
+  807 docs/verification/ocaml-tests.txt
+   92 docs/verification/verify-dom.txt
+  629 docs/verification/browser-verify.txt
+  110 docs/verification/responsive.txt
+ 1638 total
+
+SWEEP GREEN: every gate passed

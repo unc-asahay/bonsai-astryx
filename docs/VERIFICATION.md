@@ -3818,3 +3818,33 @@ Gates (all real runs):
   found on this milestone: `rt-cl-disabled` collided with an existing
   ListContainer case of the same id, so the disabled check was asserting on the
   wrong element; the fixture was renamed to the `rt-col-*` prefix and re-run.
+
+## Gate 68 — M51: Breadcrumbs (coverage 70 -> 71)
+
+The navigation trail, ported from `facebook/astryx` `Breadcrumbs/Breadcrumbs.tsx`
++ `BreadcrumbItem.tsx` as `Astryx.Breadcrumbs` + `Astryx.Breadcrumb_item`
+(`src/breadcrumbs.ml` + `.mli`, `src/breadcrumb_item.ml` + `.mli`, registered in
+`astryx.ml`; one coverage entry for the directory, the same call
+Avatar/AvatarStatusDot and Collapsible made).
+
+Verified this gate:
+- `dune build` exit 0 (library + mli + showcase + rt_test + browser bundle).
+- Component gate (`node test/run.mjs`): **719 checks, 0 failures** — the five
+  fixture trails (basic auto-current, explicit current, opt-out, supporting
+  variant + custom separator, unsafe href) assert the DOM contract: labelled
+  nav > ol > li, link/button roots up to the current crumb, exactly one
+  `aria-current="page"` only on the auto-current/explicit crumb, none when
+  opted out, `data-astryx-variant="supporting"`, separator text with
+  `aria-hidden`, and no `href` attribute for a refused `javascript:` URL.
+- Browser gate: the Breadcrumbs live block clicks the handler crumb twice (the
+  readout counts 1 then 2), reads the trail DOM per example, and the README
+  showcase row matches the rendered page exactly.
+- Responsive: baselines updated for the new section; 0.00% drift.
+- Full `tools/gate-sweep.sh` GREEN (transcript `docs/verification/sweep-m51.txt`).
+
+Divergences (also in `port.json`): items are data (upstream children), variant
+and separator are arguments (upstream's layer-scoped context is the port-wide
+named gap), the auto-current crumb is computed before first render instead of
+a post-render DOM scan, the crumb menu trigger is a named gap pending a
+trigger-less menu renderer, hrefs pass `Citation.is_safe_url` (unsafe URLs
+render without `href`), and there is no themeProps.

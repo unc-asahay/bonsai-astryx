@@ -258,6 +258,7 @@ if (mode === "showcase") {
     "CheckboxList",
     "Banner",
     "Collapsible",
+    "Breadcrumbs",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -620,7 +621,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("72 sections", sections.length === 72, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("73 sections", sections.length === 73, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -641,10 +642,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("460 examples across the page", totalExamples === 460, `got ${totalExamples}`);
+  check("468 examples across the page", totalExamples === 468, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -657,7 +658,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("72 nav links", nav.length === 72, `got ${nav.length}`);
+  check("73 nav links", nav.length === 73, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4043,11 +4044,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 70 ported / 33 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["70", "33", "103"]),
+    "coverage stats are 71 ported / 32 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["71", "32", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 33 entries", cov.unported === 33, `got ${cov.unported}`);
+  check("unported list rendered 32 entries", cov.unported === 32, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4531,6 +4532,47 @@ check(
     await page.waitForTimeout(200);
     check("multiple mode adds a second, and the readout follows",
       (await grpReadout()) === "open: general, advanced", String(await grpReadout()));
+  }
+
+  console.log("\nBreadcrumbs (live)");
+  {
+    const trail = (id) =>
+      page.evaluate((id) => {
+        const nav = document.getElementById(id);
+        const ol = nav?.querySelector("ol.astryx-breadcrumbs__list");
+        const lis = [...(ol ? ol.querySelectorAll("li.astryx-breadcrumb-item") : [])];
+        return {
+          isNav: nav?.tagName === "NAV",
+          labelled: (nav?.getAttribute("aria-label") ?? "").length > 0,
+          lis: lis.length,
+          links: [...(ol ? ol.querySelectorAll("a.astryx-breadcrumb-item__link") : [])].length,
+          current: (ol ? ol.querySelectorAll("[aria-current='page']") : []).length,
+          firstHref: lis[0]?.querySelector("a")?.getAttribute("href") ?? null,
+          sep: lis[0]?.querySelector(".astryx-breadcrumb-item__separator")?.textContent ?? null,
+          variant: lis[0]?.getAttribute("data-astryx-variant"),
+        };
+      }, id);
+    const basic = await trail("showcase-breadcrumbs-basic");
+    check("the basic trail is a labelled nav with an ol of three crumbs", basic.isNav && basic.labelled && basic.lis === 3, JSON.stringify(basic));
+    check("two of the three crumbs are links and exactly the last is current", basic.links === 2 && basic.current === 1, JSON.stringify(basic));
+    const explicit = await trail("showcase-breadcrumbs-explicit");
+    check("an explicit current crumb wins even mid-trail", explicit.current === 1, JSON.stringify(explicit));
+    const opout = await trail("showcase-breadcrumbs-opout");
+    check("opting out suppresses auto-current", opout.current === 0, JSON.stringify(opout));
+    const supporting = await trail("showcase-breadcrumbs-supporting");
+    check("the supporting variant is marked on the crumb", supporting.variant === "supporting", JSON.stringify(supporting));
+    const custom = await trail("showcase-breadcrumbs-custom-sep");
+    check("a custom separator renders between crumbs", custom.sep === "\u203a", JSON.stringify(custom));
+    const unsafe = await trail("showcase-breadcrumbs-unsafe");
+    check("an unsafe href is refused — no href attribute", unsafe.firstHref === null, JSON.stringify(unsafe));
+    await page.click("#showcase-breadcrumbs-click button");
+    await page.waitForTimeout(200);
+    let readout = await page.evaluate(() => document.getElementById("showcase-breadcrumbs-click-state")?.textContent ?? null);
+    check("clicking a crumb fires the handler", readout === "clicks: 1", String(readout));
+    await page.click("#showcase-breadcrumbs-click button");
+    await page.waitForTimeout(200);
+    readout = await page.evaluate(() => document.getElementById("showcase-breadcrumbs-click-state")?.textContent ?? null);
+    check("the handler fires on every click", readout === "clicks: 2", String(readout));
   }
 
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed

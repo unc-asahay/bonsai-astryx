@@ -3159,3 +3159,59 @@ let () =
   in
   mount "collapsible-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+let breadcrumbs_component (_ : Bonsai.graph) =
+  let open! Astryx in
+  let text = Vdom.Node.text in
+  let trail ?variant ?separator ?id ~items () =
+    Breadcrumbs.view ?separator ?variant ?id ~items ()
+  in
+  let item ?href ?is_current ?(label = []) () : Breadcrumb_item.t =
+    Breadcrumb_item.item ?href ?is_current ~label ()
+  in
+  Bonsai.return
+    (Vdom.Node.div ~attrs:[ Vdom.Attr.id "breadcrumbs-all" ]
+       [ trail ~id:"rt-bc-basic"
+           ~items:
+             [ item ~href:"/" ~label:[ text "Home" ] ()
+             ; item ~href:"/a" ~label:[ text "Alpha" ] ()
+             ; item ~label:[ text "Here" ] ()
+             ]
+           ()
+       ; trail ~id:"rt-bc-explicit"
+           ~items:
+             [ item ~href:"/" ~label:[ text "Home" ] ()
+             ; item ~is_current:(Some true) ~label:[ text "Docs" ] ()
+             ]
+           ()
+       ; trail ~id:"rt-bc-opout"
+           ~items:
+             [ item ~href:"/a" ~label:[ text "Alpha" ] ()
+             ; item ~is_current:(Some false) ~label:[ text "Beta" ] ()
+             ]
+           ()
+       ; trail ~variant:Breadcrumbs.Supporting ~id:"rt-bc-supporting"
+           ~separator:(text "\xe2\x80\xba")
+           ~items:
+             [ item ~href:"/x" ~label:[ text "One" ] ()
+             ; item ~label:[ text "Two" ] ()
+             ]
+           ()
+       ; trail ~id:"rt-bc-unsafe"
+           ~items:
+             [ item ~href:"javascript:alert(1)" ~label:[ text "Unsafe" ] ()
+             ; item ~label:[ text "Safe" ] ()
+             ]
+           ()
+       ])
+;;
+
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      breadcrumbs_component
+  in
+  mount "breadcrumbs-all" (Bonsai_web_test.Handle.last_result handle)
+;;

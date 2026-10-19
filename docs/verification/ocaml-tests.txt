@@ -802,6 +802,15 @@ DialogHeader
   ok   error status colors the wrapper and marks the input invalid
   ok   the controlled value starts at 42 and the readout echoes it
   ok   the label names the control through a real for=/id pair
+  ok   five crumb trails render in the fixture
+  ok   a trail is a labelled nav wrapping an ol of list items
+  ok   crumbs are links until the current page
+  ok   the auto-current crumb is the last one, and only it
+  ok   an explicit current wins even when it is not last
+  ok   opting out suppresses auto-current entirely
+  ok   the supporting variant is marked and small
+  ok   a custom separator renders its own text, hidden from the AT
+  ok   an unsafe href is refused (the crumb renders without href)
 
-710 checks, 0 failure(s)
+719 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -1,0 +1,26 @@
+M51: Breadcrumbs - the navigation trail (Breadcrumbs + BreadcrumbItem)
+
+Port upstream Breadcrumbs/Breadcrumbs.tsx + BreadcrumbItem.tsx as
+Astryx.Breadcrumbs + Astryx.Breadcrumb_item (one coverage entry for the
+directory, the same call Avatar/AvatarStatusDot and Collapsible made), pure
+markup over a nav > ol: the items are data (upstream's children), the variant
+and separator reach each crumb as arguments (upstream's layer-scoped context is
+the port-wide named gap), and the auto-current crumb is computed before the
+first render - the same observable contract as upstream's post-render DOM scan:
+with no explicit current, the last crumb that did not opt out carries
+aria-current="page" on its content span. Crumbs are link/button/span by
+href/on_click presence the way upstream priority-orders them, and hrefs pass
+Citation.is_safe_url, so a javascript: URL renders with no href attribute at
+all.
+
+Also lands use_collapsible/banner-adjacent state corrections? No - this is the
+M51 delta only: showcase section (eight examples, aliases Bc/Bci), rt_test
+fixture (five trails), run.mjs block, verify-browser.mjs live block (trail DOM,
+click handler fired twice, README row reconciliation) and the M50 leftover
+artifacts regenerated in this tree (coverage 70 -> 71; gates: component 719/0,
+browser 503/503, responsive 66/0).
+
+Divergences (port.json): no menu trigger (upstream pops a DropdownMenu through
+usePopover/useListFocus - the named gap until a trigger-less menu renderer
+exists), no themeProps, no re-render effect, items are data not children,
+labels are node lists.

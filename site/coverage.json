@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 70,
-    "unported": 33,
+    "ported": 71,
+    "unported": 32,
     "total": 103,
     "documented": 103
   },
@@ -52,6 +52,12 @@
       "module": "Astryx.Blockquote",
       "file": "src/blockquote.ml",
       "milestone": "M6"
+    },
+    {
+      "name": "Breadcrumbs",
+      "module": "Astryx.Breadcrumbs",
+      "file": "src/breadcrumbs.ml",
+      "milestone": "M51"
     },
     {
       "name": "Button",
@@ -435,7 +441,6 @@
   "unported": [
     "AppShell",
     "BottomSheet",
-    "Breadcrumbs",
     "Calendar",
     "Carousel",
     "Chat",
