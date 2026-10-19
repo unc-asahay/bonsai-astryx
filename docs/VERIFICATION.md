@@ -3989,3 +3989,82 @@ render without `href`), and there is no themeProps.
   carries `tabindex=0` so the wrapper is focusable, and an element child's
   focusin bubbles to the wrapper); no focus restore after Escape (state, not
   DOM, closes), the same standing as Tooltip.
+
+## Gate 73 — M56: Timestamp (coverage 75 -> 76)
+
+- `src/timestamp.ml` + `src/timestamp.mli` — the calendar and the clock, the
+  port that reads time: a date/time value rendered as human text on a semantic
+  `<time>` carrying an ISO 8601 `datetime`. The formats are upstream's set:
+  `Relative` ("2 hours ago"), `Relative_short`, `Auto` (relative inside the
+  7-day `~auto_threshold`, `Date_time` beyond), the absolute
+  `Date`/`Date_long`/`Date_weekday`/`Date_time`/`Time`, the `Full` long style
+  that backs a relative reading's accessible name and the card's default
+  line, and the zone-independent machine shapes `System_date`/`System_date_time`/
+  `System_time`/`Unix_seconds`. `value` is `Str` (ISO 8601, or anything
+  `new Date` takes) or `Num` (unix, with upstream's heuristic: numbers under
+  1e12 are seconds, the rest milliseconds).
+- The viewer's zone is explicit because it is observable: the visible text
+  always reads in the host's own zone (no `timeZone` is handed to `Intl` for
+  it), only the card names others, `~is_timezone_shown` is honoured by
+  `Date_time`/`Time` only, and `Full` always shows a zone name while the
+  `system_*` shapes never do. `zone_parts` is the one `Intl` dependency of the
+  `system_*` shapes and is public so the gate can assert it. The formatting
+  is split the house way: `format_instant`, `format_relative_time` and
+  `format_tooltip_lines` are pure functions over the host's `Intl`, tested as
+  strings — node's and the browser's `Intl` were first verified to agree
+  before the fixture was trusted.
+- The hover surface is the port's own `Hover_card` with upstream's three
+  settings verbatim (`Above`, `focus_trigger = Always`, always indicated): one
+  row per configured `~tooltip_entries` (zone resolution and the
+  zone-abbreviation rule live in `format_tooltip_lines`), copyable rows write
+  through `navigator.clipboard`, the "Copied" announcement is hosted in the
+  card itself because the port cannot ask the application for an announcer,
+  and an omitted `id` allocates one deterministic id per mounted instance so
+  `aria-controls` always names the card on screen. The tooltip gate is
+  upstream's exactly: `has_tooltip && (relative || entries)` — an absolute
+  format with no configured entries shows no card and no tab stop, and an
+  empty entry list is not a second way to spell "off". `~is_live` keeps a
+  relative reading fresh at the interval its own precision dictates (1 s
+  under a minute, 30 s under an hour, 1 min under a day, 5 min beyond —
+  upstream's `getLiveInterval`). An unparseable value renders nothing
+  (upstream's behaviour) and reports through `data-astryx-invalid` on a hidden
+  probing node instead of upstream's dev-only console warn.
+- jsdom component gate: **751 checks, 0 failures** (19 new — the
+  `timestamp_component` fixture mounting `"timestamp-all"`, asserting exact
+  rendered text per format, the `datetime`/`aria-label`/invalid-probe
+  attributes and card presence).
+- Browser gate: **550/550** (16 new live checks: exact render per format, the
+  hover card with one row per zone, the label+action grid template, copy
+  buttons, the host announce region, the named dialog the trigger points at,
+  leave-unmounts). This run also saw two real fixes on top of the port: the
+  card copy-row anchor was not clickable (caught by the ClickableCard-style
+  link check, fixed), and the showcase screenshot was being served by a stale
+  worktree server on 8791 — the harness now detects that and the server was
+  restarted from the repo root.
+- The sweep's first pass was red on exactly two checks, both stale EXPECTED
+  counters in verify-browser.mjs (75/28/103 while the generators had already
+  moved coverage.json to 76/27/103 — the previous gate run happened before the
+  generators re-ran). The constants were corrected and the gate re-ran 550/550
+  before the record; the sweep below is green.
+- Responsive gate: **66/66** (the first full-compare run after the showcase
+  baselines were re-captured; the 58-check reading at M56 work time was the
+  same gate under `--update-baseline`, which skips the eight per-page
+  pixel-compare checks — the 66 recorded at M54 stands).
+- Showcase: 10 Timestamp examples (relative, relative-short, auto, date,
+  date-long, date-weekday, date-time, time, system shapes, hover card),
+  78 sections, 500 examples, 78 nav links.
+- README: 76 of 103 ported (M41–M56), 751 checks, 550 browser checks,
+  showcase 76/500/78, coverage 76/27/103, visual 77 pages + INDEX; PORT-STATUS
+  76/103; docs/visual/Timestamp.md generated. Generators re-ran clean
+  (gen-coverage, gen-visual-contract, gen-references, gen-port-status —
+  references before port-status).
+- Divergences named in the mli: the locale is fixed to `en` (no locale
+  provider; the `Intl` calls and the card's strings are the upstream English
+  defaults, and a locale-aware caller can use `format_instant`/
+  `format_relative_time` directly); no lazy import (the hover card is compiled
+  in — the port has no code splitting); `themeProps` has no counterpart; the
+  live region is the card's own rather than the application's announcer; the
+  invalid value is reported through `data-astryx-invalid` rather than a
+  dev-only console warn; touch handling is the hover card's own (no touch
+  mode either, as upstream).
+

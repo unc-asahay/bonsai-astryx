@@ -68,7 +68,11 @@ let is_text_only (node : Vdom.Node.t) =
   | _ -> false
 ;;
 
-let view
+(* The trigger and content are computations here, so a stateful trigger (the
+   Timestamp <time> element, whose text and aria-label re-render with the
+   clock) can be wrapped; [view] lifts the plain values onto it, and [view_t]
+   takes them as computations. The composition below is shared. *)
+let view_impl
       ?(attrs = [])
       ?(placement = Above)
       ?(alignment = Center)
@@ -82,8 +86,8 @@ let view
       ?is_open
       ?(is_default_open = false)
       ~id
-      ~trigger
-      ~content
+      ~trigger_t
+      ~content_t
       (graph : Bonsai.graph)
   =
   (* The open cell is shared with the controlled case: [is_open] replaces the
@@ -110,10 +114,15 @@ let view
       ~f:(fun (is_open, set_open, hovering, set_hovering) (hovering_content, set_hovering_content) ->
         (is_open, set_open, hovering, set_hovering, hovering_content, set_hovering_content))
   in
-  Bonsai.map2 core_state focused_state
+  let trigger_content =
+    Bonsai.map2 trigger_t content_t ~f:(fun trigger content -> trigger, content)
+  in
+  Bonsai.map2
+    (Bonsai.map2 core_state focused_state ~f:(fun a b -> a, b))
+    trigger_content
     ~f:(fun
-      (is_open, set_open, hovering, set_hovering, hovering_content, set_hovering_content)
-      (focused, set_focused) ->
+      ((is_open, set_open, hovering, set_hovering, hovering_content, set_hovering_content), (focused, set_focused))
+      (trigger, content) ->
         let open_effect =
           Effect.Many
             [ set_open true
@@ -250,4 +259,85 @@ let view
           else []
         in
         Vdom.Node.span ~attrs:wrapper_attrs (trigger :: surface))
+;;
+
+(* [view]: the trigger and content are plain values, the common case — a
+   static span, a panel. *)
+
+let view
+      ?(attrs = [])
+      ?(placement = Above)
+      ?(alignment = Center)
+      ?(delay_ms = 300.0)
+      ?(hide_delay_ms = 200.0)
+      ?(focus_trigger = Focus_auto)
+      ?(is_enabled = true)
+      ?label
+      ?on_open_change
+      ?(has_hover_indication = Indicate_auto)
+      ?is_open
+      ?(is_default_open = false)
+      ~id
+      ~trigger
+      ~content
+      (graph : Bonsai.graph)
+  =
+  view_impl
+    ~attrs
+    ~placement
+    ~alignment
+    ~delay_ms
+    ~hide_delay_ms
+    ~focus_trigger
+    ~is_enabled
+    ?label
+    ?on_open_change
+    ~has_hover_indication
+    ?is_open
+    ~is_default_open
+    ~id
+    ~trigger_t:(Bonsai.return trigger)
+    ~content_t:(Bonsai.return content)
+    graph
+;;
+
+(* [view_t]: the trigger and content are computations, for the stateful
+   trigger (a <time> whose text re-renders with the clock). Same behaviour,
+   same DOM — the difference is only where the values come from. *)
+
+let view_t
+      ?(attrs = [])
+      ?(placement = Above)
+      ?(alignment = Center)
+      ?(delay_ms = 300.0)
+      ?(hide_delay_ms = 200.0)
+      ?(focus_trigger = Focus_auto)
+      ?(is_enabled = true)
+      ?label
+      ?on_open_change
+      ?(has_hover_indication = Indicate_auto)
+      ?is_open
+      ?(is_default_open = false)
+      ~id
+      ~trigger_t
+      ~content_t
+      (graph : Bonsai.graph)
+  =
+  view_impl
+    ~attrs
+    ~placement
+    ~alignment
+    ~delay_ms
+    ~hide_delay_ms
+    ~focus_trigger
+    ~is_enabled
+    ?label
+    ?on_open_change
+    ~has_hover_indication
+    ?is_open
+    ~is_default_open
+    ~id
+    ~trigger_t
+    ~content_t
+    graph
 ;;

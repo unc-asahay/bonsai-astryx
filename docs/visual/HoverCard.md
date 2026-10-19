@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Hover_card` (`src/hover_card.ml`, M55)
-- rendered instances in the demo: 8
+- rendered instances in the demo: 11
 - classes: `astryx-hover-card`, `astryx-hover-card--above`, `astryx-hover-card--align-center`, `astryx-hover-card--indication`, `astryx-hover-card-anchor`, `astryx-hover-card-anchor--contents`, `astryx-hover-card-anchor--inline`
 
 ## layout

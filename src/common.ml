@@ -186,6 +186,17 @@ let clear_timeout (id : Js.Unsafe.any) : unit =
   ignore (Js.Unsafe.meth_call Dom_html.window "clearTimeout" [| Js.Unsafe.inject id |])
 ;;
 
+let interval (f : unit -> unit) (interval_ms : float) : Js.Unsafe.any =
+  Js.Unsafe.meth_call
+    Dom_html.window
+    "setInterval"
+    [| Js.Unsafe.inject (Js.wrap_callback f); Js.Unsafe.inject (Js.number_of_float interval_ms) |]
+;;
+
+let clear_interval (id : Js.Unsafe.any) : unit =
+  ignore (Js.Unsafe.meth_call Dom_html.window "clearInterval" [| Js.Unsafe.inject id |])
+;;
+
 (* Fires its effect once, [delay_ms] after the node it is attached to appears. Cancelled if the node
    is destroyed first, and restarted if the input changes — which is what a hover delay needs: the
    pointer leaving before the delay elapses must cancel the timer, not race it. *)
@@ -248,6 +259,62 @@ module Delay_hook = struct
   ;;
 
   let cancel = attr ~delay_ms:None ~on_elapsed:Effect.Ignore
+end
+
+(* The periodic twin of Delay_hook: fires [on_tick] every [interval_ms] while
+   the input says so, and stops when it becomes [None] — the same
+   cancel-on-change discipline, restarted on every input change (a live
+   timestamp's re-render re-arms the interval at the new period, exactly as
+   upstream's effect deps restart it). *)
+module Interval_hook = struct
+  module T = struct
+    module State = struct
+      type t = { mutable id : Js.Unsafe.any option }
+
+      let create () = { id = None }
+    end
+
+    module Input = struct
+      type t =
+        { interval_ms : float option
+        ; on_tick : (unit Effect.t[@sexp.opaque])
+        }
+
+      let sexp_of_t { interval_ms; _ } =
+        Sexp.Atom (Option.value_map interval_ms ~default:"stopped" ~f:Float.to_string)
+      ;;
+
+      let combine left right =
+        { left with on_tick = Effect.Many [ left.on_tick; right.on_tick ] }
+      ;;
+    end
+
+    let init _ _ = State.create ()
+    let cancel state = Option.iter state.State.id ~f:clear_interval
+
+    let start state (input : Input.t) =
+      cancel state;
+      match input.interval_ms with
+      | None -> ()
+      | Some interval_ms ->
+        state.id
+          <- Some
+               (interval
+                  (fun () -> Effect.Expert.handle_non_dom_event_exn input.on_tick)
+                  interval_ms)
+    ;;
+
+    let on_mount input state _ = start state input
+    let on_mount = `Schedule_immediately_after_this_dom_patch_completes on_mount
+    let update ~old_input:_ ~new_input state _ = start state new_input
+    let destroy _ state _ = cancel state
+  end
+
+  module Hook = Vdom.Attr.Hooks.Make (T)
+
+  let attr ~interval_ms ~on_tick =
+    Vdom.Attr.create_hook "astryx-interval" (Hook.create { T.Input.interval_ms; on_tick })
+  ;;
 end
 
 (* ------------------------------------------------------------------------------------ DOM helpers *)

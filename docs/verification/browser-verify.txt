@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   76 sections
+  ok   78 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   483 examples across the page
+  ok   500 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Timestamp:10
 
 navigation
-  ok   76 nav links
+  ok   78 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 74 ported / 29 not / 103 total
-  ok   unported list rendered 29 entries
+  ok   coverage stats are 76 ported / 27 not / 103 total
+  ok   unported list rendered 27 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -622,9 +622,37 @@ OverflowList (live)
   ok   resizing the window re-measures and shows more, with no reload
   ok   and the indicator keeps telling the truth after it
 
+HoverCard (live)
+  ok   all closed cards are absent from the DOM, the controlled one is present
+  ok   the controlled card is a named dialog with its label
+  ok   the labelled wrapper advertises the dialog relationship
+  ok   the controlled wrapper points aria-controls at the open card
+  ok   hovering opens the card after the delay, as the named dialog
+  ok   the open wrapper then points aria-controls at the card
+  ok   the card opens against the 'above' placement class
+  ok   the unnamed card is a group and the text trigger is described by it
+  ok   a text-only trigger takes the auto-indication and a tab stop
+  ok   an element trigger gets no indication
+  ok   Indicate_hide overrides the auto indication
+  ok   Escape closes the focused card (group is unmounted)
+  ok   a disabled card does not open on hover
+  ok   leaving the trigger closes the card after the hide delay
+
+Timestamp (live)
+  ok   the live now reading is a semantic <time> with the full absolute name
+  ok   two hours ago reads through the relative tier with its absolute name
+  ok   the system date-time is the viewer's wall clock on an exact ISO datetime
+  ok   unix seconds is exact, zone-independent
+  ok   the invalid probe reports the intent while rendering nothing
+  ok   hovering the relative reading opens the card — one row per zone
+  ok   the card grid carries the label+action template with shared columns
+  ok   rows name zones, copyable rows get a copy button, and the announce region is hosted
+  ok   the open card is a named dialog the trigger advertises and points at
+  ok   leaving the trigger unmounts the card
+
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-526/526 checks passed, 0 failure(s)
+550/550 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

@@ -74,6 +74,10 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -855,6 +859,14 @@ DialogHeader
   ok   a single-image lightbox has no nav or counter
   ok   a video item renders a video element with controls and autoplay
   ok   controls and the polite live region are present
+  ok   seven timestamps mount in the fixture
+  ok   the relative reading is a semantic <time> carrying its full absolute name
+  ok   an explicit relative phrase matches the host Intl tier
+  ok   an absolute date reads through the host Intl and the ISO datetime is exact
+  ok   the system date-time reads the viewer's wall clock
+  ok   unix seconds is exact and its datetime matches the same instant
+  ok   a relative timestamp with zones attaches the card: wrapper, dialog link, tab stop — closed
+  ok   an invalid value renders nothing and the probe carries the intent
 
-743 checks, 0 failure(s)
+751 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -841,6 +841,7 @@ module Cr = Astryx.Carousel
 module Tb = Astryx.Tab_list
 module Lb = Astryx.Lightbox
 module Hc = Astryx.Hover_card
+module Ts = Astryx.Timestamp
 
 let demo_menu_item
       ?description
@@ -3057,6 +3058,107 @@ let hover_card_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------------------- timestamp *)
+
+(* A date/time on a semantic <time>: the visible text reads in the viewer's
+   zone (upstream's rule — the card is where other zones get named), relative
+   phrases use the tiers upstream tiers, and the machine shapes are exact by
+   construction. The values here anchor to the clock at mount: "now" and
+   "two hours ago" stay true however long the page is open (the live one
+   re-arms at the interval its own reading dictates). The card example
+   shows two zones and a copy button, and the invalid example renders
+   nothing — the intent is still reported on a hidden probe. *)
+let timestamp_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let with_id id = [ Vdom.Attr.create "id" id ] in
+  let now_ms : float = Js_of_ocaml.Js.Unsafe.eval_string "Date.now()" in
+  let entry ?(timezone_id = None) ?(format = None) ?(label = None)
+        ?(is_copyable = false) () =
+    { Ts.timezone_id; format; label; is_copyable }
+  in
+  let card_entries =
+    [ entry ~timezone_id:(Some "America/Los_Angeles")
+        ~label:(Some "San Francisco") ~is_copyable:true ()
+    ; entry ~timezone_id:(Some "UTC") ~is_copyable:true ()
+    ; entry ~timezone_id:(Some "Europe/London")
+        ~format:(Some (Ts.Instant Ts.Date_time))
+        ~label:(Some "London, its own shape") ()
+    ]
+  in
+  let examples =
+    [ ex_tree "now — live, auto picks relative" (Ts.view
+        ~attrs:(with_id "showcase-ts-now")
+        ~id:"showcase-ts-card-now"
+        ~is_live:true
+        ~value:(Ts.Num now_ms)
+        graph)
+    ; ex_tree "two hours ago — explicit relative" (Ts.view
+        ~format:Ts.Relative
+        ~attrs:(with_id "showcase-ts-two-hours")
+        ~id:"showcase-ts-card-two-hours"
+        ~value:(Ts.Num (now_ms -. 7_200_000.))
+        graph)
+    ; ex_tree "a year ago — auto falls past the threshold to date_time" (Ts.view
+        ~attrs:(with_id "showcase-ts-auto-old")
+        ~id:"showcase-ts-card-auto-old"
+        ~value:(Ts.Num (now_ms -. 31_536_000_000.))
+        graph)
+    ; ex_tree "date — Mar 20, 2026" (Ts.view
+        ~format:Ts.Date
+        ~attrs:(with_id "showcase-ts-date")
+        ~id:"showcase-ts-card-date"
+        ~value:(Ts.Str "2026-03-21T02:51:53Z")
+        graph)
+    ; ex_tree "with the weekday" (Ts.view
+        ~format:Ts.Date_weekday
+        ~attrs:(with_id "showcase-ts-weekday")
+        ~id:"showcase-ts-card-weekday"
+        ~value:(Ts.Str "2026-03-21T02:51:53Z")
+        graph)
+    ; ex_tree "time, with its zone named" (Ts.view
+        ~format:Ts.Time
+        ~is_timezone_shown:true
+        ~attrs:(with_id "showcase-ts-time")
+        ~id:"showcase-ts-card-time"
+        ~value:(Ts.Str "2026-03-21T02:51:53Z")
+        graph)
+    ; ex_tree "machine shape — system date-time" (Ts.view
+        ~format:Ts.System_date_time
+        ~attrs:(with_id "showcase-ts-system")
+        ~id:"showcase-ts-card-system"
+        ~value:(Ts.Str "2026-03-21T02:51:53Z")
+        graph)
+    ; ex_tree "unix seconds — zone-independent by construction" (Ts.view
+        ~format:Ts.Unix_seconds
+        ~attrs:(with_id "showcase-ts-unix")
+        ~id:"showcase-ts-card-unix"
+        ~value:(Ts.Num 1_742_565_113.)
+        graph)
+    ; ex_tree "the copyable hover card — three rows, two zones" (Ts.view
+        ~attrs:(with_id "showcase-ts-card-trigger")
+        ~id:"showcase-ts-card"
+        ~tooltip_entries:card_entries
+        ~value:(Ts.Num (now_ms -. 3. *. 86_400_000.))
+        graph)
+    ; ex_tree "invalid — renders nothing, the probe reports the intent" (Ts.view
+        ~attrs:(with_id "showcase-ts-invalid")
+        ~value:(Ts.Str "not a date")
+        graph)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"timestamp"
+      ~title:"Timestamp"
+      ~note:
+        "A formatted date/time on a semantic <time> element: the visible text reads in the \\\n         viewer's own zone, the hover card names the others. Relative formats tier exactly \\\n         as upstream tiers them, auto chooses relative for a week and date_time beyond, and \\\n         the machine shapes are zone-independent. The card is one line per configured zone, \\\n         each optionally copyable; a relative reading is live at the interval its own \\\n         precision dictates. What the interface says plainly: no locale provider, so the \\\n         language is fixed at en; the card is the port's own HoverCard; an invalid value \\\n         renders nothing."
+      examples)
+;;
+
 (* ------------------------------------------------- dialog (state, and the platform) *)
 
 (* The only component so far whose behaviour is the browser's: a <dialog> opened with showModal() is
@@ -5238,6 +5340,7 @@ let nav_items =
   ; "tab-list", "TabList"
   ; "lightbox", "Lightbox"
   ; "hover-card", "HoverCard"
+  ; "timestamp", "Timestamp"
   ]
 ;;
 
@@ -6080,15 +6183,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful lightbox_section in
   let hover_card_section = hover_card_demo graph in
   let stateful = pair stateful hover_card_section in
+  let timestamp_section = timestamp_demo graph in
+  let stateful = pair stateful timestamp_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card)
+    ~f:(fun ((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp ])
       ])
 let () =
   Bonsai_web.Start.start ~bind_to_element_with_id:"astryx-showcase" page

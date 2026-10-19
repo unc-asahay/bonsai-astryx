@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 75,
-    "unported": 28,
+    "ported": 76,
+    "unported": 27,
     "total": 103,
     "documented": 103
   },
@@ -420,6 +420,12 @@
       "milestone": "M19"
     },
     {
+      "name": "Timestamp",
+      "module": "Astryx.Timestamp",
+      "file": "src/timestamp.ml",
+      "milestone": "M56"
+    },
+    {
       "name": "ToggleButton",
       "module": "Astryx.Toggle_button",
       "file": "src/toggle_button.ml",
@@ -486,7 +492,6 @@
     "Stepper",
     "Table",
     "TimeInput",
-    "Timestamp",
     "Toast",
     "Tokenizer",
     "TopNav",

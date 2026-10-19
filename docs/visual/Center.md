@@ -24,8 +24,9 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `align-items` | `center`<br>`center` | `.astryx-center--both`<br>`.astryx-center--vertical` |
-| `display` | `inline-flex` | `.astryx-center--inline` |
+| `display` | `flex`<br>`inline-flex` | `.astryx-center`<br>`.astryx-center--inline` |
 | `justify-content` | `center`<br>`center` | `.astryx-center--both`<br>`.astryx-center--horizontal` |
+| `min-width` | `0` | `.astryx-center` |
 
 ## tokens referenced
 

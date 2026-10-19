@@ -761,6 +761,13 @@
       "file": "src/hover_card.ml",
       "milestone": "M55",
       "module": "Astryx.Hover_card"
+    },
+    {
+      "class": "A",
+      "component": "Timestamp",
+      "file": "src/timestamp.ml",
+      "milestone": "M56",
+      "module": "Astryx.Timestamp"
     }
   ],
   "schema": 1,

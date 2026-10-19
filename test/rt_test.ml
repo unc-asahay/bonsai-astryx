@@ -3378,6 +3378,82 @@ let () =
   mount "lightbox-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ------------------------------------------------------------- timestamp *)
+
+let timestamp_component (graph : Bonsai.graph) =
+  let now_ms : float = Js_of_ocaml.Js.Unsafe.eval_string "Date.now()" in
+  let entry ?(timezone_id = None) ?(format = None) ?(label = None)
+        ?(is_copyable = false) () =
+    { Astryx.Timestamp.timezone_id; format; label; is_copyable }
+  in
+  let trees =
+    [ (* Now, live: the reading re-arms every second. *)
+      Astryx.Timestamp.view
+        ~attrs:[ Vdom.Attr.id "rt-ts-now" ]
+        ~id:"rt-ts-card-now"
+        ~is_live:true
+        ~value:(Astryx.Timestamp.Num now_ms)
+        graph
+      (* Two hours ago: explicit relative, card attached — nothing open. *)
+    ; Astryx.Timestamp.view
+        ~format:Astryx.Timestamp.Relative
+        ~attrs:[ Vdom.Attr.id "rt-ts-2h" ]
+        ~id:"rt-ts-card-2h"
+        ~value:(Astryx.Timestamp.Num (now_ms -. 7_200_000.))
+        graph
+      (* Absolute date: no card, so no wrapper, no tab stop. *)
+    ; Astryx.Timestamp.view
+        ~format:Astryx.Timestamp.Date
+        ~attrs:[ Vdom.Attr.id "rt-ts-date" ]
+        ~value:(Astryx.Timestamp.Str "2026-03-21T02:51:53Z")
+        graph
+      (* System date-time: the viewer's wall clock, machine shape. *)
+    ; Astryx.Timestamp.view
+        ~format:Astryx.Timestamp.System_date_time
+        ~attrs:[ Vdom.Attr.id "rt-ts-system" ]
+        ~value:(Astryx.Timestamp.Str "2026-03-21T02:51:53Z")
+        graph
+      (* Unix seconds: zone-independent by construction. *)
+    ; Astryx.Timestamp.view
+        ~format:Astryx.Timestamp.Unix_seconds
+        ~attrs:[ Vdom.Attr.id "rt-ts-unix" ]
+        ~value:(Astryx.Timestamp.Num 1_742_565_113.)
+        graph
+      (* Relative with zones: the card is attached (tab stop, aria) but closed —
+         jsdom cannot pump the Bonsai effect that opens it. *)
+    ; Astryx.Timestamp.view
+        ~attrs:[ Vdom.Attr.id "rt-ts-card" ]
+        ~id:"rt-ts-card-id"
+        ~tooltip_entries:
+          [ entry ~timezone_id:(Some "America/Los_Angeles")
+              ~label:(Some "San Francisco") ~is_copyable:true ()
+          ; entry ~timezone_id:(Some "UTC") ~is_copyable:true ()
+          ]
+        ~value:(Astryx.Timestamp.Num (now_ms -. 3. *. 86_400_000.))
+        graph
+      (* Invalid: renders nothing; the probe carries the intent. *)
+    ; Astryx.Timestamp.view
+        ~attrs:[ Vdom.Attr.id "rt-ts-invalid" ]
+        ~value:(Astryx.Timestamp.Str "not a date")
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "timestamp-all" ] nodes)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      timestamp_component
+  in
+  mount "timestamp-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

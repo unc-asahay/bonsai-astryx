@@ -5024,4 +5024,51 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .showcase-hover-panel a {
   color: var(--color-text-link);
 }
->>>>>>> 00b58f9 (wip: HoverCard port (M55) — src, showcase, css, gates, port.json)
+
+/* ------------------------------------------------------ Timestamp (M56) */
+
+/* The hover card is a definition list laid out as a grid so cells align into
+   columns across rows, exactly as upstream's TimestampHoverCard does; the
+   row is display: contents so its <dt>/<dd> participate in the shared grid.
+   Which columns exist is per-card (the --label, --action modifiers). */
+.astryx-timestamp-card {
+  display: grid;
+  align-items: center;
+  column-gap: var(--spacing-4);
+  row-gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+}
+
+.astryx-timestamp-card__row { display: contents; }
+
+.astryx-timestamp-card__label {
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-weight: var(--text-supporting-weight);
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.astryx-timestamp-card__value {
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--text-body-weight);
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.astryx-timestamp-card__action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.astryx-timestamp-card--label-action { grid-template-columns: auto 1fr auto; }
+.astryx-timestamp-card--label { grid-template-columns: auto 1fr; }
+.astryx-timestamp-card--action { grid-template-columns: 1fr auto; }
+.astryx-timestamp-card--value { grid-template-columns: 1fr; }

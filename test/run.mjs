@@ -3099,6 +3099,57 @@ check("a disabled group says so once, on the box", (() => {
     && !!g("rt-lb-gallery")?.querySelector('[aria-live="polite"]'));
 }
 
+// --- Timestamp (M56)
+{
+  const host = document.querySelector('[data-case="timestamp-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const d = new Date("2026-03-21T02:51:53Z");
+  const fmtDate = (opts) => new Intl.DateTimeFormat("en", opts).format(d);
+  const expectedDate = fmtDate({ year: "numeric", month: "short", day: "numeric", calendar: "gregory" });
+  const sysParts = new Intl.DateTimeFormat("en-US",
+    { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+      second: "2-digit", hourCycle: "h23", calendar: "gregory" }).formatToParts(d);
+  const sysMap = {};
+  for (const p of sysParts) if (p.type !== "literal") sysMap[p.type] = p.value;
+  const expectedSystem = `${sysMap.year}-${sysMap.month}-${sysMap.day} ${sysMap.hour}:${sysMap.minute}:${sysMap.second}`;
+  const anchorOf = (el) => el && el.closest(".astryx-hover-card-anchor");
+
+  check("seven timestamps mount in the fixture",
+    !!g("rt-ts-now") && !!g("rt-ts-2h") && !!g("rt-ts-date") && !!g("rt-ts-system")
+    && !!g("rt-ts-unix") && !!g("rt-ts-card") && !!g("rt-ts-invalid"));
+  check("the relative reading is a semantic <time> carrying its full absolute name",
+    g("rt-ts-now")?.tagName.toLowerCase() === "time"
+    && g("rt-ts-now")?.getAttribute("data-astryx-component") === "Timestamp"
+    && g("rt-ts-now")?.textContent.trim() === "now"
+    && (g("rt-ts-now")?.getAttribute("aria-label") ?? "").length > 3
+    && g("rt-ts-now")?.getAttribute("tabindex") === "0");
+  check("an explicit relative phrase matches the host Intl tier",
+    g("rt-ts-2h")?.textContent.trim() === "2 hours ago"
+    && (g("rt-ts-2h")?.getAttribute("aria-label") ?? "").length > 3);
+  check("an absolute date reads through the host Intl and the ISO datetime is exact",
+    g("rt-ts-date")?.textContent.trim() === expectedDate
+    && g("rt-ts-date")?.getAttribute("datetime") === "2026-03-21T02:51:53.000Z"
+    && g("rt-ts-date")?.getAttribute("aria-label") === null
+    && g("rt-ts-date")?.getAttribute("tabindex") === null
+    && anchorOf(g("rt-ts-date")) === null);
+  check("the system date-time reads the viewer's wall clock",
+    g("rt-ts-system")?.textContent.trim() === expectedSystem
+    && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(g("rt-ts-system")?.textContent.trim() ?? ""));
+  check("unix seconds is exact and its datetime matches the same instant",
+    g("rt-ts-unix")?.textContent.trim() === "1742565113"
+    && g("rt-ts-unix")?.getAttribute("datetime") === new Date(1742565113000).toISOString());
+  check("a relative timestamp with zones attaches the card: wrapper, dialog link, tab stop — closed",
+    anchorOf(g("rt-ts-card")) !== null
+    && (anchorOf(g("rt-ts-card"))?.getAttribute("aria-haspopup") ?? null) === "dialog"
+    && g("rt-ts-card")?.getAttribute("tabindex") === "0"
+    && anchorOf(g("rt-ts-card"))?.querySelector(".astryx-hover-card") === null);
+  check("an invalid value renders nothing and the probe carries the intent",
+    g("rt-ts-invalid")?.getAttribute("data-astryx-invalid") === "true"
+    && g("rt-ts-invalid")?.getAttribute("data-astryx-component") === "Timestamp"
+    && g("rt-ts-invalid")?.querySelector("time") === null
+    && host?.querySelectorAll("time").length === 6);
+}
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");

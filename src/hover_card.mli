@@ -112,3 +112,27 @@ val view
     hover/focus events entirely, and [on_open_change] reports an Escape
     dismissal (with [false]) that the caller did not perform. [is_default_open]
     opens the card on mount, uncontrolled. *)
+
+val view_t
+  :  ?attrs:Vdom.Attr.t list
+  -> ?placement:placement
+  -> ?alignment:alignment
+  -> ?delay_ms:float
+  -> ?hide_delay_ms:float
+  -> ?focus_trigger:focus_trigger
+  -> ?is_enabled:bool
+  -> ?label:string
+  -> ?on_open_change:(bool -> unit Effect.t)
+  -> ?has_hover_indication:hover_indication
+  -> ?is_open:bool
+  -> ?is_default_open:bool
+  -> id:string
+  -> trigger_t:Vdom.Node.t Bonsai.t
+  -> content_t:Vdom.Node.t Bonsai.t
+  -> Bonsai.graph
+  -> Vdom.Node.t Bonsai.t
+(** [view_t] is [view] with the trigger and content as computations instead of
+    values — the same behaviour, the same DOM. A stateful trigger (the
+    {!Timestamp} [<time>] element, whose text, [datetime] and [aria-label] are
+    cell values) needs this form; [Timestamp.view] is its one consumer today.
+    [view] is [view_t] with both arguments lifted — nothing else changes. *)
