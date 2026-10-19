@@ -46,10 +46,16 @@ ln -sfn /home/noor/src/bonsai-astryx/node_modules <your worktree>/node_modules
 4. `examples/showcase/sec_<snake_name>.ml` — the showcase section
    (contract below).
 
-Do NOT edit: `src/astryx.ml`, `port.json`, `README.md`,
-`examples/showcase/showcase.ml`, `assets/components.css`,
-`tools/visual/verify-browser.mjs`, `docs/**`, `test/**`. The integrator
-merges those. Tell the integrator what to add (see "Final report").
+Do NOT edit: `port.json`, `README.md`, `examples/showcase/showcase.ml`,
+`assets/components.css`, `tools/visual/verify-browser.mjs`, `docs/**`,
+`test/**`. The integrator merges those. Tell the integrator what to add
+(see "Final report").
+
+**One exception**: you MUST add exactly one line to `src/astryx.ml` —
+`module Toast = Toast` (for your component) — because the showcase section
+file refers to `Astryx.Toast` and your build must be green. That is a
+one-line change in a file every port touches, so the integrator merges
+these lines; make sure yours is the only change you make to that file.
 
 `<snake_name>` is the module name: `Toast` -> `toast`,
 `CodeBlock` -> `code_block`, `MobileNav` -> `mobile_nav`. The public path
