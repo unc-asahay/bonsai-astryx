@@ -5538,6 +5538,169 @@ check(
     rzVertical !== null && rzVertical.orientation === "horizontal",
     JSON.stringify(rzVertical));
 
+  // ------------------------------------------------------------------ Toast
+  // A toast is a live region: polite for information, assertive for an
+  // error. The viewport is the top-level element an application mounts
+  // once; it holds the stack.
+
+  const toastAttrs = (id) => page.evaluate((i) => {
+    const el = document.getElementById(i);
+    if (!el) return null;
+    return {
+      role: el.getAttribute("role"),
+      live: el.getAttribute("aria-live"),
+      atomic: el.getAttribute("aria-atomic"),
+      type: el.getAttribute("data-astryx-toast-type"),
+      component: el.getAttribute("data-astryx-component"),
+      dismiss: !!el.querySelector('[aria-label="Dismiss notification"]'),
+    };
+  }, id);
+
+  const toastInfo = await toastAttrs("showcase-toast-info");
+  const toastError = await toastAttrs("showcase-toast-error");
+  check("an informational toast is a polite live region",
+    toastInfo !== null
+      && toastInfo.component === "Toast"
+      && toastInfo.role === "status"
+      && toastInfo.live === "polite"
+      && toastInfo.atomic === "true"
+      && toastInfo.type === "info",
+    JSON.stringify(toastInfo));
+
+  check("an error toast is an assertive live region",
+    toastError !== null
+      && toastError.role === "alert"
+      && toastError.live === "assertive"
+      && toastError.type === "error",
+    JSON.stringify(toastError));
+
+  check("a toast carries its dismissal control",
+    toastInfo !== null && toastInfo.dismiss === true,
+    JSON.stringify(toastInfo));
+
+  // The announcement region the port creates for the screen reader.
+  check("the port creates a polite announcement region",
+    await page.evaluate(() => {
+      const el = document.querySelector('[data-astryx-live-region="polite"]');
+      if (!el) return false;
+      return el.getAttribute("aria-live") === "polite"
+        && el.getAttribute("role") === "status"
+        && el.getAttribute("aria-atomic") === "true";
+    }));
+
+  // The viewport: a click on the application's own button adds a toast, and
+  // the stack the viewport holds grows.
+  const toastCount = () => page.evaluate(() => {
+    const el = document.getElementById("showcase-toast-count");
+    return el ? el.textContent.trim() : null;
+  });
+  const before = await toastCount();
+  await page.click("#showcase-toast-viewport-example button");
+  await page.waitForTimeout(300);
+  const after = await toastCount();
+  const viewport = await page.evaluate(() => {
+    const el = document.getElementById("showcase-toast-viewport");
+    if (!el) return null;
+    return {
+      role: el.getAttribute("role"),
+      label: el.getAttribute("aria-label"),
+      rows: el.querySelectorAll("[data-toast-id]").length,
+    };
+  });
+  check("the application's button adds a toast to the viewport's stack",
+    before === "toasts: 0" && after === "toasts: 1" && viewport !== null && viewport.rows === 1,
+    JSON.stringify({ before, after, viewport }));
+
+  check("the viewport is a labelled region that holds the stack",
+    viewport !== null && viewport.role === "region" && viewport.label === "Notifications",
+    JSON.stringify(viewport));
+
+  // The same unique id replaces the toast instead of stacking behind it.
+  // The count readout is shared by both examples, so what matters is that
+  // the second click does not grow the stack - and that the toast with the
+  // unique id is in the DOM exactly once.
+  const uniqueBtn = "#showcase-toast-unique-example button";
+  const uniqueBefore = await toastCount();
+  await page.click(uniqueBtn);
+  await page.waitForTimeout(250);
+  const uniqueOnce = await toastCount();
+  await page.click(uniqueBtn);
+  await page.waitForTimeout(250);
+  const uniqueTwice = await toastCount();
+  // The replacement is in place: the stack keeps its size, and the toast
+  // that held the id now carries the new body rather than a second copy
+  // sitting behind it.
+  const stackBodies = await page.evaluate(() =>
+    [...document.querySelectorAll("#showcase-toast-viewport [data-toast-id] .astryx-toast__content")]
+      .map((el) => el.textContent.trim()));
+  check("the same unique id replaces the toast instead of stacking behind it",
+    uniqueOnce !== uniqueBefore
+      && uniqueTwice === uniqueOnce
+      && stackBodies.filter((b) => b === "Saved again").length === 1
+      && stackBodies.filter((b) => b === "Saved successfully").length === 1,
+    JSON.stringify({ uniqueBefore, uniqueOnce, uniqueTwice, stackBodies }));
+
+  // A deliberate dismissal is reported as such (the error toast does not
+  // auto-hide, so the reading is not a race with the timer).
+  await page.click('#showcase-toast-error [aria-label="Dismiss notification"]');
+  await page.waitForTimeout(300);
+  check("a deliberate dismissal is reported as a manual dismissal",
+    (await page.evaluate(() => {
+      const el = document.getElementById("showcase-toast-dismissed");
+      return el ? el.textContent.trim() : null;
+    })) === "dismissed: manual",
+    await page.evaluate(() => {
+      const el = document.getElementById("showcase-toast-dismissed");
+      return el ? el.textContent.trim() : null;
+    }));
+
+  // -------------------------------------------------------------- MobileNav
+  // The drawer is a modal dialog the trigger opens.
+
+  const navState = () => page.evaluate(() => {
+    const el = document.getElementById("showcase-mobile-nav-state");
+    return el ? el.textContent.trim() : null;
+  });
+  const navDrawer = () => page.evaluate(() => {
+    const el = document.getElementById("showcase-mobile-nav-live");
+    if (!el) return null;
+    return {
+      tag: el.tagName.toLowerCase(),
+      modal: el.getAttribute("aria-modal"),
+      label: el.getAttribute("aria-label"),
+      open: el.hasAttribute("open"),
+      side: el.getAttribute("data-astryx-side"),
+      close: !!el.querySelector('[aria-label="Close navigation"]'),
+    };
+  });
+
+  const drawerBefore = await navDrawer();
+  check("the drawer is a modal dialog with a label and a close control",
+    drawerBefore !== null
+      && drawerBefore.tag === "dialog"
+      && drawerBefore.modal === "true"
+      && drawerBefore.label !== null
+      && drawerBefore.close === true,
+    JSON.stringify(drawerBefore));
+
+  check("the drawer starts closed and the application knows it",
+    (await navState()) === "the application says: closed" && drawerBefore.open === false,
+    JSON.stringify({ state: await navState(), drawer: drawerBefore }));
+
+  await page.click("#showcase-mobile-nav-open");
+  await page.waitForTimeout(400);
+  const drawerAfter = await navDrawer();
+  check("the trigger opens the drawer, and the application is told",
+    (await navState()) === "the application says: open" && drawerAfter.open === true,
+    JSON.stringify({ state: await navState(), drawer: drawerAfter }));
+
+  await page.click('#showcase-mobile-nav-live [aria-label="Close navigation"]');
+  await page.waitForTimeout(400);
+  const drawerClosed = await navDrawer();
+  check("the drawer's own close control closes it again",
+    (await navState()) === "the application says: closed" && drawerClosed.open === false,
+    JSON.stringify({ state: await navState(), drawer: drawerClosed }));
+
   }
 
 // ---------------------------------------------------------------- screenshot
