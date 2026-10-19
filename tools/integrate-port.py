@@ -216,8 +216,9 @@ def main():
     append_css(args.module)
     wire_showcase(args.module, args.component, args.section_id, args.nav_id)
     add_port_json(args.component, args.module, args.milestone, args.klass)
-    bump_counts(args.component, args.module, args.examples)
-    print("\n== now run: opam exec -- dune build && node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html")
+    print("\n== now run: opam exec -- dune build")
+    print("== then: node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html > /tmp/browser.txt")
+    print("== then: python3 tools/sync-counts.py /tmp/browser.txt   (derives the gate's counts from the page)")
 
 
 if __name__ == "__main__":
