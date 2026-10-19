@@ -3533,6 +3533,57 @@ let complex_selector_component (graph : Bonsai.graph) =
     Vdom.Node.div ~attrs:[ Vdom.Attr.id "complex-selector-all" ] nodes)
 ;;
 
+let outline_component (graph : Bonsai.graph) =
+  let oitem id label level = { Astryx.Outline.id; label; level } in
+  let items =
+    [ oitem "rt-ol-1" "One" 2
+    ; oitem "rt-ol-2" "Two" 3
+    ; oitem "rt-ol-3" "Three" 3
+    ; oitem "rt-ol-4" "Four" 2 ]
+  in
+  let trees =
+    [ (* Uncontrolled: jsdom has no layout, so the first resolution's answer is
+         whatever the spy computes — the structural check only demands that it
+         landed on exactly one item. The scroll math itself is the browser
+         gate's job. *)
+      Astryx.Outline.view ~id:"rt-ol-basic" ~items:(Bonsai.return items) graph
+      (* Controlled: the attribute must mirror the caller's active_id — the
+         hook writes it because this port has no render path to stamp it. *)
+    ; Astryx.Outline.view ~id:"rt-ol-controlled"
+        ~active_id:(Bonsai.return (Some "rt-ol-3"))
+        ~items:(Bonsai.return items)
+        graph
+      (* Levels 1-5 must map to visual indents 1,1,2,3,4 as upstream does. *)
+    ; Astryx.Outline.view ~id:"rt-ol-nested"
+        ~active_id:(Bonsai.return (Some "rt-nest-4"))
+        ~items:
+          (Bonsai.return
+             [ oitem "rt-nest-1" "L1" 1
+             ; oitem "rt-nest-2" "L2" 2
+             ; oitem "rt-nest-3" "L3" 3
+             ; oitem "rt-nest-4" "L4" 4
+             ; oitem "rt-nest-5" "L5" 5 ])
+        graph
+    ; Astryx.Outline.view ~id:"rt-ol-compact"
+        ~density:Astryx.Outline.Compact
+        ~active_id:(Bonsai.return (Some "rt-comp-0"))
+        ~items:(Bonsai.return [ oitem "rt-comp-0" "A" 2; oitem "rt-comp-1" "B" 2 ])
+        graph
+    ; Astryx.Outline.view ~id:"rt-ol-label"
+        ~label:"Jump to"
+        ~active_id:(Bonsai.return (Some "rt-label-1"))
+        ~items:(Bonsai.return [ oitem "rt-label-0" "X" 2; oitem "rt-label-1" "Y" 2 ])
+        graph
+    ]
+  in
+  let tree =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc t ->
+      Bonsai.map2 acc t ~f:(fun acc node -> acc @ [ node ]))
+  in
+  Bonsai.map tree ~f:(fun nodes ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.id "outline-all" ] nodes)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create
@@ -3540,6 +3591,15 @@ let () =
       complex_selector_component
   in
   mount "complex-selector-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      outline_component
+  in
+  mount "outline-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
 let () =

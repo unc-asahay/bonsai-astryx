@@ -5170,3 +5170,113 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   overflow: auto;
   padding: var(--spacing-3);
 }
+
+/* ===== Outline (M58) — table of contents with scroll-spy ===== */
+.astryx-outline {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  gap: var(--spacing-0-5);
+  width: 100%;
+}
+.astryx-outline__track {
+  position: relative;
+  width: 2px;
+  flex-shrink: 0;
+  order: -1;
+}
+.astryx-outline__divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+.astryx-outline__indicator {
+  position: absolute;
+  inset-inline-start: 0;
+  width: 2px;
+  background-color: var(--color-icon-primary);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 1;
+  position-anchor: --astryx-outline-active;
+  top: anchor(--astryx-outline-active top, 0px);
+  height: anchor-size(--astryx-outline-active height, 0px);
+  transition-property: top, height;
+  transition-duration: var(--duration-fast-min);
+  transition-timing-function: var(--ease-standard);
+}
+/* The active link is the anchor the indicator tracks. The attribute (not a
+   class) carries the state — the scroll-spy hook writes aria-current straight
+   to the DOM, so the CSS reads the same signal the parity harness reads. */
+.astryx-outline__link[aria-current="location"] {
+  anchor-name: --astryx-outline-active;
+}
+.astryx-outline__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1;
+  min-width: 0;
+}
+.astryx-outline__item {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.astryx-outline__link {
+  align-items: center;
+  border-radius: var(--radius-element);
+  box-sizing: border-box;
+  color: var(--color-text-secondary);
+  display: flex;
+  font-weight: var(--font-weight-normal);
+  position: relative;
+  text-align: start;
+  text-decoration: none;
+  transition-duration: var(--duration-fast);
+  transition-property: background-color, color;
+  transition-timing-function: var(--ease-standard);
+  width: 100%;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+}
+.astryx-outline__link:hover {
+  color: var(--color-text-primary);
+}
+.astryx-outline__link[aria-current="location"] {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.astryx-outline__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.astryx-outline__link--default {
+  padding-block: var(--spacing-2);
+  padding-inline-end: var(--spacing-2);
+}
+.astryx-outline__link--compact {
+  padding-block: var(--spacing-1);
+  padding-inline-end: var(--spacing-2);
+}
+.astryx-outline__link--indent-1 {
+  padding-inline-start: var(--spacing-3);
+}
+.astryx-outline__link--indent-2 {
+  padding-inline-start: var(--spacing-7);
+}
+.astryx-outline__link--indent-3 {
+  padding-inline-start: var(--spacing-11);
+}
+.astryx-outline__link--indent-4 {
+  padding-inline-start: var(--spacing-12);
+}

@@ -1,0 +1,33 @@
+M58: Outline - the scroll-spying table of contents (Outline)
+
+Port of facebook/astryx Outline (Outline.tsx 1577 LOC) — the table-of-contents
+that lives beside a scrolling area and follows it: one vdom hook owns all the
+dynamic behaviour (scroll-spy, programmatic scroll with settle detection,
+active-state DOM sync, click/Space activation), rAF-throttles scroll
+resolution and writes aria-current="location" plus the roving tabindex
+straight to the DOM; arrow keys/Home/End reuse Common.List_focus with
+prefer_existing_stop so the active heading keeps the tab stop. Upstream math
+ported exactly: activation line = root top + offset + scroll-margin-top with
+1px tolerance, at-bottom -> last-item rule, 1200ms scrollend fallback,
+manual-scroll interrupt resumes tracking. Link seam is a plain
+<a href="#id">; the indicator is anchored via CSS anchor-name on the active
+link. Divergences named in the mli: scrollContainerRef becomes a CSS selector,
+no component-managed scroll into view for the has_scroll_on_click=true case
+(browser handles it), press feedback omitted (campaign-wide).
+
+Two real bugs found during verification:
+- The scroll-spy rAF handle was never cleared after the first resolution, so
+  only one scroll event was ever processed. Fixed: the callback clears the
+  handle before resolving.
+- The showcase pane/frame layout collapsed the content column to 22px at
+  320px (non-wrapping flex with shrinkable content), producing a 367px
+  horizontal overflow. Fixed in site.css: wrap + a 140px content basis so
+  nav and content stack on narrow viewports. Responsive 66/66, 0.00% drift
+  against the fresh baseline.
+
+Gates: component 770 checks 0 failures (8 new outline checks); browser
+572/572 (12 new live checks: scroll-spy at-bottom rule, click -> hash +
+aria-current + roving tab stop, Space activation, controlled toggle cycle,
+scoped container, has_scroll_on_click=false, custom labels, README row);
+responsive 66/66 after re-baseline; demo 25/25. Showcase: 9 examples, 80
+sections, 520 examples, 80 nav links. PORT-STATUS 78/103.

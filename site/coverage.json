@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 77,
-    "unported": 26,
+    "ported": 78,
+    "unported": 25,
     "total": 103,
     "documented": 103
   },
@@ -300,6 +300,12 @@
       "milestone": "M47"
     },
     {
+      "name": "Outline",
+      "module": "Astryx.Outline",
+      "file": "src/outline.ml",
+      "milestone": "M58"
+    },
+    {
       "name": "OverflowList",
       "module": "Astryx.Overflow_list",
       "file": "src/overflow_list.ml",
@@ -488,7 +494,6 @@
     "Markdown",
     "MobileNav",
     "MultiSelector",
-    "Outline",
     "Pagination",
     "PowerSearch",
     "Resizable",

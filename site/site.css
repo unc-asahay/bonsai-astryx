@@ -466,3 +466,30 @@ code {
 /* Layer demo (M43): the anchor the inset example positions against. The name is static (one demo
    anchor per page); the surface refers to it from its inline position-anchor. */
 .astryx-layer-demo__anchor { display: inline-flex; anchor-name: --astryx-layer-demo-anchor; }
+
+/* Outline demo (M58): a scrolling pane with the outline pinned on top of it. The pane is the
+   outline's nearest scrollable ancestor, which is the whole point of the live example — the
+   scroll-spy defaults to the nearest scrollable ancestor, no selector required. */
+.showcase-outline-pane {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-bg-elevated, #fff);
+}
+.showcase-outline-inner { display: flex; flex-wrap: wrap; gap: var(--spacing-4); align-items: flex-start; padding: var(--spacing-3); }
+.showcase-outline-sticky { position: sticky; top: 0; flex: 0 1 200px; min-width: 0; max-width: 100%; align-self: flex-start; }
+.showcase-outline-sticky .astryx-outline { width: 100%; max-width: 200px; }
+.showcase-outline-content { flex: 1 1 140px; min-width: 140px; max-width: 100%; }
+.showcase-outline-section { min-height: 96px; }
+.showcase-outline-heading { scroll-margin-top: 8px; }
+.showcase-outline-copy { color: var(--color-text-secondary, #666); font-size: var(--font-size-xs); margin: 0 0 var(--spacing-2); }
+.showcase-outline-frame { display: flex; flex-wrap: wrap; gap: var(--spacing-4); align-items: flex-start; max-width: 100%; }
+.showcase-outline-nav { flex: 0 1 200px; min-width: 0; }
+.showcase-outline-nav .astryx-outline { width: 100%; max-width: 200px; }
+.showcase-outline-col { display: flex; flex-direction: column; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+.showcase-outline-readout {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary, #666);
+}

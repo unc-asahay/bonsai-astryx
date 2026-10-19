@@ -4160,3 +4160,50 @@ render without `href`), and there is no themeProps.
   omission (`:active` scale reproduced); `Start`/`End` placements fall back
   to the fade-in entry because there is no horizontal-slide house preset
   (named in the CSS block).
+
+## Gate 75 — M58: Outline (coverage 77 -> 78)
+
+- `src/outline.ml` + `src/outline.mli` (the table of contents that lives
+  beside a scrolling area and follows it): the scroll-spy, programmatic
+  scroll with settle detection, active-state DOM sync and click/Space
+  activation all live in one vdom hook attached to the `<nav>` — it
+  rAF-throttles scroll resolution and writes `aria-current="location"` and
+  the roving tabindex straight to the DOM, the house stance for
+  DOM-authoritative components. Roving arrow keys/Home/End reuse
+  `Common.List_focus` with `prefer_existing_stop:true` so the active heading
+  keeps the tab stop. Upstream math ported exactly: activation line = root
+  top + `offset` + `scroll-margin-top`, 1px tolerance, at-bottom→last-item
+  rule, 1200 ms `scrollend` fallback, manual-scroll interrupt resumes
+  tracking. Link seam is a plain `<a href="#id">`; indicator anchored via
+  CSS `anchor-name` on `[aria-current="location"]`. Divergences named in the
+  mli: `scrollContainerRef` → CSS selector, no component-managed scroll for
+  `has_scroll_on_click=true` (the browser handles it), press feedback
+  omitted (campaign-wide).
+- Two real bugs found in verification:
+  1. The scroll-spy rAF handle was never cleared after the first resolution,
+     so exactly one scroll event was ever processed. Fixed: the callback
+     clears the handle before resolving.
+  2. Showcase layout at 320px: the pane/frame content column collapsed to
+     22px (non-wrapping flex + shrinkable content), producing a 367px
+     horizontal overflow despite no element measuring past the section.
+     Fixed in site.css (wrap + 140px content basis) — the pane and frame
+     now stack on narrow viewports.
+- Component gate: **770 checks, 0 failures** (8 new outline checks: items by
+  level, labels, role=table of contents, active first item at rest, arrow
+  roving disabled at the ends, aria-live readout).
+- Browser gate: **572/572** (12 new live checks: scroll-spy at-bottom rule,
+  click → hash + `aria-current` + roving tab stop, Space activation,
+  controlled toggle cycle, scoped container, `has_scroll_on_click=false`,
+  custom labels, README-row check). Demo mode: 25/25.
+- Responsive gate: **66/66, 0.00% drift** against the fresh baseline
+  (showcase grew again; the 320px horizontal-overflow check is precisely what
+  caught the layout bug above).
+- Showcase: 9 examples (basic live pane, nested levels, compact,
+  controlled activeId with readout + real content targets, offset under a
+  fixed header, scoped container, `has_scroll_on_click=false`, custom label,
+  indicator sample), section + nav + page wiring; CSS block appended (track/
+  divider/indicator, density + indent levels 1–4, active state keyed off the
+  attribute).
+- README: 78 of 103 ported (M41–M58), 770 component checks, 572 browser
+  checks, showcase 78/520/80, coverage 78/25/103, visual 79 pages + INDEX;
+  PORT-STATUS 78/103; docs/visual/Outline.md generated.

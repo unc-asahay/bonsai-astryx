@@ -843,6 +843,7 @@ module Lb = Astryx.Lightbox
 module Hc = Astryx.Hover_card
 module Ts = Astryx.Timestamp
 module Cx = Astryx.Complex_selector
+module Ou = Astryx.Outline
 
 let demo_menu_item
       ?description
@@ -3342,6 +3343,197 @@ let complex_selector_demo (graph : Bonsai.graph) =
       examples)
 ;;
 
+(* ------------------------------------------------------------------------ Outline *)
+let outline_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let oitem id label level = { Astryx.Outline.id; label; level } in
+  let guide =
+    [ oitem "ol-guide-1" "Getting started" 2
+    ; oitem "ol-guide-2" "Installation" 3
+    ; oitem "ol-guide-3" "Configuration" 3
+    ; oitem "ol-guide-4" "Usage" 2
+    ; oitem "ol-guide-5" "API reference" 3
+    ; oitem "ol-guide-6" "Theming" 3 ]
+  in
+  let guide_body =
+    [ ("ol-guide-1", "Getting started", 2)
+    ; ("ol-guide-2", "Installation", 3)
+    ; ("ol-guide-3", "Configuration", 3)
+    ; ("ol-guide-4", "Usage", 2)
+    ; ("ol-guide-5", "API reference", 3)
+    ; ("ol-guide-6", "Theming", 3) ]
+  in
+  let content_of (sections : (string * string * int) list) =
+    List.map sections ~f:(fun (id, title, level) ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "showcase-outline-section" ]
+        [ Vdom.Node.create ("h" ^ Int.to_string level)
+            ~attrs:[ Vdom.Attr.id id; Vdom.Attr.class_ "showcase-outline-heading" ]
+            [ Vdom.Node.text title ]
+        ; Vdom.Node.p
+            ~attrs:[ Vdom.Attr.class_ "showcase-outline-copy" ]
+            [ Vdom.Node.text
+                (sprintf "Copy under %s — the pane has to be tall enough to scroll, so the spy has a document to follow." title)
+            ]
+        ])
+  in
+  (* A live example: the outline is pinned (sticky) at the top of a scrolling
+     pane, so the pane itself is the outline's nearest scrollable ancestor and
+     the default spy targets it — no selector needed. *)
+  let live ?(id = "") sections nav =
+    Bonsai.map (nav graph) ~f:(fun nav ->
+      Vdom.Node.div
+        ~attrs:[ Vdom.Attr.class_ "showcase-outline-pane"; Vdom.Attr.id id ]
+        [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-inner" ]
+            [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-sticky" ] [ nav ]
+            ; Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-content" ]
+                (content_of sections)
+            ]
+        ])
+  in
+  let scoped sections nav =
+    Bonsai.map (nav graph) ~f:(fun nav ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-frame" ]
+        [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-nav" ] [ nav ]
+        ; Vdom.Node.div
+            ~attrs:[ Vdom.Attr.class_ "showcase-outline-pane"; Vdom.Attr.id "showcase-ol-scoped-pane" ]
+            [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-content" ]
+                (content_of sections)
+            ]
+        ])
+  in
+  let examples =
+    [ ex_tree
+        "live — scroll the pane and the active heading follows (the pane is the nearest scrollable ancestor)"
+        (live ~id:"showcase-ol-basic-pane" guide_body (fun graph ->
+           Ou.view ~id:"showcase-ol-basic" ~items:(Bonsai.return guide) graph))
+    ; ex_tree
+        "nested levels — indent 1 through 4, and the active link holds the tab stop"
+        (Ou.view ~id:"showcase-ol-nested"
+           ~active_id:(Bonsai.return (Some "ol-nest-2"))
+           ~items:
+             (Bonsai.return
+                [ oitem "ol-nest-1" "Ways and means" 1
+                ; oitem "ol-nest-2" "A subheading" 2
+                ; oitem "ol-nest-3" "A deeper subheading" 3
+                ; oitem "ol-nest-4" "The deepest" 4
+                ; oitem "ol-nest-5" "Back to shallow" 2 ])
+           graph)
+    ; ex_tree
+        "compact density — the same list with tighter item padding"
+        (Ou.view ~id:"showcase-ol-compact"
+           ~density:Ou.Compact
+           ~active_id:(Bonsai.return (Some "ol-comp-1"))
+           ~items:(Bonsai.return [ oitem "ol-comp-0" "One" 2; oitem "ol-comp-1" "Two" 2; oitem "ol-comp-2" "Three" 2 ])
+           graph)
+    ; ex_tree
+        "controlled — the demo owns the active id; clicks report through on_active_id_change"
+        (let active, set_active = Bonsai.state (Some "ol-c-b") graph in
+         let outline =
+           Ou.view ~id:"showcase-ol-controlled"
+             ~active_id:active
+             ~on_active_id_change:(Bonsai.map set_active ~f:(fun set id -> set (Some id)))
+             ~items:
+               (Bonsai.return
+                  [ oitem "ol-c-a" "Alpha" 1
+                  ; oitem "ol-c-b" "Beta" 2
+                  ; oitem "ol-c-c" "Delta" 2
+                  ; oitem "ol-c-d" "Gamma" 1 ])
+             graph
+         in
+         let readout =
+           Bonsai.map active ~f:(fun a ->
+             Vdom.Node.div
+               ~attrs:
+                 [ Vdom.Attr.class_ "showcase-outline-readout"
+                 ; Vdom.Attr.id "showcase-ol-controlled-state"
+                 ]
+               [ Vdom.Node.text
+                   (match a with None -> "active: none" | Some id -> "active: " ^ id)
+               ])
+         in
+         let next = function
+           | Some "ol-c-a" -> Some "ol-c-b"
+           | Some "ol-c-b" -> Some "ol-c-c"
+           | Some "ol-c-c" -> Some "ol-c-d"
+           | _ -> Some "ol-c-a"
+         in
+         let button =
+           Bonsai.map2 active set_active ~f:(fun a set ->
+             Vdom.Node.button
+               ~attrs:
+                 [ Vdom.Attr.class_ "showcase-button"
+                 ; Vdom.Attr.id "showcase-ol-controlled-next"
+                 ; Vdom.Attr.on_click (fun _ -> set (next a))
+                 ]
+               [ Vdom.Node.text "Advance the active heading" ])
+         in
+         Bonsai.map3 outline readout button ~f:(fun outline readout button ->
+           Vdom.Node.div
+             ~attrs:[ Vdom.Attr.class_ "showcase-control" ]
+             [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-frame" ]
+                 [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-nav" ] [ outline ]
+                 ; Vdom.Node.div
+                     ~attrs:[ Vdom.Attr.class_ "showcase-outline-content" ]
+                     (content_of
+                        [ ("ol-c-a", "Alpha", 1)
+                        ; ("ol-c-b", "Beta", 1)
+                        ; ("ol-c-c", "Delta", 1)
+                        ; ("ol-c-d", "Gamma", 1) ])
+                 ]
+             ; Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-outline-col" ] [ button; readout ]
+             ]))
+    ; ex_tree
+        "offset — the activation line sits below a fixed header of 48px"
+        (Ou.view ~id:"showcase-ol-offset"
+           ~offset:48
+           ~active_id:(Bonsai.return (Some "ol-off-2"))
+           ~items:
+             (Bonsai.return
+                [ oitem "ol-off-1" "Overview" 2; oitem "ol-off-2" "The line" 2; oitem "ol-off-3" "The landing" 2 ])
+           graph)
+    ; ex_tree
+        "scoped — the outline sits beside the pane and tracks a named scroll container, not the page"
+        (scoped guide_body (fun graph ->
+           Ou.view ~id:"showcase-ol-scoped"
+             ~scroll_container:"#showcase-ol-scoped-pane"
+             ~items:(Bonsai.return guide)
+             graph))
+    ; ex_tree
+        "no scroll on click — the consumer owns scrolling; the hash and the active state still move"
+        (live ~id:"showcase-ol-noscroll-pane" guide_body (fun graph ->
+           Ou.view ~id:"showcase-ol-noscroll"
+             ~has_scroll_on_click:false
+             ~items:(Bonsai.return guide)
+             graph))
+    ; ex_tree
+        "custom label — the nav names itself through the label the caller supplies"
+        (Ou.view ~id:"showcase-ol-label"
+           ~label:"Jump to"
+           ~active_id:(Bonsai.return (Some "ol-label-1"))
+           ~items:(Bonsai.return [ oitem "ol-label-1" "Abstract" 2; oitem "ol-label-2" "Method" 2; oitem "ol-label-3" "Result" 2 ])
+           graph)
+    ; ex_tree
+        "the indicator — the track and the two-pixel marker, anchored to the active link by CSS"
+        (Ou.view ~id:"showcase-ol-indicator"
+           ~active_id:(Bonsai.return (Some "ol-ind-1"))
+           ~items:(Bonsai.return [ oitem "ol-ind-0" "Start" 2; oitem "ol-ind-1" "The active one" 2 ])
+           graph)
+    ]
+  in
+  Bonsai.map (join_all examples) ~f:(fun examples ->
+    section
+      ~id:"outline"
+      ~title:"Outline"
+      ~note:
+        "A table of contents for a document: anchor links indented by heading \\\n         level, a sliding indicator track, and a scroll-spy that marks the last \\\n         heading whose top has crossed the activation line — the scroll root's \\\n         top plus the offset plus the heading's own scroll-margin-top, the same \\\n         number the landing uses, so the active heading is always the one that \\\n         is where the click would put it. The three live examples show the \\\n         three ways the port's scroll-spy is told where to look: the nearest \\\n         scrollable ancestor, an explicit scroll container (a split pane whose \\\n         page does not scroll), and not at all, when the consumer owns the \\\n         active state and only wants the click reports. One Tab, not one per \\\n         heading: the list is a roving tabindex seated on the active link, and \\\n         the arrows move between headings while Enter and Space activate. The \\\n         two named divergences are the link seam (a plain anchor here, where \\\n         upstream routes through a link-component context) and the markdown/ \\\n         DOM helpers upstream also ships, which are out of scope for this \\\n         milestone."
+      examples)
+;;
+
 (* ------------------------------------------------- dialog (state, and the platform) *)
 
 (* The only component so far whose behaviour is the browser's: a <dialog> opened with showModal() is
@@ -5525,6 +5717,7 @@ let nav_items =
   ; "hover-card", "HoverCard"
   ; "timestamp", "Timestamp"
   ; "complex-selector", "ComplexSelector"
+  ; "outline", "Outline"
   ]
 ;;
 
@@ -6371,15 +6564,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful timestamp_section in
   let complex_selector_section = complex_selector_demo graph in
   let stateful = pair stateful complex_selector_section in
+  let outline_section = outline_demo graph in
+  let stateful = pair stateful outline_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp), complex_selector)
+    ~f:(fun (((((((((((((((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list), number_input), banner), checkbox_list), collapsible), breadcrumbs), carousel), tab_list), lightbox), hover_card), timestamp), complex_selector), outline))
     text_area ->
       Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp; complex_selector ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list; number_input; banner; checkbox_list; collapsible; breadcrumbs; carousel; tab_list; lightbox; hover_card; timestamp; complex_selector; outline ])
       ])
 let () =
   Bonsai_web.Start.start ~bind_to_element_with_id:"astryx-showcase" page

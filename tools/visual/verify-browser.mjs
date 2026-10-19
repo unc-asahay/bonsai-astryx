@@ -265,6 +265,7 @@ if (mode === "showcase") {
     "HoverCard",
     "Timestamp",
     "ComplexSelector",
+    "Outline",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -627,7 +628,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("79 sections", sections.length === 79, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("80 sections", sections.length === 80, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -648,10 +649,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7, Timestamp: 10, ComplexSelector: 11,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7, Timestamp: 10, ComplexSelector: 11, Outline: 9,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("511 examples across the page", totalExamples === 511, `got ${totalExamples}`);
+  check("520 examples across the page", totalExamples === 520, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -665,7 +666,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("79 nav links", nav.length === 79, `got ${nav.length}`);
+  check("80 nav links", nav.length === 80, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4051,11 +4052,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 77 ported / 26 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["77", "26", "103"]),
+    "coverage stats are 78 ported / 25 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["78", "25", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 26 entries", cov.unported === 26, `got ${cov.unported}`);
+  check("unported list rendered 25 entries", cov.unported === 25, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5233,6 +5234,136 @@ check(
   ).catch(() => {});
   check("Escape reports back through on_open_change and the surface follows",
     (await csControlled()).open === false && (await csControlled()).expanded === "false");
+
+  // ---------------------------------------------------------------- Outline (M58)
+  console.log("\nOutline (live)");
+  const olActive = (navId) =>
+    page.evaluate((id) => {
+      const nav = document.getElementById(id);
+      const active = nav?.querySelector('a[aria-current="location"]');
+      return {
+        href: active?.getAttribute("href") ?? null,
+        tabStop: nav?.querySelector('a[tabindex="0"]')?.getAttribute("href") ?? null,
+      };
+    }, navId);
+
+  // The default spy tracks the nearest scrollable ancestor — the pane itself.
+  // Scroll it to the bottom: the at-bottom rule names the last item.
+  await page.evaluate(() => {
+    const pane = document.getElementById("showcase-ol-basic-pane");
+    pane.scrollTop = pane.scrollHeight;
+  });
+  await page.waitForTimeout(200);
+  check("scrolling the pane to the bottom names the last heading active (the at-bottom rule)",
+    (await olActive("showcase-ol-basic")).href === "#ol-guide-6",
+    JSON.stringify(await olActive("showcase-ol-basic")));
+
+  // And back to the top: the first heading returns to the seat.
+  await page.evaluate(() => {
+    document.getElementById("showcase-ol-basic-pane").scrollTop = 0;
+  });
+  await page.waitForTimeout(200);
+  check("scrolling back to the top hands the seat to the first heading",
+    (await olActive("showcase-ol-basic")).href === "#ol-guide-1",
+    JSON.stringify(await olActive("showcase-ol-basic")));
+
+  // Clicking a link navigates: the hash changes and the clicked heading becomes
+  // the active one once the smooth scroll settles.
+  await page.click('#showcase-ol-basic a[href="#ol-guide-2"]');
+  await page.waitForFunction(
+    () => document.querySelector('#showcase-ol-basic a[aria-current="location"]')?.getAttribute("href") === "#ol-guide-2",
+    { timeout: 6000 },
+  ).catch(() => {});
+  check("clicking a heading link navigates to it: hash and aria-current agree after the settle",
+    (await page.evaluate(() => location.hash)) === "#ol-guide-2"
+      && (await olActive("showcase-ol-basic")).href === "#ol-guide-2",
+    JSON.stringify({ hash: await page.evaluate(() => location.hash), ...(await olActive("showcase-ol-basic")) }));
+
+  // Roving arrows: focus is one tab stop, arrows walk it, and the stop travels
+  // with the reader's focus (tabindex 0 follows, never yanked by the spy).
+  await page.focus('#showcase-ol-basic a[href="#ol-guide-2"]');
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(120);
+  check("ArrowDown moves the roving stop to the next heading",
+    await page.evaluate(() => document.activeElement?.getAttribute("href"))
+      === "#ol-guide-3"
+      && (await olActive("showcase-ol-basic")).tabStop === "#ol-guide-3",
+    JSON.stringify(await page.evaluate(() => ({
+      active: document.activeElement?.getAttribute("href"),
+      stop: document.querySelector('#showcase-ol-basic a[tabindex="0"]')?.getAttribute("href"),
+    }))));
+
+  // Space activates the focused item the same way a click does.
+  await page.keyboard.press("Space");
+  await page.waitForFunction(
+    () => location.hash === "#ol-guide-3", { timeout: 4000 },
+  ).catch(() => {});
+  await page.waitForTimeout(1300); // let the navigation settle
+  check("Space activates the focused heading: hash moves and the seat follows",
+    (await page.evaluate(() => location.hash)) === "#ol-guide-3"
+      && (await olActive("showcase-ol-basic")).href === "#ol-guide-3",
+    JSON.stringify({ hash: await page.evaluate(() => location.hash), ...(await olActive("showcase-ol-basic")) }));
+
+  // Controlled: the demo owns the active id. Clicking reports through
+  // on_active_id_change; the button cycles it; the attribute mirrors the caller.
+  check("the controlled outline starts on the caller's active id",
+    (await olActive("showcase-ol-controlled")).href === "#ol-c-b"
+      && (await page.evaluate(() => document.getElementById("showcase-ol-controlled-state")?.textContent))
+        === "active: ol-c-b");
+  await page.click('#showcase-ol-controlled a[href="#ol-c-d"]');
+  await page.waitForFunction(
+    () => document.getElementById("showcase-ol-controlled-state")?.textContent === "active: ol-c-d",
+    { timeout: 4000 },
+  ).catch(() => {});
+  check("clicking in controlled mode reports the change and moves the attribute",
+    (await olActive("showcase-ol-controlled")).href === "#ol-c-d"
+      && (await page.evaluate(() => document.getElementById("showcase-ol-controlled-state")?.textContent))
+        === "active: ol-c-d");
+  await page.click("#showcase-ol-controlled-next");
+  await page.waitForFunction(
+    () => document.getElementById("showcase-ol-controlled-state")?.textContent === "active: ol-c-a",
+    { timeout: 4000 },
+  ).catch(() => {});
+  check("the caller's own button cycles the active id and the outline follows",
+    (await olActive("showcase-ol-controlled")).href === "#ol-c-a");
+
+  // has_scroll_on_click = false: the hash still changes and the seat still
+  // moves, but the pane does not scroll (the consumer owns scrolling).
+  const noScrollBefore = await page.evaluate(() => document.getElementById("showcase-ol-noscroll-pane").scrollTop);
+  await page.click('#showcase-ol-noscroll a[href="#ol-guide-5"]');
+  await page.waitForTimeout(200);
+  const noScrollAfter = await page.evaluate(() => document.getElementById("showcase-ol-noscroll-pane").scrollTop);
+  check("with has_scroll_on_click=false navigation resolves immediately: hash + seat move, scroll does not",
+    (await page.evaluate(() => location.hash)) === "#ol-guide-5"
+      && (await olActive("showcase-ol-noscroll")).href === "#ol-guide-5"
+      && noScrollAfter === noScrollBefore,
+    JSON.stringify({ hash: await page.evaluate(() => location.hash), before: noScrollBefore, after: noScrollAfter }));
+
+  // Scoped: the outline sits beside a pane that is NOT its ancestor, so the
+  // spy must be told the container by selector — and it uses that container.
+  await page.evaluate(() => {
+    const pane = document.getElementById("showcase-ol-scoped-pane");
+    pane.scrollTop = pane.scrollHeight;
+  });
+  await page.waitForTimeout(200);
+  check("the scoped spy tracks the named scroll container, not the page",
+    (await olActive("showcase-ol-scoped")).href === "#ol-guide-6",
+    JSON.stringify(await olActive("showcase-ol-scoped")));
+
+  // The indicator is CSS-anchored to the active link: the attribute the spy
+  // writes is what the anchor-name rule keys off.
+  check("the active link declares the anchor the indicator tracks",
+    await page.evaluate(() => {
+      const link = document.querySelector('#showcase-ol-indicator a[aria-current="location"]');
+      if (!link) return null;
+      const v = getComputedStyle(link).getPropertyValue("anchor-name").trim();
+      return v.includes("--astryx-outline-active") ? v : null;
+    }) !== null);
+
+  check("the default label is the table-of-contents name, and a custom label overrides it",
+    await page.evaluate(() =>
+      document.getElementById("showcase-ol-basic")?.getAttribute("aria-label") === "Table of contents"
+        && document.getElementById("showcase-ol-label")?.getAttribute("aria-label") === "Jump to"));
   }
 
 // ---------------------------------------------------------------- screenshot

@@ -3221,6 +3221,62 @@ check("a disabled group says so once, on the box", (() => {
       && box("rt-cs-basic")?.querySelector(".astryx-complex-selector__indicator--open") === null);
 }
 
+// --- Outline (M58)
+// Scroll-spy math needs real layout, so the live assertions (scroll → active,
+// click → hash + aria-current, Space, controlled toggle) live in the browser
+// gate. Here: the structure, the ARIA shape, and the one thing jsdom CAN
+// assert — the controlled attribute mirror and the indent mapping.
+{
+  const host = document.querySelector('[data-case="outline-all"]');
+  const g = (id) => host && host.querySelector(`#${id}`);
+  const all = (sel) => [...(host?.querySelectorAll(sel) ?? [])];
+  const activeLinks = (id) => [...(g(id)?.querySelectorAll('a[aria-current="location"]') ?? [])];
+
+  check("five outlines mounted: a nav per case, list/listitem groups, four items in the basic one",
+    !!host && ["rt-ol-basic", "rt-ol-controlled", "rt-ol-nested", "rt-ol-compact", "rt-ol-label"]
+      .every((id) => !!g(id))
+      && all('nav.astryx-outline[data-astryx-component="Outline"]').length === 5
+      && g("rt-ol-basic")?.querySelector('ul[role="list"]') !== null
+      && g("rt-ol-basic")?.querySelectorAll('ul[role="list"] > li > a').length === 4
+      && g("rt-ol-basic")?.getAttribute("aria-label") === "Table of contents");
+
+  check("each anchor is an href to its heading id, one tab stop at a time, with the label span",
+    [...(g("rt-ol-basic")?.querySelectorAll('ul[role="list"] > li > a') ?? [])]
+      .every((a, i) => a.getAttribute("href") === `#rt-ol-${i + 1}`
+        && a.getAttribute("tabindex") === "-1"
+        && a.querySelector(".astryx-outline__label")?.textContent.length > 0));
+
+  check("the track and the indicator sit under the list (the CSS-anchored marker's scaffold)",
+    g("rt-ol-basic")?.querySelector(".astryx-outline__track") !== null
+      && g("rt-ol-basic")?.querySelector(".astryx-outline__track .astryx-outline__divider") !== null
+      && g("rt-ol-basic")?.querySelector(".astryx-outline__indicator") !== null
+      && g("rt-ol-basic")?.querySelector(".astryx-outline__indicator")?.getAttribute("aria-hidden") === "true");
+
+  check("the jsdom harness does not pump the scroll-spy hook: links start unmarked at -1 (the browser gate owns the attribute)",
+    activeLinks("rt-ol-basic").length === 0
+      && [...(g("rt-ol-basic")?.querySelectorAll("a[href]") ?? [])]
+        .every((a) => a.getAttribute("tabindex") === "-1"));
+
+  check("controlled mode renders the same roving-tabindex markup; the caller's active_id mirror is the browser gate's check",
+    activeLinks("rt-ol-controlled").length === 0
+      && [...(g("rt-ol-controlled")?.querySelectorAll("a[href]") ?? [])]
+        .every((a) => a.getAttribute("tabindex") === "-1")
+      && g("rt-ol-controlled")?.querySelectorAll("ul[role=\"list\"] > li > a").length === 4);
+
+  check("heading levels 1-5 map to upstream's visual indents 1,1,2,3,4",
+    [...(g("rt-ol-nested")?.querySelectorAll(".astryx-outline__link") ?? [])]
+      .map((a) => [...a.classList].find((c) => c.startsWith("astryx-outline__link--indent-")))
+      .join(",") === "astryx-outline__link--indent-1,astryx-outline__link--indent-1,astryx-outline__link--indent-2,astryx-outline__link--indent-3,astryx-outline__link--indent-4");
+
+  check("compact density is a class on the link, not a different element",
+    [...(g("rt-ol-compact")?.querySelectorAll(".astryx-outline__link") ?? [])]
+      .every((a) => a.classList.contains("astryx-outline__link--compact")));
+
+  check("a custom label names the nav",
+    g("rt-ol-label")?.getAttribute("aria-label") === "Jump to"
+      && g("rt-ol-label")?.querySelector(".astryx-outline__list") !== null);
+}
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
