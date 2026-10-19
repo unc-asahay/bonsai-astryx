@@ -250,6 +250,17 @@ def main():
         print("working tree is not clean; commit or stash first")
         sys.exit(1)
 
+    # A port is the implementation AND its interface. A branch that carries
+    # only the .mli is a worker that ran out of budget mid-port: merging it
+    # would fail dune ("no implementation for the module") and land a
+    # component that does not exist. Refuse it and say why.
+    half = run("git", "ls-tree", "-r", "--name-only", args.branch, "--",
+               f"src/{args.module}.ml", f"src/{args.module}.mli").stdout.split()
+    if f"src/{args.module}.ml" not in half:
+        print(f"refusing: {args.branch} has no src/{args.module}.ml "
+              f"(only {half or 'nothing'}) - the port is half-landed")
+        sys.exit(2)
+
     merge_branch(args.branch)
     append_css(args.module)
     wire_showcase(args.module, args.component, args.section_id, args.nav_id)

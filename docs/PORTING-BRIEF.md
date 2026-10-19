@@ -160,6 +160,27 @@ brief:
   you do not port, leave them out and say so in the `.mli` and in your
   report. Never fake a surface with a stub that renders nothing.
 
+### The ceiling is iterations, not minutes
+
+A Stepper port died at 84 minutes with a `.mli` on disk and no
+implementation. The lesson is mechanical, and it is worth more than any
+advice about what to read:
+
+- **One batched call is one iteration; ten single calls are ten.** Use
+  `execute_code` to grep ten files and print them in one go. A worker
+  that reads house `.ml` files one at a time spends a third of its
+  budget on the house API and lands nothing.
+- **The `.mli` and the `.ml` are one commit.** An `.mli` with no `.ml`
+  does not compile — dune fails the library — so a port that died
+  between the two files left a worktree that cannot build. Write the
+  `.mli` and the `.ml` in the same breath, then commit them together.
+- **One `write_file` for the whole implementation.** Not one per
+  function. A thousand-line file written in four calls is four
+  iterations; written in one, it is one.
+- **Build and commit before you add the showcase section.** The section
+  is what the integrator wires; the implementation is what the component
+  *is*. If you are out of budget, be out of budget on the section.
+
 ## House facts that will save you an hour
 
 - `Bonsai.graph` appears in signatures; a handler returns
