@@ -138,6 +138,37 @@ and use them:
 
 Rules for the section:
 
+- A section is a GRAPH, not a node: the component is stateful, so the
+  examples are graphs that have to be combined before they are wrapped.
+  The house pattern (see any `*_demo` in `examples/showcase/showcase.ml`):
+
+  ```ocaml
+  let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
+    let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+    let examples =
+      [ ex_tree "Default" (Toast.view ~graph)
+      ; ex_tree "With action" (Toast.view ~action:(Some ...) ~graph)
+      ]
+    in
+    let nodes = join_all examples in
+    Bonsai.map nodes ~f:(fun nodes ->
+      section ~id:"toast" ~title:"Toast" ~note:"What this section shows." nodes)
+  ```
+
+  - `ex` takes a rendered NODE (`Vdom.Node.t`); `ex_tree` (defined locally in
+    the demo, as above) takes a GRAPH and maps it to an `ex`.
+  - `join_all` combines the example graphs into one list of nodes. Define it
+    locally in your demo the way the other demos do:
+
+    ```ocaml
+    let join_all (trees : Vdom.Node.t Bonsai.t list) =
+      List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+        Bonsai.both acc tree |> Bonsai.map ~f:(fun (acc, tree) -> tree :: acc))
+      |> Bonsai.map ~f:List.rev
+    ;;
+    ```
+
+  - `section ~id ~title ~note examples` then takes the list of nodes.
 - Render **at least 4 examples**, covering the component's real variants
   (default, disabled, loading, error, size variants, controlled vs
   uncontrolled — whatever upstream actually supports). Upstream's own
