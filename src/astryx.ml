@@ -132,3 +132,4 @@ module Carousel = Carousel
 module Tab_list = Tab_list
 module Lightbox = Lightbox
 module Plain_date = Plain_date
+module Resizable = Resizable
