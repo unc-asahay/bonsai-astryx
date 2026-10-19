@@ -87,9 +87,23 @@ def resolve_conflict(path):
         write(path, merged)
         run("git", "add", path)
         print(f"  kept both sides of {path} (+{len(extra)} module lines)")
+    elif path.endswith("showcase.ml"):
+        # The showcase is shared: a port that wired its own section into it
+        # is merged by keeping ours plus the lines the port added (its
+        # section binding and its list entry).
+        keep = []
+        for ln in theirs.splitlines():
+            if re.match(r"^\s*let \w+_section = Sec_\w+\.demo graph in$", ln):
+                keep.append(ln)
+            elif re.match(r"^\s*; \w+_section$", ln):
+                keep.append(ln)
+        merged = ours.rstrip("\n")
+        if keep:
+            merged += "\n" + "\n".join(keep) + "\n"
+        write(path, merged)
+        run("git", "add", path)
+        print(f"  kept both sides of {path} (+{len(keep)} section lines)")
     else:
-        # For any other file, keep both sides' added lines, ours first.
-        markers = re.split(r"^(<{7}|={7}|>{7}).*$", ours + "\n", flags=re.M)
         print(f"  {path}: manual resolution needed")
         sys.exit(3)
 
@@ -103,9 +117,14 @@ def append_css(module):
     body = part.read_text()
     marker = f"/* {module} */"
     current = css.read_text()
-    if marker not in current:
-        current = current.rstrip("\n") + f"\n\n{marker}\n" + body.strip() + "\n"
-        write("assets/components.css", current)
+    # A port that wrote its CSS straight into components.css has already had
+    # it merged in; appending the part again would duplicate every rule.
+    probe = next((ln for ln in body.splitlines() if ln.strip()), "")
+    if marker in current or (probe and probe in current):
+        print(f"  {module} CSS is already in components.css (skipped)")
+        return
+    current = current.rstrip("\n") + f"\n\n{marker}\n" + body.strip() + "\n"
+    write("assets/components.css", current)
 
 
 def wire_showcase(module, component, section_id, nav_id):
