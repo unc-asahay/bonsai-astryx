@@ -265,7 +265,19 @@ if (mode === "showcase") {
     "HoverCard",
     "Timestamp",
     "ComplexSelector",
-    "Outline",
+    "Outline",    "ButtonGroup",
+    "Popover",
+    "Timer",
+    "InputGroup",
+    "Toolbar",
+    "MetadataList",
+    "MoreMenu",
+    "ProgressBar",
+    "Avatar",
+    "AvatarGroup",
+    "ToggleButton",
+    "Resizable",
+
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -628,7 +640,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("80 sections", sections.length === 80, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("81 sections", sections.length === 81, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -639,20 +651,91 @@ if (mode === "showcase") {
   // The exact per-section counts, verified once and then frozen — a total alone
   // would not notice one section losing an example while another gained one.
   const expectedExamples = {
-    MetadataList: 5, MoreMenu: 3, ProgressBar: 5, Avatar: 8, AvatarGroup: 3, ToggleButton: 3, SelectableCard: 3, ClickableCard: 4, OverflowList: 3,
-    Stack: 8, Text: 12, Heading: 6, Button: 14, Badge: 15, Card: 12, Divider: 6,
-    StatusDot: 7, Skeleton: 8, Center: 6, Section: 7, Grid: 6, VisuallyHidden: 3,
-    HStack: 4, VStack: 4, AspectRatio: 6,
-    IconButton: 5, Code: 5, Blockquote: 2,
-    NavIcon: 2, EmptyState: 4, Citation: 6, Icon: 6,
-    FieldStatus: 4, DropdownMenu: 4, Interactive: 2, CheckboxInput: 11, Switch: 9,
-    "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
-    ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
-    RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7, NumberInput: 10, CheckboxList: 10, Banner: 11, Collapsible: 9, Breadcrumbs: 8, Carousel: 8, TabList: 4, Lightbox: 3, HoverCard: 7, Timestamp: 10, ComplexSelector: 11, Outline: 9,
+    Stack: 8,
+    Text: 12,
+    Heading: 6,
+    Button: 14,
+    Badge: 15,
+    Card: 12,
+    Divider: 6,
+    StatusDot: 7,
+    Skeleton: 8,
+    Center: 6,
+    Section: 7,
+    Grid: 6,
+    VisuallyHidden: 3,
+    HStack: 4,
+    VStack: 4,
+    AspectRatio: 6,
+    IconButton: 5,
+    Code: 5,
+    Blockquote: 2,
+    NavIcon: 2,
+    EmptyState: 4,
+    Citation: 6,
+    Icon: 6,
+    FieldStatus: 4,
+    FieldLabel: 7,
+    Indicator: 12,
+    Kbd: 3,
+    ButtonGroup: 3,
+    Timer: 3,
+    InputGroup: 3,
+    Toolbar: 3,
+    ClickableCard: 4,
+    Link: 5,
+    Token: 8,
+    Spinner: 6,
+    "Field + TextInput": 10,
+    TextArea: 9,
+    CheckboxInput: 11,
+    Switch: 9,
+    RadioList: 9,
+    FormLayout: 7,
+    Tooltip: 6,
+    Dialog: 7,
+    AlertDialog: 3,
+    DialogHeader: 3,
+    Layer: 3,
+    Popover: 1,
+    DropdownMenu: 4,
+    Interactive: 2,
+    MetadataList: 5,
+    MoreMenu: 3,
+    ProgressBar: 5,
+    Avatar: 8,
+    AvatarGroup: 3,
+    ToggleButton: 3,
+    SelectableCard: 3,
+    OverflowList: 3,
+    Thumbnail: 9,
+    ScrollableArea: 7,
+    NavHeadingMenu: 4,
+    SegmentedControl: 10,
+    Overlay: 12,
+    FileInput: 6,
+    Layout: 6,
+    Slider: 8,
+    Item: 13,
+    List: 6,
+    TreeList: 7,
+    NumberInput: 10,
+    Banner: 11,
+    CheckboxList: 10,
+    Collapsible: 9,
+    Breadcrumbs: 8,
+    Carousel: 8,
+    TabList: 4,
+    Lightbox: 3,
+    HoverCard: 7,
+    Resizable: 7,
+    Timestamp: 10,
+    ComplexSelector: 11,
+    Outline: 9,
+
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("520 examples across the page", totalExamples === 520, `got ${totalExamples}`);
+  check("527 examples across the page", totalExamples === 527, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -666,7 +749,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("80 nav links", nav.length === 80, `got ${nav.length}`);
+  check("81 nav links", nav.length === 81, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4052,7 +4135,7 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 78 ported / 25 not / 103 total",
+    "coverage stats are 79 ported / 24 not / 103 total",
     JSON.stringify(cov.stats) === JSON.stringify(["78", "25", "103"]),
     cov.stats.join(" | "),
   );
@@ -5364,6 +5447,93 @@ check(
     await page.evaluate(() =>
       document.getElementById("showcase-ol-basic")?.getAttribute("aria-label") === "Table of contents"
         && document.getElementById("showcase-ol-label")?.getAttribute("aria-label") === "Jump to"));
+
+  // ------------------------------------------------------------- Resizable
+  // The separator is a WAI-ARIA separator: a tab stop whose arrow keys
+  // resize the region, with the value reported in aria-valuenow.
+
+  const rz = (id) => page.evaluate((i) => {
+    const el = document.getElementById(i);
+    if (!el) return null;
+    const num = (a) => {
+      const v = el.getAttribute(a);
+      return v === null ? null : Number(v);
+    };
+    return {
+      role: el.getAttribute("role"),
+      orientation: el.getAttribute("aria-orientation"),
+      now: num("aria-valuenow"),
+      min: num("aria-valuemin"),
+      max: num("aria-valuemax"),
+      text: el.getAttribute("aria-valuetext"),
+      label: el.getAttribute("aria-label"),
+      tabindex: el.getAttribute("tabindex"),
+    };
+  }, id);
+
+  const rzId = "showcase-resizable-horizontal-handle";
+  const rzBefore = await rz(rzId);
+  check("the separator is a WAI-ARIA separator with a value, a label and a tab stop",
+    rzBefore !== null
+      && rzBefore.role === "separator"
+      && rzBefore.orientation === "vertical"
+      && rzBefore.now !== null
+      && rzBefore.min !== null
+      && rzBefore.now >= rzBefore.min
+      && rzBefore.label !== null
+      && rzBefore.tabindex === "0",
+    JSON.stringify(rzBefore));
+
+  // ArrowRight grows the region by 10px; Shift+ArrowRight by 50px.
+  await page.focus(`#${rzId}`);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(120);
+  const rzAfterArrow = await rz(rzId);
+  check("ArrowRight resizes the region by 10px",
+    rzAfterArrow !== null && rzBefore !== null && rzAfterArrow.now === rzBefore.now + 10,
+    JSON.stringify({ before: rzBefore?.now, after: rzAfterArrow?.now }));
+
+  await page.keyboard.press("Shift+ArrowRight");
+  await page.waitForTimeout(120);
+  const rzAfterShift = await rz(rzId);
+  check("Shift+ArrowRight resizes the region by 50px",
+    rzAfterShift !== null && rzAfterArrow !== null && rzAfterShift.now === rzAfterArrow.now + 50,
+    JSON.stringify({ before: rzAfterArrow?.now, after: rzAfterShift?.now }));
+
+  // The value is clamped into the bounds: the max is 400px in the showcase.
+  for (let i = 0; i < 12; i++) await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+  const rzClamped = await rz(rzId);
+  check("the value is clamped at the configured maximum",
+    rzClamped !== null && rzClamped.max !== null && rzClamped.now === rzClamped.max,
+    JSON.stringify(rzClamped));
+
+  // ArrowLeft shrinks it again, and never below the minimum.
+  for (let i = 0; i < 40; i++) await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(250);
+  const rzMin = await rz(rzId);
+  check("the value is clamped at the configured minimum",
+    rzMin !== null && rzMin.min !== null && rzMin.now === rzMin.min,
+    JSON.stringify(rzMin));
+
+  // The collapsible region reports its bounds and a label.
+  const rzCollapse = await rz("showcase-resizable-collapsible-handle");
+  check("the collapsible separator reports its bounds and a label",
+    rzCollapse !== null && rzCollapse.role === "separator" && rzCollapse.now !== null,
+    JSON.stringify(rzCollapse));
+
+  // The disabled separator is not a tab stop.
+  const rzDisabled = await rz("showcase-resizable-disabled-handle");
+  check("a disabled separator is removed from the tab order",
+    rzDisabled !== null && rzDisabled.tabindex === "-1",
+    JSON.stringify(rzDisabled));
+
+  // The vertical variant flips the orientation.
+  const rzVertical = await rz("showcase-resizable-vertical-handle");
+  check("a vertical region reports the horizontal orientation",
+    rzVertical !== null && rzVertical.orientation === "horizontal",
+    JSON.stringify(rzVertical));
+
   }
 
 // ---------------------------------------------------------------- screenshot

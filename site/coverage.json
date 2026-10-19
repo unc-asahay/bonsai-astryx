@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 78,
-    "unported": 25,
+    "ported": 79,
+    "unported": 24,
     "total": 103,
     "documented": 103
   },
@@ -336,6 +336,12 @@
       "milestone": "M13"
     },
     {
+      "name": "Resizable",
+      "module": "Astryx.resizable",
+      "file": "src/resizable.ml",
+      "milestone": "M61"
+    },
+    {
       "name": "ScrollableArea",
       "module": "Astryx.Scrollable_area",
       "file": "src/scrollable_area.ml",
@@ -496,7 +502,6 @@
     "MultiSelector",
     "Pagination",
     "PowerSearch",
-    "Resizable",
     "Selector",
     "SideNav",
     "Stepper",

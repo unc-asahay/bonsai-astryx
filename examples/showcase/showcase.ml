@@ -5684,6 +5684,7 @@ let nav_items =
   ; "timestamp", "Timestamp"
   ; "complex-selector", "ComplexSelector"
   ; "outline", "Outline"
+  ; "resizable", "Resizable"
   ]
 ;;
 
@@ -6486,6 +6487,7 @@ let page (graph : Bonsai.graph) =
   let timestamp_section = timestamp_demo graph in
   let complex_selector_section = complex_selector_demo graph in
   let outline_section = outline_demo graph in
+  let resizable_section = Sec_resizable.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6502,6 +6504,7 @@ let page (graph : Bonsai.graph) =
     ; item_section; list_section; tree_list_section; number_input_section
     ; banner_section; checkbox_list_section; collapsible_section; breadcrumbs_section
     ; carousel_section; tab_list_section; lightbox_section; hover_card_section
+    ; resizable_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in

@@ -5280,3 +5280,268 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 .astryx-outline__link--indent-4 {
   padding-inline-start: var(--spacing-12);
 }
+
+/* resizable */
+/* Resizable — the resizable panel, the separator between the panels, and the
+   grab zone and pill the separator is made of.
+
+   Ported from astryx packages/core/src/Resizable/ResizeHandle.tsx. The token
+   values are the upstream ones (see assets/tokens.css): --color-border for
+   the divider and the pill, --color-border-emphasized while a drag runs,
+   --spacing-1 for the gap between the divider and the pill, --spacing-4 for
+   the width of the grab zone, --spacing-8 for the length of the pill, and
+   --duration-fast / --ease-standard for the transitions. */
+
+/* The layout of a resizable panel: the panel, the separator and the content
+   beside it. It fills the space it is given - as a flex item it grows and
+   stretches - and it lays its children out on the panel's axis. */
+.astryx-resizable {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+}
+
+.astryx-resizable--horizontal { flex-direction: row; }
+.astryx-resizable--vertical { flex-direction: column; }
+
+.astryx-resizable__panel {
+  flex: none;
+  overflow: hidden;
+}
+
+.astryx-resizable__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ------------------------------------------------------------------ the handle */
+
+.astryx-resizable__handle {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-border);
+  transition-property: background-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-resizable__handle--horizontal {
+  width: 1px;
+  height: 100%;
+  /* The separator is never thinner than one step, so a panel with no height
+     of its own still has a handle that can be grabbed. */
+  min-height: var(--spacing-4);
+  cursor: col-resize;
+}
+
+.astryx-resizable__handle--vertical {
+  height: 1px;
+  width: 100%;
+  min-width: var(--spacing-4);
+  cursor: row-resize;
+}
+
+/* Without a divider the handle takes no room in the layout at all: the line
+   IS the handle, and there is no line here. */
+.astryx-resizable__handle--no-divider.astryx-resizable__handle--horizontal {
+  width: 0;
+  background-color: transparent;
+}
+
+.astryx-resizable__handle--no-divider.astryx-resizable__handle--vertical {
+  height: 0;
+  background-color: transparent;
+}
+
+/* Overlay mode: the handle sits inside a panel's bounds instead of in the
+   flow between the panels - for a parent that clips its overflow. */
+.astryx-resizable__handle--overlay {
+  position: absolute;
+  z-index: 2;
+  background-color: transparent;
+}
+
+.astryx-resizable__handle--overlay.astryx-resizable__handle--horizontal {
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--resize-handle-hit-area, 16px);
+}
+
+.astryx-resizable__handle--overlay.astryx-resizable__handle--vertical {
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  height: var(--resize-handle-hit-area, 16px);
+}
+
+.astryx-resizable__handle--interacting { background-color: var(--color-border); }
+.astryx-resizable__handle--active { background-color: var(--color-border-emphasized); }
+
+.astryx-resizable__handle--disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* The ring is drawn only for keyboard focus, as upstream's shared focus
+   outline does. */
+.astryx-resizable__handle:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ----------------------------------------------------------------- the grab zone */
+
+/* A wider, invisible target around the divider. It takes the pointer for the
+   whole gesture, so a drag that crosses an embedded frame is not lost. */
+.astryx-resizable__hit-area {
+  position: absolute;
+  z-index: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.astryx-resizable__hit-area--horizontal {
+  width: var(--spacing-4);
+  /* The grab zone spans the separator, but never falls below one step: a
+     panel with no height of its own would otherwise leave the separator
+     ungrabbable. */
+  min-height: var(--spacing-4);
+  top: 0;
+  bottom: 0;
+  cursor: col-resize;
+}
+
+.astryx-resizable__hit-area--vertical {
+  height: var(--spacing-4);
+  min-width: var(--spacing-4);
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  cursor: row-resize;
+}
+
+/* The grab zone is biased onto the visible pill, with the pill's own
+   construction: anchored at the divider's inline-start edge and pushed one
+   grip-width plus a gap toward the panel side by a physical translate, then
+   shifted by half the difference between the two widths so their centres
+   agree. The centring shift is along the inline axis, so it flips under RTL
+   - unlike the travel, which is physical and identical in both directions. */
+.astryx-resizable__hit-area--horizontal.astryx-resizable__hit-area--start {
+  inset-inline-start: 0;
+  transform: translateX(calc(-3px - var(--spacing-1) - 6.5px));
+}
+
+.astryx-resizable__hit-area--horizontal.astryx-resizable__hit-area--end {
+  inset-inline-start: 0;
+  transform: translateX(calc(3px + var(--spacing-1) - 6.5px));
+}
+
+.astryx-resizable__hit-area--vertical.astryx-resizable__hit-area--start {
+  inset-block-start: 0;
+  transform: translateY(calc(-3px - var(--spacing-1) - 6.5px));
+}
+
+.astryx-resizable__hit-area--vertical.astryx-resizable__hit-area--end {
+  inset-block-start: 0;
+  transform: translateY(calc(3px + var(--spacing-1) - 6.5px));
+}
+
+/* Centered on the divider. The inline centring is physical on purpose: a
+   logical anchor would flip under RTL while the physical translate does not,
+   leaving the zone off-centre by its own width. */
+.astryx-resizable__hit-area--horizontal.astryx-resizable__hit-area--center {
+  left: 50%;
+  transform: translate(-50%, 0px);
+}
+
+.astryx-resizable__hit-area--vertical.astryx-resizable__hit-area--center {
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+}
+
+[dir="rtl"] .astryx-resizable__hit-area--horizontal.astryx-resizable__hit-area--start {
+  transform: translateX(calc(-3px - var(--spacing-1) + 6.5px));
+}
+
+[dir="rtl"] .astryx-resizable__hit-area--horizontal.astryx-resizable__hit-area--end {
+  transform: translateX(calc(3px + var(--spacing-1) + 6.5px));
+}
+
+/* -------------------------------------------------------------------- the pill */
+
+.astryx-resizable__pill {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border);
+  transition-property: opacity, background-color, transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  top: 50%;
+}
+
+.astryx-resizable__pill--horizontal {
+  width: 3px;
+  height: var(--spacing-8);
+}
+
+.astryx-resizable__pill--vertical {
+  width: var(--spacing-8);
+  height: 3px;
+}
+
+.astryx-resizable__pill--visible { opacity: 1; }
+.astryx-resizable__pill--hidden { opacity: 0; }
+
+.astryx-resizable__pill--interacting {
+  opacity: 1;
+  background-color: var(--color-border);
+}
+
+.astryx-resizable__pill--active {
+  opacity: 1;
+  background-color: var(--color-border-emphasized);
+}
+
+.astryx-resizable__pill--horizontal.astryx-resizable__pill--start {
+  inset-inline-start: 0;
+  transform: translate(calc(-100% - var(--spacing-1)), -50%);
+}
+
+.astryx-resizable__pill--horizontal.astryx-resizable__pill--end {
+  inset-inline-start: 0;
+  transform: translate(calc(100% + var(--spacing-1)), -50%);
+}
+
+.astryx-resizable__pill--horizontal.astryx-resizable__pill--center {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.astryx-resizable__pill--vertical.astryx-resizable__pill--start {
+  top: 0;
+  transform: translate(-50%, calc(-100% - var(--spacing-1)));
+}
+
+.astryx-resizable__pill--vertical.astryx-resizable__pill--end {
+  top: 0;
+  transform: translate(-50%, calc(100% + var(--spacing-1)));
+}
+
+/* Centered on the divider. The inline centring is physical on purpose: a
+   logical anchor would flip under RTL while the physical translate does not,
+   leaving the grip off-centre by its own width. */
+.astryx-resizable__pill--vertical.astryx-resizable__pill--center {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

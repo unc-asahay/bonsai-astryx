@@ -1,0 +1,58 @@
+Gate 76 — M61: Resizable (coverage 78 → 79)
+
+The upstream Resizable is a hook and a component: useResizable owns a
+region's size, and ResizeHandle is the draggable separator that drives
+it. The port keeps that split because it is the API — Resizable.create
+is the hook (it owns the size, the bounds, the collapse state and the
+localStorage persistence, and hands back a region that is the port's
+equivalent of upstream's ResizableRegion and its ResizableProps in one
+record), Resizable.handle_view is the component, and Resizable.view
+composes the two into the panel/separator/content layout that upstream's
+stories build by hand.
+
+Behaviour follows upstream: the size is clamped into the bounds and
+snapped to the nearest snap point; a collapsible region collapses when
+it is dragged below the collapse threshold and expands again over it;
+pointer-up ends the gesture and releases the frozen basis; the separator
+is a WAI-ARIA separator (role, orientation, value now/min/max, value
+text while collapsed, label, disabled) and a tab stop whose arrow keys
+resize the panel by 10px, 50px with Shift, with Home and End at the
+bounds and Enter toggling the collapse; a reversed or right-to-left
+layout swaps the arrow directions; the pill sits on the panel's side and
+flips when the panel collapses.
+
+The bug the browser gate found, and what it took to fix it:
+
+The first port computed the keyboard target from the size the region had
+when the handler was built. A key event is handled against the model as
+it stands when the effect is processed, and key repeat delivers several
+events before the next render — so every one of them was measured
+against the same stale size, and holding the arrow key moved the region
+one step and then stalled. The probe that found it pressed the key five
+times with no delay and watched the size advance by 10px instead of
+50px; with an 80ms delay between presses all five landed, which is the
+signature of a stale read rather than a dropped event.
+
+The fix accumulates the steps: the region carries the keyboard steps
+that have been handled but are not in the model yet, each event adds to
+the total, and the last event applied carries the whole total, so the
+size advances by the full number of steps. The same applies to the snap
+points, which are counted rather than picked. The accumulators are
+spent as soon as the model carries them. The gate now presses the key
+twelve times with no delay and expects the value to sit exactly on the
+configured maximum, and forty times the other way and expects it to sit
+on the minimum.
+
+Divergences are documented in the .mli: the hook is a node rather than a
+function call, there is no containerRef (the basis is a number the caller
+measures), a percentage default is resolved once at creation, the vdom
+has no pointercancel, and there is no theme-props layer.
+
+Gates: build exit 0 · component 770/0 · DOM + accessibility 59/0 ·
+browser 580/0 (572 + 8 new Resizable checks: the separator's role,
+orientation, value, label and tab stop; ArrowRight by 10px; Shift +
+ArrowRight by 50px; the clamp at the maximum; the clamp at the minimum;
+the collapsible separator's bounds; a disabled separator out of the tab
+order; the vertical variant's orientation) · responsive 66/0, 0.00%
+drift (the baseline was updated: the section makes the page ~2,000px
+taller) · coverage 79/24/103 · visual 79 pages + INDEX.
