@@ -6,9 +6,6 @@
 mode:     showcase
 chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
 url:      http://127.0.0.1:8791/site/index.html
-  ok   a draft below min clamps to 0 on commit
-  ok   the increment stepper steps the committed value up by 5
-  ok   the decrement stepper steps it back down
 
 page
   ok   HTTP 200 from the local server
@@ -23,17 +20,9 @@ RadioList (live)
   ok   the live group starts on the value the application holds
   ok   clicking a radio chooses it, and the readout follows
   ok   clicking the label chooses its radio — the port's labels are real <label for>s
-  ok   the clear button empties the value
-  ok   the static variants carry their contract (steppers/units/integer/readonly/reason)
-
-CheckboxList (live)
-  ok   the live group starts on the application's value
   ok   Down moves to the next radio *and* selects it, as a native group does
-  ok   clicking a row's surface checks it, and the readout follows
-  ok   the box's checked property followed the value
   ok   Up comes back, and selects on the way
   ok   Tab leaves the group in one press — three radios, one stop
-  ok   clicking a selected row unchecks it
   ok   a disabled item cannot change the group — it holds its own selection
   ok   the group's status message is rendered below it
 
@@ -45,108 +34,40 @@ Tooltip (live)
   ok   a caller-opened tooltip is laid out, not merely present
   ok   the hovered tooltip starts closed
   ok   hovering does NOT open it straight away — there is a delay
-  ok   Space on a focused box toggles it too
   ok   hovering the trigger opens the message
   ok   and 'below' puts it below the trigger, measured
-  ok   a group-disabled row stays put, while its box remains focusable for the reason
   ok   moving away closes it, and the element leaves the DOM
-  ok   a read-only row refuses the toggle: the value cannot move
-  ok   the described item's checkbox links its own description
-
-Banner (live)
-  ok   a collapsible banner starts closed — no content, aria-expanded=false
-  ok   clicking the toggle opens it: content region appears, aria-expanded=true, aria-controls links it
   ok   leaving before the delay elapses never opens it at all
-  ok   clicking again closes it, and the toggle stops pointing at a region that is gone
-  ok   collapsible with defaultIsOpen=true renders its content on first paint
-  ok   collapsible=Never pins the content open with no toggle
-  ok   the four statuses each carry their own fill class
   ok   focusing the trigger opens it too
-  ok   the end area's ghost button compensates its edge (negative margin, not auto)
-  ok   a controlled banner starts on the application's state
   ok   Escape closes it
 
 disabledMessage (live)
   ok   a disabled control's reason is present but not shown at rest
-  ok   the toggle reports to the application, and the readout follows
   ok   hovering the control shows it, laid out
   ok   and so does focusing it
-  ok   toggling again reports the close — controlled state never moves on its own
-  ok   the status icon wrapper is aria-hidden everywhere
-
-Collapsible (live)
-  ok   a closed collapsible starts hidden with expanded=false
   ok   the switch's reason behaves the same way
   ok   and hides again when the pointer leaves
 
 Dialog (live)
-  ok   clicking the trigger opens it: expanded=true, controls still linked, content shown
   ok   opening a dialog puts it in the top layer, modally
   ok   and focus is taken into it, which is the trap
   ok   the application is told it is open
-  ok   clicking again closes it: expanded=false and the content hides, still mounted
-  ok   the disabled trigger is genuinely disabled
   ok   Escape closes it, and the application hears about it
   ok   and focus goes back where it came from
-  ok   a disabled trigger ignores clicks — the content stays open and expanded stays true
-  ok   a controlled collapsible starts on the application's state
   ok   purpose = form: a backdrop click does NOT close it
   ok   and the application is still told it is open
-  ok   the toggle reports to the application, and the readout follows
-  ok   a single group starts with exactly one row open
   ok   but Escape does close it
-  ok   opening q2 closes q1 — single mode allows one at a time
   ok   purpose = required is role = alertdialog
   ok   Escape does NOT close it
-  ok   toggling the open row in single mode closes everything
-  ok   a controlled multiple group starts on the application's set
   ok   and neither does a backdrop click
-  ok   multiple mode adds a second, and the readout follows
-
-Breadcrumbs (live)
-  ok   the basic trail is a labelled nav with an ol of three crumbs
-  ok   two of the three crumbs are links and exactly the last is current
-  ok   an explicit current crumb wins even mid-trail
-  ok   opting out suppresses auto-current
-  ok   the supporting variant is marked on the crumb
-  ok   a custom separator renders between crumbs
-  ok   an unsafe href is refused — no href attribute
   ok   a form method=dialog button closes it, and the application is told
 
 AlertDialog (live)
-  ok   clicking a crumb fires the handler
   ok   a live alert dialog is modal, and says alertdialog
   ok   built on the form purpose, which is what upstream passes
   ok   Escape closes it: purpose = form allows it, whatever the prose says
-  ok   the handler fires on every click
-  ok   the README's showcase row matches the page it describes
-
-Carousel (live)
-  ok   a carousel with overflow disables its start pill and enables the end pill
-  ok   the overflowing edge carries the measured fade mask
-  ok   slides are numbered groups beginning at Slide 1 of 8
-  ok   clicking the end pill scrolls and flips the disabled edge
-  ok   the fade follows the scrolled state (start edge now overflowing)
-  ok   wrap-around mode keeps both pills enabled while the content overflows
-  ok   has_edge_fade false never applies a fade mask (even while overflowing)
-  ok   the config surface is driven by data: gap, snap, padding, no-buttons
-
-TabList (live)
-  ok   the nav strip holds five tab stops with the selected one marked
-  ok   clicking a tab moves aria-current and roves the tabindex to it
-  ok   the trigger expands the overflow menu into menuitemradio options
-  ok   the WAI-ARIA tablist pattern asserts role=tablist + role=tab + aria-selected
-  ok   the tablist pattern ignores href (no anchor element is emitted)
-  ok   layout=fill classifies the wrapper and every tab
-
-Lightbox (live)
   ok   the action reaches the application AND the dialog closes
-  ok   opening the lightbox puts the dialog in the top layer modally
-  ok   the page scroll lock engages (body overflow hidden)
-  ok   the first item names the dialog and the counter reads 1 / 3
   ok   and Cancel closes it without taking the answer
-  ok   next drives the gallery to item 2 and re-names the dialog
-  ok   double-click zooms the image (scale written onto it)
   ok   the answers are a row on a wide screen
   ok   and a reversed column below 640px, with full-width buttons
 
@@ -154,20 +75,19 @@ DialogHeader (live)
   ok   the dialog opens modal, named by its header
   ok   and what it points at is the heading carrying the title
   ok   the dialog focuses its marked title, not the close button
-  ok   a second double-click zooms back out
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   80 sections
+  ok   83 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   520 examples across the page
+  ok   539 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Timestamp:10 ComplexSelector:11 Outline:9
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Resizable:7 Toast:6 MobileNav:6 Timestamp:10 ComplexSelector:11 Outline:9
 
 navigation
-  ok   80 nav links
+  ok   83 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -183,8 +103,6 @@ variant coverage
   ok   Heading rendered all six levels as real elements
 
 interaction (a real click — impossible in jsdom here)
-  ok   Escape closes it and unlocks the page scroll
-  ok   and focus returns to the trigger that opened it
   ok   the counter button is present
   ok   counter starts at 0 (read "count: 0")
   ok   counter incremented on click (now "count: 1")
@@ -194,17 +112,6 @@ keyboard
   ok   the ported button takes focus programmatically
   ok   focus lands on the button itself, not a wrapper
   ok   no negative tabindex (so Tab reaches it)
-  ok   the close button closes it too
-
-OverflowList (live)
-  ok   the wrapper stamps its own marker, not the one it wraps
-  ok   the measurement container is hidden but still MEASURABLE
-  ok   every item is in the hidden container, even the ones that will not be shown
-  ok   something did collapse, and not everything did
-  ok   the items it kept actually fit inside the row
-  ok   the indicator says how many are hidden - exactly
-  ok   collapse_from: Start keeps the other end, at the same count
-  ok   with room for all six, nothing is hidden and there is no indicator
   ok   Enter on the focused button activates it (count: 2 -> count: 3)
 
 dropdown menu (keyboard and focus)
@@ -217,32 +124,16 @@ dropdown menu (keyboard and focus)
   ok   Down moves to the next row
   ok   End reaches the last row (an href row is focusable)
   ok   Home returns to the first row
-  ok   resizing the window re-measures and shows more, with no reload
-  ok   and the indicator keeps telling the truth after it
-
-HoverCard (live)
-  ok   all closed cards are absent from the DOM, the controlled one is present
-  ok   the controlled card is a named dialog with its label
-  ok   the labelled wrapper advertises the dialog relationship
-  ok   the controlled wrapper points aria-controls at the open card
   ok   Up from the first row wraps to the last
   ok   hovering a row focuses it
   ok   Down skips the disabled row
-  ok   hovering opens the card after the delay, as the named dialog
-  ok   the open wrapper then points aria-controls at the card
-  ok   the card opens against the 'above' placement class
   ok   typing "d" jumps to the next match after the current row (sort-date)
   ok   typing "d" again cycles to the next match (docs)
   ok   and wraps past the end, skipping the disabled row (delete)
   ok   Enter chooses the focused row (selected: delete)
   ok   choosing closes the menu
   ok   choosing hands focus back to the trigger
-  ok   the unnamed card is a group and the text trigger is described by it
-  ok   a text-only trigger takes the auto-indication and a tab stop
-  ok   an element trigger gets no indication
-  ok   Indicate_hide overrides the auto indication
   ok   the menu reopens on Down
-  ok   Escape closes the focused card (group is unmounted)
   ok   Escape closes the menu
   ok   Escape hands focus back to the trigger
   ok   the selection survives the menu closing
@@ -280,7 +171,6 @@ field status (measured styles + the first-paint animation rule)
 text input (real keys, real focus, native label activation)
   ok   the field is wired to its label in a real engine
   ok   clicking the label focuses the control
-  ok   a disabled card does not open on hover
   ok   real keystrokes reach the control
   ok   real keystrokes reach the application
   ok   focusing the field changes how it is drawn
@@ -301,14 +191,6 @@ textarea (real typing, native label activation, the missing value attribute)
   ok   real keystrokes reach the application
   ok   a re-render does not put the old text back over what was typed
   ok   the value the user replaced does not come back
-  ok   leaving the trigger closes the card after the hide delay
-
-Timestamp (live)
-  ok   the live now reading is a semantic <time> with the full absolute name
-  ok   two hours ago reads through the relative tier with its absolute name
-  ok   the system date-time is the viewer's wall clock on an exact ISO datetime
-  ok   unix seconds is exact, zone-independent
-  ok   the invalid probe reports the intent while rendering nothing
   ok   Enter inserts a newline instead of submitting
 
 field label (element.labels: a group label names nothing)
@@ -326,39 +208,16 @@ indicator marks (real engine)
 
 checkbox (real engine)
   ok   the live box starts unchecked
-  ok   hovering the relative reading opens the card — one row per zone
-  ok   the card grid carries the label+action template with shared columns
-  ok   rows name zones, copyable rows get a copy button, and the announce region is hosted
-  ok   the open card is a named dialog the trigger advertises and points at
   ok   a real click checks it, and the property follows the value
   ok   and the readout agrees
-  ok   leaving the trigger unmounts the card
-
-ComplexSelector (live)
-  ok   the selector starts closed, announcing it, with the placeholder reading
   ok   clicking it again unchecks it
-  ok   clicking the trigger opens the native popover and announces it
-  ok   focus enters the first option in the surface, not the trigger
-  ok   choosing an option commits it via the caller, closes the surface and renames the trigger
-  ok   ArrowDown on the trigger opens it, as upstream's own button does
   ok   Space toggles it, because Space on a checkbox is a click
-  ok   Escape dismisses it and returns focus to the trigger
-  ok   is_loading announces aria-busy, shows the spinner and reaches the child's render state
-  ok   the controlled selector starts closed, owned by the caller
-  ok   the caller's own button opens it — is_open drives the surface
-  ok   Escape reports back through on_open_change and the surface follows
-
-Outline (live)
   ok   clicking the label toggles the box too
   ok   the parent starts indeterminate, with two of three children on
-  ok   scrolling the pane to the bottom names the last heading active (the at-bottom rule)
   ok   turning the last child on checks the parent and clears the mixed state
-  ok   scrolling back to the top hands the seat to the first heading
   ok   turning it back off makes the parent indeterminate again
   ok   and the readout is derived from the children, so it cannot drift
   ok   a mixed box still carries no aria-checked, in a real engine
-  ok   clicking a heading link navigates to it: hash and aria-current agree after the settle
-  ok   ArrowDown moves the roving stop to the next heading
   ok   clicking the parent checks every child
   ok   and the parent's own box is checked rather than mixed
   ok   a read-only box refuses the click
@@ -385,24 +244,16 @@ Kbd (measured in a real engine)
   ok   the caps are not selectable text
 
 Layer (the native popover API)
-  ok   Space activates the focused heading: hash moves and the seat follows
-  ok   the controlled outline starts on the caller's active id
-  ok   clicking in controlled mode reports the change and moves the attribute
   ok   a click opens the layer, and the browser says it is open
   ok   the value the application holds agrees
   ok   a real click outside dismisses it — the browser's light dismiss
   ok   and the application is told, so the value is not left saying open
   ok   it reopens after being dismissed out from under the application
-  ok   the caller's own button cycles the active id and the outline follows
   ok   Escape dismisses it too, and the value is told again
   ok   the trigger says what it opens, and whether it is showing
   ok   aria-controls names the layer element itself
-  ok   with has_scroll_on_click=false navigation resolves immediately: hash + seat move, scroll does not
   ok   Enter on the trigger opens it, exactly once — no second handler fighting the first
   ok   and the trigger now reports it as expanded
-  ok   the scoped spy tracks the named scroll container, not the page
-  ok   the active link declares the anchor the indicator tracks
-  ok   the default label is the table-of-contents name, and a custom label overrides it
   ok   Enter again closes it
   ok   the layer under a declared inset opens
   ok   the declaration sits on the provider and inherits to the layer
@@ -429,16 +280,6 @@ Layer (the native popover API)
   ok   and focus went back to the trigger
   ok   a real click outside dismisses it too, and the value is told again
   ok   the generated close control is labelled and closes the surface
-
-screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
-
-572/572 checks passed, 0 failure(s)
-BROWSER CHECKS PASSED
-
-## demo (examples/demo/index.html)
-mode:     demo
-chromium: /home/noor/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome
-url:      http://127.0.0.1:8791/examples/demo/index.html
   ok   the reading moves on its own
   ok   and it moves by writing to the node it owns — the element is the same one, not a re-render
   ok   counting in whole seconds, as an elapsed reading does
@@ -512,43 +353,7 @@ url:      http://127.0.0.1:8791/examples/demo/index.html
   ok   choosing a row reports its id to on_select
   ok   ArrowDown moves focus to the next row
   ok   ArrowDown skips the disabled row
-
-page
-  ok   HTTP 200 from the local server
-  ok   no failed requests
-  ok   no unexpected 4xx/5xx responses
-  ok   no uncaught page errors
-  ok   no console errors
-  ok   the app mounted in Chromium
   ok   typeahead jumps to the matching row
-  ok   every stylesheet parsed
-
-mount
-  ok   title is the demo's
-  ok   47 component instances
-  ok   Stack x12
-  ok   Button x7
-  ok   Heading x6
-  ok   Text x6
-  ok   Badge x5
-  ok   one h1
-  ok   five h3
-
-stylesheet applied (what jsdom cannot check)
-  ok   button has the primary fill from the token
-  ok   button text is white-on-accent
-  ok   button radius is 8px
-  ok   button type size is 14px (0.875rem)
-  ok   button padding-inline is --spacing-3 (12px)
-  ok   button gap is --spacing-2 (8px)
-  ok   button aligns its content to the centre
-  ok   button display is blockified to flex (it is a flex item)
-  ok   body picks up the body-background token
-
-screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-demo.png
-
-25/25 checks passed, 0 failure(s)
-BROWSER CHECKS PASSED
   ok   Enter activates the focused row
   ok   the caller can open the controlled surface
   ok   Escape closes through on_close
@@ -691,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 78 ported / 25 not / 103 total
-  ok   unported list rendered 25 entries
+  ok   coverage stats are 81 ported / 22 not / 103 total
+  ok   unported list rendered 22 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -870,10 +675,30 @@ Outline (live)
   ok   the scoped spy tracks the named scroll container, not the page
   ok   the active link declares the anchor the indicator tracks
   ok   the default label is the table-of-contents name, and a custom label overrides it
+  ok   the separator is a WAI-ARIA separator with a value, a label and a tab stop
+  ok   ArrowRight resizes the region by 10px
+  ok   Shift+ArrowRight resizes the region by 50px
+  ok   the value is clamped at the configured maximum
+  ok   the value is clamped at the configured minimum
+  ok   the collapsible separator reports its bounds and a label
+  ok   a disabled separator is removed from the tab order
+  ok   a vertical region reports the horizontal orientation
+  ok   an informational toast is a polite live region
+  ok   an error toast is an assertive live region
+  ok   a toast carries its dismissal control
+  ok   the port creates a polite announcement region
+  ok   the application's button adds a toast to the viewport's stack
+  ok   the viewport is a labelled region that holds the stack
+  ok   the same unique id replaces the toast instead of stacking behind it
+  ok   a deliberate dismissal is reported as a manual dismissal
+  ok   the drawer is a modal dialog with a label and a close control
+  ok   the drawer starts closed and the application knows it
+  ok   the trigger opens the drawer, and the application is told
+  ok   the drawer's own close control closes it again
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-572/572 checks passed, 0 failure(s)
+592/592 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)
