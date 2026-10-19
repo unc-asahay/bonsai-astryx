@@ -806,6 +806,10 @@ let view
               | Some { Input_types.type_; _ } -> [ "astryx-tokenizer--" ^ status_string type_ ]
               | None -> [])
            @ (if is_truncated then [ "astryx-tokenizer--truncated" ] else [])
+           (* The menu is a child of the field, so the field is what has to
+              stack above the fields that follow it: a z-index on the menu
+              alone cannot lift it out of its parent's stacking context. *)
+           @ (if is_open then [ "astryx-tokenizer--menu-open" ] else [])
            @ (match token_overflow_behavior with
               | Unfocused_layer -> [ "astryx-tokenizer--layer" ]
               | Wrap | Unfocused_inline -> [])

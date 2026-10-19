@@ -69,7 +69,10 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   in
   (* Each example gets its own id, and the example box around it gets one too,
      so the browser gate can address either the field or the example. *)
-  let example_id name = "showcase-tokenizer-" ^ name in
+  (* The wrapper's id is NOT the component's id: the component takes an id of
+     its own, and two elements sharing one would make every id-based address
+     in the gate ambiguous. *)
+  let example_id name = "showcase-tokenizer-example-" ^ name in
   let boxed name tree =
     Bonsai.map tree ~f:(fun node ->
       Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" (example_id name) ] [ node ])
@@ -121,13 +124,13 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   in
   (* --- the bounded field ---------------------------------------------------- *)
   let max_value, max_on_change =
-    controlled ~init:[ person 0; person 1 ]
+    controlled ~init:[ person 0; person 1; person 2 ]
   in
   let max_entries =
     Tokenizer.view
       ~id:"showcase-tokenizer-max"
       ~label:"Approvers"
-      ~description:"Up to three."
+      ~description:"Up to three - and three are chosen."
       ~max_entries:3
       ~value:max_value
       ~on_change:max_on_change
@@ -200,10 +203,16 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   let overflow_value, overflow_on_change =
     controlled ~init:[ person 0; person 1; person 2; person 3; person 4 ]
   in
+  (* A field narrow enough that the chips cannot all fit: the point of the
+     example is the collapse, and a field wide enough for every chip shows
+     nothing collapsing. The width is a field width, so the label, the control
+     and the message stay aligned. *)
   let overflow =
     Tokenizer.view
       ~id:"showcase-tokenizer-overflow"
       ~label:"Everyone"
+      ~description:"A narrow field, so the row collapses to one line."
+      ~width:(Astryx.Common.Size_value.Px 320)
       ~token_overflow_behavior:Tokenizer.Unfocused_inline
       ~value:overflow_value
       ~on_change:overflow_on_change

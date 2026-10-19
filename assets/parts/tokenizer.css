@@ -28,6 +28,31 @@
   transition-duration: var(--duration-medium);
 }
 
+/* A field with its menu open stacks above the fields below it, so the menu is
+   not painted over by the next example.
+
+   The house Field sets `isolation: isolate` on its wrapper - so that an
+   attached status can paint behind the control without that ordering escaping
+   into the page. The consequence here is that the menu, which is drawn in
+   place because this port has no portal, is trapped inside that stacking
+   context, and the fields that follow paint over it.
+
+   So the field itself is what has to be raised, and only while it holds an
+   open menu: a field with a menu is lifted, and every other field keeps the
+   stacking boundary the house gives it. The rule matches through `:has`, which
+   is why it lives here rather than on the tokenizer: the thing that has to
+   move is the field, and the field is not this component's element. */
+.astryx-field:has(.astryx-tokenizer--menu-open) {
+  position: relative;
+  z-index: 20;
+}
+
+/* The menu is inside the raised field, and the field is inside the example
+   box; the menu is what has to be above the field's own content. */
+.astryx-tokenizer--menu-open {
+  z-index: 20;
+}
+
 .astryx-tokenizer:focus-within {
   border-color: var(--color-accent);
   box-shadow: inset 0 0 0 2px var(--color-accent-muted);
@@ -165,6 +190,14 @@
   position: absolute;
   top: 100%;
   inset-inline-start: 0;
+  /* The menu is drawn in place - this port has no portal - so it extends over
+     whatever is below the field. It is opaque, and the field it belongs to
+     stacks above the fields that follow, so the menu is never painted over by
+     the next example. */
+  box-sizing: border-box;
+  /* The menu is a child of the field, so the FIELD is what has to stack above
+     the fields that follow it - a z-index on the menu alone cannot lift it out
+     of its parent's stacking context. */
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -177,7 +210,7 @@
   border-color: var(--color-border-emphasized);
   border-radius: var(--radius-element);
   background-color: var(--color-background-popover);
-  box-shadow: var(--shadow-elevation-2);
+  box-shadow: var(--shadow-med);
 }
 
 .astryx-tokenizer__listbox[hidden] { display: none; }
@@ -236,5 +269,5 @@
 
 .astryx-tokenizer--layer.astryx-tokenizer--expanded {
   z-index: 100;
-  box-shadow: var(--shadow-elevation-4);
+  box-shadow: var(--shadow-high);
 }
