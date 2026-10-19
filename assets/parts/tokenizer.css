@@ -1,0 +1,240 @@
+/* ---------------------------------------------------------------------------- tokenizer
+
+   The token row, the combobox input, the end lane and the suggestion menu.
+
+   The layout rule that shapes this file: the WRAPPER is the field's chrome, and
+   the CONTENT row inside it is what wraps. The tokens and the input live in the
+   content row, so the tokens wrap onto a second line while the end lane stays
+   on the first one - upstream pins the lane there by measuring it and
+   publishing the width as a custom property (useEndLaneReserve), which this
+   port does not do. The lane is therefore a flex sibling of the content row:
+   the input can never run under it, and nothing has to be measured. */
+
+.astryx-tokenizer {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duration-medium);
+}
+
+.astryx-tokenizer:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent-muted);
+}
+
+@media (hover: hover) {
+  .astryx-tokenizer:hover:not(:focus-within):not(.astryx-tokenizer--disabled) {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-border-emphasized) 30%, transparent);
+  }
+}
+
+/* A disabled control must not react to hover, and the cursor is the default one. */
+.astryx-tokenizer--disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.astryx-tokenizer--warning { border-color: var(--color-warning); }
+.astryx-tokenizer--error { border-color: var(--color-error); }
+.astryx-tokenizer--success { border-color: var(--color-success); }
+
+.astryx-tokenizer[data-astryx-size="sm"] { min-height: var(--size-element-sm); }
+.astryx-tokenizer[data-astryx-size="md"] { min-height: var(--size-element-md); }
+.astryx-tokenizer[data-astryx-size="lg"] { min-height: var(--size-element-lg); }
+
+/* The content row is what wraps: the tokens and the input sit in it, and it
+   takes the room the end lane leaves. */
+.astryx-tokenizer__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.astryx-tokenizer__token {
+  display: flex;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.astryx-tokenizer__start-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.astryx-tokenizer__input {
+  display: block;
+  flex: 1 1 40px;
+  min-width: 40px;
+  border: none;
+  padding: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: transparent;
+  outline: none;
+}
+
+.astryx-tokenizer__input::placeholder { color: var(--color-text-secondary); }
+
+/* At the limit the input is still there - it keeps its identity, its focus and
+   its label - but it takes no room and is not seen. */
+.astryx-tokenizer__input--at-max {
+  width: 0;
+  min-width: 0;
+  flex: 0 0 0;
+  padding: 0;
+  opacity: 0;
+  position: absolute;
+}
+
+@media (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    .astryx-tokenizer__input { font-size: max(1rem, var(--text-body-size)); }
+  }
+}
+
+/* The end lane: the clear button and the caller's end content, in flow beside
+   the content row so the input can never run under them. */
+.astryx-tokenizer__end-lane {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 0 0 auto;
+  z-index: 1;
+}
+
+.astryx-tokenizer__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+  background: none;
+  color: var(--color-icon-secondary);
+  cursor: pointer;
+}
+
+.astryx-tokenizer__clear:hover { color: var(--color-icon-primary); }
+
+/* The measurement container: every token and the indicator, measured and never
+   seen. It is visibility:hidden rather than display:none because a display:none
+   element has an offsetWidth of 0 and everything measured through it would read
+   as zero. */
+.astryx-tokenizer__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  visibility: hidden;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.astryx-tokenizer__overflow {
+  flex: 0 0 auto;
+  margin-inline-start: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  white-space: nowrap;
+}
+
+/* The suggestion menu: a listbox below the field, not a top-layer surface -
+   the OCaml layer has no portal, so it is drawn in place. */
+.astryx-tokenizer__listbox {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-block: var(--spacing-1);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-color: var(--color-border-emphasized);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-popover);
+  box-shadow: var(--shadow-elevation-2);
+}
+
+.astryx-tokenizer__listbox[hidden] { display: none; }
+
+.astryx-tokenizer__option {
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.astryx-tokenizer__option--highlighted {
+  background-color: var(--color-background-muted);
+}
+
+.astryx-tokenizer__option--new {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.astryx-tokenizer__empty {
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-size);
+}
+
+/* The disabled reason: upstream's disabledMessage, shown on hover and on
+   focus, because a disabled control swallows the hover events an external
+   tooltip would need. */
+.astryx-tokenizer__reason {
+  position: absolute;
+  bottom: 100%;
+  inset-inline-start: 0;
+  z-index: 10;
+  max-width: 280px;
+  margin-block-end: var(--spacing-1);
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-inverted);
+  color: var(--color-on-dark);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+/* The layer variant: the expanded row is raised above its ancestors rather
+   than being clipped by them. The OCaml layer has no top layer, so this is
+   CSS rather than a promoted surface. */
+.astryx-tokenizer--layer {
+  overflow: visible;
+}
+
+.astryx-tokenizer--layer.astryx-tokenizer--expanded {
+  z-index: 100;
+  box-shadow: var(--shadow-elevation-4);
+}
