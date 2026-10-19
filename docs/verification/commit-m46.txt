@@ -1,0 +1,28 @@
+M46: TreeList - the tree view (Tree_list + Tree_focus)
+
+Port upstream TreeList/TreeList.tsx + TreeListItem.tsx + TreeListBranches.tsx +
+TreeListTypes.ts plus hooks/useTreeFocus.ts (634 lines of keyboard model) as
+Astryx.Tree_list with the roving-focus model in its own Astryx.Tree_focus module
+(house Menu_focus pattern, registered in astryx.ml). Recursive item value
+(id/label/description/children/on_click/href/disabled/selected/expanded), chevron
+toggles (`data-tree-toggle`), single tab stop seeded from is_selected, full WAI-ARIA
+tree keyboard map (ArrowUp/Down/Home/End, ArrowRight expand/first-child, ArrowLeft
+collapse/parent, Enter/Space activation, label-only typeahead, RTL swap),
+aria-level/posinset/setsize/expanded/selected/disabled, guide-line branches
+(connector lines with --full/--last at each indent, `--tree-list-indent` lever),
+role=tree list, header + aria-labelledby, density + lineGuides variant markers.
+Expansion state is an assoc of overrides (`Bonsai.state` + `map2`).
+
+Documented divergences (port.json + source): on_click is unit -> unit (house API)
+rather than a DOM event; toggle aria-label is the fixed English "Toggle children"
+(upstream i18n); per-item xstyle/className/style have no counterpart (BEM class
+names instead); Tree_branches is private. Also folds in the List CSS fidelity fix
+(data-marker -> data-astryx-marker; single .astryx-item rule).
+
+Verified: dune build exit 0; showcase TreeList section (7 examples) + nav; jsdom
+fixture tree-list-all; component gate 642 checks / 0 failures (+11); browser gate
+452/452 (TreeList live: chevron expand/collapse with subtree re-render, roving
+focus keyboard roam — ArrowDown/ArrowRight/ArrowUp/ArrowLeft); responsive 66/66
+after re-baseline (8 fresh baselines); generators regenerated (PORT-STATUS
+66/37, site/coverage.json 66-37-103, docs/visual/TreeList.md); full sweep in
+docs/verification/sweep-m46.txt.

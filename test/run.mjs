@@ -2599,6 +2599,49 @@ check("a disabled group says so once, on the box", (() => {
   check("rows are Items carrying marker spans", g("ls-basic").querySelectorAll("li.astryx-item").length === 3);
 }
 
+// --- TreeList (M46)
+{
+  const host = document.querySelector('[data-case="tree-list-all"]');
+  const root = host && host.querySelector(".astryx-tree-list");
+  const list = root && root.querySelector(".astryx-tree-list__list");
+  const item = (id) => list && list.querySelector(`li[data-tree-id="${id}"]`);
+  check("the TreeList fixture mounts its root, a role=tree ul and the port's flags",
+    !!root && !!list && attr(root, "data-astryx-component") === "TreeList"
+    && attr(root, "data-astryx-density") === "balanced"
+    && attr(root, "data-astryx-variant") === "lineGuides"
+    && attr(list, "role") === "tree",
+    root && `${attr(root, "data-astryx-component")}/${attr(root, "data-astryx-variant")} ul role=${attr(list, "role")}`);
+  check("the root declares the indent and row-gap variables", (attr(root, "style") || "").includes("--tree-list-indent"));
+  check("four visible top-level treeitems (a, b, c, d)",
+    list && [...list.querySelectorAll(":scope > li[role=treeitem]")].length === 4,
+    list && String(list.querySelectorAll(":scope > li").length));
+  check("nine visible treeitems in total (a1/a2 under a, d1/d1x/d2 under d)",
+    list && list.querySelectorAll("li[role=treeitem]").length === 9,
+    list && String(list.querySelectorAll("li").length));
+  check("aria-expanded lives on the three expandable rows a, d, d1 (and only them)",
+    !!item("a") && attr(item("a"), "aria-expanded") === "true"
+    && attr(item("d"), "aria-expanded") === "true"
+    && attr(item("d1"), "aria-expanded") === "true"
+    && attr(item("b"), "aria-expanded") === null
+    && attr(item("a1"), "aria-expanded") === null);
+  check("the selected row carries aria-selected", !!item("a2") && attr(item("a2"), "aria-selected") === "true");
+  check("the disabled row carries aria-disabled and data-tree-disabled",
+    !!item("c") && attr(item("c"), "aria-disabled") === "true" && attr(item("c"), "data-tree-disabled") === "true");
+  check("exactly one treeitem is the roving tab stop",
+    list && [...list.querySelectorAll("li[role=treeitem]")]
+      .filter((e) => attr(e, "tabindex") === "0").length === 1);
+  check("three chevrons, one per expandable row, each carrying aria-expanded",
+    list && list.querySelectorAll("[data-tree-toggle]").length === 3
+    && attr(list.querySelector('[data-tree-id="a"] [data-tree-toggle]'), "aria-expanded") === "true");
+  check("guide lines render under the default lineGuides variant",
+    !!list && list.querySelectorAll(".astryx-tree-list__guide--full").length > 0
+    && list.querySelectorAll(".astryx-tree-list__guide").length > 0);
+  check("rows are segmented with level, position and set-size",
+    !!item("d1x") && attr(item("d1x"), "aria-level") === "3"
+    && attr(item("d1x"), "data-tree-level") === "3"
+    && attr(item("a2"), "aria-posinset") === "2");
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

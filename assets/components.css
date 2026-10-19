@@ -3746,26 +3746,221 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 
 /* ---- List ---- */
 .astryx-list__wrap { display: flex; flex-direction: column; }
-.astryx-list__header { margin-bottom: 8px; }
-.astryx-list__wrap .astryx-list { margin: 0; padding-inline-start: 0; }
+.astryx-list__header { margin-bottom: var(--spacing-2); }
 .astryx-list {
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: var(--spacing-0-5);
   margin: 0; padding-inline-start: 0; list-style-type: none;
+  /* A row dragged aside for its swipe actions paints past the inline edge
+     unless the list clips. `clip`, never `hidden`: hidden makes a scroll
+     container. StyleX emits the physical longhand of this axis. */
+  overflow-x: clip;
 }
-.astryx-list--with-counter { list-style-type: none; counter-reset: astryx-list 0; }
-.astryx-list[data-marker="disc"] .astryx-list-item__marker::before { content: "\2022"; }
-.astryx-list[data-marker="circle"] .astryx-list-item__marker::before { content: "\25E6"; }
-.astryx-list[data-marker="decimal"] { list-style-type: decimal; counter-reset: astryx-list; }
-.astryx-list[data-marker="decimal"] .astryx-list-item__marker { counter-increment: astryx-list; }
-.astryx-list[data-marker="decimal"] .astryx-list-item__marker::before { content: counter(astryx-list) ". "; }
-.astryx-list[data-marker="disc"] .astryx-list-item__marker,
-.astryx-list[data-marker="circle"] .astryx-list-item__marker,
-.astryx-list[data-marker="decimal"] .astryx-list-item__marker { display: inline-block; min-width: 18px; }
-.astryx-list > .astryx-item + .astryx-item[data-dividers="true"],
-.astryx-list[data-dividers="true"] > .astryx-item + .astryx-item { border-top: 1px solid var(--astryx-border, #d0d4dc); }
-.astryx-list > .astryx-item + .astryx-item { gap: 2px; }
-.astryx-list[data-dividers="true"] > .astryx-item + .astryx-item { padding-top: 6px; margin-top: 2px; }
-.astryx-list--density-compact > .astryx-item { padding-block: 2px; }
-.astryx-list--density-balanced > .astryx-item { padding-block: 4px; }
-.astryx-list--density-spacious > .astryx-item { padding-block: 8px; }
-.astryx-item { display: flex; align-items: center; gap: 8px; }
+.astryx-list[data-astryx-dividers="true"] { gap: 0; }
+.astryx-list--with-counter { counter-reset: astryx-list; }
+/* The marker span every row carries: nothing outside a marker list, so a
+   No_marker list has no phantom gap. */
+.astryx-list-item__marker { display: none; }
+/* Shape markers: a 6px box in the marker column, baseline-aligned like
+   upstream (the 6px is upstream's MARKER_DOT_SIZE). */
+.astryx-list[data-astryx-marker="disc"] .astryx-list-item__marker,
+.astryx-list[data-astryx-marker="circle"] .astryx-list-item__marker,
+.astryx-list[data-astryx-marker="square"] .astryx-list-item__marker {
+  align-self: baseline; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: var(--spacing-4);
+  margin-top: calc((1em * var(--text-body-leading) - 6px) / 2);
+}
+.astryx-list[data-astryx-marker="disc"] .astryx-list-item__marker::before,
+.astryx-list[data-astryx-marker="circle"] .astryx-list-item__marker::before,
+.astryx-list[data-astryx-marker="square"] .astryx-list-item__marker::before {
+  content: ""; width: 6px; height: 6px; box-sizing: border-box;
+}
+.astryx-list[data-astryx-marker="disc"] .astryx-list-item__marker::before {
+  border-radius: 50%; background-color: var(--color-text-primary);
+}
+.astryx-list[data-astryx-marker="circle"] .astryx-list-item__marker::before {
+  border-radius: 50%; background-color: transparent;
+  border: var(--border-width) solid var(--color-text-primary);
+}
+.astryx-list[data-astryx-marker="square"] .astryx-list-item__marker::before {
+  background-color: var(--color-text-primary);
+}
+/* Numbered markers: CSS counters, exactly upstream's mechanism — the list
+   resets, the marker spans increment and render themselves. */
+.astryx-list[data-astryx-marker="decimal"] .astryx-list-item__marker,
+.astryx-list[data-astryx-marker="lower-alpha"] .astryx-list-item__marker,
+.astryx-list[data-astryx-marker="lower-roman"] .astryx-list-item__marker {
+  align-self: baseline; box-sizing: border-box; display: inline-block;
+  flex-shrink: 0; width: var(--spacing-4);
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size); line-height: var(--text-body-leading);
+  counter-increment: astryx-list;
+}
+.astryx-list[data-astryx-marker="decimal"] .astryx-list-item__marker::before,
+.astryx-list[data-astryx-marker="lower-alpha"] .astryx-list-item__marker::before,
+.astryx-list[data-astryx-marker="lower-roman"] .astryx-list-item__marker::before {
+  content: "";
+}
+.astryx-list[data-astryx-marker="decimal"] .astryx-list-item__marker::before { content: counter(astryx-list) "."; }
+.astryx-list[data-astryx-marker="lower-alpha"] .astryx-list-item__marker::before { content: counter(astryx-list, lower-alpha) "."; }
+.astryx-list[data-astryx-marker="lower-roman"] .astryx-list-item__marker::before { content: counter(astryx-list, lower-roman) "."; }
+/* Dividers: each row's block end, zeroed after the last (upstream's
+   withDivider + noRadius). */
+.astryx-list[data-astryx-dividers="true"] > .astryx-item {
+  border-block-end: var(--border-width) solid var(--color-border);
+  border-radius: 0;
+}
+.astryx-list[data-astryx-dividers="true"] > .astryx-item:last-child {
+  border-block-end-width: 0;
+}
+/* Density reaches the rows through the list's own class (rows are Items whose
+   default Balanced class would otherwise win; the list's rule out-specifies
+   it). Spacious also moves the inline inset with it, as upstream's Item does. */
+.astryx-list--density-compact > .astryx-item { padding-block: var(--spacing-1); }
+.astryx-list--density-balanced > .astryx-item { padding-block: var(--spacing-2); }
+.astryx-list--density-spacious > .astryx-item {
+  padding-block: var(--spacing-3);
+  --_item-inset-inline: var(--spacing-3);
+}
+/* Inline edge compensation (upstream inlineEdgeCompensation): cancels as much
+   of the row's built-in inline inset as the container's own padding allows,
+   each edge against its own variable. */
+.astryx-list[data-astryx-edge="inline"] > .astryx-item {
+  margin-inline-start: calc(-1 * min(var(--_item-inset-inline), var(--container-padding-inline-start, 0px)));
+  margin-inline-end: calc(-1 * min(var(--_item-inset-inline), var(--container-padding-inline-end, 0px)));
+}
+
+/* ---- TreeList (M46) ---- */
+.astryx-tree-list {
+  position: relative;
+  --tree-list-indent: var(--spacing-4);
+  --tree-list-row-gap: var(--spacing-0-5);
+}
+.astryx-tree-list__list,
+.astryx-tree-list__children {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+.astryx-tree-list__header {
+  margin-bottom: var(--spacing-2);
+}
+.astryx-tree-list__item {
+  position: relative;
+  list-style-type: none;
+  width: 100%;
+  outline: none;
+}
+.astryx-tree-list__row-wrapper {
+  position: relative;
+  padding-block: calc(var(--tree-list-row-gap, 0px) / 2);
+}
+.astryx-tree-list__content {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-element, 8px);
+  overflow: hidden;
+  text-align: start;
+  margin-inline-start: var(--_tree-indent, 0px);
+  min-width: 0;
+  transition-property: background-color;
+  transition-duration: var(--duration-fast, 120ms);
+  transition-timing-function: var(--ease-standard, ease);
+}
+.astryx-tree-list__content--compact { padding-block: var(--spacing-1); }
+.astryx-tree-list__content--balanced { padding-block: var(--spacing-2); }
+.astryx-tree-list__content--spacious { padding-block: var(--spacing-3); }
+.astryx-tree-list__content--interactive { cursor: pointer; }
+.astryx-tree-list__content--interactive:hover { background-color: var(--color-tint-hover); }
+.astryx-tree-list__content--interactive:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.astryx-tree-list__content--selected { background-color: var(--color-accent-muted); }
+.astryx-tree-list__content--disabled {
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.astryx-tree-list__label {
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+}
+.astryx-tree-list__description {
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size, 0.875rem);
+  line-height: var(--text-supporting-leading, 1.25rem);
+}
+.astryx-tree-list__action {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  text-align: start;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  text-decoration: none;
+}
+.astryx-tree-list__content-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+}
+.astryx-tree-list__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  font-size: var(--spacing-4);
+  margin-inline-start: var(--spacing-1);
+  margin-inline-end: calc(var(--spacing-1) * -1);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-icon-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-inner, 4px);
+}
+.astryx-tree-list__chevron .astryx-icon {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  display: flex;
+  transition-property: transform;
+  transition-duration: var(--duration-fast, 120ms);
+  transition-timing-function: var(--ease-standard, ease);
+}
+.astryx-tree-list__chevron--expanded .astryx-icon { transform: rotate(90deg); }
+.astryx-tree-list__chevron--collapsed .astryx-icon { transform: rotate(0deg); }
+.astryx-tree-list__chevron:disabled { cursor: default; color: var(--color-text-disabled); }
+.astryx-tree-list__branch {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  width: var(--spacing-5);
+  pointer-events: none;
+}
+.astryx-tree-list__guide {
+  border-radius: 1px;
+  width: 1px;
+  position: absolute;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  margin: auto;
+  background-color: var(--color-border-emphasized);
+}
+.astryx-tree-list__guide--full { height: calc(100% + 1px); }
+.astryx-tree-list__guide--last { height: calc(100% - var(--tree-list-row-gap, 0px) / 2); }

@@ -25,7 +25,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | --- | --- | --- |
 | `display` | `flex` | `.astryx-list` |
 | `flex-direction` | `column` | `.astryx-list` |
-| `gap` | `2px` | `.astryx-list` |
+| `gap` | `0.125rem` _(from `var(--spacing-0-5)`)_ | `.astryx-list` |
 
 ## spacing
 
@@ -39,10 +39,13 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `list-style-type` | `none` | `.astryx-list` |
+| `overflow-x` | `clip` | `.astryx-list` |
 
 ## tokens referenced
 
-_(none — this component styles itself with literals only)_
+| token | value |
+| --- | --- |
+| `--spacing-0-5` | `0.125rem` |
 
 ## image-generation prompt
 

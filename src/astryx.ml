@@ -111,3 +111,5 @@ module Layout = Layout
 module Layer = Layer
 module Item = Item
 module Token = Token
+module Tree_focus = Tree_focus
+module Tree_list = Tree_list

@@ -717,6 +717,17 @@ DialogHeader
   ok   the ordered list is an ol with start=4 and decimal marker
   ok   the compact list carries its density
   ok   rows are Items carrying marker spans
+  ok   the TreeList fixture mounts its root, a role=tree ul and the port's flags
+  ok   the root declares the indent and row-gap variables
+  ok   four visible top-level treeitems (a, b, c, d)
+  ok   nine visible treeitems in total (a1/a2 under a, d1/d1x/d2 under d)
+  ok   aria-expanded lives on the three expandable rows a, d, d1 (and only them)
+  ok   the selected row carries aria-selected
+  ok   the disabled row carries aria-disabled and data-tree-disabled
+  ok   exactly one treeitem is the roving tab stop
+  ok   three chevrons, one per expandable row, each carrying aria-expanded
+  ok   guide lines render under the default lineGuides variant
+  ok   rows are segmented with level, position and set-size
 
-631 checks, 0 failure(s)
+642 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

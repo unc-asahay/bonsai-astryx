@@ -832,6 +832,7 @@ module Fi = Astryx.File_input
 module Lay = Astryx.Layout
 module Sl = Astryx.Slider
 module Lc = Astryx.List_container
+module Tl = Astryx.Tree_list
 module Li = Astryx.List_item
 
 let demo_menu_item
@@ -4317,6 +4318,7 @@ let nav_items =
   ; "slider", "Slider"
   ; "item", "Item"
   ; "list", "List"
+  ; "tree-list", "TreeList"
   ]
 ;;
 
@@ -4883,6 +4885,106 @@ let list_demo (graph : Bonsai.graph) =
       [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
 ;;
 
+let tree_list_demo (graph : Bonsai.graph) =
+  let join_all (trees : Vdom.Node.t Bonsai.t list) =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+      Bonsai.map2 acc tree ~f:(fun acc node -> acc @ [ node ]))
+  in
+  let mk_item ?(desc = "") ?(href = "") ?(target = "") ?(start = None) ?(end_ = None) ?(on_click = None)
+      ?(disabled = false) ?(selected = false) ?(expanded = false) ?(children = []) id label =
+    ( { id; label = Vdom.Node.text label
+      ; description = (if String.equal desc "" then None else Some desc)
+      ; start_content = start; end_content = end_
+      ; children; on_click
+      ; href = (if String.equal href "" then None else Some href)
+      ; target = (if String.equal target "" then None else Some target)
+      ; is_disabled = disabled; is_selected = selected; is_expanded = expanded }
+      : Tl.item )
+  in
+  let basic =
+    Tl.view
+      ~items:
+        [ mk_item ~expanded:true "src" "src"
+            ~children:
+              [ mk_item "app" "app"
+                  ~children:
+                    [ mk_item "page.tsx" "page.tsx"
+                    ; mk_item "layout.tsx" "layout.tsx"
+                    ]
+              ; mk_item ~desc:"The main entry point" "index" "index.tsx"
+              ]
+        ; mk_item "pkg" "package.json"
+        ]
+      graph
+  in
+  let aligned =
+    Tl.view
+      ~items:
+        [ mk_item ~expanded:true "docs" "docs"
+            ~children:
+              [ mk_item ~selected:true "guide" "Guide"
+              ; mk_item "api" "API reference"
+              ]
+        ; mk_item "readme" "README.md"
+        ]
+      graph
+  in
+  let links =
+    Tl.view
+      ~items:
+        [ mk_item ~expanded:true "team" "team"
+            ~children:
+              [ mk_item ~href:"https://github.com/unc-asahay/bonsai-astryx" "repo" "bonsai-astryx"
+              ; mk_item ~on_click:(Some (fun () -> ())) "changelog" "Changelog (click)"
+              ]
+        ; mk_item ~disabled:true "frozen" "Frozen branch"
+        ]
+      graph
+  in
+  let no_guides =
+    Tl.view ~variant:Tl.No_guides
+      ~items:
+        [ mk_item ~expanded:true "a" "Alpha"
+            ~children:
+              [ mk_item ~expanded:true "a1" "Alpha one"
+                  ~children: [ mk_item "a1x" "Alpha one x" ]
+              ; mk_item "a2" "Alpha two"
+              ]
+        ; mk_item "b" "Beta"
+        ]
+      graph
+  in
+  let header =
+    Tl.view
+      ~header:[ Vdom.Node.h3 ~attrs:[ Vdom.Attr.class_ "tree-demo-header" ] [ Vdom.Node.text "Project files" ] ]
+      ~items:
+        [ mk_item ~expanded:true "src" "src"
+            ~children:
+              [ mk_item "common.ml" "common.ml"
+              ; mk_item "tree_list.ml" "tree_list.ml"
+              ]
+        ; mk_item "dune" "dune"
+        ]
+      graph
+  in
+  let ex_tree label tree = Bonsai.map tree ~f:(fun node -> ex label node) in
+  let examples =
+    [ ex_tree "Basic" basic
+    ; ex_tree "Selected leaf" aligned
+    ; ex_tree "Links and actions" links
+    ; ex_tree "No guides" no_guides
+    ; ex_tree "Header" header
+    ; ex_tree "Spacious" (Tl.view ~density:Tl.Spacious ~items:[ mk_item "n" "Nested" ~expanded:true ~children:[ mk_item "nn" "Nested nested" ] ] graph)
+    ; ex_tree "Compact" (Tl.view ~density:Tl.Compact ~items:[ mk_item "c" "Compact row" ] graph)
+    ]
+  in
+  let nodes = join_all examples in
+  Bonsai.map nodes ~f:(fun nodes ->
+    section ~id:"tree-list" ~title:"TreeList"
+      ~note:"A data-driven tree view: expansion is internal, arrows roam the visible items and typeahead matches the label"
+      [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-row" ] nodes ])
+;;
+
 let page (graph : Bonsai.graph) =
   let interactive_section = interactive graph in
   let checkbox_section = checkbox_demo graph in
@@ -4952,15 +5054,17 @@ let page (graph : Bonsai.graph) =
   let stateful = pair stateful item_section in
   let list_section = list_demo graph in
   let stateful = pair stateful list_section in
+  let tree_list_section = tree_list_demo graph in
+  let stateful = pair stateful tree_list_section in
   Bonsai.map2
     stateful
     text_area_section
-    ~f:(fun (((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list)
+    ~f:(fun ((((((((((((((((((((((((((((((interactive, checkbox), (dropdown, field)), switch), radio_list), form_layout), tooltip), dialog), alert_dialog), dialog_header), layer), popover), metadata_list), more_menu), progress_bar), avatar), avatar_group), toggle_button), selectable_card), overflow_list), thumbnail), scrollable_area), nav_heading_menu), segmented_control), overlay), file_input), layout), slider), item), list), tree_list)
     text_area ->
 Vdom.Node.div
       ~attrs:[ Vdom.Attr.class_ "showcase" ]
       [ nav (); Vdom.Node.main ~attrs:[ Vdom.Attr.class_ "main" ]
-          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list ])
+          (specs @ [ field; text_area; checkbox; switch; radio_list; form_layout; tooltip; dialog; alert_dialog; dialog_header; layer; popover; dropdown; interactive; metadata_list; more_menu; progress_bar; avatar; avatar_group; toggle_button; selectable_card; overflow_list; thumbnail; scrollable_area; nav_heading_menu; segmented_control; overlay; file_input; layout; slider; item; list; tree_list ])
       ])
 ;;
 

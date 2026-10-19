@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-66 ported component(s). Each page records the appearance the port
+67 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -33,7 +33,7 @@ for image generation.
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
-| Icon | 74 | 15 | 9 | 8 | [Icon.md](Icon.md) |
+| Icon | 82 | 15 | 9 | 8 | [Icon.md](Icon.md) |
 | IconButton | 6 | 8 | 26 | 14 | [IconButton.md](IconButton.md) |
 | Indicator | 55 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
@@ -43,7 +43,7 @@ for image generation.
 | Layer | 3 | 5 | 12 | 5 | [Layer.md](Layer.md) |
 | Layout | 6 | 3 | 7 | 5 | [Layout.md](Layout.md) |
 | Link | 5 | 4 | 3 | 1 | [Link.md](Link.md) |
-| List | 6 | 4 | 6 | 0 | [List.md](List.md) |
+| List | 6 | 4 | 7 | 1 | [List.md](List.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
 | MetadataListItem | 27 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
 | MoreMenu | 3 | 4 | 25 | 10 | [MoreMenu.md](MoreMenu.md) |
@@ -73,8 +73,9 @@ for image generation.
 | Token | 8 | 7 | 25 | 13 | [Token.md](Token.md) |
 | Toolbar | 3 | 4 | 6 | 1 | [Toolbar.md](Toolbar.md) |
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
+| TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 37 components with no OCaml port. They
+Not listed: the 36 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

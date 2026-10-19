@@ -253,6 +253,7 @@ if (mode === "showcase") {
     "Slider",
     "Item",
     "List",
+    "TreeList",
   ];
 
   // ---------------------------------------------------------------- RadioList (M13)
@@ -615,7 +616,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("67 sections", sections.length === 67, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("68 sections", sections.length === 68, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -636,10 +637,10 @@ if (mode === "showcase") {
     "Field + TextInput": 10, TextArea: 9, FieldLabel: 7, Indicator: 12, Kbd: 3, Layer: 3,
     ButtonGroup: 3, Popover: 1, Timer: 3, InputGroup: 3, Toolbar: 3,
     RadioList: 9, FormLayout: 7, Tooltip: 6, Dialog: 7, AlertDialog: 3, DialogHeader: 3,
-    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6,
+    Link: 5, Token: 8, Spinner: 6, Thumbnail: 9, ScrollableArea: 7, NavHeadingMenu: 4, SegmentedControl: 10, Overlay: 12, FileInput: 6, Layout: 6, Slider: 8, Item: 13, List: 6, TreeList: 7,
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("413 examples across the page", totalExamples === 413, `got ${totalExamples}`);
+  check("420 examples across the page", totalExamples === 420, `got ${totalExamples}`);
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
     "every section's example count is the expected one",
@@ -652,7 +653,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("67 nav links", nav.length === 67, `got ${nav.length}`);
+  check("68 nav links", nav.length === 68, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4038,11 +4039,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 65 ported / 38 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["65", "38", "103"]),
+    "coverage stats are 66 ported / 37 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["66", "37", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 38 entries", cov.unported === 38, `got ${cov.unported}`);
+  check("unported list rendered 37 entries", cov.unported === 37, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4081,6 +4082,90 @@ check(
   check("dividers carry a header paired through aria-labelledby", lf.dividers);
   check("the ordered demo is a decimal ol starting at 4 with marker spans", lf.ordered);
   check("the compact demo carries its density class and data", lf.compact);
+
+  // ---------------------------------------------------------------- TreeList (M46)
+  // jsdom cannot pump Bonsai effects, so expansion is driven here for real: the
+  // chevron button owns the click (upstream's activateItem mechanism), arrows
+  // roam the visible items, ArrowRight expands a collapsed parent, ArrowLeft
+  // collapses it back.
+  console.log("\nTreeList (live)");
+  const tlf = await page.evaluate(() => {
+    const sec = document.getElementById("tree-list");
+    const roots = sec ? [...sec.querySelectorAll('[data-astryx-component="TreeList"]')] : [];
+    const basic = roots[0] || null;
+    const li = (id) => basic && basic.querySelector(`[data-tree-id="${id}"]`);
+    return {
+      roots: roots.length,
+      role: basic && basic.querySelector(".astryx-tree-list__list")?.getAttribute("role"),
+      variant: basic && basic.getAttribute("data-astryx-variant"),
+      density: basic && basic.getAttribute("data-astryx-density"),
+      guides: basic && basic.querySelectorAll(".astryx-tree-list__guide").length,
+      stop: basic
+        && [...basic.querySelectorAll("li[role=treeitem]")]
+          .filter((e) => e.getAttribute("tabindex") === "0")
+          .map((e) => e.getAttribute("data-tree-id")),
+      appExpanded: li("app") && li("app").getAttribute("aria-expanded"),
+      pageTsx: !!li("page.tsx"),
+    };
+  });
+  check(
+    "the TreeList section renders seven trees with the tree/lineGuides/balanced contract",
+    tlf.roots === 7 && tlf.role === "tree" && tlf.variant === "lineGuides"
+      && tlf.density === "balanced" && tlf.guides > 0,
+    JSON.stringify(tlf),
+  );
+  check("one roving tab stop, on the first row of the first tree (src)", JSON.stringify(tlf.stop) === JSON.stringify(["src"]), JSON.stringify(tlf.stop));
+  check("a collapsed parent hides its children to begin with", !tlf.pageTsx);
+  await page.evaluate(() =>
+    document.querySelector('#tree-list [data-astryx-component="TreeList"] [data-tree-id="app"] [data-tree-toggle]').click());
+  await page.waitForTimeout(150);
+  const tlfClick = await page.evaluate(() => {
+    const basic = document.querySelector('#tree-list [data-astryx-component="TreeList"]');
+    const li = (id) => basic && basic.querySelector(`[data-tree-id="${id}"]`);
+    return { pageTsx: !!li("page.tsx"), layout: !!li("layout.tsx"), appExpanded: li("app") && li("app").getAttribute("aria-expanded") };
+  });
+  check("clicking a chevron expands the branch: children render, aria-expanded flips",
+    tlfClick.pageTsx && tlfClick.layout && tlfClick.appExpanded === "true", JSON.stringify(tlfClick));
+  await page.evaluate(() =>
+    document.querySelector('#tree-list [data-astryx-component="TreeList"] [data-tree-id="app"] [data-tree-toggle]').click());
+  await page.waitForTimeout(150);
+  const tlfAgain = await page.evaluate(() => {
+    const basic = document.querySelector('#tree-list [data-astryx-component="TreeList"]');
+    const li = (id) => basic && basic.querySelector(`[data-tree-id="${id}"]`);
+    return { pageTsx: !!li("page.tsx"), appExpanded: li("app") && li("app").getAttribute("aria-expanded") };
+  });
+  check("clicking the same chevron collapses it again", !tlfAgain.pageTsx && tlfAgain.appExpanded === "false", JSON.stringify(tlfAgain));
+  const activeId = () =>
+    page.evaluate(() => {
+      const t = document.activeElement && document.activeElement.closest?.("[data-tree-id]");
+      return t ? t.getAttribute("data-tree-id") : null;
+    });
+  await page.focus('#tree-list [data-astryx-component="TreeList"] [data-tree-id="src"]');
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(150);
+  check("ArrowDown moves focus to the next visible treeitem (app)", (await activeId()) === "app", `active=${await activeId()}`);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(150);
+  const tlfRight = await page.evaluate(() => {
+    const basic = document.querySelector('#tree-list [data-astryx-component="TreeList"]');
+    const li = (id) => basic && basic.querySelector(`[data-tree-id="${id}"]`);
+    return { pageTsx: !!li("page.tsx"), appExpanded: li("app") && li("app").getAttribute("aria-expanded") };
+  });
+  check("ArrowRight expands a collapsed parent", tlfRight.pageTsx && tlfRight.appExpanded === "true", JSON.stringify(tlfRight));
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(150);
+  check("after expansion ArrowDown enters the branch (page.tsx)", (await activeId()) === "page.tsx", `active=${await activeId()}`);
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(150);
+  check("ArrowUp returns to the parent", (await activeId()) === "app", `active=${await activeId()}`);
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(150);
+  const tlfLeft = await page.evaluate(() => {
+    const basic = document.querySelector('#tree-list [data-astryx-component="TreeList"]');
+    const li = (id) => basic && basic.querySelector(`[data-tree-id="${id}"]`);
+    return { pageTsx: !!li("page.tsx"), appExpanded: li("app") && li("app").getAttribute("aria-expanded") };
+  });
+  check("ArrowLeft collapses the expanded parent and keeps focus", !tlfLeft.pageTsx && tlfLeft.appExpanded === "false" && (await activeId()) === "app", JSON.stringify(tlfLeft));
   // The README's showcase row is prose, and prose is where numbers go stale unobserved: this row claimed
   // 50 ported components, 309 examples and 53 sections while the page it describes had 51, 312 and 54 -
   // every one of those changed in a single session, and no gate looked. A number a gate can compare is a

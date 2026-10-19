@@ -3511,3 +3511,43 @@ marker span). Documented divergence in `port.json`.
 - Files: `src/list_container.ml/.mli`, `src/list_item.ml/.mli`, `assets/components.css`
   (`.astryx-list__*`), `examples/showcase/showcase.ml` (List section), `test/rt_test.ml`,
   `test/run.mjs`, `tools/visual/verify-browser.mjs`, `README.md`.
+
+
+## Gate 63 — M46: TreeList (coverage 65 -> 66)
+
+The tree view, ported from `facebook/astryx` `TreeList/TreeList.tsx` +
+`TreeList/TreeListItem.tsx` + `TreeListBranches.tsx` + `TreeListTypes.ts` together with
+`hooks/useTreeFocus.ts` (634 lines — the keyboard model). Exposed as
+`Astryx.Tree_list` with a separate `Astryx.Tree_focus` module following the house
+`Menu_focus` pattern (registered in `astryx.ml`). Documented divergences in `port.json`
+and in the source: `on_click` is `unit -> unit` (house API) rather than a DOM event; the
+toggle `aria-label` is a fixed English "Toggle children" (upstream i18n); per-item
+`xstyle`/`className`/`style` have no counterpart (the port emits BEM class names);
+`Tree_branches` (the guide-line renderer) is private.
+
+- `Astryx.Tree_list.view`: recursive `item` value (id, label, description, children,
+  on_click, href/target, disabled, selected, expanded), expand/collapse via chevron
+  toggles (`data-tree-toggle`), roving tabindex (a single `tabindex=0` seeded from
+  `is_selected`), the WAI-ARIA tree keyboard model (ArrowUp/Down/Home/End over visible
+  rows, ArrowRight expand / first child, ArrowLeft collapse / parent, Enter/Space
+  activation, label-only typeahead, RTL-aware), `aria-level`/`posinset`/`setsize`,
+  `aria-expanded`, `aria-selected`, `aria-disabled`, guide branches (indent + connector
+  lines, `--full`/`--last`), `role=tree` list, header + `aria-labelledby`, density +
+  `lineGuides` variant via `data-astryx-*` markers. Expansion state is an assoc of
+  overrides over upstream defaults (`Bonsai.state` + `map2`), so a wrapped GraphQL-style
+  consumer can supply its own opened/descriptions.
+- `Astryx.Tree_focus`: the full focus/roving model (port of `useTreeFocus.ts`), kept
+  separate so any future focusable component can reuse it.
+- CSS: `.astryx-tree-list__*` block in `assets/components.css` (indent lever
+  `--tree-list-indent`, chevron column reservation, guide-line geometry).
+- Fixture in `test/rt_test.ml` (`tree-list-all`: a/b/c/d rows, two levels of nesting,
+  selected/disabled/expanded seeds) — `node test/run.mjs` **642 checks, 0 failures**.
+- Browser showcase: **452/452** — live chevron toggle (expand on first click, collapse
+  on second, subtree re-render), roving focus keyboard roam + typeahead, keep-open
+  semantics. Responsive: **66/66** (re-baselined). Full sweep: see
+  `docs/verification/sweep-m46.txt`. PORT-STATUS 66/37.
+- Example count map: 420 examples, 68 sections, 68 nav links.
+- Responsive: `--update-baseline` created **8 new baselines** (the TreeList viewport
+  shots) — the update run therefore counts 58 diffable checks — and the clean verify
+  counts **66/66**. Both green.
+

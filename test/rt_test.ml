@@ -2844,3 +2844,50 @@ let () =
   in
   mount "list-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------ TreeList (M46) *)
+let tree_list_component (graph : Bonsai.graph) =
+  let mk ?(expanded = false) ?(selected = false) ?(disabled = false) ?(desc = "") ?(href = None) ?(children = []) id label =
+    ( { Astryx.Tree_list.id
+      ; label = Vdom.Node.text label
+      ; description = (if String.equal desc "" then None else Some desc)
+      ; start_content = None
+      ; end_content = None
+      ; children
+      ; on_click = None
+      ; href
+      ; target = None
+      ; is_disabled = disabled
+      ; is_selected = selected
+      ; is_expanded = expanded
+      }
+      : Astryx.Tree_list.item )
+  in
+  let tree =
+    Astryx.Tree_list.view
+      ~items:
+        [ mk ~expanded:true "a" "Alpha"
+            ~children: [ mk "a1" "Alpha one"; mk ~selected:true "a2" "Alpha two" ]
+        ; mk "b" "Beta"
+        ; mk ~disabled:true "c" "Gamma"
+        ; mk ~expanded:true "d" "Delta"
+            ~children:
+              [ mk ~expanded:true "d1" "Delta one"
+                  ~children: [ mk "d1x" "Delta one x" ]
+              ; mk "d2" "Delta two"
+              ]
+        ]
+      graph
+  in
+  Bonsai.map tree ~f:(fun node ->
+    Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "tree-wrap" ] [ node ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      tree_list_component
+  in
+  mount "tree-list-all" (Bonsai_web_test.Handle.last_result handle)
+;;

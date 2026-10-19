@@ -26,7 +26,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `align-items` | `center`<br>`flex-start` | `.astryx-item`<br>`.astryx-item--align-start` |
 | `box-sizing` | `border-box` | `.astryx-item` |
 | `display` | `flex` | `.astryx-item` |
-| `gap` | `8px` | `.astryx-item` |
+| `gap` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-item` |
 | `position` | `relative` | `.astryx-item` |
 
 ## other
