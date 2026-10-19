@@ -135,9 +135,19 @@ def wire_showcase(module, component, section_id, nav_id):
         s = "\n".join(lines)
     nav_entry = f'  ; "{nav_id}", "{component}"\n'
     if nav_entry not in s:
-        m = re.search(r"(let nav_items =\[.*?\n)(  \])", s, re.S)
-        assert m, "nav_items list not found"
-        s = s[: m.end(1)] + nav_entry + s[m.end(1) :]
+        # The top-level nav_items (a demo also has a local one, so match the
+        # unindented definition) is a list of "; id, Title" entries closed by
+        # a "]" line.
+        lines = s.split("\n")
+        start = next(
+            (i for i, ln in enumerate(lines) if ln.startswith("let nav_items =")),
+            None,
+        )
+        assert start is not None, "nav_items list not found"
+        end = next((i for i in range(start, len(lines)) if "]" in lines[i]), None)
+        assert end is not None, "nav_items list is not closed"
+        lines.insert(end, nav_entry.rstrip("\n"))
+        s = "\n".join(lines)
     write(path, s)
 
 
