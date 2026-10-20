@@ -5930,7 +5930,7 @@ check(
         ellipsis: list?.querySelectorAll(".astryx-pagination__ellipsis").length ?? 0,
         prevDisabled: prev?.disabled ?? null,
         nextDisabled: next?.disabled ?? null,
-        announcement: nav?.querySelector("[aria-live]")?.textContent.trim() ?? null,
+        announcement: nav?.querySelector(".astryx-pagination__announcement")?.textContent.trim() ?? null,
       };
     });
     check("a pagination is a navigation region with an accessible name",
@@ -5967,7 +5967,7 @@ check(
         current: current?.textContent.trim() ?? null,
         prevDisabled: prev?.disabled ?? null,
         nextDisabled: next?.disabled ?? null,
-        announcement: nav?.querySelector("[aria-live]")?.textContent.trim() ?? null,
+        announcement: nav?.querySelector(".astryx-pagination__announcement")?.textContent.trim() ?? null,
       };
     });
     check("clicking a page number moves the current page",
@@ -5994,6 +5994,7 @@ check(
         inputTotal: input?.querySelector(".astryx-pagination__input-total")?.textContent.trim() ?? null,
         unknownButtons: unknown?.querySelectorAll("button").length ?? 0,
         unknownNextDisabled: unknown?.querySelector("button[aria-label*='next']")?.disabled ?? null,
+        unknownPrevDisabled: unknown?.querySelector("button[aria-label*='previous']")?.disabled ?? null,
       };
     });
     check("the count variant reports the range of items on the page",
@@ -6009,8 +6010,9 @@ check(
     check("the input variant shows the page and the total",
       pgVariants?.inputValue === "1" && pgVariants?.inputTotal === "/ 12",
       JSON.stringify(pgVariants));
-    check("a pagination with no known end offers only the next control",
-      pgVariants?.unknownButtons === 1 && pgVariants?.unknownNextDisabled === false,
+    check("a pagination with no known end has only the next control to offer",
+      pgVariants?.unknownButtons === 2 && pgVariants?.unknownNextDisabled === false
+        && pgVariants?.unknownPrevDisabled === true,
       JSON.stringify(pgVariants));
   }
 
