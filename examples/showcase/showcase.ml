@@ -5699,6 +5699,7 @@ let nav_items =
   ; "bottom-sheet", "BottomSheet"
   ; "command-palette", "CommandPalette"
   ; "context-menu", "ContextMenu"
+  ; "app-shell", "AppShell"
   ]
 ;;
 

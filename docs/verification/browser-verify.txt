@@ -78,16 +78,16 @@ DialogHeader (live)
   ok   the header's close button closes the dialog, and the application is told
 
 showcase sections
-  ok   95 sections
+  ok   96 sections
   ok   every expected component has a section
   ok   no empty section
   ok   every section rendered its own component
-  ok   629 examples across the page
+  ok   639 examples across the page
   ok   every section's example count is the expected one
-       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Resizable:7 Toast:6 Chat:19 MobileNav:6 Tokenizer:9 MultiSelector:8 CommandPalette:4 Stepper:7 Pagination:7 TopNav:5 CodeBlock:8 Calendar:7 Selector:8 BottomSheet:5 ContextMenu:3 Timestamp:10 ComplexSelector:11 Outline:9
+       Stack:8 Text:12 Heading:6 Button:14 Badge:15 Card:12 Divider:6 StatusDot:7 Skeleton:8 Center:6 Section:7 Grid:6 VisuallyHidden:3 HStack:4 VStack:4 AspectRatio:6 IconButton:5 Code:5 Blockquote:2 NavIcon:2 EmptyState:4 Citation:6 Icon:6 FieldStatus:4 FieldLabel:7 Indicator:12 Kbd:3 ButtonGroup:3 Timer:3 InputGroup:3 Toolbar:3 ClickableCard:4 Link:5 Token:8 Spinner:6 Field + TextInput:10 TextArea:9 CheckboxInput:11 Switch:9 RadioList:9 FormLayout:7 Tooltip:6 Dialog:7 AlertDialog:3 DialogHeader:3 Layer:3 Popover:1 DropdownMenu:4 Interactive:2 MetadataList:5 MoreMenu:3 ProgressBar:5 Avatar:8 AvatarGroup:3 ToggleButton:3 SelectableCard:3 OverflowList:3 Thumbnail:9 ScrollableArea:7 NavHeadingMenu:4 SegmentedControl:10 Overlay:12 FileInput:6 Layout:6 Slider:8 Item:13 List:6 TreeList:7 NumberInput:10 Banner:11 CheckboxList:10 Collapsible:9 Breadcrumbs:8 Carousel:8 TabList:4 Lightbox:3 HoverCard:7 Resizable:7 Toast:6 Chat:19 MobileNav:6 Tokenizer:9 MultiSelector:8 CommandPalette:4 Stepper:7 Pagination:7 TopNav:5 CodeBlock:8 Calendar:7 Selector:8 BottomSheet:5 ContextMenu:3 AppShell:10 Timestamp:10 ComplexSelector:11 Outline:9
 
 navigation
-  ok   95 nav links
+  ok   96 nav links
   ok   no dangling nav link
   ok   no section missing from the nav
 
@@ -496,8 +496,8 @@ coverage panel (fetched from coverage.json at runtime)
   ok   the arc is ARC_FRACTION of the circumference
   ok   the string label names the status and sits below as Text
   ok   the onMedia example sits on the dark demo surface
-  ok   coverage stats are 93 ported / 10 not / 103 total
-  ok   unported list rendered 10 entries
+  ok   coverage stats are 94 ported / 9 not / 103 total
+  ok   unported list rendered 9 entries
   ok   upstream commit shown
   ok   coverage.json reported no inconsistency
 
@@ -719,6 +719,17 @@ Outline (live)
   ok   the commands are grouped, and the group names them
   ok   the highlighted row is named with aria-activedescendant
   ok   typing filters the commands
+  ok   the AppShell section renders
+  ok   every example renders its own shell, and the root carries the house's marker
+  ok   the content is the main landmark, with the id the skip link points at
+  ok   the skip link is the shell's own, and it says where it goes
+  ok   the header is the banner landmark when there is navigation in it
+  ok   the frame alone has no header, and still holds the content
+  ok   the background variants are all present
+  ok   the banner is rendered above the navigation, inside the header
+  ok   the mobile layout collapses to the bar, and the toggle says what it controls
+  ok   the toggle opens the drawer and says so
+  ok   Escape closes the drawer again
   ok   the ContextMenu section renders
   ok   the section draws three menus, each with a trigger
   ok   the menu is not in the document until it is opened
@@ -815,7 +826,7 @@ Outline (live)
 
 screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.png
 
-709/709 checks passed, 0 failure(s)
+720/720 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

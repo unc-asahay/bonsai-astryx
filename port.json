@@ -887,6 +887,13 @@
       "file": "src/context_menu.ml",
       "milestone": "M76",
       "module": "Astryx.context_menu"
+    },
+    {
+      "class": "C",
+      "component": "AppShell",
+      "file": "src/app_shell.ml",
+      "milestone": "M77",
+      "module": "Astryx.app_shell"
     }
   ],
   "schema": 1,

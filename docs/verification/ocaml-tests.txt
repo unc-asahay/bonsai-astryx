@@ -130,6 +130,9 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -1010,6 +1013,11 @@ DialogHeader
   ok   both controls are live in the middle of the range
   ok   the count variant reports the range of items on the page
   ok   a pagination with no known end has only the next control to offer
+  ok   the shell carries the house's component marker
+  ok   the content is the main landmark, with the id the skip link points at
+  ok   the skip link is the shell's own, and it says where it goes
+  ok   the navigation slot is rendered in the panel beside the content
+  ok   the shell that owns its state is not in the mobile layout unless it is told to be
   ok   the trigger carries the component marker and the id the pointer is measured against
   ok   the closed menu is not in the document
   ok   the field is a combobox that owns the list it filters
@@ -1040,5 +1048,5 @@ DialogHeader
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
 
-871 checks, 0 failure(s)
+876 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

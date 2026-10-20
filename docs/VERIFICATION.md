@@ -4492,3 +4492,27 @@ nor gave it back when it closed.
 - component 871/871, browser 709/709, responsive 66/66
 - sweep: SWEEP GREEN
 - record: `docs/verification/commit-m76.txt`
+
+### Gate 88 — M77 AppShell
+
+The application frame: a header, a side panel and the main content, with
+the mobile layout the shell falls back to below the width breakpoint.
+Upstream's four React contexts became arguments — the navigation slots
+are functions of the mode they are drawn in — and the mobile state is
+the shell's own.
+
+The worker branch had never been type-checked. The repairs included the
+`breakpoint` variant's `None` constructor shadowing `Stdlib.None` for the
+whole module, `Bonsai.map2` being piped into (which reverses its
+argument order), the house's attribute helpers returning lists where
+single attributes were expected, and `Layout`'s children-then-unit
+argument order reversed in three places.
+
+The gates found two more: a check that looked for the banner landmark
+in a frame that has no header, and a check that opened the mobile drawer
+without closing it — the drawer is a modal, so it went on covering the
+page and the check after it could not right-click its trigger.
+
+- component 876/876, browser 715/715, responsive 66/66
+- sweep: SWEEP GREEN
+- record: `docs/verification/commit-m77.txt`

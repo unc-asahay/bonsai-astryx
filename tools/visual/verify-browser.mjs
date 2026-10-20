@@ -291,6 +291,7 @@ if (mode === "showcase") {
     "BottomSheet",
     "CommandPalette",
     "ContextMenu",
+    "AppShell",
 
   ];
 
@@ -654,7 +655,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("95 sections", sections.length === 95, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("96 sections", sections.length === 96, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -757,13 +758,14 @@ if (mode === "showcase") {
     Selector: 8,
     BottomSheet: 5,
     ContextMenu: 3,
+    AppShell: 10,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("629 examples across the page", totalExamples === 629, `got ${totalExamples}`);
+  check("639 examples across the page", totalExamples === 639, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -777,7 +779,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("95 nav links", nav.length === 95, `got ${nav.length}`);
+  check("96 nav links", nav.length === 96, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4172,11 +4174,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 93 ported / 10 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["93", "10", "103"]),
+    "coverage stats are 94 ported / 9 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["94", "9", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 10 entries", cov.unported === 10, `got ${cov.unported}`);
+  check("unported list rendered 9 entries", cov.unported === 9, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5971,6 +5973,151 @@ check(
       check("typing filters the commands",
         filtered?.items === 1 && filtered?.labels?.[0] === "Settings",
         JSON.stringify(filtered));
+    }
+  }
+
+  // --------------------------------------------------------------- AppShell (M77)
+  {
+    const asSection = await page.$("section[data-showcase-component='AppShell']");
+    check("the AppShell section renders", asSection !== null,
+      asSection === null ? "not found" : "found");
+
+    if (asSection) {
+      const shape = await page.evaluate(() => {
+        const shells = [...document.querySelectorAll("[data-astryx-component='AppShell']")];
+        const first = shells[0];
+        const main = first?.querySelector("[role='main']");
+        const skip = first?.querySelector(".astryx-app-shell__skip-link");
+        // The frame alone has no header: the header is only drawn when
+        // there is navigation or a banner to put in it.
+        const withHeader = shells.find((s) => s.querySelector(".astryx-app-shell__header") !== null);
+        const header = withHeader?.querySelector(".astryx-app-shell__header");
+        return {
+          shells: shells.length,
+          roles: shells.map((s) => s.getAttribute("data-astryx-variant")),
+          mainRole: main?.getAttribute("role") ?? null,
+          mainId: main?.getAttribute("id") ?? null,
+          mainTabindex: main?.getAttribute("tabindex") ?? null,
+          skipHref: skip?.getAttribute("href") ?? null,
+          skipText: (skip?.textContent ?? "").trim(),
+          headerRole: header?.getAttribute("role") ?? null,
+          banner: first?.querySelector(".astryx-app-shell__banner") !== null,
+          navs: first?.querySelectorAll("nav").length ?? 0,
+        };
+      });
+
+      check("every example renders its own shell, and the root carries the house's marker",
+        shape?.shells >= 4 && shape?.roles.every((v) => v !== null),
+        JSON.stringify(shape));
+
+      check("the content is the main landmark, with the id the skip link points at",
+        shape?.mainRole === "main"
+          && shape?.mainId === "astryx-app-shell-main"
+          && shape?.mainTabindex === "-1",
+        JSON.stringify(shape));
+
+      check("the skip link is the shell's own, and it says where it goes",
+        shape?.skipHref === "#astryx-app-shell-main" && shape?.skipText === "Skip to content",
+        JSON.stringify({ href: shape?.skipHref, text: shape?.skipText }));
+
+      check("the header is the banner landmark when there is navigation in it",
+        shape?.headerRole === "banner", JSON.stringify({ role: shape?.headerRole }));
+
+      // The frame alone has no header at all - there is nothing to put in it.
+      const headerless = await page.evaluate(() => {
+        const shells = [...document.querySelectorAll("[data-astryx-component='AppShell']")];
+        const plain = shells.find((s) => s.querySelector(".astryx-app-shell__header") === null);
+        return {
+          exists: plain !== undefined,
+          main: plain?.querySelector("[role='main']") !== null,
+        };
+      });
+      check("the frame alone has no header, and still holds the content",
+        headerless?.exists === true && headerless?.main === true,
+        JSON.stringify(headerless));
+
+      // The four background variants.
+      const variants = await page.evaluate(() => {
+        const names = [...document.querySelectorAll("[data-astryx-component='AppShell']")]
+          .map((s) => s.getAttribute("data-astryx-variant"));
+        return [...new Set(names)];
+      });
+      check("the background variants are all present",
+        ["wash", "surface", "section", "elevated"].every((v) => variants.includes(v)),
+        JSON.stringify(variants));
+
+      // The banner: the announcement above the navigation.
+      const banner = await page.evaluate(() => {
+        const withBanner = [...document.querySelectorAll("[data-astryx-component='AppShell']")]
+          .find((s) => s.querySelector(".astryx-app-shell__banner") !== null);
+        const b = withBanner?.querySelector(".astryx-app-shell__banner");
+        return {
+          exists: b !== null && b !== undefined,
+          text: (b?.textContent ?? "").trim().slice(0, 40),
+          inHeader: b?.closest(".astryx-app-shell__header") !== null,
+        };
+      });
+      check("the banner is rendered above the navigation, inside the header",
+        banner?.exists === true && banner?.inHeader === true,
+        JSON.stringify(banner));
+
+      // The mobile layout: the collapsed bar and the toggle that opens the drawer.
+      const mobile = await page.evaluate(() => {
+        const shells = [...document.querySelectorAll("[data-astryx-component='AppShell']")];
+        const m = shells.find((s) => s.querySelector(".astryx-app-shell__mobile-bar") !== null);
+        const toggle = m?.querySelector(".astryx-app-shell__toggle button")
+          ?? m?.querySelector(".astryx-app-shell__toggle");
+        return {
+          exists: m !== undefined,
+          bar: m?.querySelector(".astryx-app-shell__mobile-bar") !== null,
+          toggle: toggle !== null && toggle !== undefined,
+          expanded: toggle?.getAttribute("aria-expanded") ?? null,
+          controls: toggle?.getAttribute("aria-controls") ?? null,
+        };
+      });
+      check("the mobile layout collapses to the bar, and the toggle says what it controls",
+        mobile?.exists === true && mobile?.bar === true
+          && mobile?.toggle === true && mobile?.expanded !== null,
+        JSON.stringify(mobile));
+
+      // The toggle opens the drawer.
+      const drawer = await page.evaluate(async () => {
+        const shells = [...document.querySelectorAll("[data-astryx-component='AppShell']")];
+        const m = shells.find((s) => s.querySelector(".astryx-app-shell__mobile-bar") !== null);
+        const toggle = m?.querySelector(".astryx-app-shell__toggle button")
+          ?? m?.querySelector(".astryx-app-shell__toggle");
+        toggle?.click();
+        await new Promise((r) => setTimeout(r, 400));
+        const after = toggle?.getAttribute("aria-expanded");
+        const nav = document.getElementById(toggle?.getAttribute("aria-controls") ?? "");
+        return {
+          expanded: after,
+          drawer: nav !== null && nav !== undefined,
+          open: nav?.open ?? null,
+        };
+      });
+      check("the toggle opens the drawer and says so",
+        drawer?.expanded === "true" && drawer?.drawer === true && drawer?.open === true,
+        JSON.stringify(drawer));
+
+      // The drawer is a modal dialog: it must be closed again, or it goes on
+      // covering the page for every check that follows.
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(400);
+      const closed = await page.evaluate(() => {
+        const shells = [...document.querySelectorAll("[data-astryx-component='AppShell']")];
+        const m = shells.find((s) => s.querySelector(".astryx-app-shell__mobile-bar") !== null);
+        const toggle = m?.querySelector(".astryx-app-shell__toggle button")
+          ?? m?.querySelector(".astryx-app-shell__toggle");
+        const nav = document.getElementById(toggle?.getAttribute("aria-controls") ?? "");
+        return {
+          expanded: toggle?.getAttribute("aria-expanded") ?? null,
+          open: nav?.open ?? null,
+        };
+      });
+      check("Escape closes the drawer again",
+        closed?.expanded === "false" && closed?.open === false,
+        JSON.stringify(closed));
     }
   }
 

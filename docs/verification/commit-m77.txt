@@ -1,0 +1,59 @@
+Gate 88 — M77 AppShell (coverage 93 → 94)
+
+The AppShell is the frame an application draws itself inside: the top
+navigation in the header, the side navigation in the panel, the page in
+the middle, and the mobile layout the shell falls back to below the
+width breakpoint.
+
+Upstream threads four React contexts to tell the navigation how it is
+being rendered — AppShellMobileContext, SideNavRenderContext,
+TopNavRenderContext and TopNavMobileContentContext. A port has no
+context to provide, so the two render contexts became arguments: the
+navigation slots are functions of the mode they are drawn in, and the
+mobile state — the drawer's open state, the width breakpoint and the
+header measurement the auto-height mode needs — is the shell's own.
+
+The worker branch had an implementation, an interface and CSS, but had
+never been type-checked. The repairs were:
+
+- `variant = Section` — polymorphic equality is int-only in this Core, so
+  it became `Poly.equal`.
+- The `breakpoint` variant's `None` constructor shadowed `Stdlib.None`
+  for the whole module, so `Bonsai.return None` inferred as
+  `breakpoint Bonsai.t`. The constructor is now `Never`.
+- `Bonsai.map2` was piped into, which reverses its argument order, so
+  the state chain's tuples were matched against the wrong slot.
+- `Common.Attr.class_`, `aria`, `role`, `data` and `style` all return
+  lists; they were being treated as single attributes and spliced into
+  attribute lists as elements. `class_` takes a list of names, not a
+  string.
+- `Layout.header`, `Layout.panel` and `Layout.content` take the children
+  list and then the unit; the arguments were reversed in three places.
+- `~role:(None | Some "banner")` needed `?role:` — `~` expects a plain
+  value.
+- The interface declared `?side_nav:... option` against the
+  implementation's `?side_nav:...`; the implementation was right.
+
+The gates found two more.
+
+* The browser check looked for the banner landmark in the first shell,
+  but the frame alone has no header at all — there is nothing to put in
+  it. The check now looks for a shell that has one, and asserts that the
+  headerless frame still holds the content.
+* The AppShell's own check opened the mobile drawer and never closed it.
+  The drawer is a modal dialog, so it went on covering the page and the
+  ContextMenu check that ran after it could not right-click its trigger.
+  The check now closes the drawer with Escape and asserts that it closed.
+
+The showcase's mobile example uses the widest breakpoint, so the window
+it is shown in is below it and the collapsed bar and the drawer can be
+seen without resizing anything. The `default_is_mobile` seed is
+overridden by the live viewport measurement, which is upstream's own
+behaviour: it exists so the server-rendered HTML matches the client.
+
+Gates
+-----
+  component    876 / 876   (test/run.mjs)
+  browser      715 / 715   (tools/visual/verify-browser.mjs)
+  responsive    66 / 66    (tools/visual/verify-responsive.mjs)
+  sweep                    SWEEP GREEN

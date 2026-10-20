@@ -9134,3 +9134,158 @@ button.astryx-code-block__header-control {
   overflow-y: auto;
   max-height: 60vh;
 }
+
+/* app_shell */
+/* AppShell — the application frame.
+ *
+ * Upstream: packages/core/src/AppShell/AppShell.tsx
+ *
+ * The frame itself is Layout's job; this file owns only the shell's own
+ * parts — the skip link, the mobile bar, the toggle, and the variant
+ * backgrounds that distinguish wash, surface, section and elevated.
+ */
+
+.astryx-app-shell {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background-body);
+}
+
+/* fill: the shell fills the viewport and the content scrolls inside it.
+   auto: the shell grows with its content and the page scrolls as a whole. */
+.astryx-app-shell--fill {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.astryx-app-shell--fill > .astryx-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.astryx-app-shell--auto {
+  min-height: 100dvh;
+}
+
+/* The navigation areas: the header and the side panel. */
+.astryx-app-shell__header,
+.astryx-app-shell__panel {
+  flex: 0 0 auto;
+}
+
+/* wash: the navigation areas use the body background, no dividers. */
+.astryx-app-shell--wash .astryx-app-shell__header,
+.astryx-app-shell--wash .astryx-app-shell__panel {
+  background-color: var(--color-background-body);
+}
+
+/* surface: the navigation areas use the surface background, no dividers. */
+.astryx-app-shell--surface .astryx-app-shell__header,
+.astryx-app-shell--surface .astryx-app-shell__panel {
+  background-color: var(--color-background-surface);
+}
+
+/* section: the navigation and the content are divided. */
+.astryx-app-shell--section .astryx-app-shell__header,
+.astryx-app-shell--section .astryx-app-shell__panel {
+  background-color: var(--color-background-surface);
+  border-color: var(--color-border);
+  border-style: solid;
+  border-width: 0;
+}
+
+.astryx-app-shell--section .astryx-app-shell__header {
+  border-bottom-width: 1px;
+}
+
+.astryx-app-shell--section .astryx-app-shell__panel {
+  border-right-width: 1px;
+}
+
+/* elevated: the navigation uses the body background and the content sits on
+   an elevated surface with a rounded corner. */
+.astryx-app-shell--elevated .astryx-app-shell__header,
+.astryx-app-shell--elevated .astryx-app-shell__panel {
+  background-color: var(--color-background-body);
+}
+
+.astryx-app-shell--elevated .astryx-app-shell__content {
+  background-color: var(--color-background-surface);
+  border: 1px solid var(--color-border);
+  border-start-start-radius: var(--radius-container);
+  overflow: hidden;
+}
+
+/* The content: the main region. Focusable, but never tabbable — the skip
+   link is what puts focus here. */
+.astryx-app-shell__content {
+  min-height: 0;
+  outline: none;
+}
+
+/* The skip link: out of the way until it is focused. */
+.astryx-app-shell__skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  background-color: var(--color-background-surface);
+  color: inherit;
+}
+
+.astryx-app-shell__skip-link:focus {
+  position: fixed;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  overflow: visible;
+  clip-path: none;
+  border-radius: var(--radius-container);
+  outline: 2px solid var(--color-border-emphasized);
+}
+
+/* The mobile bar: what the shell renders in the header when there is no top
+   navigation to carry the toggle. */
+.astryx-app-shell__mobile-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: var(--spacing-12);
+  padding: var(--spacing-2) var(--spacing-4);
+}
+
+.astryx-app-shell__mobile-bar-title {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The toggle: the hamburger that opens the drawer. */
+.astryx-app-shell__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--spacing-8);
+  block-size: var(--spacing-8);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-container);
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.astryx-app-shell__toggle:hover {
+  background-color: var(--color-background-surface);
+}
+
+.astryx-app-shell__toggle:focus-visible {
+  outline: 2px solid var(--color-border-emphasized);
+  outline-offset: 2px;
+}

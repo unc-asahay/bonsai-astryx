@@ -3910,6 +3910,42 @@ check("a disabled group says so once, on the box", (() => {
 
 
 {
+  const host = document.querySelector('[data-case="app-shell-all"]');
+  const shells = [...(host?.querySelectorAll("[data-astryx-component='AppShell']") ?? [])];
+  const first = shells[0];
+  const main = first?.querySelector("[role='main']");
+  const skip = first?.querySelector(".astryx-app-shell__skip-link");
+  const navShell = shells.find((s) => s.querySelector("nav") !== null);
+
+  check("the shell carries the house's component marker",
+    first?.getAttribute("data-astryx-component") === "AppShell",
+    JSON.stringify({ component: first?.getAttribute("data-astryx-component") }));
+
+  check("the content is the main landmark, with the id the skip link points at",
+    main?.getAttribute("role") === "main"
+      && main?.getAttribute("id") === "astryx-app-shell-main"
+      && main?.getAttribute("tabindex") === "-1",
+    JSON.stringify({
+      role: main?.getAttribute("role"),
+      id: main?.getAttribute("id"),
+      tabindex: main?.getAttribute("tabindex"),
+    }));
+
+  check("the skip link is the shell's own, and it says where it goes",
+    skip?.getAttribute("href") === "#astryx-app-shell-main"
+      && (skip?.textContent ?? "").trim() === "Skip to content",
+    JSON.stringify({ href: skip?.getAttribute("href"), text: (skip?.textContent ?? "").trim() }));
+
+  check("the navigation slot is rendered in the panel beside the content",
+    navShell?.querySelector("nav") !== null && navShell !== undefined,
+    JSON.stringify({ navs: navShell?.querySelectorAll("nav").length ?? -1 }));
+
+  check("the shell that owns its state is not in the mobile layout unless it is told to be",
+    shells.every((s) => s.getAttribute("data-astryx-height") !== undefined),
+    JSON.stringify(shells.map((s) => s.getAttribute("data-astryx-height"))));
+}
+
+{
   const host = document.querySelector('[data-case="context-menu-all"]');
   // The menu owns its open state: it is not in the document until the
   // trigger is right-clicked, which the browser gate does.

@@ -155,23 +155,28 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       ~children:[ page ~title:"Auto height" ]
       graph
   in
-  (* --- the mobile layout: the shell starts in it, so the collapsed bar and
-         the drawer can be seen without resizing the window --- *)
+  (* --- the mobile layout: the shell falls back to it below the width
+         breakpoint. The breakpoint here is the widest one, so the window
+         this is shown in is below it and the collapsed bar and the drawer
+         can be seen without resizing anything. --- *)
   let mobile_config =
     { App_shell.has_toggle = true
     ; is_open = None
     ; on_open_change = None
     ; content = None
-    ; breakpoint = App_shell.Md
+    ; breakpoint = App_shell.Xxl
     ; default_is_mobile = true
     }
   in
+  (* No top navigation here: with only a side navigation, the shell draws the
+     collapsed mobile bar itself and puts the toggle in it. With a top
+     navigation, the shell renders that navigation in its mobile form
+     instead, and the toggle goes in the header. *)
   let mobile =
     App_shell.view
       ~id:"showcase-app-shell-mobile"
       ~mobile_nav:(App_shell.Config mobile_config)
       ~side_nav:(side_nav ~title:"Sections")
-      ~top_nav:(top_nav ~title:"Astra")
       ~children:[ page ~title:"Mobile" ]
       graph
   in

@@ -624,6 +624,7 @@ let () =
    state transition — open on click, a selection reaching the consumer, close. *)
 
 module Dm = Astryx.Dropdown_menu
+module App_shell = Astryx.App_shell
 
 let dm_item
       ?description
@@ -4521,6 +4522,61 @@ let () =
       context_menu_component
   in
   mount "context-menu-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+(* ------------------------------------------------------------------ AppShell *)
+(* The application frame: a header, a side panel and the main content, with
+   the mobile layout the shell falls back to below the breakpoint. The
+   navigation slots are functions of the mode they are drawn in. *)
+let app_shell_component graph =
+  let side_nav (mode : App_shell.side_nav_mode) =
+    match mode with
+    | App_shell.Default ->
+        Vdom.Node.nav ~attrs:[] [ Vdom.Node.text "Overview" ]
+    | App_shell.Drawer ->
+        Vdom.Node.nav ~attrs:[] [ Vdom.Node.text "Overview" ]
+    | App_shell.Drawer_content -> Vdom.Node.text "Sections"
+    | App_shell.Topbar -> Vdom.Node.text "Sections"
+  in
+  let top_nav ({ App_shell.mode; drawer_content } : App_shell.top_nav_render) =
+    let heading = Vdom.Node.text "Astra" in
+    match mode with
+    | App_shell.Default -> Vdom.Node.div ~attrs:[] [ heading ]
+    | App_shell.Mobile_bar -> Vdom.Node.div ~attrs:[] [ heading ]
+    | App_shell.Drawer ->
+        Vdom.Node.div ~attrs:[] [ heading; (match drawer_content with Some c -> c | None -> Vdom.Node.fragment []) ]
+  in
+  let trees =
+    [ Astryx.App_shell.view
+        ~id:"rt-app-shell-plain"
+        ~children:[ Vdom.Node.text "Content" ]
+        graph
+    ; Astryx.App_shell.view
+        ~id:"rt-app-shell-navs"
+        ~side_nav
+        ~top_nav
+        ~children:[ Vdom.Node.text "Content" ]
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "app-shell-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      app_shell_component
+  in
+  mount "app-shell-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
 let () =
