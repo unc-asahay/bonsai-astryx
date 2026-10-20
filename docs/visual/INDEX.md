@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-83 ported component(s). Each page records the appearance the port
+88 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -12,37 +12,38 @@ for image generation.
 | AspectRatio | 6 | 2 | 7 | 1 | [AspectRatio.md](AspectRatio.md) |
 | Avatar | 20 | 9 | 18 | 6 | [Avatar.md](Avatar.md) |
 | AvatarGroup | 3 | 1 | 2 | 0 | [AvatarGroup.md](AvatarGroup.md) |
-| Badge | 16 | 15 | 13 | 36 | [Badge.md](Badge.md) |
+| Badge | 19 | 15 | 13 | 36 | [Badge.md](Badge.md) |
 | Banner | 11 | 6 | 5 | 2 | [Banner.md](Banner.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
 | Breadcrumbs | 8 | 1 | 5 | 0 | [Breadcrumbs.md](Breadcrumbs.md) |
-| Button | 109 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 137 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Carousel | 8 | 1 | 7 | 0 | [Carousel.md](Carousel.md) |
 | Center | 6 | 5 | 4 | 0 | [Center.md](Center.md) |
-| CheckboxInput | 42 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
+| CheckboxInput | 70 | 1 | 3 | 0 | [CheckboxInput.md](CheckboxInput.md) |
 | CheckboxList | 11 | 2 | 1 | 0 | [CheckboxList.md](CheckboxList.md) |
 | Citation | 6 | 4 | 25 | 16 | [Citation.md](Citation.md) |
 | ClickableCard | 4 | 4 | 11 | 8 | [ClickableCard.md](ClickableCard.md) |
 | Code | 5 | 5 | 10 | 8 | [Code.md](Code.md) |
+| CodeBlock | 8 | 5 | 18 | 8 | [CodeBlock.md](CodeBlock.md) |
 | Collapsible | 6 | 1 | 1 | 0 | [Collapsible.md](Collapsible.md) |
 | ComplexSelector | 11 | 6 | 17 | 12 | [ComplexSelector.md](ComplexSelector.md) |
 | Dialog | 11 | 3 | 13 | 6 | [Dialog.md](Dialog.md) |
 | DialogHeader | 3 | 3 | 5 | 4 | [DialogHeader.md](DialogHeader.md) |
-| Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
+| Divider | 8 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 6 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 102 | 2 | 5 | 1 | [Field.md](Field.md) |
+| Field | 111 | 2 | 5 | 1 | [Field.md](Field.md) |
 | FieldStatus | 17 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | FileInput | 6 | 4 | 19 | 11 | [FileInput.md](FileInput.md) |
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
 | Heading | 11 | 7 | 6 | 20 | [Heading.md](Heading.md) |
 | HoverCard | 11 | 7 | 14 | 6 | [HoverCard.md](HoverCard.md) |
-| Icon | 184 | 25 | 15 | 11 | [Icon.md](Icon.md) |
-| IconButton | 11 | 15 | 31 | 16 | [IconButton.md](IconButton.md) |
-| Indicator | 79 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
+| Icon | 231 | 26 | 16 | 11 | [Icon.md](Icon.md) |
+| IconButton | 19 | 15 | 31 | 16 | [IconButton.md](IconButton.md) |
+| Indicator | 107 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
 | InputGroupText | 2 | 1 | 8 | 5 | [InputGroupText.md](InputGroupText.md) |
 | Item | 34 | 10 | 20 | 8 | [Item.md](Item.md) |
@@ -56,13 +57,15 @@ for image generation.
 | MetadataListItem | 27 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
 | MobileNav | 6 | 6 | 24 | 7 | [MobileNav.md](MobileNav.md) |
 | MoreMenu | 3 | 4 | 25 | 10 | [MoreMenu.md](MoreMenu.md) |
+| MultiSelector | 8 | 3 | 15 | 12 | [MultiSelector.md](MultiSelector.md) |
 | NavHeadingMenu | 3 | 4 | 3 | 1 | [NavHeadingMenu.md](NavHeadingMenu.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
-| NumberInput | 10 | 5 | 19 | 9 | [NumberInput.md](NumberInput.md) |
+| NumberInput | 11 | 5 | 19 | 9 | [NumberInput.md](NumberInput.md) |
 | Outline | 9 | 1 | 5 | 1 | [Outline.md](Outline.md) |
 | OverflowList | 3 | 1 | 3 | 0 | [OverflowList.md](OverflowList.md) |
 | Overlay | 12 | 2 | 2 | 0 | [Overlay.md](Overlay.md) |
-| Popover | 6 | 6 | 15 | 10 | [Popover.md](Popover.md) |
+| Pagination | 7 | 1 | 3 | 0 | [Pagination.md](Pagination.md) |
+| Popover | 8 | 6 | 15 | 10 | [Popover.md](Popover.md) |
 | ProgressBar | 8 | 1 | 5 | 1 | [ProgressBar.md](ProgressBar.md) |
 | RadioList | 11 | 4 | 8 | 2 | [RadioList.md](RadioList.md) |
 | Resizable | 7 | 4 | 15 | 4 | [Resizable.md](Resizable.md) |
@@ -75,9 +78,10 @@ for image generation.
 | Spinner | 20 | 11 | 13 | 7 | [Spinner.md](Spinner.md) |
 | Stack | 59 | 10 | 7 | 0 | [Stack.md](Stack.md) |
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
+| Stepper | 8 | 8 | 4 | 0 | [Stepper.md](Stepper.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
 | TabList | 4 | 4 | 10 | 4 | [TabList.md](TabList.md) |
-| Text | 103 | 16 | 8 | 27 | [Text.md](Text.md) |
+| Text | 155 | 16 | 8 | 27 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
 | Thumbnail | 18 | 4 | 13 | 2 | [Thumbnail.md](Thumbnail.md) |
@@ -89,9 +93,10 @@ for image generation.
 | Tokenizer | 10 | 7 | 18 | 8 | [Tokenizer.md](Tokenizer.md) |
 | Toolbar | 3 | 4 | 6 | 1 | [Toolbar.md](Toolbar.md) |
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
+| TopNav | 3 | 2 | 6 | 1 | [TopNav.md](TopNav.md) |
 | TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
-| VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
+| VisuallyHidden | 10 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 20 components with no OCaml port. They
+Not listed: the 15 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

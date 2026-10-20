@@ -11,10 +11,13 @@
 }
 
 /* With a center slot the bar becomes a three-column grid, so the center stays
-   centered whatever the start and end slots measure. */
+   centered whatever the start and end slots measure. The side columns are
+   minmax(0, 1fr) rather than 1fr: a plain 1fr track is floored by its
+   content, so a start slot with several items would widen the bar past its
+   container instead of shrinking into it. */
 .astryx-top-nav--grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 
 .astryx-top-nav__left-section {
@@ -35,6 +38,11 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  /* The slot shrinks into the bar rather than widening it, and the items
+     inside are cut off rather than pushing the page wide: a bar that
+     cannot show every item at this width shows as many as fit. */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .astryx-top-nav__center {

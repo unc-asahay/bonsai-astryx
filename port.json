@@ -838,6 +838,13 @@
       "file": "src/top_nav.ml",
       "milestone": "M69",
       "module": "Astryx.top_nav"
+    },
+    {
+      "class": "C",
+      "component": "CodeBlock",
+      "file": "src/code_block.ml",
+      "milestone": "M70",
+      "module": "Astryx.code_block"
     }
   ],
   "schema": 1,

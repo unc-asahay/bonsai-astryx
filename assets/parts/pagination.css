@@ -19,6 +19,13 @@
   justify-content: space-between;
 }
 
+/* An icon-only control has no text to fall back on, so a row that is
+   squeezed would collapse it to nothing: the controls keep their size and
+   the row wraps instead. */
+.astryx-pagination__controls .astryx-button {
+  flex-shrink: 0;
+}
+
 /* The page numbers: a row of buttons, with the current one marked. */
 .astryx-pagination__pages {
   display: flex;
@@ -113,9 +120,16 @@
 @media (max-width: 30rem) {
   .astryx-pagination__controls {
     gap: var(--space-1, 0.25rem);
+    /* A row that does not fit wraps rather than pushing the page wide. */
+    flex-wrap: wrap;
   }
 
   .astryx-pagination__pages {
+    /* The page numbers take the space that is left and are cut off when
+       there is not enough of it; the previous and next controls keep
+       theirs. */
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
   }
 }

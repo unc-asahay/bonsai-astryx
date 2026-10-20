@@ -283,6 +283,8 @@ if (mode === "showcase") {
     "MultiSelector",
     "Stepper",
     "Pagination",
+    "TopNav",
+    "CodeBlock",
 
   ];
 
@@ -646,7 +648,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("87 sections", sections.length === 87, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("89 sections", sections.length === 89, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -741,13 +743,15 @@ if (mode === "showcase") {
     MultiSelector: 8,
     Stepper: 7,
     Pagination: 7,
+    TopNav: 5,
+    CodeBlock: 8,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("570 examples across the page", totalExamples === 570, `got ${totalExamples}`);
+  check("583 examples across the page", totalExamples === 583, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -761,7 +765,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("87 nav links", nav.length === 87, `got ${nav.length}`);
+  check("89 nav links", nav.length === 89, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4156,11 +4160,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 85 ported / 18 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["85", "18", "103"]),
+    "coverage stats are 87 ported / 16 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["87", "16", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 18 entries", cov.unported === 18, `got ${cov.unported}`);
+  check("unported list rendered 16 entries", cov.unported === 16, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5906,6 +5910,182 @@ check(
       check("and the collapsed stepper keeps its steps for the accessible list",
         collapsed?.stepsInDom === 4,
         JSON.stringify({ stepsInDom: collapsed?.stepsInDom }));
+    }
+  }
+
+  // ------------------------------------------------------------------- TopNav
+  {
+    const tnSection = await page.$("section[data-showcase-component='TopNav']");
+    check("the TopNav section renders", tnSection !== null);
+    const tnState = await page.evaluate(() => {
+      const nav = document.querySelector("#showcase-top-nav-default");
+      const heading = nav?.querySelector(".astryx-top-nav__heading a");
+      const items = [...(nav?.querySelectorAll(".astryx-top-nav__start a") ?? [])];
+      return {
+        tag: nav?.tagName?.toLowerCase() ?? null,
+        role: nav?.getAttribute("role") ?? null,
+        label: nav?.getAttribute("aria-label") ?? null,
+        component: nav?.getAttribute("data-astryx-component") ?? null,
+        headingText: heading?.textContent.trim() ?? null,
+        headingTag: heading?.tagName?.toLowerCase() ?? null,
+        itemLabels: items.map((a) => a.textContent.trim()),
+        itemTags: items.map((a) => a.tagName.toLowerCase()),
+        leftSection: nav?.querySelector(".astryx-top-nav__left-section") !== null,
+        startSlot: nav?.querySelector(".astryx-top-nav__start") !== null,
+        slots: ["left-section", "start", "center", "right"].filter((c) =>
+          nav?.querySelector(`.astryx-top-nav__${c}`) !== null),
+      };
+    });
+    check("a top nav is a navigation landmark with an accessible name",
+      tnState?.tag === "nav" && tnState?.role === "navigation"
+        && tnState?.label === "Top navigation"
+        && tnState?.component === "TopNav",
+      JSON.stringify(tnState));
+    check("the heading is a link that names the product",
+      tnState?.headingTag === "a" && tnState?.headingText?.includes("Astra"),
+      JSON.stringify(tnState));
+    check("the start slot carries the items as links",
+      tnState?.itemLabels?.includes("Home") && tnState?.itemLabels?.includes("Docs")
+        && tnState?.itemTags?.every((t) => t === "a"),
+      JSON.stringify(tnState));
+    check("the bar has a left section and a start slot for the items",
+      tnState?.leftSection === true && tnState?.startSlot === true,
+      JSON.stringify(tnState));
+
+    const tnMenu = await page.evaluate(() => {
+      const nav = document.querySelector("#showcase-top-nav-menu");
+      const trigger = nav?.querySelector(".astryx-top-nav__heading button");
+      return {
+        trigger: trigger?.getAttribute("aria-label") ?? null,
+        expanded: trigger?.getAttribute("aria-expanded") ?? null,
+        menus: nav?.querySelectorAll("[role='menu']").length ?? 0,
+        menuItems: nav?.querySelectorAll("[role='menuitem']").length ?? 0,
+      };
+    });
+    check("the heading's menu is a trigger that says whether it is open",
+      tnMenu?.trigger !== null && tnMenu?.expanded === "false",
+      JSON.stringify(tnMenu));
+
+    // A real click: the menu opens and its items are there.
+    await page.click("#showcase-top-nav-menu .astryx-top-nav-heading__chevron-button");
+    await page.waitForFunction(
+      () => {
+        const btn = document.querySelector("#showcase-top-nav-menu .astryx-top-nav-heading__chevron-button");
+        return btn?.getAttribute("aria-expanded") === "true";
+      },
+      { timeout: 30000 },
+    );
+    const tnOpen = await page.evaluate(() => {
+      const nav = document.querySelector("#showcase-top-nav-menu");
+      const trigger = nav?.querySelector(".astryx-top-nav__heading button");
+      return {
+        expanded: trigger?.getAttribute("aria-expanded") ?? null,
+        menuItems: [...(nav?.querySelectorAll("[role='menuitem']") ?? [])].map((m) => m.textContent.trim()),
+      };
+    });
+    check("clicking the heading's chevron opens its menu",
+      tnOpen?.expanded === "true" && tnOpen?.menuItems?.length === 3
+        && tnOpen?.menuItems?.includes("Sign out"),
+      JSON.stringify(tnOpen));
+  }
+
+  // ---------------------------------------------------------------- CodeBlock
+  {
+    const cbSection = await page.$("section[data-showcase-component='CodeBlock']");
+    check("the CodeBlock section renders", cbSection !== null);
+    const cbState = await page.evaluate(() => {
+      const block = document.querySelector("#showcase-code-block-default");
+      const header = block?.querySelector(".astryx-code-block__header");
+      const copy = block?.querySelector("button[aria-label*='Copy']");
+      const code = block?.querySelector(".astryx-code-block__code, .astryx-code-block__viewport code, code");
+      return {
+        tag: block?.tagName?.toLowerCase() ?? null,
+        component: block?.getAttribute("data-astryx-component") ?? null,
+        language: block?.getAttribute("data-astryx-language") ?? null,
+        container: block?.getAttribute("data-astryx-container") ?? null,
+        headerTitle: header?.querySelector(".astryx-code-block__title")?.textContent.trim() ?? null,
+        copyLabel: copy?.getAttribute("aria-label") ?? null,
+        hasCode: !!code,
+        codeText: code?.textContent?.trim().slice(0, 40) ?? null,
+        spans: code?.querySelectorAll("span").length ?? 0,
+      };
+    });
+    check("a code block is a pre that says what language it holds",
+      cbState?.tag === "pre" && cbState?.component === "CodeBlock"
+        && cbState?.language === "javascript",
+      JSON.stringify(cbState));
+    check("the header carries the language and a copy button",
+      cbState?.headerTitle === "javascript" && cbState?.copyLabel === "Copy code",
+      JSON.stringify(cbState));
+    check("the code is painted through spans, so it can be highlighted",
+      cbState?.hasCode === true && cbState?.spans > 0,
+      JSON.stringify(cbState));
+
+    const cbVariants = await page.evaluate(() => {
+      const titled = document.querySelector("#showcase-code-block-titled");
+      const numbered = document.querySelector("#showcase-code-block-numbered");
+      const diff = document.querySelector("#showcase-code-block-diff");
+      const scrolling = document.querySelector("#showcase-code-block-scrolling");
+      const collapsible = document.querySelector("#showcase-code-block-collapsible");
+      const collapsedToggle = collapsible?.querySelector("button[aria-expanded]");
+      return {
+        titledTitle: titled?.querySelector(".astryx-code-block__title")?.textContent.trim() ?? null,
+        numberedLines: numbered?.querySelectorAll(".astryx-code-block__line--numbered").length ?? 0,
+        diffIsDiff: diff?.getAttribute("data-astryx-is-diff") ?? null,
+        diffGlyphs: diff?.querySelectorAll(".astryx-code-block__diff-marker").length ?? 0,
+        scrollingOverflow: (() => {
+          const vp = scrolling?.querySelector(".astryx-code-block__viewport");
+          if (!vp) return false;
+          return vp.scrollHeight > vp.clientHeight || vp.scrollWidth > vp.clientWidth;
+        })(),
+        collapsibleIsCollapsible: collapsible?.getAttribute("data-astryx-is-collapsible") ?? null,
+        collapsedToggleLabel: collapsedToggle?.getAttribute("aria-label") ?? null,
+        collapsedToggleExpanded: collapsedToggle?.getAttribute("aria-expanded") ?? null,
+        collapsedIsCollapsed: collapsible?.getAttribute("data-astryx-is-collapsed") ?? null,
+      };
+    });
+    check("a titled block names its file in the header",
+      cbVariants?.titledTitle !== null && cbVariants?.titledTitle?.length > 0,
+      JSON.stringify(cbVariants));
+    check("a numbered block numbers its lines",
+      cbVariants?.numberedLines > 0,
+      JSON.stringify(cbVariants));
+    check("a diff says it is a diff and gives each line its glyph",
+      cbVariants?.diffIsDiff === "true" && cbVariants?.diffGlyphs > 0,
+      JSON.stringify(cbVariants));
+    check("a long block scrolls inside its own viewport",
+      cbVariants?.scrollingOverflow === true,
+      JSON.stringify(cbVariants));
+    check("a collapsible block has a toggle that says whether it is open",
+      cbVariants?.collapsibleIsCollapsible === "true"
+        && cbVariants?.collapsedToggleExpanded === "true"
+        && cbVariants?.collapsedIsCollapsed === "false",
+      JSON.stringify(cbVariants));
+
+    // A real click: the copy button reports that it copied.
+    const copyButton = await page.$("#showcase-code-block-copy button[aria-label*='Copy']");
+    if (copyButton) {
+      await copyButton.click();
+      await page.waitForFunction(
+        () => {
+          const el = document.querySelector("#showcase-code-block-copy-count");
+          return el && /copied:\s*[1-9]/.test(el.textContent);
+        },
+        { timeout: 30000 },
+      );
+      const cbCopy = await page.evaluate(() => {
+        const el = document.querySelector("#showcase-code-block-copy-count");
+        const label = document.querySelector("#showcase-code-block-copy button[aria-label*='Copy']");
+        return {
+          count: el?.textContent.trim() ?? null,
+          label: label?.getAttribute("aria-label") ?? null,
+        };
+      });
+      check("the copy button reports that it copied",
+        cbCopy?.count !== null && /copied:\s*[1-9]/.test(cbCopy?.count),
+        JSON.stringify(cbCopy));
+    } else {
+      check("the copy button reports that it copied", false, "no copy button found");
     }
   }
 

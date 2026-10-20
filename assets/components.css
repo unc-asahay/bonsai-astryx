@@ -6920,6 +6920,7 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 
 /* pagination */
+
 /* Pagination — the controls for moving through pages of content.
 
    Upstream styles the pagination with Tailwind classes on the elements it
@@ -6939,6 +6940,13 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   gap: var(--space-2, 0.5rem);
   width: 100%;
   justify-content: space-between;
+}
+
+/* An icon-only control has no text to fall back on, so a row that is
+   squeezed would collapse it to nothing: the controls keep their size and
+   the row wraps instead. */
+.astryx-pagination__controls .astryx-button {
+  flex-shrink: 0;
 }
 
 /* The page numbers: a row of buttons, with the current one marked. */
@@ -7035,14 +7043,22 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 @media (max-width: 30rem) {
   .astryx-pagination__controls {
     gap: var(--space-1, 0.25rem);
+    /* A row that does not fit wraps rather than pushing the page wide. */
+    flex-wrap: wrap;
   }
 
   .astryx-pagination__pages {
+    /* The page numbers take the space that is left and are cut off when
+       there is not enough of it; the previous and next controls keep
+       theirs. */
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
   }
 }
 
 /* top_nav */
+
 /* TopNav — the bar, its items and its heading. The rules follow upstream's
    stylex blocks: the bar's slots, the nav item's hover/selected/disabled
    states, and the heading's type scale. */
@@ -7056,10 +7072,13 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 
 /* With a center slot the bar becomes a three-column grid, so the center stays
-   centered whatever the start and end slots measure. */
+   centered whatever the start and end slots measure. The side columns are
+   minmax(0, 1fr) rather than 1fr: a plain 1fr track is floored by its
+   content, so a start slot with several items would widen the bar past its
+   container instead of shrinking into it. */
 .astryx-top-nav--grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 
 .astryx-top-nav__left-section {
@@ -7080,6 +7099,11 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  /* The slot shrinks into the bar rather than widening it, and the items
+     inside are cut off rather than pushing the page wide: a bar that
+     cannot show every item at this width shows as many as fit. */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .astryx-top-nav__center {
@@ -7294,4 +7318,405 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 
 .astryx-top-nav-heading__menu a:hover {
   background-color: var(--color-overlay-hover);
+}
+
+/* code_block */
+/* CodeBlock — the read-only, syntax-highlighted code display.
+
+   Ported from upstream's CodeBlock.styles (the container, the header row, the
+   code element, the per-line grid and the diff rows). The values are the
+   design tokens from assets/tokens.css; the only literals are the two
+   measurements upstream fixes in place — the 14px chevron box and the 1ch
+   glyph column.
+
+   Upstream paints syntax colours through its own theme (theme/syntax), which
+   has no equivalent here, so the token classes below take the nearest house
+   semantic colour each one. The mapping is documented in src/code_block.mli. */
+
+.astryx-code-block {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-family-code);
+  font-size: var(--text-code-size);
+  line-height: var(--text-code-leading);
+  color: var(--color-text-primary);
+  background-color: var(--color-background-muted);
+  /* Upstream's default width: the block shrinks to its longest line, but
+     never below 400px and never past its parent. A caller-supplied width
+     arrives as an inline style and overrides all three. */
+  width: fit-content;
+  min-width: min(100%, 400px);
+  max-width: 100%;
+}
+
+.astryx-code-block--sm {
+  font-size: var(--text-supporting-size);
+}
+
+.astryx-code-block--md {
+  font-size: var(--text-code-size);
+}
+
+/* The card is the standalone look: a bordered, rounded surface. The section
+   variant drops the chrome and the background so the block blends into the
+   card or panel it is embedded in. */
+.astryx-code-block--card {
+  border-radius: var(--radius-element);
+  border: var(--border-width) solid var(--color-border);
+}
+
+.astryx-code-block--section {
+  border-radius: 0;
+  border: 0;
+  background-color: transparent;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.astryx-code-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding-inline: var(--spacing-4);
+  padding-block: var(--spacing-2);
+  background-color: inherit;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* The title doubles as the disclosure control when the block collapses, so it
+   has to read as a button when it is one and as plain text when it is not. */
+.astryx-code-block__header-control {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+button.astryx-code-block__header-control {
+  cursor: pointer;
+  user-select: none;
+}
+
+.astryx-code-block__title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-family: var(--font-family-code);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.astryx-code-block__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-inline-end: var(--spacing-1);
+  overflow: hidden;
+  color: inherit;
+  animation-name: astryx-code-block-chevron-reveal;
+  animation-duration: var(--duration-medium);
+  animation-timing-function: var(--ease-standard);
+}
+
+@keyframes astryx-code-block-chevron-reveal {
+  from {
+    width: 0;
+    margin-inline-end: 0;
+    opacity: 0;
+  }
+
+  to {
+    width: 14px;
+    margin-inline-end: var(--spacing-1);
+    opacity: 1;
+  }
+}
+
+/* The leading chevron points right when the block is collapsed and turns
+   down when it is open. */
+.astryx-code-block__chevron--expanded {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-code-block__chevron {
+    animation-name: none;
+  }
+}
+
+/* The copy control is a ghost button in the header; on a headerless block it
+   floats over the top-end corner of the code. */
+.astryx-code-block__header .astryx-button--ghost {
+  color: var(--color-text-secondary);
+}
+
+.astryx-code-block > .astryx-button {
+  position: absolute;
+  top: var(--spacing-2);
+  inset-inline-end: var(--spacing-2);
+}
+
+/* ----------------------------------------------------------------- content */
+
+.astryx-code-block__viewport {
+  min-height: 0;
+  overflow: auto;
+}
+
+.astryx-code-block__content {
+  display: flex;
+  min-width: fit-content;
+}
+
+.astryx-code-block__code {
+  display: block;
+  flex: 1;
+  /* The block grows to its longest line, so a row's paint (a diff tint, a
+     highlighted line) spans the full scroll width instead of stopping at the
+     viewport edge when the reader scrolls a long line. */
+  min-width: max-content;
+  padding-block: var(--spacing-3);
+  padding-inline: var(--spacing-4);
+  margin: 0;
+  font-family: var(--font-family-code);
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--color-text-primary);
+  tab-size: 2;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* Wrapped lines never overflow, and max-content would stop them wrapping. */
+.astryx-code-block__code--wrapped {
+  min-width: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+/* With line numbers on, the code element hosts the full-height divider
+   between the number gutter and the code. It spans the code's block padding
+   too, so the rule reaches the top and bottom edges. */
+.astryx-code-block__code--numbered {
+  position: relative;
+}
+
+.astryx-code-block__code--numbered::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--spacing-4) + var(--_codeblock-gutter-width) + var(--spacing-3));
+  width: 0;
+  border-inline-start: var(--border-width) solid var(--color-border);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------- lines */
+
+.astryx-code-block__line {
+  line-height: var(--text-code-leading);
+}
+
+/* The number gutter is a two-column grid ([number] [code]). The number is
+   drawn from the data-line attribute, so it stays pinned to the row's first
+   visual line even when the code wraps. */
+.astryx-code-block__line--numbered {
+  display: grid;
+  grid-template-columns: var(--_codeblock-gutter-width) 1fr;
+  column-gap: calc(var(--spacing-3) + var(--border-width) + var(--spacing-4));
+}
+
+.astryx-code-block__line--numbered::before {
+  content: attr(data-line);
+  grid-column: 1;
+  align-self: start;
+  text-align: end;
+  color: var(--color-text-secondary);
+  user-select: none;
+  font-family: var(--font-family-code);
+}
+
+/* The tokens sit in one element so they form a single grid item in the
+   content column. */
+.astryx-code-block__line-content {
+  min-width: 0;
+}
+
+/* A highlighted line takes the accent surface and bleeds into the code's
+   inline padding, so the rule reads as a full-width band. */
+.astryx-code-block__line--highlighted {
+  background-color: var(--color-accent-muted);
+  margin-inline: calc(-1 * var(--spacing-4));
+  padding-inline: var(--spacing-4);
+}
+
+/* ------------------------------------------------------------------- diffs */
+
+/* The glyph column holds the +, - or space of every line, so the code column
+   starts at the same offset on every line and the indentation reads exactly
+   as written. */
+.astryx-code-block__line--diff {
+  display: grid;
+  grid-template-columns: 1ch 1fr;
+  column-gap: var(--spacing-2);
+}
+
+/* With line numbers the gutter's gap (which the full-height divider sits in)
+   has to stay between the number and the marker, so the grid has no gap of
+   its own and the marker carries both gaps as margins. */
+.astryx-code-block__line--numbered.astryx-code-block__line--diff {
+  grid-template-columns: var(--_codeblock-gutter-width) auto 1fr;
+  column-gap: 0;
+}
+
+.astryx-code-block__diff-marker {
+  color: var(--color-text-secondary);
+  user-select: none;
+  white-space: pre;
+}
+
+.astryx-code-block__line--numbered .astryx-code-block__diff-marker {
+  margin-inline-start: calc(var(--spacing-3) + var(--border-width) + var(--spacing-4));
+  margin-inline-end: var(--spacing-2);
+}
+
+.astryx-code-block__diff-marker--added {
+  color: var(--color-success);
+}
+
+.astryx-code-block__diff-marker--removed {
+  color: var(--color-error);
+}
+
+/* A changed row is tinted so added and removed lines read at a glance; the
+   text keeps its ordinary colour, which stays readable on the tint. */
+.astryx-code-block__line--added {
+  background-color: var(--color-success-muted);
+  margin-inline: calc(-1 * var(--spacing-4));
+  padding-inline: var(--spacing-4);
+}
+
+.astryx-code-block__line--removed {
+  background-color: var(--color-error-muted);
+  margin-inline: calc(-1 * var(--spacing-4));
+  padding-inline: var(--spacing-4);
+}
+
+/* Hunk and file headers stay visible but quiet: a muted row, never change
+   paint. */
+.astryx-code-block__line--header {
+  background-color: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  margin-inline: calc(-1 * var(--spacing-4));
+  padding-inline: var(--spacing-4);
+}
+
+/* ----------------------------------------------------------- the collapse */
+
+/* The code body collapses into a zero-height grid row, so the transition is
+   the row's own size. */
+.astryx-code-block__collapse-grid {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition-property: grid-template-rows;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-code-block__collapse-grid--collapsed {
+  grid-template-rows: 0fr;
+}
+
+.astryx-code-block__collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-code-block__collapse-grid {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ----------------------------------------------------------- syntax tokens */
+
+/* Upstream's syntax theme has no equivalent here, so each token class takes
+   the nearest house semantic colour. The mapping is recorded in
+   src/code_block.mli. */
+
+.astryx-token-comment {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.astryx-token-string {
+  color: var(--color-success);
+}
+
+.astryx-token-number {
+  color: var(--color-warning);
+}
+
+.astryx-token-function {
+  color: var(--color-accent);
+}
+
+.astryx-token-type {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.astryx-token-keyword {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+.astryx-token-operator {
+  color: var(--color-text-secondary);
+}
+
+.astryx-token-constant {
+  color: var(--color-warning);
+}
+
+.astryx-token-punctuation {
+  color: var(--color-text-secondary);
+}
+
+.astryx-token-variable {
+  color: var(--color-text-primary);
+}
+
+.astryx-token-property {
+  color: var(--color-text-primary);
+}
+
+.astryx-token-tag {
+  color: var(--color-accent);
+}
+
+.astryx-token-attribute {
+  color: var(--color-warning);
 }

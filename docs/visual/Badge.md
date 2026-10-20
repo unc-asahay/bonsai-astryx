@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Badge` (`src/badge.ml`, M1)
-- rendered instances in the demo: 16
+- rendered instances in the demo: 19
 - classes: `astryx-badge`, `astryx-badge--blue`, `astryx-badge--cyan`, `astryx-badge--error`, `astryx-badge--green`, `astryx-badge--info`, `astryx-badge--neutral`, `astryx-badge--orange`, `astryx-badge--pink`, `astryx-badge--purple`, `astryx-badge--red`, `astryx-badge--success`, `astryx-badge--teal`, `astryx-badge--warning`, `astryx-badge--yellow`
 
 ## layout

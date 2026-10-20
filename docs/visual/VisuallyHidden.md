@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.VisuallyHidden` (`src/visually_hidden.ml`, M2)
-- rendered instances in the demo: 3
+- rendered instances in the demo: 10
 - classes: `astryx-visually-hidden`
 
 ## layout

@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Icon` (`src/icon.ml`, M8)
-- rendered instances in the demo: 184
-- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-carousel__nav-icon`, `astryx-collapsible__chevron`, `astryx-collapsible__chevron--closed`, `astryx-collapsible__chevron--expanded`, `astryx-collapsible__chevron--start`, `astryx-complex-selector__indicator`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`, `astryx-lightbox__nav-icon`, `astryx-tab-menu__chevron-icon`
+- rendered instances in the demo: 231
+- classes: `astryx-banner__chevron`, `astryx-banner__chevron--expanded`, `astryx-carousel__nav-icon`, `astryx-collapsible__chevron`, `astryx-collapsible__chevron--closed`, `astryx-collapsible__chevron--expanded`, `astryx-collapsible__chevron--start`, `astryx-complex-selector__indicator`, `astryx-icon`, `astryx-icon--accent`, `astryx-icon--disabled`, `astryx-icon--error`, `astryx-icon--gray`, `astryx-icon--inherit`, `astryx-icon--lg`, `astryx-icon--md`, `astryx-icon--primary`, `astryx-icon--secondary`, `astryx-icon--sm`, `astryx-icon--success`, `astryx-icon--warning`, `astryx-icon--xsm`, `astryx-indicator__mark`, `astryx-lightbox__nav-icon`, `astryx-multi-selector__indicator`, `astryx-tab-menu__chevron-icon`
 
 ## layout
 
@@ -32,7 +32,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `color` | `inherit`<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-icon-primary)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-secondary)`)_<br>`#A4B0BC (light) / #6F747C (dark)` _(from `var(--color-icon-disabled)`)_<br>`#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_<br>`#E3193B (light) / #F5394F (dark)` _(from `var(--color-error)`)_<br>`#E9AF08 (light) / #F2C00B (dark)` _(from `var(--color-warning)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-gray)`)_<br>`inherit` | `.astryx-icon`<br>`.astryx-icon--primary`<br>`.astryx-icon--secondary`<br>`.astryx-icon--disabled`<br>`.astryx-icon--accent`<br>`.astryx-icon--success`<br>`.astryx-icon--error`<br>`.astryx-icon--warning`<br>`.astryx-icon--gray`<br>`.astryx-icon--inherit` |
+| `color` | `inherit`<br>`#0A1317 (light) / #DFE2E5 (dark)` _(from `var(--color-icon-primary)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-secondary)`)_<br>`#A4B0BC (light) / #6F747C (dark)` _(from `var(--color-icon-disabled)`)_<br>`#0064E0 (light) / #2694FE (dark)` _(from `var(--color-accent)`)_<br>`#0D8626 (light) / #0D8626 (dark)` _(from `var(--color-success)`)_<br>`#E3193B (light) / #F5394F (dark)` _(from `var(--color-error)`)_<br>`#E9AF08 (light) / #F2C00B (dark)` _(from `var(--color-warning)`)_<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-gray)`)_<br>`inherit`<br>`#4E606F (light) / #AAAFB5 (dark)` _(from `var(--color-icon-secondary)`)_ | `.astryx-icon`<br>`.astryx-icon--primary`<br>`.astryx-icon--secondary`<br>`.astryx-icon--disabled`<br>`.astryx-icon--accent`<br>`.astryx-icon--success`<br>`.astryx-icon--error`<br>`.astryx-icon--warning`<br>`.astryx-icon--gray`<br>`.astryx-icon--inherit`<br>`.astryx-multi-selector__indicator` |
 
 ## type
 
@@ -45,10 +45,11 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 
 | property | value | source class |
 | --- | --- | --- |
-| `flex-shrink` | `0`<br>`0` | `.astryx-collapsible__chevron`<br>`.astryx-complex-selector__indicator` |
+| `flex-shrink` | `0`<br>`0`<br>`0` | `.astryx-collapsible__chevron`<br>`.astryx-complex-selector__indicator`<br>`.astryx-multi-selector__indicator` |
 | `height` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem`<br>`1.0625rem` _(from `var(--text-large-size)`)_ | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg`<br>`.astryx-collapsible__chevron` |
 | `transform` | `rotate(180deg)`<br>`rotate(180deg)` | `.astryx-banner__chevron--expanded`<br>`.astryx-collapsible__chevron--expanded` |
 | `transform-origin` | `center` | `.astryx-complex-selector__indicator` |
+| `transition` | `transform 175ms cubic-bezier(0.24, 1, 0.4, 1)` _(from `transform var(--duration-fast) var(--ease-standard)`)_ | `.astryx-multi-selector__indicator` |
 | `width` | `0.75rem`<br>`1rem`<br>`1.25rem`<br>`1.5rem`<br>`1.0625rem` _(from `var(--text-large-size)`)_ | `.astryx-icon--xsm`<br>`.astryx-icon--sm`<br>`.astryx-icon--md`<br>`.astryx-icon--lg`<br>`.astryx-collapsible__chevron` |
 
 ## effects
@@ -78,5 +79,5 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 ## image-generation prompt
 
 ```text
-A flat, labelled component sheet of Astryx Icon in its documented states, on a neutral surface. Content colours: inherit / #0A1317 (light) / #DFE2E5 (dark) / #4E606F (light) / #AAAFB5 (dark) / #A4B0BC (light) / #6F747C (dark) / #0064E0 (light) / #2694FE (dark) / #0D8626 (light) / #0D8626 (dark) / #E3193B (light) / #F5394F (dark) / #E9AF08 (light) / #F2C00B (dark) / #4E606F (light) / #AAAFB5 (dark) / inherit. Type size 0.75rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
+A flat, labelled component sheet of Astryx Icon in its documented states, on a neutral surface. Content colours: inherit / #0A1317 (light) / #DFE2E5 (dark) / #4E606F (light) / #AAAFB5 (dark) / #A4B0BC (light) / #6F747C (dark) / #0064E0 (light) / #2694FE (dark) / #0D8626 (light) / #0D8626 (dark) / #E3193B (light) / #F5394F (dark) / #E9AF08 (light) / #F2C00B (dark) / #4E606F (light) / #AAAFB5 (dark) / inherit / #4E606F (light) / #AAAFB5 (dark). Type size 0.75rem. System UI / Inter-like geometric sans, generous padding on a 4px spacing grid, no gradients, no drop shadows unless the component declares elevation, crisp 2x rendering, transparent background, no photographic content, no text other than the component's own labels.
 ```

@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Number_input` (`src/number_input.ml`, M47)
-- rendered instances in the demo: 10
+- rendered instances in the demo: 11
 - classes: `astryx-number-input`, `astryx-number-input--disabled`, `astryx-number-input--error`, `astryx-number-input--md`, `astryx-number-input--readonly`
 
 ## layout

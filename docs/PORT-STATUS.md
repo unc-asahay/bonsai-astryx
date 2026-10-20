@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **82 of 103** components.
+Ported: **87 of 103** components.
 
 ## Milestones
 
@@ -137,9 +137,14 @@ Ported: **82 of 103** components.
 | `Toast` | `Astryx.toast` | `src/toast.ml` | M59 | C |
 | `MobileNav` | `Astryx.mobile_nav` | `src/mobile_nav.ml` | M64 | C |
 | `Tokenizer` | `Astryx.tokenizer` | `src/tokenizer.ml` | M65 | C |
+| `MultiSelector` | `Astryx.multi_selector` | `src/multi_selector.ml` | M66 | C |
+| `Stepper` | `Astryx.stepper` | `src/stepper.ml` | M67 | C |
+| `Pagination` | `Astryx.pagination` | `src/pagination.ml` | M68 | C |
+| `TopNav` | `Astryx.top_nav` | `src/top_nav.ml` | M69 | C |
+| `CodeBlock` | `Astryx.code_block` | `src/code_block.ml` | M70 | C |
 
-## Not ported yet (21)
+## Not ported yet (16)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `BottomSheet`, `Calendar`, `Chat`, `CodeBlock`, `CommandPalette`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Markdown`, `MultiSelector`, `Pagination`, `PowerSearch`, `Selector`, `SideNav`, `Stepper`, `Table`, `TimeInput`, `TopNav`, `Typeahead`
+`AppShell`, `BottomSheet`, `Calendar`, `Chat`, `CommandPalette`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Markdown`, `PowerSearch`, `Selector`, `SideNav`, `Table`, `TimeInput`, `Typeahead`

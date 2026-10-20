@@ -3707,6 +3707,121 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 {
+  const host = document.querySelector('[data-case="top-nav-all"]');
+  const nav = host?.querySelector("#rt-tn");
+  const heading = nav?.querySelector(".astryx-top-nav-heading");
+  const items = [...(nav?.querySelectorAll(".astryx-top-nav-item") ?? [])];
+  const centred = host?.querySelector("#rt-tn-centred");
+
+  check("a top nav is a navigation landmark that names itself",
+    nav?.tagName === "NAV"
+      && nav?.getAttribute("role") === "navigation"
+      && nav?.getAttribute("aria-label") === "Top navigation"
+      && nav?.getAttribute("data-astryx-component") === "TopNav",
+    JSON.stringify({ tag: nav?.tagName, label: nav?.getAttribute("aria-label") }));
+
+  check("the heading is a link, and the items are links too",
+    heading?.tagName === "A"
+      && items.length === 2
+      && items.every((i) => i.tagName === "A")
+      && items.map((i) => i.textContent.trim()).join(",") === "Home,Docs",
+    JSON.stringify({ heading: heading?.tagName, items: items.map((i) => i.textContent.trim()) }));
+
+  check("a bar with a centre lays out as a grid",
+    centred?.getAttribute("class")?.includes("astryx-top-nav--grid") === true,
+    centred?.getAttribute("class") ?? null);
+}
+
+{
+  const host = document.querySelector('[data-case="code-block-all"]');
+  const block = host?.querySelector("#rt-cb");
+  const numbered = host?.querySelector("#rt-cb-numbered");
+  const diff = host?.querySelector("#rt-cb-diff");
+
+  check("a code block is a pre that says what language it holds",
+    block?.tagName === "PRE"
+      && block?.getAttribute("data-astryx-component") === "CodeBlock"
+      && block?.getAttribute("data-astryx-language") === "javascript",
+    JSON.stringify({ tag: block?.tagName, lang: block?.getAttribute("data-astryx-language") }));
+
+  check("the code is inside the block, painted through spans",
+    block?.querySelector("code") !== null
+      && block.querySelector("code").textContent.includes("answer"),
+    block?.querySelector("code")?.textContent ?? null);
+
+  check("a numbered block numbers its lines and marks the highlighted one",
+    numbered?.querySelectorAll(".astryx-code-block__line--numbered").length > 0
+      && numbered?.querySelectorAll(".astryx-code-block__line--highlighted").length > 0,
+    JSON.stringify({
+      numbered: numbered?.querySelectorAll(".astryx-code-block__line--numbered").length,
+      highlighted: numbered?.querySelectorAll(".astryx-code-block__line--highlighted").length,
+    }));
+
+  check("a diff says it is a diff, and each line gets its glyph",
+    diff?.getAttribute("data-astryx-is-diff") === "true"
+      && diff?.querySelectorAll(".astryx-code-block__diff-marker").length > 0
+      && diff?.querySelectorAll(".astryx-code-block__line--added").length > 0
+      && diff?.querySelectorAll(".astryx-code-block__line--removed").length > 0,
+    JSON.stringify({
+      isDiff: diff?.getAttribute("data-astryx-is-diff"),
+      markers: diff?.querySelectorAll(".astryx-code-block__diff-marker").length,
+      added: diff?.querySelectorAll(".astryx-code-block__line--added").length,
+      removed: diff?.querySelectorAll(".astryx-code-block__line--removed").length,
+    }));
+}
+
+{
+  const host = document.querySelector('[data-case="pagination-all"]');
+  const nav = host?.querySelector("#rt-pg");
+  const list = nav?.querySelector(".astryx-pagination__pages");
+  const numbers = [...(list?.querySelectorAll("button") ?? [])].map((b) => b.textContent.trim());
+  const current = list?.querySelector("[aria-current='page']");
+  const prev = nav?.querySelector("button[aria-label*='previous']");
+  const next = nav?.querySelector("button[aria-label*='next']");
+  const count = host?.querySelector("#rt-pg-count .astryx-pagination__info");
+  const unknown = host?.querySelector("#rt-pg-unknown");
+  const range = host?.querySelector("[data-page-range]");
+
+  check("a pagination is a navigation region that names itself",
+    nav?.tagName === "NAV"
+      && nav?.getAttribute("aria-label") === "Pagination"
+      && nav?.getAttribute("data-astryx-component") === "Pagination",
+    JSON.stringify({ tag: nav?.tagName, label: nav?.getAttribute("aria-label") }));
+
+  check("the page range follows upstream's algorithm",
+    range?.getAttribute("data-page-range") === "1 ... 4 5 6 ... 10",
+    range?.getAttribute("data-page-range") ?? null);
+
+  check("the page numbers are a list and the current page is marked",
+    list?.getAttribute("role") === "list"
+      && current?.textContent.trim() === "5"
+      && numbers.includes("5"),
+    JSON.stringify({ role: list?.getAttribute("role"), current: current?.textContent.trim() }));
+
+  check("the pages that are left out are an ellipsis",
+    list?.querySelectorAll(".astryx-pagination__ellipsis").length === 2,
+    String(list?.querySelectorAll(".astryx-pagination__ellipsis").length));
+
+  check("both controls are live in the middle of the range",
+    prev?.disabled === false && next?.disabled === false,
+    JSON.stringify({ prev: prev?.disabled, next: next?.disabled }));
+
+  check("the count variant reports the range of items on the page",
+    count?.textContent.trim() === "81–100 of 200",
+    count?.textContent.trim() ?? null);
+
+  check("a pagination with no known end has only the next control to offer",
+    unknown?.querySelectorAll("button").length === 2
+      && unknown?.querySelector("button[aria-label*='previous']")?.disabled === true
+      && unknown?.querySelector("button[aria-label*='next']")?.disabled === false,
+    JSON.stringify({
+      buttons: unknown?.querySelectorAll("button").length,
+      prev: unknown?.querySelector("button[aria-label*='previous']")?.disabled,
+      next: unknown?.querySelector("button[aria-label*='next']")?.disabled,
+    }));
+}
+
+{
   const host = document.querySelector('[data-case="multi-selector-all"]');
   const trigger = host?.querySelector("#rt-ms");
   const listbox = host?.querySelector("#rt-ms-listbox");

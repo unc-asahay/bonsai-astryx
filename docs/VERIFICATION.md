@@ -4414,3 +4414,21 @@ summary was expected to carry a "Previous step" control, but the
 current step *is* the first one, so there is nothing to go back to.
 
 Full record: `docs/verification/commit-m67.txt`.
+
+### Gate 81 — M68 Pagination, M69 TopNav, M70 CodeBlock (coverage 84 → 87)
+
+**839/839 component checks · 647/647 browser checks · 66/66 responsive · SWEEP GREEN**
+
+The Pagination's page range follows upstream's `generatePageRange` (the
+implementation, not its stale docstring). The TopNav's heading is a value
+the bar is given, rather than a child that registers itself. The
+CodeBlock carries the language, the title, the copy button, the line
+numbers, the diff glyphs and the collapsible header.
+
+Three checks were wrong rather than the ports: the Carousel's end-pill
+check was racy (upstream's own test says the right button *is* disabled at
+the end), two checks asked for "[aria-live]" and found the house Button's
+own empty live region, and two waited for content that is in the document
+whether the menu is open or not.
+
+**87 of 103 ported. 16 to go.**

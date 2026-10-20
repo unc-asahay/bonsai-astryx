@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.IconButton` (`src/icon_button.ml`, M6)
-- rendered instances in the demo: 11
+- rendered instances in the demo: 19
 - classes: `astryx-button`, `astryx-button--disabled`, `astryx-button--ghost`, `astryx-button--icon-only`, `astryx-button--lg`, `astryx-button--loading`, `astryx-button--md`, `astryx-button--primary`, `astryx-button--secondary`, `astryx-button--sm`, `astryx-lightbox__close`, `astryx-lightbox__control`, `astryx-lightbox__nav`, `astryx-lightbox__nav--next`, `astryx-lightbox__nav--prev`
 
 ## layout

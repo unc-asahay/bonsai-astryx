@@ -1,0 +1,72 @@
+Gate 81 — M68 Pagination, M69 TopNav, M70 CodeBlock (coverage 84 → 87)
+
+Three components land together, because two of them were already in the
+tree when the third was integrated and splitting the shared files across
+three commits would have meant merging the same hunks twice.
+
+M68 — Pagination (coverage 84 → 85)
+
+  The controls for moving through pages of content. The page numbers with
+  their ellipses, the count of items on the page, the compact "Page 3 of 10",
+  the dots, and the editable page number. The page is a value the caller
+  owns: the controls report the page they want, and the caller moves.
+
+  The page range follows upstream's generatePageRange, including both sides
+  of the middle - near the start it shows more pages on the left, near the
+  end more on the right, and in the middle an ellipsis on each side.
+  Upstream's own docstring shows [1, 2, 3, '...', 10] for the first page of
+  ten, which its implementation and its own test both contradict; the
+  implementation is the contract, and the port follows it.
+
+  Divergences: upstream's async change action is not ported (the page is a
+  value here, so the caller decides what happens while it loads), and
+  upstream's page-size selector is not ported - it is a Selector, and this
+  library has no Selector yet. The page count is still worked out from the
+  item count and the page size.
+
+M69 — TopNav (coverage 85 → 86)
+
+  The navigation bar: the heading that names the product, the start, centre
+  and end slots, and the items it carries. Upstream's TopNav is a compound
+  component whose heading registers itself through context; here the heading
+  is a value the bar is given.
+
+M70 — CodeBlock (coverage 86 → 87)
+
+  The read-only code display: the language and the file title in the
+  header, the copy button, line numbers, a highlighted line, a unified diff
+  with its glyphs in their own column, soft wrapping, a scrolling viewport
+  and a collapsible header.
+
+What the gates caught
+
+  The Carousel's "clicking the end pill scrolls and flips the disabled
+  edge" was racy, and it failed once the page grew. It waited for the
+  scroll to happen and then read the pill's state, which is a snapshot
+  taken before the scroll settles. Upstream's own test says the right
+  button is disabled once the scroller is fully right ("At the end edge
+  (scrolled fully right): overflowEnd is false"), so the check now waits
+  for that state and asserts it.
+
+  Two checks looked for an announcement by asking for "[aria-live]" and
+  found the house Button's own empty live region, which every button
+  carries. The pagination's announcement is named by its class.
+
+  Two checks waited for the wrong thing to appear. The Popover renders its
+  content whether it is open or not, so "the menu items are in the
+  document" is not evidence that the menu opened; the trigger's own
+  aria-expanded is. The same mistake made the copy check read "copied: 0"
+  before the copy had happened, because the text was already non-empty.
+
+Gates
+
+  build            0
+  component gate   839 / 0
+  DOM + a11y       25 / 0
+  browser gate     647 / 0
+  responsive gate  66 / 0
+  MCP layer        ok
+  registry         ok
+  SWEEP GREEN      docs/verification/sweep-m68.txt
+
+  87 of 103 ported. 16 to go.

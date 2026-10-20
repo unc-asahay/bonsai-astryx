@@ -4214,6 +4214,66 @@ let stepper_component graph =
     nodes
 ;;
 
+
+(* The Pagination - the page controls. The page is a value the caller owns,
+   so these cases render the controls at a fixed page and assert the shape of
+   the page range, the marks on the current page, and what the controls do at
+   the ends.
+
+   The page range is a pure function, so its output is put in the DOM as an
+   attribute and read back by run.mjs: that is the only way to assert the
+   algorithm itself rather than the markup around it. *)
+let pagination_component graph =
+  let on_change = Bonsai.return (fun (_ : int) -> Effect.return ()) in
+  let page = Bonsai.return 5 in
+  let first_page = Bonsai.return 1 in
+  let range_text =
+    List.map
+      ~f:(function
+        | Astryx.Pagination.Page n -> string_of_int n
+        | Astryx.Pagination.Ellipsis -> "...")
+      (Astryx.Pagination.generate_page_range ~current_page:5 ~total_pages:10 ~sibling_count:1)
+    |> String.concat ~sep:" "
+  in
+  let trees =
+    [ Astryx.Pagination.view
+        ~id:"rt-pg"
+        ~variant:Astryx.Pagination.Pages
+        ~total_pages:10
+        ~page
+        ~on_change
+        graph
+    ; Astryx.Pagination.view
+        ~id:"rt-pg-count"
+        ~variant:Astryx.Pagination.Count
+        ~total_items:200
+        ~page_size:20
+        ~page
+        ~on_change
+        graph
+    ; Astryx.Pagination.view
+        ~id:"rt-pg-unknown"
+        ~has_more:true
+        ~page:first_page
+        ~on_change
+        graph
+    ; Bonsai.return
+        (Vdom.Node.div
+           ~attrs:[ Vdom.Attr.create "data-page-range" range_text ]
+           [])
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "pagination-all" ] nodes)
+    nodes
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create
@@ -4240,3 +4300,105 @@ let () =
   in
   mount "tokenizer-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+
+(* The TopNav - the navigation bar. Its heading, its three slots and the
+   items it carries. The heading's menu follows a flag the caller owns, so
+   that is what the case shows. *)
+let top_nav_component _graph =
+  let heading =
+    Astryx.Top_nav.Heading.view
+      ~logo:(Vdom.Node.span ~attrs:[] [ Vdom.Node.text "A" ])
+      ~heading:"Astra"
+      ~heading_href:"#"
+      ()
+  in
+  let items =
+    [ Astryx.Top_nav.Item.view ~label:"Home" ~href:"#" []
+    ; Astryx.Top_nav.Item.view ~label:"Docs" ~href:"#" []
+    ]
+  in
+  let trees =
+    [ Bonsai.return
+        (Astryx.Top_nav.view ~id:"rt-tn" ~heading ~start_content:items [])
+    ; Bonsai.return
+        (Astryx.Top_nav.view
+           ~id:"rt-tn-centred"
+           ~heading
+           ~center_content:[ Vdom.Node.text "Middle" ]
+           ~end_content:[ Vdom.Node.text "End" ]
+           [])
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "top-nav-all" ] nodes)
+    nodes
+;;
+
+(* The CodeBlock - the read-only code display. The language, the header, the
+   line numbers, the diff glyphs and the copy button. *)
+let code_block_component graph =
+  let trees =
+    [ Astryx.Code_block.view
+        ~id:"rt-cb"
+        ~language:"javascript"
+        ~code:"const answer = 42;"
+        graph
+    ; Astryx.Code_block.view
+        ~id:"rt-cb-numbered"
+        ~language:"typescript"
+        ~has_line_numbers:true
+        ~highlight_lines:[ 1 ]
+        ~code:"const answer = 42;"
+        graph
+    ; Astryx.Code_block.view
+        ~id:"rt-cb-diff"
+        ~is_diff:true
+        ~code:"- const answer = 42;\n+ const answer = 43;"
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "code-block-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      pagination_component
+  in
+  mount "pagination-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      top_nav_component
+  in
+  mount "top-nav-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      code_block_component
+  in
+  mount "code-block-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
