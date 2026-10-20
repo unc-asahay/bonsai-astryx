@@ -287,6 +287,7 @@ if (mode === "showcase") {
     "CodeBlock",
     "Calendar",
     "Chat",
+    "Selector",
 
   ];
 
@@ -650,7 +651,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("91 sections", sections.length === 91, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("92 sections", sections.length === 92, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -749,13 +750,14 @@ if (mode === "showcase") {
     TopNav: 5,
     CodeBlock: 8,
     Calendar: 7,
+    Selector: 8,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("609 examples across the page", totalExamples === 609, `got ${totalExamples}`);
+  check("617 examples across the page", totalExamples === 617, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -769,7 +771,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("91 nav links", nav.length === 91, `got ${nav.length}`);
+  check("92 nav links", nav.length === 92, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4164,11 +4166,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 89 ported / 14 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["89", "14", "103"]),
+    "coverage stats are 90 ported / 13 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["90", "13", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 14 entries", cov.unported === 14, `got ${cov.unported}`);
+  check("unported list rendered 13 entries", cov.unported === 13, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5692,6 +5694,146 @@ check(
       Array.isArray(tkHtmlName) && tkHtmlName.length === 2
         && tkHtmlName.every((h) => h.name === "reviewers" && h.value && h.value.length > 0),
       JSON.stringify(tkHtmlName));
+  }
+
+
+  // -------------------------------------------------------------- Selector (M73)
+  {
+    const selSection = await page.$("section[data-showcase-component='Selector']");
+    check("the Selector section renders", selSection !== null,
+      selSection ? "found" : "missing");
+    if (selSection) {
+      const instances = await page.evaluate(() =>
+        document.querySelectorAll('section[data-showcase-component="Selector"] [data-astryx-component="Selector"]').length);
+      check("all seven Selector instances render", instances === 7, `got ${instances}`);
+
+      const trigger = await page.evaluate(() => {
+        const el = document.querySelector('#showcase-selector-options');
+        if (!el) return null;
+        return {
+          tag: el.tagName,
+          role: el.getAttribute("role"),
+          haspopup: el.getAttribute("aria-haspopup"),
+          expanded: el.getAttribute("aria-expanded"),
+          controls: el.getAttribute("aria-controls"),
+          labelledby: el.getAttribute("aria-labelledby"),
+          text: (el.textContent ?? "").trim(),
+        };
+      });
+      check("the trigger is a combobox that names the listbox it controls",
+        trigger?.tag === "BUTTON"
+          && trigger?.role === "combobox"
+          && trigger?.haspopup === "listbox"
+          && trigger?.expanded === "false"
+          && trigger?.controls === "showcase-selector-options-listbox"
+          && trigger?.labelledby === "showcase-selector-options-label",
+        JSON.stringify(trigger));
+      check("the trigger shows the placeholder until something is picked",
+        trigger?.text === "Select...", JSON.stringify(trigger?.text));
+
+      const list = await page.evaluate(() => {
+        const el = document.getElementById("showcase-selector-options-listbox");
+        if (!el) return null;
+        const rows = [...el.querySelectorAll(".astryx-selector__option")];
+        return {
+          role: el.getAttribute("role"),
+          rows: rows.length,
+          rowRoles: rows.map((r) => r.getAttribute("role")),
+          labels: rows.map((r) => (r.textContent ?? "").trim()),
+        };
+      });
+      check("the list is a listbox of three rows",
+        list?.role === "listbox" && list?.rows === 3
+          && list?.rowRoles.every((r) => r === "row"),
+        JSON.stringify(list));
+      check("the rows carry the option labels",
+        list?.labels?.join("|") === "Ada Lovelace|Alan Turing|Grace Hopper",
+        JSON.stringify(list?.labels));
+
+      const panel = await page.evaluate(() => {
+        const el = document.getElementById("showcase-selector-options-panel");
+        return el ? { popover: el.getAttribute("popover") } : null;
+      });
+      check("the panel is a native popover", panel?.popover === "auto", JSON.stringify(panel));
+
+      await page.click("#showcase-selector-options");
+      await page.waitForTimeout(250);
+      const opened = await page.evaluate(() => {
+        const trigger = document.getElementById("showcase-selector-options");
+        const list = document.getElementById("showcase-selector-options-listbox");
+        const highlighted = list?.querySelector(".astryx-selector__option--highlighted");
+        return {
+          expanded: trigger?.getAttribute("aria-expanded"),
+          highlighted: (highlighted?.textContent ?? "").trim(),
+          active: trigger?.getAttribute("aria-activedescendant"),
+        };
+      });
+      check("opening the panel expands the trigger and highlights the first row",
+        opened?.expanded === "true"
+          && opened?.highlighted === "Ada Lovelace"
+          && opened?.active === "showcase-selector-options-listbox-item-0",
+        JSON.stringify(opened));
+
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(200);
+      const moved = await page.evaluate(() => {
+        const trigger = document.getElementById("showcase-selector-options");
+        const list = document.getElementById("showcase-selector-options-listbox");
+        const highlighted = list?.querySelector(".astryx-selector__option--highlighted");
+        return {
+          highlighted: (highlighted?.textContent ?? "").trim(),
+          active: trigger?.getAttribute("aria-activedescendant"),
+        };
+      });
+      check("the arrow key moves the highlight and the active descendant",
+        moved?.highlighted === "Alan Turing"
+          && moved?.active === "showcase-selector-options-listbox-item-1",
+        JSON.stringify(moved));
+
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(300);
+      const picked = await page.evaluate(() => {
+        const trigger = document.getElementById("showcase-selector-options");
+        const readout = document.getElementById("showcase-selector-readout");
+        return {
+          expanded: trigger?.getAttribute("aria-expanded"),
+          text: (trigger?.textContent ?? "").trim(),
+          readout: (readout?.textContent ?? "").trim(),
+        };
+      });
+      check("Enter picks the highlighted row and closes the panel",
+        picked?.expanded === "false"
+          && picked?.text === "Alan Turing"
+          && picked?.readout === "picked alan",
+        JSON.stringify(picked));
+
+      const shapes = await page.evaluate(() => {
+        // the panel is a sibling of the control, not a descendant of it
+        const boxOf = (id) => document.getElementById(`${id.replace(/^#/, "")}-panel`);
+        const grouped = boxOf("#showcase-selector-grouped");
+        const divided = boxOf("#showcase-selector-divider");
+        const described = boxOf("#showcase-selector-described");
+        const disabled = boxOf("#showcase-selector-disabled");
+        const empty = boxOf("#showcase-selector-empty");
+        const searched = boxOf("#showcase-selector-search");
+        return {
+          groups: [...(grouped?.querySelectorAll(".astryx-selector__group-title") ?? [])].map((t) => (t.textContent ?? "").trim()),
+          dividers: (divided?.querySelectorAll(".astryx-selector__divider") ?? []).length,
+          descriptions: [...(described?.querySelectorAll(".astryx-selector__option-description") ?? [])].map((d) => (d.textContent ?? "").trim()),
+          disabledRows: (disabled?.querySelectorAll(".astryx-selector__option--disabled") ?? []).length,
+          empty: (empty?.querySelector(".astryx-selector__empty")?.textContent ?? "").trim(),
+          searchInput: searched?.querySelector("input") !== null && searched?.querySelector("input") !== undefined,
+        };
+      });
+      check("a grouped list carries its group titles",
+        shapes?.groups?.join("|") === "Analysts|Engineers", JSON.stringify(shapes?.groups));
+      check("a list can carry a divider", shapes?.dividers === 1, JSON.stringify(shapes?.dividers));
+      check("a row can carry a description",
+        shapes?.descriptions?.join("|") === "the first programmer", JSON.stringify(shapes?.descriptions));
+      check("a row can be unpickable", shapes?.disabledRows === 1, JSON.stringify(shapes?.disabledRows));
+      check("an empty list says so", (shapes?.empty ?? "") !== "", JSON.stringify(shapes?.empty));
+      check("the list can carry a search field", shapes?.searchInput === true, JSON.stringify(shapes?.searchInput));
+    }
   }
 
   // -------------------------------------------------------------- MultiSelector

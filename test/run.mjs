@@ -3906,6 +3906,76 @@ check("a disabled group says so once, on the box", (() => {
     }));
 }
 
+
+{
+  const host = document.querySelector('[data-case="selector-all"]');
+  const trigger = host?.querySelector("#rt-sel");
+  const listbox = host?.querySelector("#rt-sel-listbox");
+  const rows = [...(listbox?.querySelectorAll('[role="row"]') ?? [])];
+  const panel = host?.querySelector("#rt-sel-panel");
+
+  check("the trigger is a combobox that names the listbox it controls, and says it is closed",
+    trigger?.tagName === "BUTTON"
+      && trigger?.getAttribute("role") === "combobox"
+      && trigger?.getAttribute("aria-haspopup") === "listbox"
+      && trigger?.getAttribute("aria-expanded") === "false"
+      && trigger?.getAttribute("aria-controls") === "rt-sel-listbox"
+      && trigger?.getAttribute("aria-labelledby") === "rt-sel-label",
+    JSON.stringify({
+      tag: trigger?.tagName,
+      role: trigger?.getAttribute("role"),
+      haspopup: trigger?.getAttribute("aria-haspopup"),
+      expanded: trigger?.getAttribute("aria-expanded"),
+      controls: trigger?.getAttribute("aria-controls"),
+    }));
+
+  check("the trigger shows the chosen value",
+    (trigger?.querySelector(".astryx-selector__trigger-text")?.textContent ?? "").trim() === "Alan Turing",
+    trigger?.querySelector(".astryx-selector__trigger-text")?.textContent ?? null);
+
+  check("the list is a listbox of rows, and the chosen value is the selected one",
+    listbox?.getAttribute("role") === "listbox"
+      && rows.length === 3
+      && rows.filter((r) => r.getAttribute("aria-selected") === "true").length === 1
+      && rows[1]?.getAttribute("aria-selected") === "true",
+    JSON.stringify({
+      role: listbox?.getAttribute("role"),
+      rows: rows.map((r) => ({
+        text: r.textContent.trim().slice(0, 20),
+        selected: r.getAttribute("aria-selected"),
+      })),
+    }));
+
+  check("a divider sits between the rows",
+    (listbox?.querySelectorAll(".astryx-selector__divider")?.length ?? 0) === 1,
+    String(listbox?.querySelectorAll(".astryx-selector__divider")?.length ?? 0));
+
+  check("the panel is a native popover", panel?.getAttribute("popover") === "auto",
+    panel?.getAttribute("popover") ?? null);
+
+  const disabled = host?.querySelector("#rt-sel-listbox .astryx-selector__option--disabled");
+  check("a disabled row is listed and announced, but not choosable",
+    disabled !== null
+      && disabled?.getAttribute("aria-disabled") === "true",
+    JSON.stringify({ disabled: disabled?.getAttribute("aria-disabled") }));
+
+  // the searchable variant hands the combobox role to the search field
+  const searchInput = host?.querySelector("#rt-sel-search-search");
+  check("the searchable selector carries a search field that owns the combobox role",
+    searchInput !== null
+      && searchInput !== undefined
+      && searchInput?.tagName === "INPUT"
+      && searchInput?.getAttribute("role") === "combobox"
+      && searchInput?.getAttribute("aria-expanded") === "false"
+      && searchInput?.getAttribute("aria-controls") === "rt-sel-search-listbox",
+    JSON.stringify({
+      tag: searchInput?.tagName,
+      role: searchInput?.getAttribute("role"),
+      expanded: searchInput?.getAttribute("aria-expanded"),
+      controls: searchInput?.getAttribute("aria-controls"),
+    }));
+}
+
 {
   const host = document.querySelector('[data-case="multi-selector-all"]');
   const trigger = host?.querySelector("#rt-ms");

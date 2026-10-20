@@ -146,5 +146,13 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
     |> Bonsai.map ~f:List.rev
   in
-  Bonsai.map nodes ~f:(fun nodes -> Vdom.Node.div ~attrs:[] nodes)
+  Bonsai.map nodes ~f:(fun nodes ->
+    section
+      ~id:"selector"
+      ~title:"Selector"
+      ~note:
+        "The option list: the rows, the groups, the divider, the search field and the \
+         typeahead. The panel is a listbox, the focus stays on the trigger, and the \
+         highlighted row is reported with aria-activedescendant."
+      nodes)
 ;;

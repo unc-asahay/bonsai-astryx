@@ -119,6 +119,8 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -999,6 +1001,13 @@ DialogHeader
   ok   both controls are live in the middle of the range
   ok   the count variant reports the range of items on the page
   ok   a pagination with no known end has only the next control to offer
+  ok   the trigger is a combobox that names the listbox it controls, and says it is closed
+  ok   the trigger shows the chosen value
+  ok   the list is a listbox of rows, and the chosen value is the selected one
+  ok   a divider sits between the rows
+  ok   the panel is a native popover
+  ok   a disabled row is listed and announced, but not choosable
+  ok   the searchable selector carries a search field that owns the combobox role
   ok   the trigger is a button that names the listbox it controls, and says it is closed
   ok   the count display says how many are chosen
   ok   the list is a multi-select listbox, and the chosen value is the selected one
@@ -1011,5 +1020,5 @@ DialogHeader
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
 
-853 checks, 0 failure(s)
+860 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 89,
-    "unported": 14,
+    "ported": 90,
+    "unported": 13,
     "total": 103,
     "documented": 103
   },
@@ -402,6 +402,12 @@
       "milestone": "M28"
     },
     {
+      "name": "Selector",
+      "module": "Astryx.selector",
+      "file": "src/selector.ml",
+      "milestone": "M73"
+    },
+    {
       "name": "Skeleton",
       "module": "Astryx.Skeleton",
       "file": "src/skeleton.ml",
@@ -556,7 +562,6 @@
     "DateTimeInput",
     "Markdown",
     "PowerSearch",
-    "Selector",
     "SideNav",
     "Table",
     "TimeInput",

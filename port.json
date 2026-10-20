@@ -859,6 +859,13 @@
       "file": "src/chat.ml",
       "milestone": "M72",
       "module": "Astryx.chat"
+    },
+    {
+      "class": "C",
+      "component": "Selector",
+      "file": "src/selector.ml",
+      "milestone": "M73",
+      "module": "Astryx.selector"
     }
   ],
   "schema": 1,

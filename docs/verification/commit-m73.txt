@@ -1,0 +1,49 @@
+Gate 84 — M73 Selector (coverage 89 → 90)
+
+The Selector is the option list: the control box, the panel and the rows.
+
+The port carries upstream's shape. The control is a combobox — a button
+that owns the listbox it controls and reports whether it is open. The
+panel is a native popover, so it is dismissed by the platform and not by
+a hand-rolled outside-click handler. The focus stays on the control, and
+the highlighted row is reported with `aria-activedescendant`, which is
+upstream's own arrangement: the identity of the control does not change
+when the panel opens. The list may be grouped into titled sections, may
+carry a divider between the rows, and may carry a search field — and
+when it does, the search field takes the combobox role over from the
+control, because the field is what the user is then talking to.
+
+The value is the caller's: the chosen value comes in and the pick goes
+out through `on_change`, and the trigger shows the placeholder until
+something is picked. A row can carry a description, and a row can be
+unpickable.
+
+## The gate found
+
+- The worker's file had never been type-checked. The `option` union
+  shadowed the standard one, `Stdlib.option` and `Stdlib.Some` do not
+  exist in this compiler, and the house's Core spells a list of
+  predicates `List.filter ~f:`, a substring test
+  `String.is_substring`, a string trim `String.strip` and an
+  option-returning find `List.find` — none of which the worker had
+  written.
+- `Vdom.Attr.on_input` is curried — `(event -> string -> effect)` — and
+  not a tuple, so `fun (_ev, text) ->` is a type error while
+  `fun _ev text ->` is the call.
+- `Vdom.Node.div` takes no unit argument; `Vdom.Node.input` does.
+- The Enter key took the head of the row list rather than the
+  highlighted row, so Enter only worked while the first row was
+  highlighted. The row is now looked up by the highlight's index.
+- The trigger was 46px wide, because nothing gave it a width.
+
+## The gate changed
+
+- Enter picks the highlighted row, whichever row that is, and closes the
+  panel. The check drives ArrowDown first, so the second row is the one
+  picked — the first version of the check only ever exercised the
+  first row and passed by accident.
+- The trigger carries a minimum width and a focus ring, so the control
+  is a control and not a sliver.
+- The port's CSS uses only the tokens the house defines: `--shadow-2`
+  and `--color-border-focus` are not among them, and the ones that are
+  (`--shadow-med`, `--focus-outline-color`) are used instead.

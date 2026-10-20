@@ -491,9 +491,11 @@ let view
           Common.prevent_default ev;
           if model.is_open
           then (
-            match rows with
-            | (data, index) :: _ when index = model.highlight && not data.is_disabled ->
-              select_value data.value
+            (* The highlight is the flat index of the row, so the row is
+               looked up by that index rather than taken from the head of
+               the list — the highlighted row is rarely the first one. *)
+            match List.find ~f:(fun (_, index) -> index = model.highlight) rows with
+            | Some (data, _) when not data.is_disabled -> select_value data.value
             | _ -> Effect.Ignore)
           else open_panel ()
         | " " ->
@@ -628,6 +630,7 @@ let view
     in
     let trigger_attrs =
       [ Vdom.Attr.id trigger_id
+      ; Vdom.Attr.class_ "astryx-selector__trigger"
       ; Vdom.Attr.create "type" "button"
       ; Vdom.Attr.create "aria-expanded" (Bool.to_string (model.is_open && not is_read_only))
       ; Vdom.Attr.create "aria-labelledby" label_id

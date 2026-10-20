@@ -4292,6 +4292,68 @@ let () =
   mount "multi-selector-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ----------------------------------------------------------------- Selector *)
+(* The option list: the rows come in as a union, the chosen value comes in and
+   goes out through on_change, and the panel may carry a search field. *)
+let selector_component graph =
+  let on_change = Bonsai.return (fun (_ : string option) -> Effect.return ()) in
+  let value = Bonsai.return (Some "alan") in
+  let options =
+    [ Astryx.Selector.Row
+        (Astryx.Selector.row ~value:"ada" ~label:"Ada Lovelace" ())
+    ; Astryx.Selector.Row
+        (Astryx.Selector.row ~value:"alan" ~label:"Alan Turing" ())
+    ; Astryx.Selector.Divider
+    ; Astryx.Selector.Section
+        { Astryx.Selector.title = Some "Advanced"
+        ; options =
+            [ Astryx.Selector.row
+                ~value:"grace"
+                ~label:"Grace Hopper"
+                ~is_disabled:true
+                ()
+            ]
+        }
+    ]
+  in
+  let trees =
+    [ Astryx.Selector.view
+        ~id:"rt-sel"
+        ~label:"Who"
+        ~options
+        ~value
+        ~on_change
+        graph
+    ; Astryx.Selector.view
+        ~id:"rt-sel-search"
+        ~label:"Who, searchable"
+        ~has_search:true
+        ~options
+        ~value
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "selector-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      selector_component
+  in
+  mount "selector-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create
