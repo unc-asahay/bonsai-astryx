@@ -79,7 +79,13 @@ type item =
 and entry =
   | Item of item
   | Divider
-  | Section of { id : string option ; title : string option ; items : item list }
+  | Section of section
+
+and section =
+  { id : string option
+  ; title : string option
+  ; items : item list
+  }
 
 (** The element the menu attaches to. [Span] renders an inline trigger that
     still owns a box, matching upstream's [triggerAs]. *)

@@ -36,7 +36,13 @@ type item =
 and entry =
   | Item of item
   | Divider
-  | Section of { id : string option ; title : string option ; items : item list }
+  | Section of section
+
+and section =
+  { id : string option
+  ; title : string option
+  ; items : item list
+  }
 
 type trigger_as =
   | Div
@@ -54,8 +60,6 @@ module Drill_in = struct
     { id : string
     ; entries : entry list
     }
-
-  type t = view list
 
   let empty = []
 
@@ -91,22 +95,24 @@ module Adaptive_presentation = struct
   let matches_compact_touch () : bool =
     try
       let window = Dom_html.window in
-      let match_media = Js.Unsafe.get window "matchMedia" in
       let result =
-        Js.Unsafe.call
-          match_media
-          (Js.Unsafe.get window "matchMedia")
-          [| Js.Unsafe.inject compact_touch_query |]
+        Js.Unsafe.meth_call window "matchMedia" [| Js.Unsafe.inject compact_touch_query |]
       in
       Js.Unsafe.get result "matches" |> Js.to_bool
     with _ -> false
 
+  (* The presentation the menu is actually drawn in: the adaptive one has
+     already been resolved against the pointer by the time it gets here. *)
+  type resolved =
+    | Resolved_popover
+    | Resolved_bottom_sheet
+
   let resolve presentation =
     match presentation with
-    | Popover -> Popover
-    | Bottom_sheet -> Bottom_sheet
+    | Popover -> Resolved_popover
+    | Bottom_sheet -> Resolved_bottom_sheet
     | Adaptive ->
-      if matches_compact_touch () then Bottom_sheet else Popover
+      if matches_compact_touch () then Resolved_bottom_sheet else Resolved_popover
 end
 
 (* ------------------------------------------------------------------ *)
@@ -139,6 +145,24 @@ let query_all (container : Dom_html.element Js.t) (selector : string) :
     Array.to_list (Js.to_array found)
     |> List.map ~f:(fun element -> (element : Dom_html.element Js.t))
 
+(* The next frame: the menu is only in the document after the patch that
+   opened it, so the measurement waits for the browser to lay it out. *)
+let next_frame (f : unit -> unit) =
+  ignore
+    (Js.Unsafe.fun_call
+       (Js.Unsafe.pure_js_expr "requestAnimationFrame")
+       [| Js.Unsafe.inject (Js.wrap_callback (fun (_ : float) -> f ())) |])
+;;
+
+(* The clock, in milliseconds. *)
+let now_ms () : float =
+  Js.Unsafe.fun_call
+    (Js.Unsafe.eval_string
+       "(function () { return (typeof performance !== 'undefined' && performance.now) \
+        ? performance.now() : Date.now(); })")
+    [||]
+;;
+
 let focus_element (element : Dom_html.element Js.t) =
   Dom_html.focus element
 
@@ -146,11 +170,11 @@ let is_active (element : Dom_html.element Js.t) =
   let document = Dom_html.document in
   let active = Js.Unsafe.get document "activeElement" in
   (not (Option.is_none (Js.Opt.to_option active)))
-  && (Js.Unsafe.equal active element
+  && (Js.strict_equals active element
      || (Js.Unsafe.call (Js.Unsafe.get element "contains") element [| active |]
         |> Js.to_bool))
 
-let prevent_default (event : Dom_html.event Js.t) = Common.prevent_default event
+let prevent_default (event : 'a Js.t) = Common.prevent_default event
 
 (* ------------------------------------------------------------------ *)
 (* Rows.                                                                *)
@@ -169,36 +193,24 @@ let trigger_class = "astryx-context-menu__trigger"
 let cursor_anchor_class = "astryx-context-menu__cursor-anchor"
 
 let item_label_node item =
-  Vdom.Node.create_element
-    "span"
-    [ class_attr item_label_class ]
-    [ Vdom.Node.text item.label ]
+  Vdom.Node.create "span" ~attrs:[ class_attr item_label_class ] [ Vdom.Node.text item.label ]
 
 let item_description_node item =
   match item.description with
   | None -> Vdom.Node.text ""
   | Some description ->
-    Vdom.Node.create_element
-      "span"
-      [ class_attr item_description_class ]
-      [ Vdom.Node.text description ]
+    Vdom.Node.create "span" ~attrs:[ class_attr item_description_class ] [ Vdom.Node.text description ]
 
 let item_icon_node item =
   match item.icon with
   | None -> Vdom.Node.text ""
   | Some icon ->
-    Vdom.Node.create_element
-      "span"
-      [ class_attr item_icon_class ]
-      [ Vdom.Node.text icon ]
+    Vdom.Node.create "span" ~attrs:[ class_attr item_icon_class ] [ Vdom.Node.text icon ]
 
 let item_end_node item =
   match item.children with
   | Some _ ->
-    Vdom.Node.create_element
-      "span"
-      [ class_attr item_end_class ]
-      [ Vdom.Node.text "›" ]
+    Vdom.Node.create "span" ~attrs:[ class_attr item_end_class ] [ Vdom.Node.text "›" ]
   | None ->
     (match item.end_content with
      | None -> Vdom.Node.text ""
@@ -222,16 +234,15 @@ let row_attrs ~is_disabled ~has_children =
 
 (** A row of the pointer surface. Activating a row with children drills into
     them; activating any other row selects it. *)
-let render_item ~on_activate ~on_drill item =
+let render_item ~on_activate ~on_drill (item : item) =
   let is_disabled = item.is_disabled in
   let children = item.children in
   let attrs =
-    row_attrs ~is_disabled ~has_children:(Option.is_some children)
-    @ item_variant_class item
-    |> List.map ~f:class_attr
+    (row_attrs ~is_disabled ~has_children:(Option.is_some children)
+    @ List.map ~f:class_attr (item_variant_class item))
   in
   let activate _ =
-    if is_disabled then Effect.ignore
+    if is_disabled then Effect.Ignore
     else
       match children with
       | Some _ -> on_drill item
@@ -245,16 +256,13 @@ let render_item ~on_activate ~on_drill item =
   in
   let content =
     [ item_icon_node item
-    ; Vdom.Node.create_element
-        "span"
-        [ class_attr "astryx-context-menu__item-body" ]
-        [ item_label_node item
+    ; Vdom.Node.create "span" ~attrs:[ class_attr "astryx-context-menu__item-body" ] [ item_label_node item
         ; item_description_node item
         ]
     ; item_end_node item
     ]
   in
-  Vdom.Node.create_element "div" (attrs @ [ Vdom.Attr.on_click activate ]) content
+  Vdom.Node.create "div" ~attrs:(attrs @ [ Vdom.Attr.on_click activate ]) content
 
 (** A row of the touch surface. Upstream keeps [List] ownership for these rows;
     this port renders plain buttons instead (see the .mli). *)
@@ -262,7 +270,7 @@ let render_action_item ~on_activate ~on_drill item =
   let is_disabled = item.is_disabled in
   let children = item.children in
   let activate _ =
-    if is_disabled then Effect.ignore
+    if is_disabled then Effect.Ignore
     else
       match children with
       | Some _ -> on_drill item
@@ -277,60 +285,48 @@ let render_action_item ~on_activate ~on_drill item =
        else Vdom.Attr.create "aria-disabled" "false")
     ; Vdom.Attr.on_click activate
     ]
-    @ item_variant_class item
-    |> List.map ~f:class_attr
+    @ List.map ~f:class_attr (item_variant_class item)
   in
   let content =
     [ item_icon_node item
-    ; Vdom.Node.create_element
-        "span"
-        [ class_attr "astryx-context-menu__item-body" ]
-        [ item_label_node item
+    ; Vdom.Node.create "span" ~attrs:[ class_attr "astryx-context-menu__item-body" ] [ item_label_node item
         ; item_description_node item
         ]
     ; item_end_node item
     ]
   in
-  Vdom.Node.create_element "button" attrs content
+  Vdom.Node.create "button" ~attrs content
 
 let render_divider () =
-  Vdom.Node.create_element
-    "div"
-    [ class_attr "astryx-context-menu__divider"
+  Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu__divider"
     ; Vdom.Attr.create "role" "separator"
-    ]
-    [ Vdom.Node.text "" ]
+    ] [ Vdom.Node.text "" ]
 
-let render_section ~on_activate ~on_drill { id = _; title; items } =
+let render_section ~on_activate ~on_drill (section : section) =
+  let { id = _; title; items } = section in
   let heading =
     match title with
     | None -> Vdom.Node.text ""
     | Some title ->
-      Vdom.Node.create_element
-        "div"
-        [ class_attr "astryx-context-menu__section-heading"
+      Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu__section-heading"
         ; Vdom.Attr.create "aria-hidden" "true"
-        ]
-        [ Vdom.Node.text title ]
+        ] [ Vdom.Node.text title ]
   in
   let rows =
     List.map
-      (fun item -> render_item ~on_activate ~on_drill item)
+      ~f:(fun item -> render_item ~on_activate ~on_drill item)
       items
   in
-  Vdom.Node.create_element
-    "div"
-    [ class_attr "astryx-context-menu__section"
+  Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu__section"
     ; Vdom.Attr.create "role" "group"
     ; (match title with
        | None -> Vdom.Attr.create "aria-label" ""
        | Some title -> Vdom.Attr.create "aria-label" title)
-    ]
-    (heading :: rows)
+    ] (heading :: rows)
 
 let render_entries ~on_activate ~on_drill entries =
   List.map
-    (fun entry ->
+    ~f:(fun entry ->
       match entry with
       | Item item -> render_item ~on_activate ~on_drill item
       | Divider -> render_divider ()
@@ -340,7 +336,7 @@ let render_entries ~on_activate ~on_drill entries =
 
 let render_action_entries ~on_activate ~on_drill entries =
   List.map
-    (fun entry ->
+    ~f:(fun entry ->
       match entry with
       | Item item -> render_action_item ~on_activate ~on_drill item
       | Divider -> render_divider ()
@@ -349,22 +345,16 @@ let render_action_entries ~on_activate ~on_drill entries =
           match section.title with
           | None -> Vdom.Node.text ""
           | Some title ->
-            Vdom.Node.create_element
-              "div"
-              [ class_attr "astryx-context-menu__section-heading" ]
-              [ Vdom.Node.text title ]
+            Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu__section-heading" ] [ Vdom.Node.text title ]
         in
         let rows =
           List.map
-            (fun item -> render_action_item ~on_activate ~on_drill item)
+            ~f:(fun item -> render_action_item ~on_activate ~on_drill item)
             section.items
         in
-        Vdom.Node.create_element
-          "div"
-          [ class_attr "astryx-context-menu__section"
+        Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu__section"
           ; Vdom.Attr.create "role" "group"
-          ]
-          (heading :: rows))
+          ] (heading :: rows))
     entries
 
 (* ------------------------------------------------------------------ *)
@@ -387,16 +377,15 @@ let view
   : Vdom.Node.t Bonsai.t =
   let is_open, set_open = Bonsai.state false graph in
   let drill, set_drill = Bonsai.state Drill_in.empty graph in
-  let has_overflow, set_has_overflow = Bonsai.state false graph in
   let anchor, set_anchor = Bonsai.state (0., 0.) graph in
   let on_open_change =
     match on_open_change with
-    | None -> Bonsai.return (fun _ -> Effect.ignore)
+    | None -> Bonsai.return (fun _ -> Effect.Ignore)
     | Some on_open_change -> on_open_change
   in
   let on_select =
     match on_select with
-    | None -> Bonsai.return (fun _ -> Effect.ignore)
+    | None -> Bonsai.return (fun _ -> Effect.Ignore)
     | Some on_select -> on_select
   in
   let menu_id = id ^ "-menu" in
@@ -406,48 +395,83 @@ let view
   let reset_typeahead () = typeahead := ("", 0.) in
   let state = Bonsai.map2 is_open drill ~f:(fun open_ drill -> (open_, drill)) in
   let state =
-    Bonsai.map2 state has_overflow ~f:(fun (open_, drill) overflow ->
-      (open_, drill, overflow))
+    Bonsai.map2 state anchor ~f:(fun (open_, drill) anchor -> (open_, drill, anchor))
   in
   let state =
-    Bonsai.map2 state anchor ~f:(fun (open_, drill, overflow) anchor ->
-      (open_, drill, overflow, anchor))
+    Bonsai.map2 state on_open_change ~f:(fun (open_, drill, anchor) f ->
+      (open_, drill, anchor, f))
   in
   let state =
-    Bonsai.map2 state on_open_change ~f:(fun (open_, drill, overflow, anchor) f ->
-      (open_, drill, overflow, anchor, f))
+    Bonsai.map2 state on_select ~f:(fun (open_, drill, anchor, f) g ->
+      (open_, drill, anchor, f, g))
+  in
+  (* The setters are trees as well as the values, so they travel with the
+     state: a setter is only a function once it has been read out of its
+     tree. *)
+  let state =
+    Bonsai.map2 state (Bonsai.map2 set_open set_drill ~f:(fun o d -> (o, d)))
+      ~f:(fun (open_, drill, anchor, f, g) (set_open, set_drill) ->
+        (open_, drill, anchor, f, g, set_open, set_drill))
   in
   let state =
-    Bonsai.map2 state on_select ~f:(fun (open_, drill, overflow, anchor, f) g ->
-      (open_, drill, overflow, anchor, f, g))
+    Bonsai.map2 state set_anchor ~f:(fun
+      (open_, drill, anchor, f, g, set_open, set_drill) set_anchor ->
+        (open_, drill, anchor, f, g, set_open, set_drill, set_anchor))
   in
   Bonsai.map2 state (Bonsai.return ()) ~f:(fun
     ( open_
     , drill
-    , has_overflow
     , anchor
     , on_open_change
     , on_select
+    , set_open
+    , set_drill
+    , set_anchor
     ) () ->
+      (* Whether the menu scrolls: a menu that is taller than its box can be
+         panned, a menu that fits does not need to be. Upstream measures this
+         in a layout effect and keeps the answer in React state; here the
+         measurement is taken in the browser, on the menu itself, once the
+         menu is in the document — the two style properties it decides are
+         the menu's own, so they are written to the menu. *)
+      let measure_overflow () =
+        match element_by_id menu_id with
+        | None -> ()
+        | Some container ->
+          let overflow = Overflow.measure container in
+          let style = Js.Unsafe.get container "style" in
+          let set_property name value =
+            ignore
+              (Js.Unsafe.meth_call style "setProperty"
+                 [| Js.Unsafe.inject name; Js.Unsafe.inject value |])
+          in
+          set_property
+            "touch-action"
+            (if overflow then "pan-y pinch-zoom" else "pinch-zoom");
+          set_property "overscroll-behavior" (if overflow then "contain" else "auto")
+      in
       let close () =
-        set_drill Drill_in.empty;
         reset_typeahead ();
-        Effect.many [ set_open false; on_open_change false ]
+        Effect.Many [ set_drill Drill_in.empty; set_open false; on_open_change false ]
       in
       let open_at ~x ~y =
-        set_anchor (x, y);
-        set_drill Drill_in.empty;
         reset_typeahead ();
-        Effect.many [ set_open true; on_open_change true ]
+        Effect.Many
+          [ set_anchor (x, y)
+          ; set_drill Drill_in.empty
+          ; set_open true
+          ; on_open_change true
+          ; Effect.of_thunk (fun () -> next_frame (fun () -> measure_overflow ()))
+          ]
       in
       let select item =
         let selected = on_select item in
-        if item.has_close_on_select then Effect.many [ selected; close () ]
+        if item.has_close_on_select then Effect.Many [ selected; close () ]
         else selected
       in
       let drill_into item =
         match item.children with
-        | None -> Effect.ignore
+        | None -> Effect.Ignore
         | Some children ->
           let view =
             { Drill_in.id = (match item.id with
@@ -457,7 +481,7 @@ let view
             }
           in
           reset_typeahead ();
-          set_drill (Drill_in.push drill view)
+          Effect.Many [ set_drill (Drill_in.push drill view) ]
       in
       let current_entries =
         match Drill_in.current drill with
@@ -468,11 +492,13 @@ let view
         match Drill_in.current drill with
         | None -> label
         | Some view ->
-          (match List.find_opt (fun entry ->
+          (match List.find ~f:(fun entry ->
                match entry with
                | Item item ->
-                 item.id = Some view.id
-                   || (Option.is_none item.id && item.label = view.id)
+                 (match item.id with
+                  | Some id -> String.equal id view.id
+                  | None -> false)
+                   || (Option.is_none item.id && String.equal item.label view.id)
                | Divider | Section _ -> false)
              view.entries with
            | Some (Item item) -> item.label
@@ -481,19 +507,27 @@ let view
       let items_of container =
         query_all container ".astryx-context-menu__item"
       in
+      (* Focus the row at [index], wrapping around the ends. The effect is
+         the focus itself: a row cannot be focused before the browser has
+         laid the menu out, so the focus is an effect, not a call. *)
       let focus_index container index =
         let items = items_of container in
-        if List.is_empty items then ()
+        if List.is_empty items then Effect.Ignore
         else
           let index = if index < 0 then 0 else index in
           let index = index mod List.length items in
           (match List.nth items index with
-           | None -> ()
-           | Some item -> focus_element item)
+           | None -> Effect.Ignore
+           | Some item -> Effect.of_thunk (fun () -> focus_element item))
       in
       let focused_index container =
         let items = items_of container in
-        List.find_index (fun item -> is_active item) items
+        (* The index of the focused row, if the menu has one. *)
+        let rec loop index = function
+          | [] -> None
+          | item :: rest -> if is_active item then Some index else loop (index + 1) rest
+        in
+        loop 0 items
       in
       let page_size container =
         let client_height = (Js.Unsafe.get container "clientHeight" : int) in
@@ -514,16 +548,16 @@ let view
         | Some index ->
           let items = items_of container in
           let count = List.length items in
-          if count = 0 then ()
+          if count = 0 then Effect.Ignore
           else
             let index = (index + delta + count) mod count in
             focus_index container index
       in
       let typeahead_match container key =
-        let now = Js.Date.now () in
+        let now = now_ms () in
         let buffer, last = !typeahead in
         let buffer =
-          if now -. last > 1. then key else buffer ^ key
+          if Float.(>) (now -. last) 1. then key else buffer ^ key
         in
         typeahead := (buffer, now);
         let needle = String.lowercase buffer in
@@ -535,136 +569,127 @@ let view
         let rec find = function
           | [] -> None
           | item :: rest ->
-            if String.starts_with ~prefix:needle (label_of item) then Some item
+            if String.is_prefix (label_of item) ~prefix:needle then Some item
             else find rest
         in
         (match find items with
-         | None -> ()
-         | Some item -> focus_element item)
+         | None -> Effect.Ignore
+         | Some item -> Effect.of_thunk (fun () -> focus_element item))
       in
       let activate_focused container =
         match focused_index container with
-        | None -> Effect.ignore
+        | None -> Effect.Ignore
         | Some index ->
           let items = items_of container in
           (match List.nth items index with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some element ->
              let role = Js.Unsafe.get element "getAttribute" in
              let role =
-               Js.Unsafe.call role element [| Js.Unsafe.string "role" |]
+               Js.Unsafe.call role element [| Js.Unsafe.inject "role" |]
                |> Js.to_string
              in
-             if role = "menuitem" then
-               (match element##click with
-                | _ -> Effect.ignore)
-             else Effect.ignore)
+             if String.equal role "menuitem" then
+               (ignore (Js.Unsafe.meth_call element "click" [||]); Effect.Ignore)
+             else Effect.Ignore)
       in
-      let handle_key_down event =
-        let key = event##key in
-        if Drill_in.is_drill_ed drill && key = "Escape" then
+      let handle_key_down (event : Dom_html.keyboardEvent Js.t) =
+        let key = Js.Unsafe.get event "key" |> Js.to_string in
+        if Drill_in.is_drill_ed drill && String.equal key "Escape" then
           (prevent_default event;
            reset_typeahead ();
-           set_drill (Drill_in.pop drill);
-           Effect.ignore)
-        else if key = "Escape" then
+           Effect.Many [ set_drill (Drill_in.pop drill) ])
+        else if String.equal key "Escape" then
           (prevent_default event; close ())
-        else if key = "Tab" then close ()
-        else if key = "Enter" || key = " " then
+        else if String.equal key "Tab" then close ()
+        else if String.equal key "Enter" || String.equal key " " then
           (prevent_default event;
-           if event##repeat then Effect.ignore
+           if Js.Unsafe.get event "repeat" |> Js.to_bool then Effect.Ignore
            else
              match element_by_id menu_id with
-             | None -> Effect.ignore
+             | None -> Effect.Ignore
              | Some container -> activate_focused container)
-        else if key = "ArrowDown" then
+        else if String.equal key "ArrowDown" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> move container 1)
-        else if key = "ArrowUp" then
+        else if String.equal key "ArrowUp" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> move container (-1))
-        else if key = "Home" then
+        else if String.equal key "Home" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> focus_index container 0)
-        else if key = "End" then
+        else if String.equal key "End" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container ->
              focus_index container (List.length (items_of container) - 1))
-        else if key = "PageDown" then
+        else if String.equal key "PageDown" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> move container (page_size container))
-        else if key = "PageUp" then
+        else if String.equal key "PageUp" then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> move container (-page_size container))
-        else if String.length key = 1 && String.for_all (fun c -> Char.code c >= 32) key
+        else if String.length key = 1 && String.for_all ~f:(fun c -> Char.to_int c >= 32) key
         then
           (prevent_default event;
            match element_by_id menu_id with
-           | None -> Effect.ignore
+           | None -> Effect.Ignore
            | Some container -> typeahead_match container key)
-        else Effect.ignore
+        else Effect.Ignore
       in
-      let handle_context_menu event =
-        if is_disabled then Effect.ignore
+      let handle_context_menu (event : Dom_html.mouseEvent Js.t) =
+        if is_disabled then Effect.Ignore
         else
           (prevent_default event;
            let rect =
              match element_by_id id with
              | None -> None
-             | Some element -> Some (element##getBoundingClientRect ())
+             | Some element ->
+               Some (Js.Unsafe.meth_call element "getBoundingClientRect" [||])
            in
            let keyboard_invoked =
-             event##clientX = 0 && event##clientY = 0 && event##detail = 0
+             (Js.Unsafe.get event "clientX" : int) = 0
+             && (Js.Unsafe.get event "clientY" : int) = 0
+             && (Js.Unsafe.get event "detail" : int) = 0
            in
            let x, y =
              match rect with
              | None -> (0., 0.)
              | Some rect ->
-               if keyboard_invoked then (0., rect##height)
+               if keyboard_invoked then (0., (Js.Unsafe.get rect "height" : float))
                else
-                 ( float_of_int event##clientX -. rect##left
-                 , float_of_int event##clientY -. rect##top )
+                 ( (Js.Unsafe.get event "clientX" : float) -. (Js.Unsafe.get rect "left" : float)
+                 , (Js.Unsafe.get event "clientY" : float) -. (Js.Unsafe.get rect "top" : float) )
            in
            open_at ~x ~y)
       in
-      let measure_overflow () =
-        match element_by_id menu_id with
-        | None -> ()
-        | Some container ->
-          let overflow = Overflow.measure container in
-          set_has_overflow overflow
-      in
       let trigger_element =
         let tag = match trigger_as with Div -> "div" | Span -> "span" in
-        Vdom.Node.create_element
+        Vdom.Node.create
           tag
-          (attrs
+          ~attrs:(attrs
           @ [ class_attr trigger_class
             ; Vdom.Attr.create "data-astryx-target" "context-menu-trigger"
             ; Vdom.Attr.on_contextmenu handle_context_menu
             ])
           [ trigger
-          ; Vdom.Node.create_element
-              "span"
-              [ class_attr cursor_anchor_class
+          ; Vdom.Node.create "span" ~attrs:[ class_attr cursor_anchor_class
               ; Vdom.Attr.create "aria-hidden" "true"
               ; style_attr
                   [ ("left", Printf.sprintf "%gpx" (fst anchor))
                   ; ("top", Printf.sprintf "%gpx" (snd anchor))
-                  ]
-              ]
+                  ] ]
               [ Vdom.Node.text "" ]
           ]
       in
@@ -673,13 +698,11 @@ let view
         else
           let resolved = Adaptive_presentation.resolve presentation in
           match resolved with
-          | Popover ->
+          | Adaptive_presentation.Resolved_popover ->
             let rows =
               render_entries ~on_activate:select ~on_drill:drill_into current_entries
             in
-            Vdom.Node.create_element
-              "div"
-              [ class_attr menu_class
+            Vdom.Node.create "div" ~attrs:[ class_attr menu_class
               ; Vdom.Attr.create "role" "menu"
               ; Vdom.Attr.create "id" menu_id
               ; Vdom.Attr.create "tabindex" "-1"
@@ -688,7 +711,7 @@ let view
               ; Vdom.Attr.on_keydown handle_key_down
               ; Vdom.Attr.on_contextmenu (fun event ->
                   prevent_default event;
-                  Effect.ignore)
+                  Effect.Ignore)
               ; style_attr
                   [ ("position", "absolute")
                   ; ("left", Printf.sprintf "%gpx" (fst anchor))
@@ -696,14 +719,9 @@ let view
                   ; ("min-width", menu_width)
                   ; ("max-height", "300px")
                   ; ("overflow-y", "auto")
-                  ; ( "touch-action"
-                    , if has_overflow then "pan-y pinch-zoom" else "pinch-zoom" )
-                  ; ( "overscroll-behavior"
-                    , if has_overflow then "contain" else "auto" )
-                  ]
-              ]
+                  ] ]
               rows
-          | Bottom_sheet ->
+          | Adaptive_presentation.Resolved_bottom_sheet ->
             let rows =
               render_action_entries
                 ~on_activate:select
@@ -713,28 +731,19 @@ let view
             let back_button =
               if not (Drill_in.is_drill_ed drill) then Vdom.Node.text ""
               else
-                Vdom.Node.create_element
-                  "button"
-                  [ class_attr "astryx-context-menu__back"
+                Vdom.Node.create "button" ~attrs:[ class_attr "astryx-context-menu__back"
                   ; Vdom.Attr.create "type" "button"
                   ; Vdom.Attr.on_click (fun _ ->
                       reset_typeahead ();
-                      set_drill (Drill_in.pop drill);
-                      Effect.ignore)
-                  ]
-                  [ Vdom.Node.text "‹" ]
+                      Effect.Many [ set_drill (Drill_in.pop drill) ])
+                  ] [ Vdom.Node.text "‹" ]
             in
             let title_node =
-              Vdom.Node.create_element
-                "h3"
-                [ class_attr sheet_title_class
+              Vdom.Node.create "h3" ~attrs:[ class_attr sheet_title_class
                 ; Vdom.Attr.create "tabindex" "-1"
-                ]
-                [ Vdom.Node.text current_title ]
+                ] [ Vdom.Node.text current_title ]
             in
-            Vdom.Node.create_element
-              "div"
-              [ class_attr sheet_class
+            Vdom.Node.create "div" ~attrs:[ class_attr sheet_class
               ; Vdom.Attr.create "id" menu_id
               ; Vdom.Attr.create "tabindex" "0"
               ; Vdom.Attr.create "data-autofocus" ""
@@ -747,13 +756,9 @@ let view
                   ; ("bottom", "0")
                   ; ("max-height", "70vh")
                   ; ("overflow-y", "auto")
-                  ]
-              ]
-              [ Vdom.Node.create_element
-                  "div"
-                  [ class_attr sheet_header_class ]
-                  [ back_button; title_node ]
-              ; Vdom.Node.create_element "div" [] rows
+                  ] ]
+              [ Vdom.Node.create "div" ~attrs:[ class_attr sheet_header_class ] [ back_button; title_node ]
+              ; Vdom.Node.create "div" ~attrs:[] rows
               ]
       in
       let surface =
@@ -763,7 +768,4 @@ let view
            | Some _ -> surface)
         else surface
       in
-      Vdom.Node.create_element
-        "div"
-        [ class_attr "astryx-context-menu" ]
-        [ trigger_element; surface ])
+      Vdom.Node.create "div" ~attrs:[ class_attr "astryx-context-menu" ] [ trigger_element; surface ])
