@@ -4354,6 +4354,65 @@ let () =
   mount "selector-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* -------------------------------------------------------------- BottomSheet *)
+(* The sheet that comes up from the bottom: the sheet never opens or closes
+   itself, so the open flag and the change callback are the caller's. *)
+let bottom_sheet_component graph =
+  let is_open = Bonsai.return true in
+  let on_open_change = Bonsai.return (fun (_ : bool) -> Effect.return ()) in
+  let children =
+    Bonsai.return
+      [ Vdom.Node.h3 ~attrs:[] [ Vdom.Node.text "Account details" ]
+      ; Vdom.Node.p ~attrs:[] [ Vdom.Node.text "The sheet's own content." ]
+      ]
+  in
+  let trees =
+    [ Astryx.Bottom_sheet.view
+        ~id:"rt-bs"
+        ~label:"Account details"
+        ~is_open
+        ~on_open_change
+        ~children
+        graph
+    ; Astryx.Bottom_sheet.view
+        ~id:"rt-bs-required"
+        ~label:"Delete this project"
+        ~purpose:Astryx.Bottom_sheet.Required
+        ~is_open
+        ~on_open_change
+        ~children
+        graph
+    ; Astryx.Bottom_sheet.view
+        ~id:"rt-bs-inline"
+        ~label:"A sheet written into the page"
+        ~height:Astryx.Bottom_sheet.Hug
+        ~is_inline:true
+        ~is_open:(Bonsai.return true)
+        ~on_open_change
+        ~children
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "bottom-sheet-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      bottom_sheet_component
+  in
+  mount "bottom-sheet-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

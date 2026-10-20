@@ -190,6 +190,16 @@ const LAYOUT_PROBE = () => {
     }
     return false;
   };
+  // A component that wraps content which is all hidden is not a collapsed component: the
+  // BottomSheet's own box is a plain div around a closed <dialog>, so the div has no
+  // height of its own while the sheet is shut. The platform hid the content, which is the
+  // platform working; the wrapper did not collapse.
+  const hasVisibleContent = (el) =>
+    [...el.querySelectorAll("*")].some((d) => {
+      if (d.checkVisibility?.() === false) return false;
+      const dr = d.getBoundingClientRect();
+      return dr.width > 0 || dr.height > 0;
+    });
   const boxes = [...document.querySelectorAll("[data-astryx-component]")]
     // Ask each element whether it renders at all, rather than assuming every marked component has a
     // box. A closed <dialog> is display:none by the platform and its *contents* collapse with it —
@@ -205,6 +215,7 @@ const LAYOUT_PROBE = () => {
       width: Math.round(r.width),
       height: Math.round(r.height),
       insideClipped: insideClippedAncestor(el),
+      wrapsOnlyHidden: !hasVisibleContent(el),
     };
   });
   const ar = document.querySelector("[data-astryx-aspect-ratio]");
@@ -214,7 +225,7 @@ const LAYOUT_PROBE = () => {
     scrollWidth: document.documentElement.scrollWidth,
     bodyScrollWidth: document.body ? document.body.scrollWidth : 0,
     boxes,
-    collapsed: boxes.filter((b) => b.width === 0 || b.height === 0),
+    collapsed: boxes.filter((b) => (b.width === 0 || b.height === 0) && !b.wrapsOnlyHidden),
     escaping: boxes.filter((b) => b.right > vw + 1 || b.left < -1)
       .filter((b) => !b.insideClipped),
     aspect: arBox ? { w: Math.round(arBox.width), h: Math.round(arBox.height) } : null,

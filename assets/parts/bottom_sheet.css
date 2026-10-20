@@ -1,0 +1,244 @@
+/* BottomSheet — the mobile touch surface that rises from the bottom edge.
+
+   Ported from astryx packages/core/src/BottomSheet/ (the stylex blocks in
+   BottomSheet.tsx and BottomSheetPanel.tsx). The token *values* are upstream's;
+   the class names are this port's, as everywhere else in this stylesheet.
+
+   The DOM this stylesheet dresses, from the outside in:
+
+     dialog.astryx-bottom-sheet          the host; a native <dialog>, so the
+                                         browser owns the top layer, the inert
+                                         page behind, the focus trap, the
+                                         Escape cancel event and the ::backdrop
+                                         scrim
+       .astryx-bottom-sheet__positioner  the sheet's slot at the bottom edge
+         .astryx-bottom-sheet__panel    the painted sheet, and the height
+                                         budget it is given
+           .astryx-bottom-sheet__body   the part of the sheet that carries the
+                                         visible height and the drag transform
+             .astryx-bottom-sheet__handle
+             .astryx-bottom-sheet__content
+
+   Upstream's sheet element is one box that both holds the height budget and
+   carries the transform. This port splits it: the panel keeps the sheet's own
+   height, so the area above a collapsed sheet stays transparent, and the body
+   inside it carries the visible height and the translation. The body is
+   therefore the thing that moves. */
+
+/* The host. The dialog is the full-viewport overlay the browser puts in the
+   top layer; the panel inside it is what the user actually sees. */
+.astryx-bottom-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-style: none;
+  background-color: transparent;
+  /* A top-layer element still inherits from the document, and the sheet holds
+     body text. */
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-leading);
+  overflow: visible;
+  outline: none;
+  /* `display` participates in the transition with allow-discrete, so it flips
+     to none only after the slide-out finishes — which keeps the sheet
+     rendered until the close has actually run. */
+  display: none;
+  transition-property: display;
+  transition-duration: var(--duration-medium);
+  transition-behavior: allow-discrete;
+}
+
+/* The open state is the native [open] attribute, not a class: the host is a
+   <dialog>, and the browser puts it in the top layer by setting that
+   attribute. An author-level `display: none` beats the user agent's
+   `dialog[open] { display: block }`, so the sheet has to be shown again from
+   here — the same pair upstream keeps as its dialogOpen style. */
+.astryx-bottom-sheet[open] {
+  display: block;
+}
+
+/* Without a scrim the sheet is shown non-modally: the page behind stays live,
+   so the sheet must not swallow clicks meant for it. */
+.astryx-bottom-sheet--non-modal {
+  pointer-events: none;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+}
+
+.astryx-bottom-sheet--non-modal .astryx-bottom-sheet__panel {
+  pointer-events: auto;
+}
+
+/* The scrim is the browser's: the ::backdrop only exists once showModal() has
+   put the dialog in the top layer. Its opacity follows the sheet — full at
+   every working stop, thinning only onto a peek, which is the port's
+   --_sheet-scrim-opacity custom property. */
+.astryx-bottom-sheet::backdrop {
+  background-color: var(--color-overlay);
+  opacity: var(--_sheet-scrim-opacity, 1);
+  transition-property: opacity, display;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: linear;
+  transition-behavior: allow-discrete;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-bottom-sheet::backdrop {
+    transition-duration: 0.01s;
+  }
+}
+
+/* The inline variant: ordinary markup, no top layer, no modal behaviour and
+   no scrim, so a page can show several sheets at once. The panel sits at the
+   bottom of whatever box the sheet is written in. */
+.astryx-bottom-sheet--inline {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: hidden;
+}
+
+/* An inline sheet has no overlay to sit in, so the sheet's slot is in the flow:
+   the positioner is pinned to the bottom edge of a fixed overlay, and there is
+   no overlay here. Left absolute, the sheet's content would be out of flow and
+   the host would have no height at all. */
+.astryx-bottom-sheet--inline .astryx-bottom-sheet__positioner {
+  position: static;
+  display: block;
+}
+
+/* The sheet's slot: pinned to the bottom edge of the host, centred
+   horizontally. pointer-events: none so the page behind stays clickable
+   through the empty space beside the sheet. */
+.astryx-bottom-sheet__positioner {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* The painted sheet. It keeps the sheet's own height (the budget) so the area
+   above a collapsed sheet stays transparent; the body inside carries the
+   visible height and the transform. */
+.astryx-bottom-sheet__panel {
+  pointer-events: auto;
+  box-sizing: border-box;
+  /* Containing block for the floating handle bar, which is lifted out of flow
+     so the scrolling body reaches the sheet's top edge. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 640px;
+  background-color: var(--color-background-surface);
+  /* Hairline on the three edges that face the scrim. The surface fill alone
+     separates sheet from scrim in light mode, but not in dark: there the two
+     sit within a few RGB steps of each other and the drop shadow is black on
+     near-black, so the sheet's left and right edges disappear. The block-end
+     edge is deliberately left bare; it sits below the viewport, under the
+     overscroll padding. */
+  border-block-start-width: var(--border-width);
+  border-block-start-style: solid;
+  border-block-start-color: var(--color-border);
+  border-inline-start-width: var(--border-width);
+  border-inline-start-style: solid;
+  border-inline-start-color: var(--color-border);
+  border-inline-end-width: var(--border-width);
+  border-inline-end-style: solid;
+  border-inline-end-color: var(--color-border);
+  border-start-start-radius: var(--radius-container);
+  border-start-end-radius: var(--radius-container);
+  box-shadow: var(--shadow-high);
+  outline: none;
+  overflow: hidden;
+  /* The overscroll padding: the sheet's bottom edge sits below the viewport,
+     so a scroll that runs out has somewhere to go. */
+  padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 48px);
+  margin-block-end: -48px;
+}
+
+/* The body carries the sheet's visible height and the drag's translation.
+   Upstream keeps both on the sheet element itself; this port splits them, so
+   the transform lives here. */
+.astryx-bottom-sheet__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  /* The scrolling area paints the surface itself, so the sheet's edge is
+     uniform — a theme that packs an inset ring into --shadow-high would
+     otherwise draw that ring just inside the sheet, where an opaque content
+     wrapper paints over it, and the sheet's side edges would appear to change
+     width partway down. */
+  background-color: var(--color-background-surface);
+  touch-action: pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  outline: none;
+}
+
+.astryx-bottom-sheet__body:focus-visible {
+  outline-offset: calc(-1 * var(--focus-outline-width));
+}
+
+/* Floats over the body rather than taking a row in the flex column: the
+   content starts at the sheet's top edge and rides up under the pill — both
+   moving it closer to the top and letting scrolled content pass beneath
+   instead of stopping at a hard edge. */
+.astryx-bottom-sheet__handle {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--spacing-6);
+  /* Keeps the pill legible over whatever sits or scrolls under it: opaque
+     surface behind the pill itself, fading out across the lower half so the
+     content emerging below has no visible cut line. */
+  background-image: linear-gradient(to bottom, var(--color-background-surface) 60%, transparent);
+  /* Drags are the handle's; a pinch still zooms the page (WCAG 1.4.4). */
+  touch-action: pinch-zoom;
+  cursor: grab;
+}
+
+.astryx-bottom-sheet__handle:active {
+  cursor: grabbing;
+}
+
+.astryx-bottom-sheet__handle-pill {
+  width: var(--size-element-lg);
+  height: var(--spacing-1);
+  border-radius: var(--radius-full);
+  background-color: var(--color-border);
+}
+
+/* The content box. It is the sheet's container: it carries the padding and
+   publishes it, so a lone child escapes it. */
+.astryx-bottom-sheet__content {
+  /* Preserve the body's block formatting (including margin/float isolation)
+     and its definite percentage-height basis. min-content lets this box grow
+     with async content beyond a fixed-height viewport. */
+  display: flow-root;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: min-content;
+}

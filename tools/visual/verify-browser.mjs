@@ -288,6 +288,7 @@ if (mode === "showcase") {
     "Calendar",
     "Chat",
     "Selector",
+    "BottomSheet",
 
   ];
 
@@ -651,7 +652,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("92 sections", sections.length === 92, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("93 sections", sections.length === 93, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -751,13 +752,14 @@ if (mode === "showcase") {
     CodeBlock: 8,
     Calendar: 7,
     Selector: 8,
+    BottomSheet: 5,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("617 examples across the page", totalExamples === 617, `got ${totalExamples}`);
+  check("622 examples across the page", totalExamples === 622, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -771,7 +773,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("92 nav links", nav.length === 92, `got ${nav.length}`);
+  check("93 nav links", nav.length === 93, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4166,11 +4168,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 90 ported / 13 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["90", "13", "103"]),
+    "coverage stats are 91 ported / 12 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["91", "12", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 13 entries", cov.unported === 13, `got ${cov.unported}`);
+  check("unported list rendered 12 entries", cov.unported === 12, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5833,6 +5835,78 @@ check(
       check("a row can be unpickable", shapes?.disabledRows === 1, JSON.stringify(shapes?.disabledRows));
       check("an empty list says so", (shapes?.empty ?? "") !== "", JSON.stringify(shapes?.empty));
       check("the list can carry a search field", shapes?.searchInput === true, JSON.stringify(shapes?.searchInput));
+    }
+  }
+
+
+  // -------------------------------------------------------------- BottomSheet (M74)
+  {
+    const bsSection = await page.$("section[data-showcase-component='BottomSheet']");
+    check("the BottomSheet section renders", bsSection !== null,
+      bsSection ? "found" : "missing");
+    if (bsSection) {
+      const shape = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='BottomSheet']");
+        const dialogs = [...sec.querySelectorAll("dialog")];
+        const inline = sec.querySelector("#showcase-bottom-sheet-inline");
+        return {
+          components: sec.querySelectorAll("[data-astryx-component='BottomSheet']").length,
+          dialogs: dialogs.length,
+          ids: dialogs.map((d) => d.id),
+          inlineTag: inline?.tagName ?? null,
+          inlineClass: inline?.getAttribute("class") ?? null,
+          handles: sec.querySelectorAll(".astryx-bottom-sheet__handle").length,
+        };
+      });
+      check("the section draws five sheets, four of them dialogs and one inline",
+        shape?.components === 5
+          && shape?.dialogs === 4
+          && shape?.inlineTag === "DIV"
+          && (shape?.inlineClass ?? "").includes("astryx-bottom-sheet--inline"),
+        JSON.stringify(shape));
+      check("each sheet has a drag handle", shape?.handles === 5, JSON.stringify(shape?.handles));
+
+      await page.click("text=Open the sheet");
+      await page.waitForTimeout(400);
+      const opened = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='BottomSheet']");
+        const d = sec?.querySelector("dialog[open]");
+        if (!d) return null;
+        return {
+          id: d.id,
+          modal: d.matches(":modal"),
+          role: d.getAttribute("role"),
+          label: d.getAttribute("aria-label"),
+        };
+      });
+      check("the sheet opens as a native modal dialog that names itself",
+        opened?.id === "showcase-bottom-sheet-info"
+          && opened?.modal === true
+          && opened?.role === "dialog"
+          && opened?.label === "Account details",
+        JSON.stringify(opened));
+
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(400);
+      const escaped = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='BottomSheet']");
+        return {
+          open: sec?.querySelectorAll("dialog[open]").length ?? -1,
+        };
+      });
+      check("Escape closes the sheet", escaped?.open === 0, JSON.stringify(escaped));
+
+      const purposes = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='BottomSheet']");
+        const form = sec?.querySelector("#showcase-bottom-sheet-form");
+        const required = sec?.querySelector("#showcase-bottom-sheet-required");
+        return {
+          formRole: form?.getAttribute("role") ?? null,
+          requiredRole: required?.getAttribute("role") ?? null,
+        };
+      });
+      check("a sheet that has to be answered is an alertdialog",
+        purposes?.requiredRole === "alertdialog", JSON.stringify(purposes));
     }
   }
 

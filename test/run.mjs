@@ -3907,6 +3907,43 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 
+
+{
+  const host = document.querySelector('[data-case="bottom-sheet-all"]');
+  const dialog = host?.querySelector("#rt-bs");
+  const required = host?.querySelector("#rt-bs-required");
+  const inline = host?.querySelector("#rt-bs-inline");
+
+  // jsdom has no showModal, so the open state is checked in the real browser
+  check("the sheet is a dialog that names itself",
+    dialog?.tagName === "DIALOG"
+      && dialog?.getAttribute("aria-label") === "Account details",
+    JSON.stringify({
+      tag: dialog?.tagName,
+      label: dialog?.getAttribute("aria-label"),
+    }));
+
+  check("the sheet carries a drag handle",
+    (host?.querySelectorAll(".astryx-bottom-sheet__handle")?.length ?? 0) >= 1,
+    String(host?.querySelectorAll(".astryx-bottom-sheet__handle")?.length ?? 0));
+
+  check("a sheet that has to be answered is an alertdialog",
+    required?.tagName === "DIALOG" && required?.getAttribute("role") === "alertdialog",
+    JSON.stringify({
+      tag: required?.tagName,
+      role: required?.getAttribute("role"),
+    }));
+
+  check("an inline sheet is ordinary markup, not a dialog",
+    inline?.tagName === "DIV"
+      && (inline?.getAttribute("class") ?? "").includes("astryx-bottom-sheet--inline")
+      && inline?.querySelector("dialog") === null,
+    JSON.stringify({
+      tag: inline?.tagName,
+      class: inline?.getAttribute("class"),
+    }));
+}
+
 {
   const host = document.querySelector('[data-case="selector-all"]');
   const trigger = host?.querySelector("#rt-sel");

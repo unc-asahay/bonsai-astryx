@@ -866,6 +866,13 @@
       "file": "src/selector.ml",
       "milestone": "M73",
       "module": "Astryx.selector"
+    },
+    {
+      "class": "C",
+      "component": "BottomSheet",
+      "file": "src/bottom_sheet.ml",
+      "milestone": "M74",
+      "module": "Astryx.bottom_sheet"
     }
   ],
   "schema": 1,

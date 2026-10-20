@@ -1,0 +1,44 @@
+Gate 85 — M74 BottomSheet (coverage 90 → 91)
+
+The BottomSheet is the sheet that comes up from the bottom of the
+screen, and it comes in the shapes a sheet can be.
+
+The port carries upstream's shape. The sheet is a native `<dialog>`, so
+the page behind it is inert while it is open, Escape closes it, and the
+platform handles the focus. The sheet never opens or closes itself:
+`is_open` and `on_open_change` are the caller's, which is the only way
+a sheet can be told to stay put. The purpose decides how it may be
+dismissed — an ordinary sheet goes away on a scrim click, a form sheet
+keeps what was typed into it, and a required sheet refuses every
+implicit dismissal and is an `alertdialog` because it has to be
+answered. A sheet with stops settles at one of them when the handle is
+dragged, and an inline sheet is ordinary markup written into the page,
+with no top layer and no scrim.
+
+## The gate found
+
+- The worker's section was not the house's shape at all: it drew its
+  own headings and its own wrappers, so it produced no
+  `data-showcase-component` and no `data-example` markers, and the
+  browser gate could not see it. The section is now the house's
+  `section`/`ex` pair, and the examples are graphs mapped to nodes
+  before they are wrapped.
+- `Bonsai.state'` hands back an update-style setter, and the setter is
+  a tree, not a function: `set (fun _ -> false)`, reached through
+  `Bonsai.map` where it is used.
+- A labelled argument cannot shadow the function of the same name: the
+  helper's `~heading` and `~note` parameters hid the `heading` and
+  `note` functions inside the helper's own body. They are `~title` and
+  `~copy` now.
+- `Vdom.Attr.on_click` takes a mouse event, not a unit.
+
+## The gate changed
+
+- The component case no longer asserts that the dialog carries the
+  `open` attribute: jsdom has no `showModal`, so the open state is
+  checked in the real browser instead, where the sheet is a genuine
+  `:modal` dialog.
+- The real-browser checks cover the four dismissal rules: the sheet
+  opens as a modal that names itself, Escape closes it, and a sheet
+  that has to be answered is an `alertdialog` while an ordinary one is
+  a plain `dialog`.
