@@ -22,6 +22,7 @@ module More_menu = More_menu
 module Pagination = Pagination
 module Popover = Popover
 module Complex_selector = Complex_selector
+module Selector = Selector
 module Outline = Outline
 module Common = Common
 module Progress_bar = Progress_bar
