@@ -135,3 +135,4 @@ module Plain_date = Plain_date
 module Resizable = Resizable
 module Toast = Toast
 module Mobile_nav = Mobile_nav
+module Multi_selector = Multi_selector
