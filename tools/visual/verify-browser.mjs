@@ -282,6 +282,7 @@ if (mode === "showcase") {
     "Tokenizer",
     "MultiSelector",
     "Stepper",
+    "Pagination",
 
   ];
 
@@ -645,7 +646,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("86 sections", sections.length === 86, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("87 sections", sections.length === 87, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -739,13 +740,14 @@ if (mode === "showcase") {
     Tokenizer: 9,
     MultiSelector: 8,
     Stepper: 7,
+    Pagination: 7,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("563 examples across the page", totalExamples === 563, `got ${totalExamples}`);
+  check("570 examples across the page", totalExamples === 570, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -759,7 +761,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("86 nav links", nav.length === 86, `got ${nav.length}`);
+  check("87 nav links", nav.length === 87, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4154,11 +4156,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 84 ported / 19 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["84", "19", "103"]),
+    "coverage stats are 85 ported / 18 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["85", "18", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 19 entries", cov.unported === 19, `got ${cov.unported}`);
+  check("unported list rendered 18 entries", cov.unported === 18, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -4752,14 +4754,24 @@ check(
     `slides=${carRest?.slides} first=${carRest?.firstLabel}`);
 
   await page.click('#showcase-carousel-basic [data-astryx-nav="end"]');
+  // The scroll settles at the end, and only then do the pills know they are at
+  // the edge: upstream's own test says the right button is disabled once the
+  // scroller is fully right ("At the end edge (scrolled fully right):
+  // overflowEnd is false"). So wait for that state, not for the scroll alone.
   await page.waitForFunction(
-    () => document.querySelector("#showcase-carousel-basic .astryx-carousel__scroller")?.scrollLeft > 0,
+    () => {
+      const sc = document.querySelector("#showcase-carousel-basic .astryx-carousel__scroller");
+      const end = document.querySelector('#showcase-carousel-basic [data-astryx-nav="end"]');
+      if (!sc || !end) return false;
+      const atEnd = sc.scrollLeft >= sc.scrollWidth - sc.clientWidth - 1;
+      return atEnd && end.disabled === true;
+    },
     { timeout: 30000 },
   );
   const carScrolled = await carState();
-  check("clicking the end pill scrolls and flips the disabled edge",
-    (carScrolled?.left ?? 0) > 0 && carScrolled?.endDisabled === false
-      && (carScrolled?.startDisabled === true || carScrolled?.startDisabled === false),
+  check("clicking the end pill scrolls to the end and flips the disabled edge",
+    (carScrolled?.left ?? 0) > 0 && carScrolled?.endDisabled === true
+      && carScrolled?.startDisabled === false,
     JSON.stringify(carScrolled));
   check("the fade follows the scrolled state (start edge now overflowing)",
     carScrolled?.fade !== null, `fade=${carScrolled?.fade}`);
@@ -5895,6 +5907,111 @@ check(
         collapsed?.stepsInDom === 4,
         JSON.stringify({ stepsInDom: collapsed?.stepsInDom }));
     }
+  }
+
+  // ---------------------------------------------------------------- Pagination
+  {
+    const pgSection = await page.$("section[data-showcase-component='Pagination']");
+    check("the Pagination section renders", pgSection !== null);
+    const pgState = await page.evaluate(() => {
+      const nav = document.querySelector("#showcase-pagination-pages");
+      const list = nav?.querySelector(".astryx-pagination__pages");
+      const buttons = [...(list?.querySelectorAll("button") ?? [])];
+      const current = list?.querySelector("[aria-current='page']");
+      const prev = nav?.querySelector("button[aria-label*='previous']");
+      const next = nav?.querySelector("button[aria-label*='next']");
+      return {
+        tag: nav?.tagName?.toLowerCase() ?? null,
+        label: nav?.getAttribute("aria-label") ?? null,
+        component: nav?.getAttribute("data-astryx-component") ?? null,
+        listRole: list?.getAttribute("role") ?? null,
+        numbers: buttons.map((b) => b.textContent.trim()),
+        current: current?.textContent.trim() ?? null,
+        ellipsis: list?.querySelectorAll(".astryx-pagination__ellipsis").length ?? 0,
+        prevDisabled: prev?.disabled ?? null,
+        nextDisabled: next?.disabled ?? null,
+        announcement: nav?.querySelector("[aria-live]")?.textContent.trim() ?? null,
+      };
+    });
+    check("a pagination is a navigation region with an accessible name",
+      pgState?.tag === "nav" && pgState?.label === "Pagination"
+        && pgState?.component === "Pagination",
+      JSON.stringify(pgState));
+    check("the page numbers are a list, with the current page marked",
+      pgState?.listRole === "list" && pgState?.current === "1"
+        && pgState?.numbers?.includes("1"),
+      JSON.stringify(pgState));
+    check("the pages that are left out are an ellipsis, hidden from the reader",
+      pgState?.ellipsis === 1
+        && pgState?.numbers?.every((n) => /^[0-9]+$/.test(n)),
+      JSON.stringify(pgState));
+    check("the previous control is disabled on the first page and the next one is not",
+      pgState?.prevDisabled === true && pgState?.nextDisabled === false,
+      JSON.stringify(pgState));
+    check("the current page is announced politely",
+      pgState?.announcement === "Page 1 of 10",
+      JSON.stringify(pgState));
+
+    // A real click: the page number the person picks becomes the current one.
+    await page.click('#showcase-pagination-pages .astryx-pagination__pages li:nth-child(3) button');
+    await page.waitForFunction(
+      () => document.querySelector("#showcase-pagination-pages [aria-current='page']")?.textContent.trim() === "3",
+      { timeout: 30000 },
+    );
+    const pgAfter = await page.evaluate(() => {
+      const nav = document.querySelector("#showcase-pagination-pages");
+      const current = nav?.querySelector("[aria-current='page']");
+      const prev = nav?.querySelector("button[aria-label*='previous']");
+      const next = nav?.querySelector("button[aria-label*='next']");
+      return {
+        current: current?.textContent.trim() ?? null,
+        prevDisabled: prev?.disabled ?? null,
+        nextDisabled: next?.disabled ?? null,
+        announcement: nav?.querySelector("[aria-live]")?.textContent.trim() ?? null,
+      };
+    });
+    check("clicking a page number moves the current page",
+      pgAfter?.current === "3",
+      JSON.stringify(pgAfter));
+    check("the controls follow the current page",
+      pgAfter?.prevDisabled === false && pgAfter?.nextDisabled === false
+        && pgAfter?.announcement === "Page 3 of 10",
+      JSON.stringify(pgAfter));
+
+    const pgVariants = await page.evaluate(() => {
+      const count = document.querySelector("#showcase-pagination-count");
+      const compact = document.querySelector("#showcase-pagination-compact");
+      const dots = document.querySelector("#showcase-pagination-dots");
+      const input = document.querySelector("#showcase-pagination-input");
+      const unknown = document.querySelector("#showcase-pagination-unknown");
+      return {
+        count: count?.querySelector(".astryx-pagination__info")?.textContent.trim() ?? null,
+        compact: compact?.querySelector(".astryx-pagination__info")?.textContent.trim() ?? null,
+        dotCount: dots?.querySelectorAll(".astryx-pagination__dot").length ?? 0,
+        dotActive: dots?.querySelectorAll(".astryx-pagination__dot--active").length ?? 0,
+        dotLabel: dots?.querySelector(".astryx-pagination__dot")?.getAttribute("aria-label") ?? null,
+        inputValue: input?.querySelector("input")?.value ?? null,
+        inputTotal: input?.querySelector(".astryx-pagination__input-total")?.textContent.trim() ?? null,
+        unknownButtons: unknown?.querySelectorAll("button").length ?? 0,
+        unknownNextDisabled: unknown?.querySelector("button[aria-label*='next']")?.disabled ?? null,
+      };
+    });
+    check("the count variant reports the range of items on the page",
+      pgVariants?.count === "1–20 of 200",
+      JSON.stringify(pgVariants));
+    check("the compact variant reports the page out of the total",
+      pgVariants?.compact === "Page 1 of 10",
+      JSON.stringify(pgVariants));
+    check("the dots variant draws one dot per page, with the current one marked",
+      pgVariants?.dotCount === 5 && pgVariants?.dotActive === 1
+        && pgVariants?.dotLabel === "Go to page 1",
+      JSON.stringify(pgVariants));
+    check("the input variant shows the page and the total",
+      pgVariants?.inputValue === "1" && pgVariants?.inputTotal === "/ 12",
+      JSON.stringify(pgVariants));
+    check("a pagination with no known end offers only the next control",
+      pgVariants?.unknownButtons === 1 && pgVariants?.unknownNextDisabled === false,
+      JSON.stringify(pgVariants));
   }
 
   // ------------------------------------------------------------------ Toast

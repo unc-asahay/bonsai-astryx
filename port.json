@@ -824,6 +824,13 @@
       "file": "src/stepper.ml",
       "milestone": "M67",
       "module": "Astryx.stepper"
+    },
+    {
+      "class": "C",
+      "component": "Pagination",
+      "file": "src/pagination.ml",
+      "milestone": "M68",
+      "module": "Astryx.pagination"
     }
   ],
   "schema": 1,

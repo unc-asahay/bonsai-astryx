@@ -5690,6 +5690,7 @@ let nav_items =
   ; "tokenizer", "Tokenizer"
   ; "multi-selector", "MultiSelector"
   ; "stepper", "Stepper"
+  ; "pagination", "Pagination"
   ]
 ;;
 
@@ -6498,6 +6499,7 @@ let page (graph : Bonsai.graph) =
   let tokenizer_section = Sec_tokenizer.demo graph in
   let multi_selector_section = Sec_multi_selector.demo graph in
   let stepper_section = Sec_stepper.demo graph in
+  let pagination_section = Sec_pagination.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6520,6 +6522,7 @@ let page (graph : Bonsai.graph) =
     ; tokenizer_section
     ; multi_selector_section
     ; stepper_section
+    ; pagination_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in
