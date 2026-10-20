@@ -137,4 +137,5 @@ module Toast = Toast
 module Mobile_nav = Mobile_nav
 module Tokenizer = Tokenizer
 module Multi_selector = Multi_selector
+module Command_palette = Command_palette
 module Stepper = Stepper
