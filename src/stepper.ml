@@ -335,31 +335,43 @@ let view
           match preset with
           | None -> Vdom.Node.none
           | _ ->
-            let content =
+            (* The shape decides how the indicator is painted: a number sits
+               in a filled circle, a status glyph stands alone, and the two
+               progress marks are drawn here rather than taken from the
+               registry, as upstream draws them. *)
+            let content, shape =
               match custom_indicator with
-              | Some node -> node
+              | Some node -> node, "custom"
               | None ->
                 (match status_glyph with
-                 | Some Tick -> Icon.view ~size:Icon.Sm ~color:Icon.Success ~name:"success" ()
-                 | Some Warning_glyph -> Icon.view ~size:Icon.Sm ~color:Icon.Warning ~name:"warning" ()
-                 | Some Error_glyph -> Icon.view ~size:Icon.Sm ~color:Icon.Error ~name:"error" ()
+                 | Some Tick -> Icon.view ~size:Icon.Sm ~color:Icon.Success ~name:"success" (), "icon"
+                 | Some Warning_glyph -> Icon.view ~size:Icon.Sm ~color:Icon.Warning ~name:"warning" (), "icon"
+                 | Some Error_glyph -> Icon.view ~size:Icon.Sm ~color:Icon.Error ~name:"error" (), "icon"
                  | None ->
                    if show_number
-                   then Vdom.Node.text (string_of_int (index + 1))
+                   then Vdom.Node.text (string_of_int (index + 1)), "number"
                    else
                      match progress with
-                     | Completed -> Icon.view ~size:Icon.Sm ~color:Icon.Success ~name:"check" ()
+                     | Completed ->
+                       (* The completed mark is a filled circle with a check
+                          in it. The check is the registry glyph, painted in
+                          the circle's own surface colour. *)
+                       ( Icon.view ~size:Icon.Sm ~color:Icon.Inherit ~name:"check" ()
+                       , "check" )
                      | In_progress ->
-                       (* Upstream's current-step glyph is a ring, drawn in the
-                          accent colour. There is no ring in the icon
-                          registry, so it is drawn here. *)
-                       Vdom.Node.span
-                         ~attrs:[ Vdom.Attr.class_ "astryx-stepper__ring" ]
-                         []
-                     | Not_started -> Vdom.Node.text (string_of_int (index + 1)))
+                       (* Upstream's current-step glyph is a ring with a dot
+                          in it. There is no ring in the icon registry, so it
+                          is drawn here. *)
+                       ( Vdom.Node.span
+                           ~attrs:[ Vdom.Attr.class_ "astryx-stepper__ring" ]
+                           []
+                       , "ring" )
+                     | Not_started -> Vdom.Node.text (string_of_int (index + 1)), "number")
             in
             Vdom.Node.span
-              ~attrs:[ Vdom.Attr.class_ "astryx-stepper__indicator" ]
+              ~attrs:
+                [ Vdom.Attr.class_
+                    ("astryx-stepper__indicator astryx-stepper__indicator--" ^ shape) ]
               [ content ]
         in
         let label_node =
@@ -529,14 +541,19 @@ let view
              else [])
           @ Common.Attr.data "step" (string_of_int index)
         in
-        Vdom.Node.li
-          ~attrs
-          (connector
-          :: (row
-             @ (match step.content with
-                | [] -> []
-                | content ->
-                  [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "astryx-stepper__content" ] content ])))
+        (* The body holds the step's label row and its content, so that the
+           vertical layout can set the bar beside them both and the content
+           under the label. *)
+        let body =
+          Vdom.Node.div
+            ~attrs:[ Vdom.Attr.class_ "astryx-stepper__body" ]
+            (row
+            @ (match step.content with
+               | [] -> []
+               | content ->
+                 [ Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "astryx-stepper__content" ] content ]))
+        in
+        Vdom.Node.li ~attrs [ connector; body ]
       in
       (* The steps of the list. *)
       let step_nodes = steps |> List.mapi ~f:(fun index step -> step_node index step) in
@@ -545,7 +562,6 @@ let view
           ~attrs:
             [ Vdom.Attr.class_ "astryx-stepper__list"
             ; Vdom.Attr.create "aria-label" label
-            ; Width_hook.attr ~on_measured:(fun width -> set_measured_width width)
             ]
           step_nodes
       in
@@ -639,11 +655,12 @@ let view
            ; "astryx-stepper--" ^ density_name density
            ; "astryx-stepper--" ^ indicator_position_name indicator_position
            ]
-          @ (if is_compact then [ "astryx-stepper--compact" ] else []))
+          @ (if is_compact then [ "astryx-stepper--collapsed" ] else []))
       in
       let root_attrs =
         [ Vdom.Attr.class_ classes
         ; Vdom.Attr.id id
+        ; Width_hook.attr ~on_measured:(fun width -> set_measured_width width)
         ]
         @ Common.Attr.data "component" "Stepper"
         @ Common.Attr.data "orientation" (orientation_name orientation)
