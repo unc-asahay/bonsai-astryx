@@ -831,6 +831,13 @@
       "file": "src/pagination.ml",
       "milestone": "M68",
       "module": "Astryx.pagination"
+    },
+    {
+      "class": "C",
+      "component": "TopNav",
+      "file": "src/top_nav.ml",
+      "milestone": "M69",
+      "module": "Astryx.top_nav"
     }
   ],
   "schema": 1,

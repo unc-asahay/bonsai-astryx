@@ -7041,3 +7041,257 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
     overflow: hidden;
   }
 }
+
+/* top_nav */
+/* TopNav — the bar, its items and its heading. The rules follow upstream's
+   stylex blocks: the bar's slots, the nav item's hover/selected/disabled
+   states, and the heading's type scale. */
+
+.astryx-top-nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-2);
+  box-sizing: border-box;
+}
+
+/* With a center slot the bar becomes a three-column grid, so the center stays
+   centered whatever the start and end slots measure. */
+.astryx-top-nav--grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.astryx-top-nav__left-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.astryx-top-nav__heading {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.astryx-top-nav__start {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.astryx-top-nav__center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+}
+
+.astryx-top-nav__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
+}
+
+.astryx-top-nav__end {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+/* The nav item. */
+.astryx-top-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-1-5);
+  padding-inline: var(--spacing-3);
+  border-radius: var(--radius-element);
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition-property: background-color, color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-top-nav-item:hover {
+  background-color: var(--color-overlay-hover);
+}
+
+.astryx-top-nav-item:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.astryx-top-nav-item--selected {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--color-neutral);
+}
+
+.astryx-top-nav-item--icon-only {
+  padding-inline: var(--spacing-2);
+}
+
+.astryx-top-nav-item--disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* The heading. */
+.astryx-top-nav-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: var(--spacing-8);
+  padding-inline: var(--spacing-2);
+  padding-block: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  cursor: default;
+}
+
+.astryx-top-nav-heading__logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.astryx-top-nav-heading__logo-mark {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-large-size);
+  line-height: var(--text-large-leading);
+  color: var(--color-text-primary);
+}
+
+.astryx-top-nav-heading__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.astryx-top-nav-heading__heading-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.astryx-top-nav-heading__heading {
+  font-size: var(--text-large-size);
+  line-height: var(--text-large-leading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-top-nav-heading__superheading,
+.astryx-top-nav-heading__subheading {
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-top-nav-heading__link {
+  text-decoration: none;
+}
+
+.astryx-top-nav-heading__header-end {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+}
+
+.astryx-top-nav-heading__chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-7);
+  min-height: var(--spacing-7);
+  color: var(--color-icon-secondary);
+}
+
+.astryx-top-nav-heading__chevron--flipped {
+  transform: rotate(180deg);
+}
+
+.astryx-top-nav-heading__chevron-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-7);
+  min-height: var(--spacing-7);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-element);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.astryx-top-nav-heading__chevron-button:hover {
+  background-color: var(--color-overlay-hover);
+}
+
+.astryx-top-nav-heading__chevron-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.astryx-top-nav-heading__popover {
+  padding: var(--spacing-1);
+}
+
+.astryx-top-nav-heading__popover-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-height: var(--spacing-8);
+  padding-inline: var(--spacing-2);
+  margin: var(--spacing-1);
+  border: 0;
+  border-radius: var(--radius-element);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.astryx-top-nav-heading__popover-heading:hover {
+  background-color: var(--color-overlay-hover);
+}
+
+.astryx-top-nav-heading__menu a {
+  display: block;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-element);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.astryx-top-nav-heading__menu a:hover {
+  background-color: var(--color-overlay-hover);
+}
