@@ -4516,3 +4516,21 @@ page and the check after it could not right-click its trigger.
 - component 876/876, browser 715/715, responsive 66/66
 - sweep: SWEEP GREEN
 - record: `docs/verification/commit-m77.txt`
+
+### Gate 89 — M78 Typeahead
+
+The typeahead is a combobox: the field owns the query, the menu owns the
+highlighted option, and the application owns the selection. Upstream ships
+the family as three components, and the port keeps all three boundaries.
+
+The source is synchronous, so there is no busy state and no debounce — the
+same contract the Tokenizer port settled on, and recorded in the
+interface's own list of what upstream has and this port does not.
+
+A parameterized type is instantiated argument-first in this tree
+("string Typeahead.item"). The house's own code follows the same order
+(bool Bonsai.t); a port that writes the constructor first does not
+compile here, and the error it gives does not name the real cause.
+
+Component 883/883, browser 727/727, responsive 66/66, sweep SWEEP GREEN.
+

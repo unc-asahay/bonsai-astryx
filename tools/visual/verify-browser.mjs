@@ -292,6 +292,7 @@ if (mode === "showcase") {
     "CommandPalette",
     "ContextMenu",
     "AppShell",
+    "Typeahead",
 
   ];
 
@@ -655,7 +656,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("96 sections", sections.length === 96, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("97 sections", sections.length === 97, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -759,13 +760,14 @@ if (mode === "showcase") {
     BottomSheet: 5,
     ContextMenu: 3,
     AppShell: 10,
+    Typeahead: 5,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("639 examples across the page", totalExamples === 639, `got ${totalExamples}`);
+  check("644 examples across the page", totalExamples === 644, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -779,7 +781,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("96 nav links", nav.length === 96, `got ${nav.length}`);
+  check("97 nav links", nav.length === 97, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4174,11 +4176,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 94 ported / 9 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["94", "9", "103"]),
+    "coverage stats are 95 ported / 8 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["95", "8", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 9 entries", cov.unported === 9, `got ${cov.unported}`);
+  check("unported list rendered 8 entries", cov.unported === 8, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7018,6 +7020,88 @@ check(
     JSON.stringify({ state: await navState(), drawer: drawerClosed }));
 
   }
+
+
+// --------------------------------------------------------------- Typeahead (M78)
+if (mode === "showcase") {
+  const taSection = await page.$("section[data-showcase-component='Typeahead']");
+  check("the Typeahead section renders", taSection !== null,
+    taSection === null ? "not found" : "found");
+
+  if (taSection) {
+    const input = "#showcase-typeahead-plain-input";
+    await page.focus(input);
+    await page.waitForTimeout(150);
+
+    const opened = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      const lb = el?.getAttribute("aria-controls");
+      const list = lb ? document.getElementById(lb) : null;
+      return {
+        expanded: el?.getAttribute("aria-expanded") ?? null,
+        role: el?.getAttribute("role") ?? null,
+        autocomplete: el?.getAttribute("aria-autocomplete") ?? null,
+        listRole: list?.getAttribute("role") ?? null,
+        options: list?.querySelectorAll("[role='option']").length ?? 0,
+      };
+    }, input);
+    check("focusing the combobox opens its list, and the combobox says so",
+      opened?.expanded === "true" && opened?.role === "combobox"
+        && opened?.autocomplete === "list" && opened?.listRole === "listbox",
+      JSON.stringify(opened));
+    check("the list opens with the source's own entries", opened?.options > 0,
+      JSON.stringify(opened));
+
+    // Typing filters. The list is the source's answer, not a fixed list.
+    await page.type(input, "an");
+    await page.waitForTimeout(200);
+    const filtered = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      const lb = el?.getAttribute("aria-controls");
+      const list = lb ? document.getElementById(lb) : null;
+      return {
+        options: [...(list?.querySelectorAll("[role='option']") ?? [])].map((o) => (o.textContent || "").trim()),
+        value: el?.value ?? null,
+      };
+    }, input);
+    check("typing filters the list to what the source answers",
+      filtered?.options.length === 1 && filtered.options[0] === "Banana",
+      JSON.stringify(filtered));
+    check("the query is in the input", filtered?.value === "an", JSON.stringify(filtered));
+
+    // The highlight and the active descendant move together.
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(150);
+    const highlighted = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      const active = el?.getAttribute("aria-activedescendant");
+      const target = active ? document.getElementById(active) : null;
+      return {
+        active,
+        highlighted: target?.classList.contains("astryx-typeahead__option--highlighted") ?? false,
+        text: (target?.textContent ?? "").trim(),
+      };
+    }, input);
+    check("ArrowDown highlights an option and points at it",
+      highlighted?.active !== null && highlighted?.active !== undefined
+        && highlighted?.highlighted === true && highlighted?.text === "Banana",
+      JSON.stringify(highlighted));
+
+    // Enter picks it, and the application is told.
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(200);
+    const chosen = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      return {
+        value: el?.value ?? null,
+        expanded: el?.getAttribute("aria-expanded") ?? null,
+      };
+    }, input);
+    check("Enter takes the highlighted option and closes the list",
+      chosen?.value === "Banana" && chosen?.expanded === "false",
+      JSON.stringify(chosen));
+  }
+}
 
 // ---------------------------------------------------------------- screenshot
 

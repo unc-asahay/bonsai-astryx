@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 94,
-    "unported": 9,
+    "ported": 95,
+    "unported": 8,
     "total": 103,
     "documented": 103
   },
@@ -564,6 +564,12 @@
       "milestone": "M46"
     },
     {
+      "name": "Typeahead",
+      "module": "Astryx.typeahead",
+      "file": "src/typeahead.ml",
+      "milestone": "M78"
+    },
+    {
       "name": "VisuallyHidden",
       "module": "Astryx.VisuallyHidden",
       "file": "src/visually_hidden.ml",
@@ -584,8 +590,7 @@
     "PowerSearch",
     "SideNav",
     "Table",
-    "TimeInput",
-    "Typeahead"
+    "TimeInput"
   ],
   "inconsistency": null
 }

@@ -4804,3 +4804,57 @@ let () =
   in
   mount "chat-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- Typeahead *)
+(* A combobox: the field owns the query, the menu owns the highlighted option,
+   and the application owns the selection. The source is synchronous. *)
+let typeahead_component graph =
+  let item label group =
+    { Astryx.Typeahead.id = label
+    ; label
+    ; group
+    ; auxiliary_data = label
+    ; element = None
+    }
+  in
+  let source =
+    Astryx.Typeahead.create_static_source
+      [ item "Apple" (Some "Pome"); item "Banana" (Some "Tropical") ]
+  in
+  let on_change = Bonsai.return (fun (_ : string Astryx.Typeahead.item option) -> Effect.Ignore) in
+  let trees =
+    [ Astryx.Typeahead.view
+        ~id:"rt-typeahead"
+        ~label:"Search for a fruit"
+        ~placeholder:"Start typing…"
+        ~source
+        ~value:(Bonsai.return None)
+        ~on_change
+        graph
+    ; Astryx.Typeahead.view
+        ~id:"rt-typeahead-disabled"
+        ~label:"Disabled"
+        ~is_disabled:true
+        ~source
+        ~value:(Bonsai.return None)
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "typeahead-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      typeahead_component
+  in
+  mount "typeahead-all" (Bonsai_web_test.Handle.last_result handle)
+;;

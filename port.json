@@ -894,6 +894,13 @@
       "file": "src/app_shell.ml",
       "milestone": "M77",
       "module": "Astryx.app_shell"
+    },
+    {
+      "class": "C",
+      "component": "Typeahead",
+      "file": "src/typeahead.ml",
+      "milestone": "M78",
+      "module": "Astryx.typeahead"
     }
   ],
   "schema": 1,

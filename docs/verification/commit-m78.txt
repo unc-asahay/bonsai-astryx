@@ -1,0 +1,87 @@
+Gate 89 — M78 Typeahead (coverage 94 → 95)
+
+The typeahead is a combobox. The field owns the query, the menu owns the
+highlighted option, and whether the list is open; the application owns the
+selection. The port keeps upstream's three boundaries inside one module:
+Base is the unstyled combobox, Item is the default row, and view is the
+styled field around them.
+
+The upstream family is BaseTypeahead, Typeahead and TypeaheadItem, and
+all three are here.
+
+What this port does
+-------------------
+
+  - The query, the result list, the highlighted index and whether the
+    list is open are the component's own state. The application hands in
+    the selected item and hears back through on_change.
+  - The list is a role="listbox" of role="option" rows, grouped with
+    role="group" and the group name as the group's label. The input is a
+    role="combobox" with aria-expanded, aria-controls, aria-autocomplete
+    and aria-activedescendant.
+  - The keyboard contract is upstream's: ArrowDown and ArrowUp move the
+    highlight, Home and End jump to the ends, Enter takes the highlighted
+    option, and Escape closes the list.
+  - Focusing the field opens the list with the source's own entries
+    (upstream's hasEntriesOnFocus). Typing replaces them with the
+    source's answer to the query.
+  - The result count is announced in a polite live region, so a screen
+    reader hears how many options the last keystroke produced.
+  - min_query_length, max_menu_items, empty_search_text, has_clear,
+    has_auto_focus, is_disabled and is_focusable_disabled are all here.
+
+What this port does not do, and why
+-----------------------------------
+
+  - The source is synchronous. Upstream's searchSource may return a
+    promise; upstream then owns the loading state, a generation counter
+    that drops a stale response, and cancellation. A Bonsai effect cannot
+    await a promise, so search here is a plain function of the query. The
+    same reasoning removes upstream's debounceMs: a query runs at once and
+    there is no busy state, no spinner and no "loading" row. This is the
+    contract the Tokenizer port already settled on, and it is recorded in
+    the interface's own list of surfaces upstream has and this port does
+    not.
+  - There is no anchor-positioning engine, so the list is an absolutely
+    positioned element beside the field rather than a floating surface
+    anchored to a caret.
+  - Upstream's element on an item still takes priority over render_item
+    and over the default label rendering.
+
+The interface
+-------------
+
+  - Typeahead.item — id, label, group, auxiliary_data, element.
+  - Typeahead.source — search and bootstrap.
+  - Typeahead.create_static_source — a source over a fixed list, matching
+    on the label and on any extra keywords the caller supplies.
+  - Typeahead.Item.view — the default row.
+  - Typeahead.Base.view — the unstyled combobox.
+  - Typeahead.view — the styled field.
+
+One house note worth recording
+-------------------------------
+
+  - A parameterized type is instantiated argument-first in this tree:
+    "string Typeahead.item", not "Typeahead.item string". The house's own
+    code follows the same order (bool Bonsai.t), so the two agree; a port
+    that writes the constructor first will not compile here, and the error
+    it gives ("the type constructor int expects 0 argument(s), but is here
+    applied to 1") does not name the real cause.
+
+Verification
+------------
+
+  - Component gate: 883 checks, 0 failures (node test/run.mjs).
+  - Browser gate: 727 checks, 0 failures
+    (node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html).
+  - Responsive gate: 66 checks, 0 failures.
+  - Full sweep: SWEEP GREEN.
+
+  The browser gate types into the field, checks that the list narrows to
+  the one option the source answers for that query, presses ArrowDown and
+  checks that the highlight and aria-activedescendant agree, then presses
+  Enter and checks that the option is taken and the list closes. The
+  jsdom case checks the combobox's own attributes, that the label points
+  at the input, that the listbox is named, and that a disabled typeahead
+  disables its input.

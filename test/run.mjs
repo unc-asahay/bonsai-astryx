@@ -4238,6 +4238,54 @@ check("a disabled group says so once, on the box", (() => {
 
 
 
+{
+  const host = document.querySelector('[data-case="typeahead-all"]');
+  const fields = [...(host?.querySelectorAll("[data-astryx-component='Typeahead']") ?? [])];
+  const field = fields[0];
+  const input = field?.querySelector("input");
+  const listbox = field?.querySelector("[role='listbox']");
+  const label = field?.querySelector("label");
+
+  check("the typeahead carries the house's component marker",
+    field?.getAttribute("data-astryx-component") === "Typeahead",
+    JSON.stringify({ component: field?.getAttribute("data-astryx-component") }));
+
+  check("the input is a combobox that says what it controls and how to complete",
+    input?.getAttribute("role") === "combobox"
+      && input?.getAttribute("aria-controls") === listbox?.getAttribute("id")
+      && input?.getAttribute("aria-autocomplete") === "list",
+    JSON.stringify({
+      role: input?.getAttribute("role"),
+      controls: input?.getAttribute("aria-controls"),
+      listboxId: listbox?.getAttribute("id"),
+      autocomplete: input?.getAttribute("aria-autocomplete"),
+    }));
+
+  check("the combobox starts closed",
+    input?.getAttribute("aria-expanded") === "false",
+    JSON.stringify({ expanded: input?.getAttribute("aria-expanded") }));
+
+  check("the listbox is a listbox, named for the screen reader",
+    listbox?.getAttribute("role") === "listbox"
+      && (listbox?.getAttribute("aria-label") ?? "") !== "",
+    JSON.stringify({ role: listbox?.getAttribute("role"), label: listbox?.getAttribute("aria-label") }));
+
+  check("the label names the control it labels",
+    label?.getAttribute("for") === input?.getAttribute("id")
+      && (label?.textContent ?? "").trim() === "Search for a fruit",
+    JSON.stringify({ for: label?.getAttribute("for"), id: input?.getAttribute("id"), text: (label?.textContent ?? "").trim() }));
+
+  check("the result count is announced politely",
+    field?.querySelector("[aria-live='polite']") !== null,
+    JSON.stringify({ live: field?.querySelector("[aria-live='polite']") !== null }));
+
+  const disabled = fields.find((f) => f.querySelector("input")?.hasAttribute("disabled"));
+  check("a disabled typeahead disables its input",
+    disabled !== undefined,
+    JSON.stringify({ disabled: disabled !== undefined }));
+}
+
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

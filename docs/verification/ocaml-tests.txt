@@ -1047,6 +1047,13 @@ DialogHeader
   ok   a step you can go to is a button that says which step it is
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
+  ok   the typeahead carries the house's component marker
+  ok   the input is a combobox that says what it controls and how to complete
+  ok   the combobox starts closed
+  ok   the listbox is a listbox, named for the screen reader
+  ok   the label names the control it labels
+  ok   the result count is announced politely
+  ok   a disabled typeahead disables its input
 
-876 checks, 0 failure(s)
+883 checks, 0 failure(s)
 COMPONENT CHECKS PASSED
