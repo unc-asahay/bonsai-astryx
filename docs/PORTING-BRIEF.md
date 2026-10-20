@@ -364,3 +364,20 @@ Report, in this order:
 7. **Anything the integrator must know**: extra CSS files, new shared
    helpers you needed but could not put in `src/common.ml` (say what and
    where you put it), and known rough edges.
+
+## A type application reads argument-first in this tree
+
+A parameterized type is instantiated with the ARGUMENT FIRST:
+
+    let x : string Typeahead.item option = None    (* correct here *)
+    let y : Typeahead.item string option = None    (* does not compile here *)
+
+The house's own code follows the same order — `bool Bonsai.t`,
+`Vdom.Node.t list Bonsai.t` — so the two agree. The compiler's error for
+the wrong order is
+
+    The type constructor "int" expects 0 argument(s), but is here applied to 1 argument(s)
+
+which does not name the real cause, so a worker that writes the
+constructor first will burn a build cycle discovering this. Write the
+argument first.
