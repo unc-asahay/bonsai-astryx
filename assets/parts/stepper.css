@@ -162,8 +162,19 @@
   color: var(--color-text-secondary);
 }
 
+/* A completed step keeps the full-contrast label but takes the success
+   colour on its indicator, which the ring and the bar below carry. */
+.astryx-stepper__step--completed .astryx-stepper__label {
+  color: var(--color-text-primary);
+}
+
 .astryx-stepper__step--disabled .astryx-stepper__label {
   color: var(--color-text-disabled);
+}
+
+/* An optional step is announced as one, next to its label. */
+.astryx-stepper__step--optional .astryx-stepper__label {
+  font-style: italic;
 }
 
 .astryx-stepper__optional {
