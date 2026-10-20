@@ -289,6 +289,7 @@ if (mode === "showcase") {
     "Chat",
     "Selector",
     "BottomSheet",
+    "CommandPalette",
 
   ];
 
@@ -652,7 +653,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("93 sections", sections.length === 93, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("94 sections", sections.length === 94, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -746,6 +747,7 @@ if (mode === "showcase") {
     MobileNav: 6,
     Tokenizer: 9,
     MultiSelector: 8,
+    CommandPalette: 4,
     Stepper: 7,
     Pagination: 7,
     TopNav: 5,
@@ -759,7 +761,7 @@ if (mode === "showcase") {
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("622 examples across the page", totalExamples === 622, `got ${totalExamples}`);
+  check("626 examples across the page", totalExamples === 626, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -773,7 +775,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("93 nav links", nav.length === 93, `got ${nav.length}`);
+  check("94 nav links", nav.length === 94, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4168,11 +4170,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 91 ported / 12 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["91", "12", "103"]),
+    "coverage stats are 92 ported / 11 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["92", "11", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 12 entries", cov.unported === 12, `got ${cov.unported}`);
+  check("unported list rendered 11 entries", cov.unported === 11, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5907,6 +5909,66 @@ check(
       });
       check("a sheet that has to be answered is an alertdialog",
         purposes?.requiredRole === "alertdialog", JSON.stringify(purposes));
+    }
+  }
+
+
+  // ---------------------------------------------------------- CommandPalette (M75)
+  {
+    const cpSection = await page.$("section[data-showcase-component='CommandPalette']");
+    check("the CommandPalette section renders", cpSection !== null,
+      cpSection ? "found" : "missing");
+    if (cpSection) {
+      const shape = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='CommandPalette']");
+        const input = sec.querySelector("input");
+        const list = sec.querySelector("#showcase-command-palette-inline-list");
+        const items = [...(list?.querySelectorAll("[role='option']") ?? [])];
+        const groups = [...(sec.querySelectorAll("[role='group']") ?? [])];
+        return {
+          inputs: sec.querySelectorAll("input").length,
+          listboxes: sec.querySelectorAll("[role='listbox']").length,
+          inputRole: input?.getAttribute("role") ?? null,
+          inputExpanded: input?.getAttribute("aria-expanded") ?? null,
+          inputControls: input?.getAttribute("aria-controls") ?? null,
+          listRole: list?.getAttribute("role") ?? null,
+          items: items.length,
+          itemRoles: [...new Set(items.map((i) => i.getAttribute("role")))],
+          itemLabels: items.slice(0, 3).map((i) => (i.textContent ?? "").trim().slice(0, 24)),
+          groups: groups.map((g) => g.getAttribute("aria-label")).slice(0, 2),
+          groupItems: groups[0]?.querySelectorAll("[role='option']").length ?? 0,
+          active: input?.getAttribute("aria-activedescendant") ?? null,
+        };
+      });
+      check("the palette is a combobox over a listbox of options",
+        shape?.inputRole === "combobox"
+          && shape?.listRole === "listbox"
+          && shape?.inputControls === "showcase-command-palette-inline-list"
+          && shape?.items === 6
+          && shape?.itemRoles.every((r) => r === "option"),
+        JSON.stringify(shape));
+      check("the field is expanded while the list is on the page",
+        shape?.inputExpanded === "true", JSON.stringify(shape?.inputExpanded));
+      check("the commands are grouped, and the group names them",
+        shape?.groups?.join("|") === "Account|Navigation" && shape?.groupItems > 0,
+        JSON.stringify({ groups: shape?.groups, groupItems: shape?.groupItems }));
+      check("the highlighted row is named with aria-activedescendant",
+        typeof shape?.active === "string" && shape.active.length > 0,
+        JSON.stringify(shape?.active));
+
+      await page.fill("#showcase-command-palette-inline-input", "set");
+      await page.waitForTimeout(400);
+      const filtered = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='CommandPalette']");
+        const list = sec.querySelector("#showcase-command-palette-inline-list");
+        return {
+          items: list?.querySelectorAll("[role='option']").length ?? -1,
+          labels: [...(list?.querySelectorAll("[role='option']") ?? [])].map((i) => (i.textContent ?? "").trim().slice(0, 20)),
+        };
+      });
+      check("typing filters the commands",
+        filtered?.items === 1 && filtered?.labels?.[0] === "Settings",
+        JSON.stringify(filtered));
     }
   }
 

@@ -3908,6 +3908,59 @@ check("a disabled group says so once, on the box", (() => {
 
 
 
+
+{
+  const host = document.querySelector('[data-case="command-palette-all"]');
+  // the open instance: the palette that owns its state starts closed
+  const input = host?.querySelector("#rt-cp-open input");
+  const list = host?.querySelector("#rt-cp-open-list");
+  const items = [...(list?.querySelectorAll("[role='option']") ?? [])];
+  const groups = [...(list?.querySelectorAll("[role='group']") ?? [])];
+  const live = host?.querySelector("[data-astryx-live-region='polite']");
+  const billing = items.find((i) => (i.textContent ?? "").trim() === "Billing");
+
+  check("the field is a combobox that owns the list it filters",
+    input?.getAttribute("role") === "combobox"
+      && input?.getAttribute("aria-controls") === "rt-cp-open-list"
+      && input?.getAttribute("aria-expanded") === "true",
+    JSON.stringify({
+      role: input?.getAttribute("role"),
+      controls: input?.getAttribute("aria-controls"),
+      expanded: input?.getAttribute("aria-expanded"),
+    }));
+
+  check("the list holds the commands, and the first one is highlighted",
+    list?.getAttribute("role") === "listbox"
+      && items.length === 4
+      && input?.getAttribute("aria-activedescendant") === "rt-cp-open-list-item-0"
+      && (items[0]?.getAttribute("class") ?? "").includes("--highlighted"),
+    JSON.stringify({
+      role: list?.getAttribute("role"),
+      items: items.length,
+      active: input?.getAttribute("aria-activedescendant"),
+    }));
+
+  check("the commands are grouped, and the groups carry their names",
+    groups.length === 2
+      && groups.map((g) => g.getAttribute("aria-label")).sort().join("|") === "Account|Navigation",
+    JSON.stringify({ groups: groups.map((g) => g.getAttribute("aria-label")) }));
+
+  check("a command that cannot be run is listed and announced, but not runnable",
+    billing?.getAttribute("aria-disabled") === "true"
+      && (billing?.getAttribute("class") ?? "").includes("--disabled"),
+    JSON.stringify({ disabled: billing?.getAttribute("aria-disabled") }));
+
+  check("the palette announces the result count in a polite live region",
+    live !== null
+      && live?.getAttribute("role") === "status"
+      && live?.getAttribute("aria-live") === "polite"
+      && live?.getAttribute("aria-atomic") === "true",
+    JSON.stringify({
+      role: live?.getAttribute("role"),
+      live: live?.getAttribute("aria-live"),
+    }));
+}
+
 {
   const host = document.querySelector('[data-case="bottom-sheet-all"]');
   const dialog = host?.querySelector("#rt-bs");

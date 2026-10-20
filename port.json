@@ -873,6 +873,13 @@
       "file": "src/bottom_sheet.ml",
       "milestone": "M74",
       "module": "Astryx.bottom_sheet"
+    },
+    {
+      "class": "C",
+      "component": "CommandPalette",
+      "file": "src/command_palette.ml",
+      "milestone": "M75",
+      "module": "Astryx.command_palette"
     }
   ],
   "schema": 1,

@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 91,
-    "unported": 12,
+    "ported": 92,
+    "unported": 11,
     "total": 103,
     "documented": 103
   },
@@ -148,6 +148,12 @@
       "module": "Astryx.Collapsible",
       "file": "src/collapsible.ml",
       "milestone": "M50"
+    },
+    {
+      "name": "CommandPalette",
+      "module": "Astryx.command_palette",
+      "file": "src/command_palette.ml",
+      "milestone": "M75"
     },
     {
       "name": "ComplexSelector",
@@ -560,7 +566,6 @@
   ],
   "unported": [
     "AppShell",
-    "CommandPalette",
     "ContextMenu",
     "DateInput",
     "DateRangeInput",

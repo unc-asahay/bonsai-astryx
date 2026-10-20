@@ -4413,6 +4413,49 @@ let () =
   mount "bottom-sheet-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ---------------------------------------------------------- CommandPalette *)
+(* The palette's commands are the application's: a source answers a query with
+   the items, and the palette owns the query, the highlight and the open
+   state. *)
+let command_palette_component graph =
+  let items =
+    [ { Astryx.Command_palette.id = "profile"; label = "Profile"; group = Some "Account"; keywords = []; is_disabled = false }
+    ; { Astryx.Command_palette.id = "signout"; label = "Sign out"; group = Some "Account"; keywords = []; is_disabled = false }
+    ; { Astryx.Command_palette.id = "billing"; label = "Billing"; group = None; keywords = []; is_disabled = true }
+    ; { Astryx.Command_palette.id = "settings"; label = "Settings"; group = Some "Navigation"; keywords = []; is_disabled = false }
+    ]
+  in
+  let source = Astryx.Command_palette.create_static_source items in
+  let trees =
+    [ Astryx.Command_palette.view ~id:"rt-cp" ~source graph
+    ; Astryx.Command_palette.view
+        ~id:"rt-cp-open"
+        ~source
+        ~is_open:(Bonsai.return true)
+        ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.return ()))
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "command-palette-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      command_palette_component
+  in
+  mount "command-palette-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

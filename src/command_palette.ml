@@ -573,6 +573,14 @@ let view
         List.mapi selectable ~f:(fun index item -> (index, item))
         |> List.filter_map ~f:(fun (index, item) -> if item.is_disabled then None else Some index)
       in
+      (* With nothing chosen yet, the first result is the highlighted one — upstream's
+         own rule, and the reason the palette can be driven with the arrow keys
+         without a first press to put the highlight somewhere. The state keeps the
+         user's own choice; this is what the state means when it has none. *)
+      let default_highlight = match enabled_indices with first :: _ -> first | [] -> -1 in
+      let effective_highlight =
+        if state.highlighted < 0 then default_highlight else state.highlighted
+      in
       let position_of (index : int) (indices : int list) =
         let rec go position = function
           | [] -> -1
@@ -639,14 +647,14 @@ let view
           match key with
           | "ArrowDown" ->
             Common.prevent_default ev;
-            let position = position_of state.highlighted enabled_indices in
+            let position = position_of effective_highlight enabled_indices in
             let next = Int.min (position + 1) (List.length enabled_indices - 1) in
             (match nth_opt enabled_indices next with
              | Some index -> move_highlight index
              | None -> Effect.Ignore)
           | "ArrowUp" ->
             Common.prevent_default ev;
-            let position = position_of state.highlighted enabled_indices in
+            let position = position_of effective_highlight enabled_indices in
             let previous = Int.max (position - 1) 0 in
             (match nth_opt enabled_indices previous with
              | Some index -> move_highlight index
@@ -663,7 +671,7 @@ let view
              | [] -> Effect.Ignore)
           | "Enter" ->
             Common.prevent_default ev;
-            (match nth_opt selectable state.highlighted with
+            (match nth_opt selectable effective_highlight with
              | Some item when not item.is_disabled -> select item.id
              | _ -> Effect.Ignore)
           | "Escape" ->
@@ -689,7 +697,7 @@ let view
           ~id:(list_id ^ "-item-" ^ string_of_int index)
           ~value:item.id
           ~is_selected:(String.equal selected_value item.id)
-          ~is_highlighted:(Int.equal state.highlighted index)
+          ~is_highlighted:(Int.equal effective_highlight index)
           ~is_disabled:item.is_disabled
           ~on_select:(fun _ -> select item.id)
           ~on_hover:(fun _ ->
@@ -721,9 +729,9 @@ let view
       in
       let has_listbox = not (List.is_empty selectable) in
       let active_descendant_id =
-        if has_listbox && state.highlighted >= 0
-           && state.highlighted < List.length selectable
-        then Some (list_id ^ "-item-" ^ string_of_int state.highlighted)
+        if has_listbox && effective_highlight >= 0
+           && effective_highlight < List.length selectable
+        then Some (list_id ^ "-item-" ^ string_of_int effective_highlight)
         else None
       in
       let is_empty_state = not has_listbox in
@@ -755,6 +763,7 @@ let view
             [ Vdom.Attr.class_ "astryx-visually-hidden"
             ; Vdom.Attr.create "role" "status"
             ; Vdom.Attr.create "aria-live" "polite"
+            ; Vdom.Attr.create "aria-atomic" "true"
             ; Vdom.Attr.create "data-astryx-live-region" "polite"
             ]
           [ Vdom.Node.text announcement ]

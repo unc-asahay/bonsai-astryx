@@ -5697,6 +5697,7 @@ let nav_items =
   ; "calendar", "Calendar"
   ; "selector", "Selector"
   ; "bottom-sheet", "BottomSheet"
+  ; "command-palette", "CommandPalette"
   ]
 ;;
 

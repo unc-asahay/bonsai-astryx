@@ -1,0 +1,39 @@
+Gate 86 — M75 CommandPalette (coverage 91 → 92)
+
+The CommandPalette is the modal command list: a search field, the
+commands it filters, and the keyboard model that walks them.
+
+The port carries upstream's shape. The commands are the application's:
+the palette is given a source — a function of the query that answers
+with items — and renders whatever it gets, so the palette owns only the
+query, the highlight and the open state. The field is a combobox that
+owns the listbox it filters, the list is a listbox of options, and the
+commands are grouped under named headings. The active row is named with
+`aria-activedescendant`, so the focus stays in the field while the
+highlight moves, and the result count is announced in one polite live
+region.
+
+## The gate found
+
+- The palette opened with nothing highlighted: the query change cleared
+  the highlight and nothing ever set it again, so the arrow keys could
+  not move from the first result and the active row was never named.
+  The highlight is now derived — with nothing chosen, the first result
+  is the highlighted one, which is upstream's own rule — and the state
+  still keeps the user's own choice when there is one.
+- The live region the palette owns was missing `aria-atomic`, so the
+  announcement could be read in pieces rather than whole.
+- The palette was 640px wide, and on a 320px phone that pushed the page
+  sideways. It is now never wider than the column it sits in.
+
+## The gate changed
+
+- The component case drives the open instance of the palette: the
+  palette that owns its own state starts closed, and the first version
+  of the check asserted against the closed one.
+- The group check asks for the group *names* rather than their order —
+  the groups are ordered by where their commands first appear, and that
+  order is the port's business, not the check's.
+- The disabled command is found by its label rather than by its index.
+- The browser check types into the field for real, and asserts that the
+  list narrows to the one command that matches.

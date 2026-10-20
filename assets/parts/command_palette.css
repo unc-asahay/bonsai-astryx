@@ -18,7 +18,10 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  inline-size: var(--astryx-command-palette-width, 640px);
+  /* The palette is 640px wide, but never wider than the column it sits in: on a
+     320px phone it has to shrink rather than push the page sideways. */
+  inline-size: min(var(--astryx-command-palette-width, 640px), 100%);
+  max-inline-size: 100%;
   max-inline-size: calc(100vw - var(--spacing-8));
   max-block-size: var(--astryx-command-palette-max-height, 480px);
   padding: 0;
