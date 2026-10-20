@@ -135,3 +135,6 @@ module Plain_date = Plain_date
 module Resizable = Resizable
 module Toast = Toast
 module Mobile_nav = Mobile_nav
+
+(* Chat — the conversation surface: a transcript of messages and a composer. *)
+module Chat = Chat

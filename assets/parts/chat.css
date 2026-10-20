@@ -1,0 +1,337 @@
+/* Chat — the conversation surface: a transcript of messages and a composer.
+
+   Ported from upstream's Chat styles (the message row, the bubble, the
+   metadata row, the composer). The values are design tokens, not literals;
+   the only exceptions are upstream's own bubble cap (max(80%, 280px)) and
+   the chat-radius token upstream uses for the bubble corner.
+
+   Everything is namespaced under .astryx-chat, and nothing here restyles a
+   global element. */
+
+.astryx-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+}
+
+/* density: the spacing scale the thread is rendered at. */
+.astryx-chat--compact {
+  gap: var(--spacing-2);
+}
+
+.astryx-chat--spacious {
+  gap: var(--spacing-4);
+}
+
+/* ---------------------------------------------------------------- log */
+
+.astryx-chat__log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* align=bottom: a short transcript rests at the bottom of its container. */
+.astryx-chat__log--align-bottom {
+  justify-content: flex-end;
+}
+
+.astryx-chat__empty {
+  padding: var(--spacing-6) var(--spacing-4);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-chat__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-2);
+}
+
+.astryx-chat__error {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-container);
+  background: var(--color-background-error-inverted);
+  color: var(--color-on-error);
+}
+
+/* ------------------------------------------------------------ message */
+
+.astryx-chat__message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.astryx-chat__message--user {
+  flex-direction: row-reverse;
+}
+
+/* sender=system: a notice in the thread, centred, with no bubble fill. */
+.astryx-chat__message--system {
+  justify-content: center;
+}
+
+.astryx-chat__message--system .astryx-chat__bubble {
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+/* density: a message may override the thread's spacing. */
+.astryx-chat__message--compact {
+  gap: var(--spacing-1);
+}
+
+.astryx-chat__message--compact .astryx-chat__bubble {
+  padding: var(--spacing-2);
+}
+
+.astryx-chat__message--spacious .astryx-chat__bubble {
+  padding: var(--spacing-4);
+}
+
+.astryx-chat__avatar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+}
+
+.astryx-chat__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.astryx-chat__message--user .astryx-chat__column {
+  align-items: flex-end;
+}
+
+.astryx-chat__author {
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  font-weight: var(--text-supporting-weight);
+}
+
+/* ------------------------------------------------------------- bubble */
+
+.astryx-chat__bubble {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  max-width: min(80%, 280px);
+  min-width: 140px;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-chat);
+  background: var(--color-background-muted);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* variant=ghost: no fill, but the horizontal padding stays so the content
+   still lines up with the text column. */
+.astryx-chat__bubble--ghost {
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.astryx-chat__message--user .astryx-chat__bubble {
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-border);
+}
+
+/* group: a run of messages from one author keeps the sender-side corners
+   tight, so the run reads as one block. */
+.astryx-chat__bubble--group-first {
+  border-bottom-left-radius: var(--radius-element);
+}
+
+.astryx-chat__bubble--group-middle {
+  border-top-left-radius: var(--radius-element);
+  border-bottom-left-radius: var(--radius-element);
+}
+
+.astryx-chat__bubble--group-last {
+  border-top-left-radius: var(--radius-element);
+}
+
+.astryx-chat__message--user .astryx-chat__bubble--group-first {
+  border-bottom-left-radius: var(--radius-chat);
+  border-bottom-right-radius: var(--radius-element);
+}
+
+.astryx-chat__message--user .astryx-chat__bubble--group-middle {
+  border-top-left-radius: var(--radius-chat);
+  border-bottom-left-radius: var(--radius-chat);
+  border-top-right-radius: var(--radius-element);
+  border-bottom-right-radius: var(--radius-element);
+}
+
+.astryx-chat__message--user .astryx-chat__bubble--group-last {
+  border-top-left-radius: var(--radius-chat);
+  border-top-right-radius: var(--radius-element);
+}
+
+/* ----------------------------------------------------------- metadata */
+
+.astryx-chat__metadata {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--color-text-secondary);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-chat__message--user .astryx-chat__metadata {
+  flex-direction: row-reverse;
+}
+
+.astryx-chat__metadata-separator {
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+}
+
+.astryx-chat__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+/* status=sending: the message is on its way; it reads as not yet there. */
+.astryx-chat__status--sending {
+  opacity: 0.7;
+}
+
+.astryx-chat__status--failed {
+  color: var(--color-error);
+}
+
+/* ------------------------------------------------------------ editor */
+
+/* The editor is a house extension (see chat.mli): the composer draft of a
+   message that is being edited. */
+.astryx-chat__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-width: 280px;
+}
+
+.astryx-chat__editor-input {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-background-surface);
+  resize: vertical;
+}
+
+.astryx-chat__editor-input:focus {
+  outline: var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.astryx-chat__editor-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* ----------------------------------------------------------- composer */
+
+.astryx-chat__composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+}
+
+/* elevation=flat: a bordered body that takes the accent colour on focus. */
+.astryx-chat__composer--flat {
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.astryx-chat__composer--flat:focus-within {
+  border-color: var(--color-accent);
+}
+
+/* elevation=low (upstream's default): a raised body that lifts on hover
+   and focus. */
+.astryx-chat__composer--low {
+  background: var(--color-background-surface);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-low);
+  transition:
+    box-shadow var(--duration-medium) var(--ease-standard),
+    border-color var(--duration-medium) var(--ease-standard);
+}
+
+.astryx-chat__composer--low:hover,
+.astryx-chat__composer--low:focus-within {
+  box-shadow: var(--shadow-med);
+}
+
+.astryx-chat__composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-2);
+}
+
+.astryx-chat__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-background-body);
+  resize: none;
+}
+
+.astryx-chat__input:focus {
+  outline: var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.astryx-chat__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.astryx-chat__status-line {
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-chat__status-line--error {
+  color: var(--color-error);
+}
+
+.astryx-chat__status-line--warning {
+  color: var(--color-warning);
+}

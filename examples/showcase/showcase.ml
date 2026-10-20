@@ -5686,6 +5686,7 @@ let nav_items =
   ; "outline", "Outline"
   ; "resizable", "Resizable"
   ; "toast", "Toast"
+  ; "chat", "Chat"
   ; "mobile-nav", "MobileNav"
   ]
 ;;
@@ -6491,6 +6492,7 @@ let page (graph : Bonsai.graph) =
   let outline_section = outline_demo graph in
   let resizable_section = Sec_resizable.demo graph in
   let toast_section = Sec_toast.demo graph in
+  let chat_section = Sec_chat.demo graph in
   let mobile_nav_section = Sec_mobile_nav.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
@@ -6510,6 +6512,7 @@ let page (graph : Bonsai.graph) =
     ; carousel_section; tab_list_section; lightbox_section; hover_card_section
     ; resizable_section
     ; toast_section
+    ; chat_section
     ; mobile_nav_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
