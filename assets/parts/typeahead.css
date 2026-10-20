@@ -1,0 +1,132 @@
+/* Typeahead — a text field with a filtered list of suggestions. */
+
+.astryx-typeahead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.astryx-typeahead__control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.astryx-typeahead__input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.astryx-typeahead__start-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.astryx-typeahead__clear {
+  flex: 0 0 auto;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-title-size);
+  line-height: 1;
+}
+
+.astryx-typeahead__listbox {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: var(--spacing-2) 0;
+  list-style: none;
+  max-height: 320px;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-medium);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.astryx-typeahead__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.astryx-typeahead__option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.astryx-typeahead__option--highlighted {
+  background-color: var(--bg-secondary);
+}
+
+.astryx-typeahead__empty {
+  padding: var(--spacing-2) var(--spacing-3);
+  color: var(--text-secondary);
+  font-size: var(--text-supporting-size);
+}
+
+.astryx-typeahead-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.astryx-typeahead-item--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.astryx-typeahead-item__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.astryx-typeahead-item__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-typeahead-item__description {
+  color: var(--text-secondary);
+  font-size: var(--text-supporting-size);
+}
+
+.astryx-typeahead__live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The sizes mirror the house's input sizes. */
+
+.astryx-typeahead--sm .astryx-typeahead__input {
+  font-size: var(--text-body-size);
+  padding: var(--spacing-1) var(--spacing-2);
+}
+
+.astryx-typeahead--md .astryx-typeahead__input {
+  font-size: var(--text-body-size);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.astryx-typeahead--lg .astryx-typeahead__input {
+  font-size: var(--text-title-size);
+  padding: var(--spacing-3) var(--spacing-4);
+}

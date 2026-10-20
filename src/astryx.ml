@@ -97,6 +97,7 @@ module FormLayout = Form_layout
 module Tooltip = Tooltip
 module Hover_card = Hover_card
 module Timestamp = Timestamp
+module Typeahead = Typeahead
 module Dialog = Dialog
 module Alert_dialog = Alert_dialog
 module Kbd = Kbd
