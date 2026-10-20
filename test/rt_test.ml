@@ -4006,3 +4006,102 @@ let () =
   in
   mount "progress-bar-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------- HoverCard and Tokenizer *)
+(* The two ports that were still without a case in the gate. *)
+let hover_card_component (graph : Bonsai.graph) =
+  let trees =
+    [ Astryx.Hover_card.view
+        ~id:"rt-hc-closed"
+        ~trigger:(Vdom.Node.text "hover me")
+        ~content:(Vdom.Node.text "the card")
+        graph
+    ; Astryx.Hover_card.view
+        ~id:"rt-hc-open"
+        ~is_default_open:true
+        ~trigger:(Vdom.Node.text "hover me too")
+        ~content:(Vdom.Node.text "the other card")
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "hover-card-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      hover_card_component
+  in
+  mount "hover-card-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
+let tokenizer_component (graph : Bonsai.graph) =
+  let people =
+    [ { Astryx.Tokenizer.id = "ada"; label = "Ada Lovelace" }
+    ; { Astryx.Tokenizer.id = "grace"; label = "Grace Hopper" }
+    ; { Astryx.Tokenizer.id = "alan"; label = "Alan Turing" }
+    ]
+  in
+  let source =
+    { Astryx.Tokenizer.search = (fun _ -> people)
+    ; bootstrap = people
+    }
+  in
+  let value, set_value = Bonsai.state [] graph in
+  let on_change =
+    Bonsai.map set_value ~f:(fun set -> fun items _ -> set items)
+  in
+  let trees =
+    [ Astryx.Tokenizer.view
+        ~id:"rt-tk-plain"
+        ~label:"Reviewers"
+        ~value:value
+        ~on_change
+        ~source
+        graph
+    ; Astryx.Tokenizer.view
+        ~id:"rt-tk-disabled"
+        ~label:"Locked"
+        ~is_disabled:true
+        ~value:(Bonsai.return [])
+        ~on_change
+        ~source
+        graph
+    ; Astryx.Tokenizer.view
+        ~id:"rt-tk-create"
+        ~label:"Add"
+        ~has_create:true
+        ~value:(Bonsai.return [])
+        ~on_change
+        ~source
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "tokenizer-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      tokenizer_component
+  in
+  mount "tokenizer-all" (Bonsai_web_test.Handle.last_result handle)
+;;

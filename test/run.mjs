@@ -3634,6 +3634,79 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 
+// ------------------------------------------------ HoverCard and Tokenizer
+{
+  const host = document.querySelector('[data-case="hover-card-all"]');
+  const anchors = [...(host?.querySelectorAll('[data-astryx-component="HoverCard"].astryx-hover-card-anchor') ?? [])];
+  const closed = anchors.find((a) => !a.getAttribute("aria-describedby"));
+  const open = anchors.find((a) => a.getAttribute("aria-describedby"));
+
+  check("a closed hover card's anchor is focusable and names its placement, with no card to describe",
+    closed !== undefined
+      && closed.getAttribute("tabindex") === "0"
+      && closed.getAttribute("data-astryx-placement") === "above"
+      && closed.getAttribute("data-astryx-alignment") === "center"
+      && closed.querySelector(".astryx-hover-card") === null,
+    closed ? closed.outerHTML.slice(0, 200) : "missing");
+
+  check("an open hover card points at its card, and the card is a group with the right placement",
+    open !== undefined
+      && open.getAttribute("aria-describedby") === "rt-hc-open"
+      && open.querySelector("#rt-hc-open") !== null
+      && open.querySelector("#rt-hc-open").getAttribute("role") === "group"
+      && open.querySelector("#rt-hc-open").getAttribute("data-astryx-placement") === "above"
+      && (open.querySelector("#rt-hc-open").getAttribute("class") ?? "").includes("astryx-hover-card--align-center"),
+    open ? open.outerHTML.slice(0, 240) : "missing");
+
+  check("the card holds its content",
+    open?.querySelector(".astryx-hover-card__content")?.textContent === "the other card",
+    open?.querySelector(".astryx-hover-card__content")?.textContent ?? null);
+}
+
+{
+  const host = document.querySelector('[data-case="tokenizer-all"]');
+  const input = host?.querySelector("#rt-tk-plain");
+  const listbox = host?.querySelector("#rt-tk-plain-listbox");
+  const group = host?.querySelector("#rt-tk-plain-group");
+  const label = host?.querySelector('label[for="rt-tk-plain"]');
+
+  check("the token input is a combobox that controls a hidden listbox",
+    input?.getAttribute("role") === "combobox"
+      && input?.getAttribute("aria-expanded") === "false"
+      && input?.getAttribute("aria-controls") === "rt-tk-plain-listbox"
+      && listbox?.getAttribute("role") === "listbox"
+      && listbox?.hasAttribute("hidden") === true,
+    JSON.stringify({
+      role: input?.getAttribute("role"),
+      controls: input?.getAttribute("aria-controls"),
+      hidden: listbox?.hasAttribute("hidden"),
+    }));
+
+  check("the selected values live in a labelled group, and the field's label points at the input",
+    group?.getAttribute("data-astryx-component") === "Tokenizer"
+      && group?.getAttribute("role") === "group"
+      && group?.getAttribute("aria-label") === "Reviewers"
+      && label?.textContent === "Reviewers",
+    JSON.stringify({
+      group: group?.getAttribute("aria-label"),
+      label: label?.textContent,
+    }));
+
+  check("the menu announces its results in a polite live region",
+    host?.querySelector('[aria-live="polite"][role="status"]') !== null);
+
+  const disabled = host?.querySelector("#rt-tk-disabled-group");
+  check("a disabled tokenizer says so, on the group and on the field's label",
+    disabled?.getAttribute("data-astryx-disabled") === "true"
+      && (disabled?.getAttribute("class") ?? "").includes("astryx-tokenizer--disabled")
+      && host?.querySelector('label[for="rt-tk-disabled"]')?.getAttribute("data-astryx-disabled") === "true",
+    JSON.stringify({
+      group: disabled?.getAttribute("data-astryx-disabled"),
+      label: host?.querySelector('label[for="rt-tk-disabled"]')?.getAttribute("data-astryx-disabled"),
+    }));
+}
+
+
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
