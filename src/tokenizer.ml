@@ -331,7 +331,15 @@ let view
       let has_content =
         List.length entries > 0 || (did_search && not (String.is_empty empty_search_text))
       in
-      let is_open = local.is_open && has_content in
+      (* FR15: the retained popup closes, and its active descendant goes with
+         it, when no eligible choice remains, the maximum is reached, or the
+         control is disabled. The last two are terminal states of the control
+         rather than of the content, so they are checked here: the content
+         alone would keep the popup open at the maximum, because the empty
+         state is content. *)
+      let is_open =
+        local.is_open && has_content && not is_at_max && not is_disabled
+      in
       let highlighted =
         if is_open && local.highlighted >= 0 && local.highlighted < List.length entries
         then local.highlighted
@@ -387,10 +395,17 @@ let view
               && String.length local.query = 0
               && List.length remaining > 0
             in
+            (* The active option advances to the next remaining choice in
+               displayed order; when the committed choice was the last one, the
+               nearest preceding choice becomes active. Both are the same rule
+               read from the index of the committed choice in the list it was
+               chosen from: the choice after it keeps that index in the
+               remaining list, and the choice before it takes index - 1. *)
+            let committed_index = local.highlighted in
             let next_highlight =
-              if keep_open
-              then Int.min (Int.max local.highlighted 0) (List.length remaining - 1)
-              else -1
+              if not keep_open then -1
+              else if committed_index >= List.length remaining then List.length remaining - 1
+              else Int.max committed_index 0
             in
             Effect.Many
               [ on_change (value @ [ item ]) { type_ = Add; item = Some item }
@@ -567,6 +582,7 @@ let view
       (* ------------------------------------------------------------- the chips *)
       let token_node (item : item) =
         Vdom.Node.span
+          ~key:("token:" ^ item.id)
           ~attrs:(Attr.class_ [ "astryx-tokenizer__token" ])
           [ Token.view
               ~size:(token_size size)
@@ -617,6 +633,7 @@ let view
           | New text -> sprintf "Create \"%s\"" text
         in
         Vdom.Node.div
+          ~key:(sprintf "option:%d" index)
           ~attrs:
             ([ Vdom.Attr.id (option_id index)
              ; Vdom.Attr.create "role" "option"
@@ -795,7 +812,7 @@ let view
           (start_icon_node
            @ List.map shown_items ~f:token_node
            @ visible_indicator
-           @ [ Vdom.Node.input ~attrs:input_attrs () ])
+           @ [ Vdom.Node.input ~key:"input" ~attrs:input_attrs () ])
       in
       let wrapper_attrs =
         Attr.class_
