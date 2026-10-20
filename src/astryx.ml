@@ -106,6 +106,7 @@ module RadioList = Radio_list
 module Field_label = Field_label
 module Dropdown_menu = Dropdown_menu
 module Context_menu = Context_menu
+module App_shell = App_shell
 module Field = Field
 module Text_input = Text_input
 module TextInput = Text_input

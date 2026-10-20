@@ -16,7 +16,6 @@
 
 open! Core
 open! Bonsai_web
-open Js_of_ocaml
 
 module App_shell = Astryx.App_shell
 
@@ -25,7 +24,7 @@ open Prelude
 (* The side navigation, and what it draws as in each mode. A navigation
    that does not care about the mode draws the same thing for all of them;
    the collapsed bar shows the title, the drawer shows the whole list. *)
-let side_nav ~title =
+let side_nav ~title : (App_shell.side_nav_mode -> Vdom.Node.t) =
   fun mode ->
     match mode with
     | App_shell.Default ->
@@ -50,7 +49,7 @@ let side_nav ~title =
 ;;
 
 (* The top navigation, and what it draws as in each mode. *)
-let top_nav ~title =
+let top_nav ~title : (App_shell.top_nav_render -> Vdom.Node.t) =
   fun { App_shell.mode; drawer_content } ->
     let heading =
       Vdom.Node.div
@@ -180,7 +179,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     [ ex_tree "the frame alone" plain
     ; ex_tree "with a top navigation and a side navigation" with_navigations
     ; ex_tree "with a banner above the navigation" with_banner
-    ; ex_tree "the background variants" variants
+    ; ex_tree "the background variants" (Bonsai.map variants ~f:(fun nodes -> Vdom.Node.fragment nodes))
     ; ex_tree "auto height: the page scrolls as a whole" auto_height
     ; ex_tree "the mobile layout" mobile
     ]

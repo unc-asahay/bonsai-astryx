@@ -6516,6 +6516,7 @@ let page (graph : Bonsai.graph) =
   let selector_section = Sec_selector.demo graph in
   let bottom_sheet_section = Sec_bottom_sheet.demo graph in
   let context_menu_section = Sec_context_menu.demo graph in
+  let app_shell_section = Sec_app_shell.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6547,6 +6548,7 @@ let page (graph : Bonsai.graph) =
     ; selector_section
     ; bottom_sheet_section
     ; context_menu_section
+    ; app_shell_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in
