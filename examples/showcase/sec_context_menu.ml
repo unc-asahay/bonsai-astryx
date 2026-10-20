@@ -86,11 +86,14 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       ~on_select
       graph
   in
+  (* Each example gets its own instance: the menu's id names the element the
+     pointer is measured against, so two instances cannot share one. *)
   let basic = menu ~id:"showcase-context-menu-basic" ~label:"File" () in
   let sheet = menu ~id:"showcase-context-menu-sheet" ~label:"Actions" ~presentation:Context_menu.Bottom_sheet () in
   let chosen_example =
-    Bonsai.map2 readout basic ~f:(fun readout basic ->
-      Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" "showcase-context-menu-example" ] [ readout; basic ])
+    let chosen_menu = menu ~id:"showcase-context-menu-chosen-menu" ~label:"File" () in
+    Bonsai.map2 readout chosen_menu ~f:(fun readout chosen_menu ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.create "id" "showcase-context-menu-example" ] [ readout; chosen_menu ])
   in
   let examples =
     [ ex_tree "right-click the trigger: the menu opens at the pointer" basic

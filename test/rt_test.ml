@@ -4456,6 +4456,73 @@ let () =
   mount "command-palette-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+(* ------------------------------------------------------------- ContextMenu *)
+(* The right-click menu. It owns its open state and its drill stack; the
+   caller owns only the trigger and the rows it offers. *)
+let context_menu_component graph =
+  let item ?id ?description ?icon ?variant ?(is_disabled = false) ?children label =
+    { Astryx.Context_menu.id
+    ; label
+    ; description
+    ; icon
+    ; end_content = None
+    ; variant =
+        (match variant with
+         | Some variant -> variant
+         | None -> Astryx.Context_menu.Default)
+    ; is_disabled
+    ; href = None
+    ; has_close_on_select = true
+    ; children
+    }
+  in
+  let entries =
+    [ Astryx.Context_menu.Item (item ~id:"open" "Open")
+    ; Astryx.Context_menu.Item (item ~id:"paste" ~is_disabled:true "Paste")
+    ; Astryx.Context_menu.Divider
+    ; Astryx.Context_menu.Item
+        (item ~id:"share" ~children:[ Astryx.Context_menu.Item (item ~id:"copy" "Copy link") ] "Share")
+    ; Astryx.Context_menu.Section
+        { id = Some "edit"
+        ; title = Some "Edit"
+        ; items = [ item ~id:"cut" "Cut" ]
+        }
+    ]
+  in
+  let trigger = Vdom.Node.span ~attrs:[] [ Vdom.Node.text "Right-click me" ] in
+  (* The menu owns its open state - it opens when the trigger is right-clicked
+     - so the case shows the closed menu and the trigger it hangs from. The
+     open menu, its rows and its keyboard model are covered in the browser. *)
+  let trees =
+    [ Astryx.Context_menu.view
+        ~id:"rt-cm"
+        ~label:"File"
+        ~on_open_change:(Bonsai.return (fun (_ : bool) -> Effect.return ()))
+        ~trigger
+        ~entries
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "context-menu-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      context_menu_component
+  in
+  mount "context-menu-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

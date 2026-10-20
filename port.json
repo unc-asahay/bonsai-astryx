@@ -880,6 +880,13 @@
       "file": "src/command_palette.ml",
       "milestone": "M75",
       "module": "Astryx.command_palette"
+    },
+    {
+      "class": "C",
+      "component": "ContextMenu",
+      "file": "src/context_menu.ml",
+      "milestone": "M76",
+      "module": "Astryx.context_menu"
     }
   ],
   "schema": 1,

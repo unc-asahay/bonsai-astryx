@@ -290,6 +290,7 @@ if (mode === "showcase") {
     "Selector",
     "BottomSheet",
     "CommandPalette",
+    "ContextMenu",
 
   ];
 
@@ -653,7 +654,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("94 sections", sections.length === 94, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("95 sections", sections.length === 95, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -755,13 +756,14 @@ if (mode === "showcase") {
     Calendar: 7,
     Selector: 8,
     BottomSheet: 5,
+    ContextMenu: 3,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("626 examples across the page", totalExamples === 626, `got ${totalExamples}`);
+  check("629 examples across the page", totalExamples === 629, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -775,7 +777,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("94 nav links", nav.length === 94, `got ${nav.length}`);
+  check("95 nav links", nav.length === 95, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4170,11 +4172,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 92 ported / 11 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["92", "11", "103"]),
+    "coverage stats are 93 ported / 10 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["93", "10", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 11 entries", cov.unported === 11, `got ${cov.unported}`);
+  check("unported list rendered 10 entries", cov.unported === 10, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5969,6 +5971,107 @@ check(
       check("typing filters the commands",
         filtered?.items === 1 && filtered?.labels?.[0] === "Settings",
         JSON.stringify(filtered));
+    }
+  }
+
+  // ------------------------------------------------------------- ContextMenu (M76)
+  {
+    const cmSection = await page.$("section[data-showcase-component='ContextMenu']");
+    check("the ContextMenu section renders", cmSection !== null,
+      cmSection ? "found" : "missing");
+    if (cmSection) {
+      const shape = await page.evaluate(() => {
+        const sec = document.querySelector("section[data-showcase-component='ContextMenu']");
+        return {
+          examples: sec.querySelectorAll("[data-example]").length,
+          components: sec.querySelectorAll("[data-astryx-component='ContextMenu']").length,
+          triggers: sec.querySelectorAll("[data-astryx-target='context-menu-trigger']").length,
+        };
+      });
+      check("the section draws three menus, each with a trigger",
+        shape?.examples === 3 && shape?.components === 3 && shape?.triggers === 3,
+        JSON.stringify(shape));
+
+      // The menu is closed until the trigger is right-clicked.
+      const before = await page.evaluate(() => {
+        const menu = document.getElementById("showcase-context-menu-basic-menu");
+        return { exists: menu !== null, items: menu?.querySelectorAll("[role='menuitem']").length ?? -1 };
+      });
+      check("the menu is not in the document until it is opened",
+        before?.exists === false, JSON.stringify(before));
+
+      // Right-click the trigger: the menu opens at the pointer.
+      const trigger = await page.$("section[data-showcase-component='ContextMenu'] [data-astryx-target='context-menu-trigger']");
+      if (trigger) {
+        // The trigger is far down the page: scroll it into view before
+        // clicking, or the click lands somewhere else entirely.
+        await trigger.scrollIntoViewIfNeeded();
+        const box = await trigger.boundingBox();
+        await page.mouse.click(box.x + 10, box.y + 10, { button: "right" });
+        await page.waitForTimeout(300);
+      }
+      const opened = await page.evaluate(() => {
+        const menu = document.getElementById("showcase-context-menu-basic-menu");
+        if (!menu) return null;
+        const items = [...menu.querySelectorAll("[role='menuitem']")];
+        const groups = [...menu.querySelectorAll("[role='group']")];
+        const separators = [...menu.querySelectorAll("[role='separator']")];
+        return {
+          role: menu.getAttribute("role"),
+          label: menu.getAttribute("aria-label"),
+          items: items.length,
+          groups: groups.length,
+          separators: separators.length,
+          labels: items.map((i) => (i.textContent ?? "").trim().slice(0, 16)),
+          haspopup: items.filter((i) => i.getAttribute("aria-haspopup") === "true").length,
+          disabled: items.filter((i) => i.getAttribute("aria-disabled") === "true").length,
+          groupLabel: groups[0]?.getAttribute("aria-label") ?? null,
+          left: menu.style.left ?? "",
+          top: menu.style.top ?? "",
+        };
+      });
+      check("the menu opens as a labelled menu of rows",
+        opened?.role === "menu" && opened?.label === "File" && opened?.items === 6,
+        JSON.stringify(opened));
+      check("a divider and a labelled group separate the rows",
+        opened?.separators === 1 && opened?.groups === 1 && opened?.groupLabel === "Edit",
+        JSON.stringify(opened));
+      check("the row that carries children says so, and a disabled row says it is disabled",
+        opened?.haspopup === 1 && opened?.disabled === 1,
+        JSON.stringify(opened));
+      check("the menu is positioned at the pointer, not at the origin",
+        opened?.left !== "0px" && opened?.top !== "0px",
+        JSON.stringify({ left: opened?.left, top: opened?.top }));
+
+      // The keyboard model: arrows move the focus, Home and End jump.
+      const focused = await page.evaluate(() => {
+        const menu = document.getElementById("showcase-context-menu-basic-menu");
+        return menu?.contains(document.activeElement) ?? false;
+      });
+      check("the opened menu takes the focus", focused === true, String(focused));
+
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(120);
+      const afterArrow = await page.evaluate(() => {
+        const menu = document.getElementById("showcase-context-menu-basic-menu");
+        const active = document.activeElement;
+        return {
+          inMenu: menu?.contains(active) ?? false,
+          text: (active?.textContent ?? "").trim().slice(0, 16),
+        };
+      });
+      check("ArrowDown moves the focus onto a row",
+        afterArrow?.inMenu === true && (afterArrow?.text ?? "") !== "",
+        JSON.stringify(afterArrow));
+
+      // Escape closes the menu again.
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(250);
+      const closed = await page.evaluate(() => {
+        const menu = document.getElementById("showcase-context-menu-basic-menu");
+        return { exists: menu !== null };
+      });
+      check("Escape closes the menu", closed?.exists === false, JSON.stringify(closed));
     }
   }
 

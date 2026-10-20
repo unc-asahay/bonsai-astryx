@@ -4474,3 +4474,21 @@ The responsive gate caught a real bug: the inline sheet's slot is pinned to the 
 The CommandPalette is the modal command list: a search field, the commands it filters, and the keyboard model that walks them. The commands are the application's — the palette is given a source, a function of the query that answers with items — and the palette owns only the query, the highlight and the open state. The field is a combobox that owns the listbox it filters, the list is a listbox of options, the commands are grouped under named headings, the active row is named with `aria-activedescendant` so the focus stays in the field, and the result count is announced in one polite live region.
 
 The gate found a real bug: the palette opened with nothing highlighted — the query change cleared the highlight and nothing ever set it again, so the arrow keys could not move from the first result and the active row was never named. The highlight is derived now: with nothing chosen, the first result is the highlighted one, which is upstream's own rule, and the state still keeps the user's own choice when there is one. The live region was also missing `aria-atomic`, so the announcement could be read in pieces rather than whole, and the palette was 640px wide, which pushed the page sideways on a 320px phone — it is never wider than the column it sits in now.
+
+### Gate 87 — M76 ContextMenu
+
+The context menu that opens where the pointer is, with the DropdownMenu
+phase-2 internals upstream folds into it: the layer that positions the
+menu at the pointer, the overflow measurement, and the typeahead.
+
+Four real defects were found by the gates and fixed before the milestone
+landed: the trigger carried no id for the pointer measurement to read, the
+port used upstream's `data-astryx-target` instead of the house's
+`data-astryx-component` marker, the pointer surface's rows never got the
+item class (so the menu's CSS did not apply to them and the keyboard model
+could not find them), and the menu neither took the focus when it opened
+nor gave it back when it closed.
+
+- component 871/871, browser 709/709, responsive 66/66
+- sweep: SWEEP GREEN
+- record: `docs/verification/commit-m76.txt`

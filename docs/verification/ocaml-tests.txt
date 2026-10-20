@@ -1010,6 +1010,8 @@ DialogHeader
   ok   both controls are live in the middle of the range
   ok   the count variant reports the range of items on the page
   ok   a pagination with no known end has only the next control to offer
+  ok   the trigger carries the component marker and the id the pointer is measured against
+  ok   the closed menu is not in the document
   ok   the field is a combobox that owns the list it filters
   ok   the list holds the commands, and the first one is highlighted
   ok   the commands are grouped, and the groups carry their names
@@ -1038,5 +1040,5 @@ DialogHeader
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
 
-869 checks, 0 failure(s)
+871 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

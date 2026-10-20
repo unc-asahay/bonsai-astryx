@@ -239,6 +239,7 @@ let render_item ~on_activate ~on_drill (item : item) =
   let children = item.children in
   let attrs =
     (row_attrs ~is_disabled ~has_children:(Option.is_some children)
+    @ [ class_attr item_class ]
     @ List.map ~f:class_attr (item_variant_class item))
   in
   let activate _ =
@@ -450,9 +451,32 @@ let view
             (if overflow then "pan-y pinch-zoom" else "pinch-zoom");
           set_property "overscroll-behavior" (if overflow then "contain" else "auto")
       in
+      (* The first row of the menu, focused the way upstream focuses it: in
+         the frame after the browser has laid the menu out. A row cannot be
+         focused before that, so this is an effect, not a call. *)
+      let focus_first_row () =
+        match element_by_id menu_id with
+        | None -> ()
+        | Some container ->
+          (match query_all container ".astryx-context-menu__item" with
+           | [] -> ()
+           | first :: _ -> focus_element first)
+      in
+      (* Upstream restores the focus to whatever had it before the menu
+         opened, so closing the menu does not drop the focus onto the body. *)
+      let restore_focus () =
+        match element_by_id id with
+        | None -> ()
+        | Some trigger -> focus_element trigger
+      in
       let close () =
         reset_typeahead ();
-        Effect.Many [ set_drill Drill_in.empty; set_open false; on_open_change false ]
+        Effect.Many
+          [ set_drill Drill_in.empty
+          ; set_open false
+          ; on_open_change false
+          ; Effect.of_thunk (fun () -> restore_focus ())
+          ]
       in
       let open_at ~x ~y =
         reset_typeahead ();
@@ -461,7 +485,11 @@ let view
           ; set_drill Drill_in.empty
           ; set_open true
           ; on_open_change true
-          ; Effect.of_thunk (fun () -> next_frame (fun () -> measure_overflow ()))
+          ; Effect.of_thunk
+              (fun () ->
+                next_frame (fun () ->
+                  measure_overflow ();
+                  focus_first_row ()))
           ]
       in
       let select item =
@@ -680,9 +708,11 @@ let view
           tag
           ~attrs:(attrs
           @ [ class_attr trigger_class
+            ; Vdom.Attr.create "id" id
             ; Vdom.Attr.create "data-astryx-target" "context-menu-trigger"
             ; Vdom.Attr.on_contextmenu handle_context_menu
-            ])
+            ]
+          @ Common.Attr.data "component" "ContextMenu")
           [ trigger
           ; Vdom.Node.create "span" ~attrs:[ class_attr cursor_anchor_class
               ; Vdom.Attr.create "aria-hidden" "true"

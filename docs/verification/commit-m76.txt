@@ -1,0 +1,38 @@
+Gate 87 — M76 ContextMenu (coverage 92 → 93)
+
+The ContextMenu is the menu that opens where the pointer is: a right-click
+on a trigger opens it, the rows are the caller's, and the menu owns its
+open state, its drill stack and its typeahead.
+
+The port carries upstream's context menu with the DropdownMenu phase-2
+internals it depends on: the layer that positions the menu at the pointer,
+the overflow measurement that decides whether the menu can be panned, and
+the typeahead that jumps to a row by its first letters.
+
+Four real defects were found by the gates and fixed before the milestone
+was allowed to land.
+
+* The trigger carried no id, so the measurement of the pointer had nothing
+  to measure against and every menu opened at the origin. The trigger now
+  carries the id the measurement looks up.
+* The port marked its elements `data-astryx-target`, which is upstream's
+  own attribute. The house's visual contract wants `data-astryx-component`,
+  so the marker is now the house's.
+* The pointer surface's rows never got the item class, so the menu's own
+  CSS did not apply to them and the keyboard model could not find the rows
+  to move the focus between. The touch surface's rows already had it.
+* Upstream focuses the first row in a frame after the menu opens, and
+  restores the focus to the trigger when the menu closes. The port did
+  neither, so the menu opened with the focus still on the page behind it
+  and Escape - which the menu handles on its own keydown - never reached
+  it. Both are now effects, in the frame after the menu is laid out.
+
+The showcase gives each example its own instance: the menu's id names the
+element the pointer is measured against, so two instances cannot share one.
+
+Gates
+-----
+  component    871 / 871   (test/run.mjs)
+  browser      709 / 709   (tools/visual/verify-browser.mjs)
+  responsive    66 / 66    (tools/visual/verify-responsive.mjs)
+  sweep                    SWEEP GREEN

@@ -3910,6 +3910,22 @@ check("a disabled group says so once, on the box", (() => {
 
 
 {
+  const host = document.querySelector('[data-case="context-menu-all"]');
+  // The menu owns its open state: it is not in the document until the
+  // trigger is right-clicked, which the browser gate does.
+  const trigger = host?.querySelector("#rt-cm");
+  const menu = host?.querySelector("#rt-cm-menu");
+
+  check("the trigger carries the component marker and the id the pointer is measured against",
+    trigger?.getAttribute("data-astryx-component") === "ContextMenu"
+      && trigger?.id === "rt-cm",
+    JSON.stringify({ component: trigger?.getAttribute("data-astryx-component"), id: trigger?.id }));
+
+  check("the closed menu is not in the document",
+    menu === null, menu ? "the menu is rendered" : "the menu is absent");
+}
+
+{
   const host = document.querySelector('[data-case="command-palette-all"]');
   // the open instance: the palette that owns its state starts closed
   const input = host?.querySelector("#rt-cp-open input");
