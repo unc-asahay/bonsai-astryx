@@ -1,0 +1,59 @@
+Gate 79 — M66: MultiSelector (coverage 82 → 83)
+
+A field that opens a listbox of checkable options. The chosen set comes
+in as a value and goes out through on_change. The options may carry
+dividers and grouped sections; the menu filters on what you type; the
+keyboard is upstream's model — arrows, Home/End, PageUp/PageDown, Enter
+and Space to toggle, Escape to close, and a 500ms typeahead buffer. The
+list is a native popover drawn in place, not a portal.
+
+Two bugs the gates found, both fixed here:
+
+- A section's options rendered TWICE — once bare in the list and once
+  inside the section's group — and the second copy carried the same id,
+  so aria-activedescendant named two elements. The section's rows are
+  now made for the group and not added to the list.
+- The browser gate asked whether an indicator's mark "paints", and a
+  mark inside a CLOSED popover has no box because nothing is painted
+  there. A mark that exists but is invisible is the bug; a mark nobody
+  can see yet is not. The gate now asks whether the mark renders.
+
+A third bug was in the integrator, not the port: the check for "is this
+section already wired in?" demanded a trailing space that the entry it
+inserts does not carry, so a second integration added the section a
+second time. The check no longer demands the space, and the duplicate
+that had already been added is gone.
+
+Gates
+  build                                    exit 0
+  component (test/run.mjs)                 820 / 0
+  DOM + accessibility                       25 / 0
+  real browser, showcase                  608 / 0
+  responsive + visual regression           66 / 0
+  MCP layer                                 ok
+  port.json attribution                     ok
+  coverage                                 83 / 20 / 103
+  showcase                                 85 sections, 556 examples
+
+New in this milestone
+  src/multi_selector.ml        the field: a native popover listbox of
+                               checkable options, filtering, the
+                               keyboard model, aria-activedescendant,
+                               the count/labels/badges summaries, the
+                               live region
+  src/multi_selector.mli        the public surface, with the
+                               divergences written out
+  assets/parts/multi_selector.css
+  examples/showcase/sec_multi_selector.ml
+                               eight examples: default, with search,
+                               badges, labels, with a clear button,
+                               disabled, empty, sections and dividers
+
+Divergences from upstream (also in the .mli)
+  Not ported: the create row, the select-all row, a per-option action
+  and the grid it creates, renderOption, renderTrigger, the read-only
+  state, the bottom-sheet presentation, and the optimistic value — this
+  port's ?is_loading stands in for it, as it does everywhere else. The
+  list is drawn in place, because the house has no portal. There is no
+  imperative handle; ?is_open and ?on_open_change drive it. The strings
+  are English and fixed.

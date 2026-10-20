@@ -4362,3 +4362,31 @@ error announced, the disabled field readonly with aria-disabled, and
 the hidden form carriers) · responsive 66/0 (the baseline was updated:
 the section makes the page taller) · coverage 82/21/103 · showcase 84
 sections / 548 examples · visual 82 pages + INDEX.
+
+### Gate 79 — M66: MultiSelector (coverage 82 → 83)
+
+**820/820 component checks · 608/608 browser checks · 66/66 responsive · SWEEP GREEN**
+
+The multi-select field: the chosen set comes in as a value and goes out
+through `on_change`, the options may carry dividers and grouped
+sections, the menu filters on what you type, and the keyboard is
+upstream's model — arrows, Home/End, PageUp/PageDown, Enter and Space to
+toggle, Escape to close, and a 500ms typeahead buffer. The list is a
+native popover drawn in place.
+
+Three bugs, and two of them were in the house rather than the port:
+
+- A section's options rendered **twice** — once bare in the list and
+  once inside the section's group — and the second copy carried the same
+  id, so `aria-activedescendant` named two elements. The section's rows
+  are now made for the group and not added to the list.
+- The browser gate asked whether an indicator's mark "paints". A mark
+  inside a **closed** popover has no box, because nothing is painted
+  there. A mark that exists but is invisible is the bug; a mark nobody
+  can see yet is not — so the gate now asks whether the mark renders.
+- The integrator's check for "is this section already wired in?" demanded
+  a trailing space that the entry it inserts does not carry, so a second
+  integration added the section a second time. The check no longer
+  demands the space, and the duplicate is gone.
+
+Full record: `docs/verification/commit-m66.txt`.

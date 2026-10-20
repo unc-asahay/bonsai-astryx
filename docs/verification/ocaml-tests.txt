@@ -113,6 +113,10 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -958,6 +962,19 @@ DialogHeader
   ok   the fill is the value's share of the track
   ok   a completed bar reads 100% and the indeterminate one is marked
   ok   a bar with marks renders the mark, and the tick carries its label
+  ok   a closed hover card's anchor is focusable and names its placement, with no card to describe
+  ok   an open hover card points at its card, and the card is a group with the right placement
+  ok   the card holds its content
+  ok   the token input is a combobox that controls a hidden listbox
+  ok   the selected values live in a labelled group, and the field's label points at the input
+  ok   the menu announces its results in a polite live region
+  ok   a disabled tokenizer says so, on the group and on the field's label
+  ok   the trigger is a button that names the listbox it controls, and says it is closed
+  ok   the count display says how many are chosen
+  ok   the list is a multi-select listbox, and the chosen value is the selected one
+  ok   a disabled option is listed and announced, but not choosable
+  ok   the section's options sit in a group that carries the section's name
+  ok   with a search field, the search input takes the combobox role and the trigger shows the chosen label
 
-807 checks, 0 failure(s)
+820 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

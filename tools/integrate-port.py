@@ -137,7 +137,11 @@ def wire_showcase(module, component, section_id, nav_id):
         anchor = "  (* One entry per stateful section"
         assert anchor in s, "stateful_sections anchor not found"
         s = s.replace(anchor, binding + anchor, 1)
-    list_entry = f"; {module}_section "
+    # Match the entry WITHOUT a trailing space: the entry this function
+    # inserts carries none, so a check that demanded one would never match
+    # its own insertion - and a second integration would then add the
+    # section a second time.
+    list_entry = f"; {module}_section"
     if list_entry not in s:
         # Append to the stateful_sections list. The list opens with "[ " on
         # its own line and closes on the line of its last element, so find
