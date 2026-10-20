@@ -16,8 +16,8 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Token` (`src/token.ml`, M32)
-- rendered instances in the demo: 8
-- classes: `astryx-token`, `astryx-token--container`, `astryx-token--default`, `astryx-token--disabled`, `astryx-token--green`, `astryx-token--interactive`, `astryx-token--md`
+- rendered instances in the demo: 29
+- classes: `astryx-token`, `astryx-token--container`, `astryx-token--default`, `astryx-token--disabled`, `astryx-token--green`, `astryx-token--interactive`, `astryx-token--lg`, `astryx-token--md`, `astryx-token--sm`
 
 ## layout
 
@@ -32,7 +32,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `padding-block` | `0` | `.astryx-token` |
-| `padding-inline` | `0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-token--md` |
+| `padding-inline` | `0.5rem` _(from `var(--spacing-2)`)_<br>`0.5rem` _(from `var(--spacing-2)`)_<br>`0.5rem` _(from `var(--spacing-2)`)_ | `.astryx-token--sm`<br>`.astryx-token--md`<br>`.astryx-token--lg` |
 
 ## borders
 
@@ -58,7 +58,7 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | property | value | source class |
 | --- | --- | --- |
 | `cursor` | `pointer`<br>`default` | `.astryx-token--interactive`<br>`.astryx-token--disabled` |
-| `height` | `calc(32px - 8px)` _(from `calc(var(--size-element-md) - 8px)`)_ | `.astryx-token--md` |
+| `height` | `calc(28px - 8px)` _(from `calc(var(--size-element-sm) - 8px)`)_<br>`calc(32px - 8px)` _(from `calc(var(--size-element-md) - 8px)`)_<br>`calc(36px - 8px)` _(from `calc(var(--size-element-lg) - 8px)`)_ | `.astryx-token--sm`<br>`.astryx-token--md`<br>`.astryx-token--lg` |
 | `max-width` | `100%` | `.astryx-token` |
 | `pointer-events` | `none` | `.astryx-token--disabled` |
 
@@ -96,7 +96,9 @@ CSS `light-dark(a, b)`, so both answers are given rather than one flattened valu
 | `--ease-standard` | `cubic-bezier(0.24, 1, 0.4, 1)` |
 | `--font-weight-medium` | `500` |
 | `--radius-inner` | `4px` |
+| `--size-element-lg` | `36px` |
 | `--size-element-md` | `32px` |
+| `--size-element-sm` | `28px` |
 | `--spacing-1` | `0.25rem` |
 | `--spacing-2` | `0.5rem` |
 | `--text-supporting-leading` | `1.6667` |

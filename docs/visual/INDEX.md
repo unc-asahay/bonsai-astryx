@@ -2,7 +2,7 @@
 
 # Visual contract index
 
-80 ported component(s). Each page records the appearance the port
+83 ported component(s). Each page records the appearance the port
 actually produces, with tokens resolved to literal values, plus a prompt suitable
 for image generation.
 
@@ -16,7 +16,7 @@ for image generation.
 | Banner | 11 | 6 | 5 | 2 | [Banner.md](Banner.md) |
 | Blockquote | 2 | 1 | 5 | 4 | [Blockquote.md](Blockquote.md) |
 | Breadcrumbs | 8 | 1 | 5 | 0 | [Breadcrumbs.md](Breadcrumbs.md) |
-| Button | 96 | 12 | 27 | 18 | [Button.md](Button.md) |
+| Button | 109 | 12 | 27 | 18 | [Button.md](Button.md) |
 | ButtonGroup | 3 | 5 | 5 | 2 | [ButtonGroup.md](ButtonGroup.md) |
 | Card | 12 | 9 | 10 | 14 | [Card.md](Card.md) |
 | Carousel | 8 | 1 | 7 | 0 | [Carousel.md](Carousel.md) |
@@ -33,14 +33,14 @@ for image generation.
 | Divider | 6 | 5 | 10 | 5 | [Divider.md](Divider.md) |
 | DropdownMenu | 6 | 1 | 5 | 3 | [DropdownMenu.md](DropdownMenu.md) |
 | EmptyState | 4 | 2 | 8 | 4 | [EmptyState.md](EmptyState.md) |
-| Field | 92 | 2 | 5 | 1 | [Field.md](Field.md) |
-| FieldStatus | 16 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
+| Field | 102 | 2 | 5 | 1 | [Field.md](Field.md) |
+| FieldStatus | 17 | 7 | 18 | 15 | [FieldStatus.md](FieldStatus.md) |
 | FileInput | 6 | 4 | 19 | 11 | [FileInput.md](FileInput.md) |
 | FormLayout | 8 | 4 | 7 | 1 | [FormLayout.md](FormLayout.md) |
 | Grid | 6 | 3 | 4 | 0 | [Grid.md](Grid.md) |
-| Heading | 9 | 7 | 6 | 20 | [Heading.md](Heading.md) |
+| Heading | 11 | 7 | 6 | 20 | [Heading.md](Heading.md) |
 | HoverCard | 11 | 7 | 14 | 6 | [HoverCard.md](HoverCard.md) |
-| Icon | 153 | 25 | 15 | 11 | [Icon.md](Icon.md) |
+| Icon | 184 | 25 | 15 | 11 | [Icon.md](Icon.md) |
 | IconButton | 11 | 15 | 31 | 16 | [IconButton.md](IconButton.md) |
 | Indicator | 79 | 7 | 14 | 9 | [Indicator.md](Indicator.md) |
 | InputGroup | 3 | 5 | 6 | 3 | [InputGroup.md](InputGroup.md) |
@@ -50,10 +50,11 @@ for image generation.
 | Layer | 3 | 5 | 12 | 5 | [Layer.md](Layer.md) |
 | Layout | 6 | 3 | 7 | 5 | [Layout.md](Layout.md) |
 | Lightbox | 3 | 1 | 12 | 0 | [Lightbox.md](Lightbox.md) |
-| Link | 5 | 4 | 3 | 1 | [Link.md](Link.md) |
+| Link | 23 | 4 | 3 | 1 | [Link.md](Link.md) |
 | List | 6 | 4 | 7 | 1 | [List.md](List.md) |
 | MetadataList | 5 | 1 | 2 | 0 | [MetadataList.md](MetadataList.md) |
 | MetadataListItem | 27 | 1 | 11 | 5 | [MetadataListItem.md](MetadataListItem.md) |
+| MobileNav | 6 | 6 | 24 | 7 | [MobileNav.md](MobileNav.md) |
 | MoreMenu | 3 | 4 | 25 | 10 | [MoreMenu.md](MoreMenu.md) |
 | NavHeadingMenu | 3 | 4 | 3 | 1 | [NavHeadingMenu.md](NavHeadingMenu.md) |
 | NavIcon | 2 | 1 | 9 | 3 | [NavIcon.md](NavIcon.md) |
@@ -76,19 +77,21 @@ for image generation.
 | StatusDot | 7 | 7 | 7 | 6 | [StatusDot.md](StatusDot.md) |
 | Switch | 14 | 1 | 3 | 0 | [Switch.md](Switch.md) |
 | TabList | 4 | 4 | 10 | 4 | [TabList.md](TabList.md) |
-| Text | 83 | 16 | 8 | 27 | [Text.md](Text.md) |
+| Text | 103 | 16 | 8 | 27 | [Text.md](Text.md) |
 | TextArea | 8 | 4 | 4 | 2 | [TextArea.md](TextArea.md) |
 | TextInput | 24 | 5 | 19 | 11 | [TextInput.md](TextInput.md) |
 | Thumbnail | 18 | 4 | 13 | 2 | [Thumbnail.md](Thumbnail.md) |
 | Timer | 3 | 0 | 0 | 0 | [Timer.md](Timer.md) |
 | Timestamp | 10 | 1 | 10 | 0 | [Timestamp.md](Timestamp.md) |
+| Toast | 4 | 3 | 17 | 13 | [Toast.md](Toast.md) |
 | ToggleButton | 6 | 5 | 25 | 11 | [ToggleButton.md](ToggleButton.md) |
-| Token | 8 | 7 | 25 | 13 | [Token.md](Token.md) |
+| Token | 29 | 9 | 25 | 15 | [Token.md](Token.md) |
+| Tokenizer | 10 | 7 | 18 | 8 | [Tokenizer.md](Tokenizer.md) |
 | Toolbar | 3 | 4 | 6 | 1 | [Toolbar.md](Toolbar.md) |
 | Tooltip | 13 | 5 | 17 | 6 | [Tooltip.md](Tooltip.md) |
 | TreeList | 7 | 1 | 3 | 2 | [TreeList.md](TreeList.md) |
 | VisuallyHidden | 3 | 1 | 10 | 0 | [VisuallyHidden.md](VisuallyHidden.md) |
 
-Not listed: the 23 components with no OCaml port. They
+Not listed: the 20 components with no OCaml port. They
 have no appearance here yet — `get_snippet` in the MCP server refuses to invent
 one, and this page does not invent a look either.

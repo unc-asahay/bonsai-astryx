@@ -4315,3 +4315,50 @@ browser 580/0 (572 + 8 Resizable checks) · responsive 66/0, 0.00% drift
 (baseline updated: the two sections make the page ~2,000px taller) ·
 coverage 81/22/103 · showcase 83 sections / 539 examples · visual 81
 pages + INDEX.
+
+Gate 78 — M65: Tokenizer (coverage 81 → 82)
+
+The multi-select field: the selections are chips beside a combobox
+input, the menu is a listbox, and a selected value can be taken back.
+Nine showcase examples - the plain field, the field that searches, the
+one that creates, the one with a maximum, the disabled one with its
+reason, the one with a validation message, the two sizes, the one that
+overflows into a single line, and the one that carries a hidden input
+per selected id for a form.
+
+The port settled a question the campaign had been circling: upstream's
+search source returns promises and its queries are debounced, but a
+Bonsai effect cannot await a promise. So the port's source is a plain
+function, a query runs at once, and there is no busy state - the app
+reports an in-flight remote search itself. That divergence is recorded
+in the .mli, and Typeahead follows the same precedent rather than
+inventing a second async contract.
+
+What the gate found: the section's overflow example asked for a field
+320px wide, and on a 320px phone that widened the page by 41 pixels -
+the page's own scrollWidth said so. The example now asks for
+min(320px, 100%), so it keeps the width it was demonstrating on a
+desktop and yields on a phone.
+
+The gate's element-level check also learned something: it used to
+exempt only content inside a *scrollable* ancestor, so it flagged the
+tokens that upstream's 'unfocusedInline' behaviour deliberately clips
+to one line with a "+ N more" indicator. Content clipped by an
+ancestor is not visible off-screen, so the check now exempts clipped
+ancestors too. The page-level check - the one that catches a component
+that actually widens the page - is unchanged, and it is the one that
+caught the 320px field.
+
+The worker's two commits touched only the five files a port owns: the
+implementation and its .mli, the CSS part, the showcase section and one
+line in src/astryx.ml. The integrator owns the shared files.
+
+Gates: build exit 0 · component 807/0 · DOM + accessibility 59/0 ·
+browser 600/0 (592 + 8 new Tokenizer checks: the combobox and what it
+controls, the listbox and that it is hidden while closed, the menu
+opening as you type with the active option on the input, the selected
+values as tokens in a labelled group with a remove control each, the
+error announced, the disabled field readonly with aria-disabled, and
+the hidden form carriers) · responsive 66/0 (the baseline was updated:
+the section makes the page taller) · coverage 82/21/103 · showcase 84
+sections / 548 examples · visual 82 pages + INDEX.

@@ -803,6 +803,13 @@
       "file": "src/mobile_nav.ml",
       "milestone": "M64",
       "module": "Astryx.mobile_nav"
+    },
+    {
+      "class": "C",
+      "component": "Tokenizer",
+      "file": "src/tokenizer.ml",
+      "milestone": "M65",
+      "module": "Astryx.tokenizer"
     }
   ],
   "schema": 1,

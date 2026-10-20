@@ -16,7 +16,7 @@ Themed colours are shown as `light (light) / dark (dark)`: upstream stores them 
 CSS `light-dark(a, b)`, so both answers are given rather than one flattened value.
 
 - module: `Astryx.Link` (`src/link.ml`, M31)
-- rendered instances in the demo: 5
+- rendered instances in the demo: 23
 - classes: `astryx-link`, `astryx-link--disabled`, `astryx-link--underline`, `astryx-text--color-accent`
 
 ## colour

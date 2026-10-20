@@ -212,7 +212,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       ~id:"showcase-tokenizer-overflow"
       ~label:"Everyone"
       ~description:"A narrow field, so the row collapses to one line."
-      ~width:(Astryx.Common.Size_value.Px 320)
+      ~width:(Astryx.Common.Size_value.Css "min(320px, 100%)")
       ~token_overflow_behavior:Tokenizer.Unfocused_inline
       ~value:overflow_value
       ~on_change:overflow_on_change

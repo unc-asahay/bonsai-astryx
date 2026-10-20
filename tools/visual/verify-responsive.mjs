@@ -170,18 +170,23 @@ const GRID_PROBE = () => {
 
 const LAYOUT_PROBE = () => {
   const vw = window.innerWidth;
-  // A component inside a *scrollable* ancestor is content of a scroll viewport, not
-  // an escape: TabList's overflow menu trigger sits beyond the stripped edge of a
-  // horizontally scrollable strip (which is the point — it scrolls into view). Ask
-  // whether any of an element's ancestors actually scrolls, and treat boxes clipped
-  // by that container as inside the viewport rather than off it.
-  const insideScrollable = (el) => {
+  // A component inside an ancestor that CLIPS its content is not escaping: the
+  // content is cut off by that container, so it cannot be seen off-screen. Two
+  // kinds count. A *scrollable* ancestor (TabList's overflow menu trigger sits
+  // beyond the stripped edge of a horizontally scrollable strip - which is the
+  // point, it scrolls into view). And a *clipped* ancestor: upstream's
+  // Tokenizer's 'unfocusedInline' overflow behaviour is a single truncated line
+  // with a "+ N more" indicator, so the tokens it hides are clipped by design
+  // and their boxes extend past the field they are cut at. The page-level check
+  // ("the page does not overflow horizontally") is what catches a component that
+  // actually widens the page; this one is about what is visible.
+  const insideClippedAncestor = (el) => {
     for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
       const s = getComputedStyle(a);
-      const scrollable =
-        ((s.overflowX === "auto" || s.overflowX === "scroll") && a.scrollWidth > a.clientWidth + 1) ||
-        ((s.overflowY === "auto" || s.overflowY === "scroll") && a.scrollHeight > a.clientHeight + 1);
-      if (scrollable) return true;
+      const clips =
+        s.overflowX === "auto" || s.overflowX === "scroll" ||
+        s.overflowX === "hidden" || s.overflowX === "clip";
+      if (clips) return true;
     }
     return false;
   };
@@ -199,7 +204,7 @@ const LAYOUT_PROBE = () => {
       right: Math.round(r.right),
       width: Math.round(r.width),
       height: Math.round(r.height),
-      insideScrollable: insideScrollable(el),
+      insideClipped: insideClippedAncestor(el),
     };
   });
   const ar = document.querySelector("[data-astryx-aspect-ratio]");
@@ -211,7 +216,7 @@ const LAYOUT_PROBE = () => {
     boxes,
     collapsed: boxes.filter((b) => b.width === 0 || b.height === 0),
     escaping: boxes.filter((b) => b.right > vw + 1 || b.left < -1)
-      .filter((b) => !b.insideScrollable),
+      .filter((b) => !b.insideClipped),
     aspect: arBox ? { w: Math.round(arBox.width), h: Math.round(arBox.height) } : null,
     navLinks: [...document.querySelectorAll(".nav-list a")].map((a) => {
       const r = a.getBoundingClientRect();

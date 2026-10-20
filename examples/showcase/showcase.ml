@@ -5687,6 +5687,7 @@ let nav_items =
   ; "resizable", "Resizable"
   ; "toast", "Toast"
   ; "mobile-nav", "MobileNav"
+  ; "tokenizer", "Tokenizer"
   ]
 ;;
 
@@ -6492,6 +6493,7 @@ let page (graph : Bonsai.graph) =
   let resizable_section = Sec_resizable.demo graph in
   let toast_section = Sec_toast.demo graph in
   let mobile_nav_section = Sec_mobile_nav.demo graph in
+  let tokenizer_section = Sec_tokenizer.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6511,6 +6513,7 @@ let page (graph : Bonsai.graph) =
     ; resizable_section
     ; toast_section
     ; mobile_nav_section
+    ; tokenizer_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in

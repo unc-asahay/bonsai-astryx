@@ -279,6 +279,7 @@ if (mode === "showcase") {
     "Resizable",
     "Toast",
     "MobileNav",
+    "Tokenizer",
 
   ];
 
@@ -642,7 +643,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("83 sections", sections.length === 83, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("84 sections", sections.length === 84, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -733,13 +734,14 @@ if (mode === "showcase") {
     Resizable: 7,
     Toast: 6,
     MobileNav: 6,
+    Tokenizer: 9,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("539 examples across the page", totalExamples === 539, `got ${totalExamples}`);
+  check("548 examples across the page", totalExamples === 548, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -753,7 +755,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("83 nav links", nav.length === 83, `got ${nav.length}`);
+  check("84 nav links", nav.length === 84, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4139,11 +4141,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 81 ported / 22 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["81", "22", "103"]),
+    "coverage stats are 82 ported / 21 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["82", "21", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 22 entries", cov.unported === 22, `got ${cov.unported}`);
+  check("unported list rendered 21 entries", cov.unported === 21, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5537,6 +5539,127 @@ check(
   check("a vertical region reports the horizontal orientation",
     rzVertical !== null && rzVertical.orientation === "horizontal",
     JSON.stringify(rzVertical));
+
+  // ----------------------------------------------------------------- Tokenizer
+  const tkSection = await page.$("section[data-showcase-component='Tokenizer']");
+  check("the Tokenizer section renders", tkSection !== null,
+    tkSection ? "found" : "missing");
+  if (tkSection) {
+    const tkInput = await page.evaluate(() => {
+      const el = document.getElementById("showcase-tokenizer-default");
+      if (!el) return null;
+      return {
+        role: el.getAttribute("role"),
+        expanded: el.getAttribute("aria-expanded"),
+        controls: el.getAttribute("aria-controls"),
+        autocomplete: el.getAttribute("aria-autocomplete"),
+        off: el.getAttribute("autocomplete"),
+      };
+    });
+    check("the token input is a combobox that says what it controls",
+      tkInput?.role === "combobox"
+        && tkInput?.expanded === "false"
+        && tkInput?.controls === "showcase-tokenizer-default-listbox"
+        && tkInput?.autocomplete === "list"
+        && tkInput?.off === "off",
+      JSON.stringify(tkInput));
+
+    const tkListbox = await page.evaluate(() => {
+      const el = document.getElementById("showcase-tokenizer-default-listbox");
+      if (!el) return null;
+      return {
+        role: el.getAttribute("role"),
+        label: el.getAttribute("aria-label"),
+        hidden: el.hasAttribute("hidden"),
+        options: el.querySelectorAll('[role="option"]').length,
+      };
+    });
+    check("the menu is a listbox, and it is hidden while the menu is closed",
+      tkListbox?.role === "listbox"
+        && tkListbox?.hidden === true
+        && tkListbox?.label !== null,
+      JSON.stringify(tkListbox));
+
+    // Upstream's behaviour: the menu appears as you type, not on a click.
+    await page.click("#showcase-tokenizer-default");
+    await page.type("#showcase-tokenizer-default", "a");
+    await page.waitForTimeout(250);
+    const tkOpened = await page.evaluate(() => {
+      const el = document.getElementById("showcase-tokenizer-default-listbox");
+      const input = document.getElementById("showcase-tokenizer-default");
+      return {
+        expanded: input?.getAttribute("aria-expanded"),
+        hidden: el?.hasAttribute("hidden"),
+        options: el?.querySelectorAll('[role="option"]').length ?? 0,
+        active: input?.getAttribute("aria-activedescendant") ?? null,
+      };
+    });
+    check("opening the menu shows the options and points the input at the active one",
+      tkOpened?.expanded === "true"
+        && tkOpened?.hidden === false
+        && tkOpened?.options > 0
+        && typeof tkOpened?.active === "string",
+      JSON.stringify(tkOpened));
+
+    const tkTokens = await page.evaluate(() => {
+      const group = document.getElementById("showcase-tokenizer-default-group");
+      return {
+        group: group?.getAttribute("role") ?? null,
+        label: group?.getAttribute("aria-label") ?? null,
+        component: group?.getAttribute("data-astryx-component") ?? null,
+        tokens: [...(group?.querySelectorAll(".astryx-tokenizer__token") ?? [])].map((t) => t.textContent.trim()),
+        removable: [...(group?.querySelectorAll(".astryx-tokenizer__token button") ?? [])]
+          .map((b) => b.getAttribute("aria-label")),
+      };
+    });
+    check("the selected values are tokens in a labelled group, and each one can be removed",
+      tkTokens?.group === "group"
+        && tkTokens?.label !== null
+        && tkTokens?.component === "Tokenizer"
+        && tkTokens?.tokens.length === 2
+        && tkTokens?.removable.length === 2
+        && tkTokens?.removable.every((l) => l && l.toLowerCase().includes("remove")),
+      JSON.stringify(tkTokens));
+
+    const tkError = await page.evaluate(() => {
+      const el = document.getElementById("showcase-tokenizer-error-status");
+      return { role: el?.getAttribute("role") ?? null, text: el?.textContent.trim() ?? null };
+    });
+    check("the error example announces the error",
+      tkError?.role === "alert" && typeof tkError?.text === "string" && tkError.text.length > 0,
+      JSON.stringify(tkError));
+
+    // A field that is disabled AND carries a reason is readonly with
+    // aria-disabled, so the reason can still be reached and read.
+    const tkDisabled = await page.evaluate(() => {
+      const el = document.getElementById("showcase-tokenizer-disabled");
+      const group = document.getElementById("showcase-tokenizer-disabled-group");
+      return {
+        tag: el?.tagName ?? null,
+        readonly: el?.hasAttribute("readonly") ?? null,
+        ariaDisabled: el?.getAttribute("aria-disabled") ?? null,
+        groupDisabled: group?.getAttribute("data-astryx-disabled") ?? null,
+        groupClass: group?.getAttribute("class") ?? null,
+      };
+    });
+    check("the disabled example's input is readonly and says it is disabled",
+      tkDisabled?.tag === "INPUT"
+        && tkDisabled?.readonly === true
+        && tkDisabled?.ariaDisabled === "true"
+        && tkDisabled?.groupDisabled === "true"
+        && (tkDisabled?.groupClass ?? "").includes("astryx-tokenizer--disabled"),
+      JSON.stringify(tkDisabled));
+
+    const tkHtmlName = await page.evaluate(() => {
+      const group = document.getElementById("showcase-tokenizer-html-name-group");
+      return [...(group?.querySelectorAll('input[type="hidden"]') ?? [])]
+        .map((i) => ({ name: i.getAttribute("name"), value: i.getAttribute("value") }));
+    });
+    check("the form example carries one hidden input per selected id",
+      Array.isArray(tkHtmlName) && tkHtmlName.length === 2
+        && tkHtmlName.every((h) => h.name === "reviewers" && h.value && h.value.length > 0),
+      JSON.stringify(tkHtmlName));
+  }
 
   // ------------------------------------------------------------------ Toast
   // A toast is a live region: polite for information, assertive for an

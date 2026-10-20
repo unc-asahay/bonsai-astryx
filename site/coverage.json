@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 81,
-    "unported": 22,
+    "ported": 82,
+    "unported": 21,
     "total": 103,
     "documented": 103
   },
@@ -468,6 +468,12 @@
       "milestone": "M32"
     },
     {
+      "name": "Tokenizer",
+      "module": "Astryx.tokenizer",
+      "file": "src/tokenizer.ml",
+      "milestone": "M65"
+    },
+    {
       "name": "Toolbar",
       "module": "Astryx.Toolbar",
       "file": "src/toolbar.ml",
@@ -518,7 +524,6 @@
     "Stepper",
     "Table",
     "TimeInput",
-    "Tokenizer",
     "TopNav",
     "Typeahead"
   ],
