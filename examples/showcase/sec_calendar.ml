@@ -19,7 +19,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   let single, set_single = Bonsai.state' (None : Calendar.selection option) graph in
   let single_value = Bonsai.map single ~f:(fun value -> value) in
   let single_on_change =
-    Bonsai.map set_single ~f:(fun set -> fun (selection : Calendar.selection) -> set (Some selection))
+    Bonsai.map set_single ~f:(fun set -> fun (selection : Calendar.selection) -> set (fun _ -> Some selection))
   in
   let single_readout =
     Bonsai.map single ~f:(fun selection ->
@@ -39,7 +39,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   let range, set_range = Bonsai.state' (None : Calendar.selection option) graph in
   let range_value = Bonsai.map range ~f:(fun value -> value) in
   let range_on_change =
-    Bonsai.map set_range ~f:(fun set -> fun (selection : Calendar.selection) -> set (Some selection))
+    Bonsai.map set_range ~f:(fun set -> fun (selection : Calendar.selection) -> set (fun _ -> Some selection))
   in
   let range_readout =
     Bonsai.map range ~f:(fun selection ->

@@ -4432,3 +4432,11 @@ own empty live region, and two waited for content that is in the document
 whether the menu is open or not.
 
 **87 of 103 ported. 16 to go.**
+
+### Gate 82 — M71 Calendar (coverage 87 → 88)
+
+**846/846 component checks · 660/660 browser checks · responsive 66/66 · SWEEP GREEN**
+
+The Calendar is the month grid: one month or two, the days and their states, the range pick, the keyboard walk over the grid, and the live announcement of what a pick did. The grid is a `role="grid"` named for its month, every day is a `role="gridcell"` holding a button that names its full date, a range grid is `aria-multiselectable`, and a day that cannot be picked says so with `aria-disabled` instead of leaving the keyboard order. Upstream's `PlainDate` came with it, as `src/plain_date.ml` — the ISO dates, the month arithmetic, the day and week numbers — and it is the foundation the date inputs build on.
+
+The worker's file needed a fair amount of repair before it would parse: `external` is a reserved word in OCaml, the `and render` sat after a `;;` and orphaned from its `let`, the month grid was missing a `]`, `node##focus` needs a preprocessor the library does not use, and the `model` record type was never written at all — the worker's own uses said what it had to hold. A day that cannot be picked is marked `aria-disabled` rather than natively disabled, so it keeps its place in the keyboard order; upstream draws that distinction and the house's `day_state` does not, so the port takes the gentler of the two and says so in the interface.

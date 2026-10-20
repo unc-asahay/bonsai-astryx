@@ -971,6 +971,13 @@ DialogHeader
   ok   the selected values live in a labelled group, and the field's label points at the input
   ok   the menu announces its results in a polite live region
   ok   a disabled tokenizer says so, on the group and on the field's label
+  ok   a calendar draws a grid that names its month
+  ok   the month has a cell for each of its days
+  ok   a day names its full date
+  ok   a day outside the month is refused
+  ok   a range grid takes more than one day
+  ok   two months draw two grids
+  ok   a month with week numbers numbers its weeks
   ok   a top nav is a navigation landmark that names itself
   ok   the heading is a link, and the items are links too
   ok   a bar with a centre lays out as a grid
@@ -997,5 +1004,5 @@ DialogHeader
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
 
-839 checks, 0 failure(s)
+846 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

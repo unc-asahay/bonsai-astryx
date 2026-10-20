@@ -1,0 +1,52 @@
+Gate 82 — M71 Calendar (coverage 87 → 88)
+
+The Calendar is the month grid: one month or two, the days and their
+states, the range pick, the keyboard walk over the grid, and the live
+announcement of what a pick did.
+
+The port carries upstream's shape: the grid is a `role="grid"` with the
+month as its accessible name, every day is a `role="gridcell"` holding a
+button that names its full date ("Thursday, October 1, 2026"), a range
+grid is `aria-multiselectable`, and a day that cannot be picked says so
+with `aria-disabled` rather than vanishing from the keyboard order.
+
+Upstream's `PlainDate` is ported as `src/plain_date.ml` — the ISO dates,
+the month arithmetic, the day and week numbers, the locale-aware month
+names — and it is the foundation the date inputs build on.
+
+## The gate found
+
+- `external` is a reserved word in OCaml; the worker's `let external =`
+  did not parse.
+- The worker's `and render` sat after a `;;`, orphaned from its `let`;
+  the binding is now `let rec view … and render …`.
+- The month grid was missing a closing `]`.
+- `node##focus` needs the js_of_ocaml preprocessor, which the library
+  does not use; the focus call is now `Js.Unsafe.meth_call`.
+- The `model` record type was never written; the worker's own uses said
+  what it must hold — the selection, the month in view, the focused day,
+  the Tab stops, the range's anchor, the hovered day, the announcement.
+- `min_range_span` is an `int`, not an option.
+- `List.assoc_opt` does not exist in this Core; it is `List.Assoc.find`.
+- `List.nth` returns an option here.
+- The attrs are lists: `Common.Attr.aria` returns a list and has to be
+  spliced with `@`.
+- `Bonsai.state'` hands back an update-style setter — the setter takes
+  the next state from the current one, so it is `set (fun _ -> next)`.
+
+## The gate changed
+
+A day that cannot be picked is marked `aria-disabled` instead of taking
+the native `disabled` attribute, so it keeps its place in the keyboard
+order. Upstream distinguishes the two cases — a constraint-rejected day
+is natively disabled, a day outside the range span is only aria-disabled
+— and the house's `day_state` does not separate them, so the port takes
+the gentler of the two and says so in the interface.
+
+## Gates
+
+- build: exit 0
+- component checks: 846 / 0
+- browser checks: 660 / 0
+- responsive: 66 / 0
+- full sweep: SWEEP GREEN

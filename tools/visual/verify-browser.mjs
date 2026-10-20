@@ -285,6 +285,7 @@ if (mode === "showcase") {
     "Pagination",
     "TopNav",
     "CodeBlock",
+    "Calendar",
 
   ];
 
@@ -648,7 +649,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("89 sections", sections.length === 89, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("90 sections", sections.length === 90, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -745,13 +746,14 @@ if (mode === "showcase") {
     Pagination: 7,
     TopNav: 5,
     CodeBlock: 8,
+    Calendar: 7,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("583 examples across the page", totalExamples === 583, `got ${totalExamples}`);
+  check("590 examples across the page", totalExamples === 590, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -765,7 +767,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("89 nav links", nav.length === 89, `got ${nav.length}`);
+  check("90 nav links", nav.length === 90, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4160,11 +4162,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 87 ported / 16 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["87", "16", "103"]),
+    "coverage stats are 88 ported / 15 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["88", "15", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 16 entries", cov.unported === 16, `got ${cov.unported}`);
+  check("unported list rendered 15 entries", cov.unported === 15, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5911,6 +5913,72 @@ check(
         collapsed?.stepsInDom === 4,
         JSON.stringify({ stepsInDom: collapsed?.stepsInDom }));
     }
+  }
+
+  // ---------------------------------------------------------------- Calendar
+  {
+    const calSection = await page.$("section[data-showcase-component='Calendar']");
+    check("the Calendar section renders", calSection !== null);
+    const calState = await page.evaluate(() => {
+      const sec = document.querySelector("section[data-showcase-component='Calendar']");
+      const single = document.querySelector("#showcase-calendar-single");
+      const root_ = sec?.querySelector("[data-astryx-component='Calendar']");
+      const grid = single?.querySelector("[role='grid']");
+      const gridcells = [...(single?.querySelectorAll("[role='gridcell']") ?? [])];
+      const dayButtons = [...(single?.querySelectorAll("[role='gridcell'] button") ?? [])];
+      const outside = dayButtons.find((b) =>
+        b.className.includes("astryx-calendar__day--outside"));
+      const inside = dayButtons.find((b) =>
+        !b.className.includes("astryx-calendar__day--outside"));
+      const rangeGrid = document
+        .querySelector("#showcase-calendar-range")
+        ?.querySelector("[role='grid']");
+      const twoMonths = document.querySelector("#showcase-calendar-two-months");
+      const twoGrids = [...(twoMonths?.querySelectorAll("[role='grid']") ?? [])];
+      return {
+        examples: sec?.querySelectorAll("[data-example]").length ?? 0,
+        component: root_?.getAttribute("data-astryx-component") ?? null,
+        gridRole: grid?.getAttribute("role") ?? null,
+        gridLabel: grid?.getAttribute("aria-label") ?? null,
+        gridcells: gridcells.length,
+        dayButtons: dayButtons.length,
+        outsideDisabled: outside?.getAttribute("aria-disabled") ?? null,
+        insideDisabled: inside?.getAttribute("aria-disabled") ?? null,
+        insideLabel: inside?.getAttribute("aria-label") ?? null,
+        rangeMulti: rangeGrid?.getAttribute("aria-multiselectable") ?? null,
+        twoGridLabels: twoGrids.map((g) => g.getAttribute("aria-label")),
+        boundedLabel: document
+          .querySelector("#showcase-calendar-bounded")
+          ?.querySelector("[role='grid']")
+          ?.getAttribute("aria-label") ?? null,
+      };
+    });
+    check("the calendar draws its month grid", calState.gridRole === "grid", JSON.stringify(calState));
+    check("the grid is named for the month it shows", /^[A-Z][a-z]+ \d{4}$/.test(calState.gridLabel ?? ""), JSON.stringify(calState));
+    check("the month has a cell for every day", calState.gridcells >= 28 && calState.gridcells <= 42, JSON.stringify(calState));
+    check("every day is a button", calState.dayButtons === calState.gridcells, JSON.stringify(calState));
+    check("a day names its full date", /\w+, \w+ \d+, \d{4}/.test(calState.insideLabel ?? ""), JSON.stringify(calState));
+    check("a day outside the month cannot be picked", calState.outsideDisabled === "true" && calState.insideDisabled === null, JSON.stringify(calState));
+    check("a range grid takes more than one day", calState.rangeMulti === "true", JSON.stringify(calState));
+    check("two months draw two grids", calState.twoGridLabels.length === 2, JSON.stringify(calState));
+    check("the second month names itself", (calState.twoGridLabels[1] ?? "").startsWith("November"), JSON.stringify(calState));
+    check("a bounded calendar opens on its first day", calState.boundedLabel === "March 2026", JSON.stringify(calState));
+
+    // a real click: pick a day and the section's readout reports it
+    await page.click("#showcase-calendar-single [role='gridcell'] button:not(.astryx-calendar__day--outside)");
+    await page.waitForTimeout(300);
+    const picked = await page.evaluate(() => {
+      const readout = document.querySelector("#showcase-calendar-single-readout");
+      const cell = document.querySelector(
+        "#showcase-calendar-single [role='gridcell'] button:not(.astryx-calendar__day--outside)");
+      return {
+        readout: (readout?.textContent ?? "").trim(),
+        label: cell?.getAttribute("aria-label") ?? null,
+        selected: cell?.getAttribute("aria-selected") ?? null,
+      };
+    });
+    check("clicking a day reports the pick", /^picked \d{4}-\d{2}-\d{2}$/.test(picked.readout), JSON.stringify(picked));
+    check("the picked day says it is selected", (picked.label ?? "").endsWith(", selected"), JSON.stringify(picked));
   }
 
   // ------------------------------------------------------------------- TopNav

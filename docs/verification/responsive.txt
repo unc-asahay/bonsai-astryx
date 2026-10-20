@@ -56,7 +56,7 @@ showcase @ 1440x900
   ok   [1440x900] the button is hit-testable at its centre
   ok   [1440x900] a real mouse click increments the counter (0 -> 1)
   ok   [1440x900] no console errors
-  ok   [1440x900] pixels match the baseline (0.00% differ)
+  ok   [1440x900] pixels match the baseline (0.03% differ)
 
 ========================================================================
 demo  http://127.0.0.1:8791/examples/demo/index.html

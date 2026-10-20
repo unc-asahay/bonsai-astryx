@@ -3707,6 +3707,49 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 {
+  const host = document.querySelector('[data-case="calendar-all"]');
+  const single = host?.querySelector("#rt-cal");
+  const grid = single?.querySelector("[role='grid']");
+  const cells = [...(single?.querySelectorAll("[role='gridcell']") ?? [])];
+  const buttons = [...(single?.querySelectorAll("[role='gridcell'] button") ?? [])];
+  const outside = buttons.find((b) => b.className.includes("astryx-calendar__day--outside"));
+  const inside = buttons.find((b) => !b.className.includes("astryx-calendar__day--outside"));
+  const rangeGrid = host?.querySelector("#rt-cal-range [role='grid']");
+  const twoGrids = [...(host?.querySelectorAll("#rt-cal-two [role='grid']") ?? [])];
+  const weekNumbers = host?.querySelectorAll("#rt-cal-week .astryx-calendar__week-number");
+
+  check("a calendar draws a grid that names its month",
+    grid?.getAttribute("role") === "grid"
+      && /^[A-Z][a-z]+ \d{4}$/.test(grid?.getAttribute("aria-label") ?? "")
+      && single?.getAttribute("data-astryx-component") === "Calendar",
+    JSON.stringify({ role: grid?.getAttribute("role"), label: grid?.getAttribute("aria-label") }));
+
+  check("the month has a cell for each of its days",
+    cells.length >= 28 && cells.length <= 42 && buttons.length === cells.length,
+    JSON.stringify({ cells: cells.length, buttons: buttons.length }));
+
+  check("a day names its full date",
+    /^\w+, \w+ \d+, \d{4}$/.test(inside?.getAttribute("aria-label") ?? ""),
+    inside?.getAttribute("aria-label") ?? null);
+
+  check("a day outside the month is refused",
+    outside?.getAttribute("aria-disabled") === "true" && inside?.getAttribute("aria-disabled") === null,
+    JSON.stringify({ outside: outside?.getAttribute("aria-disabled"), inside: inside?.getAttribute("aria-disabled") }));
+
+  check("a range grid takes more than one day",
+    rangeGrid?.getAttribute("aria-multiselectable") === "true",
+    rangeGrid?.getAttribute("aria-multiselectable") ?? null);
+
+  check("two months draw two grids",
+    twoGrids.length === 2 && twoGrids[1]?.getAttribute("aria-label") !== twoGrids[0]?.getAttribute("aria-label"),
+    JSON.stringify(twoGrids.map((g) => g.getAttribute("aria-label"))));
+
+  check("a month with week numbers numbers its weeks",
+    (weekNumbers?.length ?? 0) >= 4,
+    String(weekNumbers?.length ?? 0));
+}
+
+{
   const host = document.querySelector('[data-case="top-nav-all"]');
   const nav = host?.querySelector("#rt-tn");
   const heading = nav?.querySelector(".astryx-top-nav-heading");

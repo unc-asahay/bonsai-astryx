@@ -845,6 +845,13 @@
       "file": "src/code_block.ml",
       "milestone": "M70",
       "module": "Astryx.code_block"
+    },
+    {
+      "class": "C",
+      "component": "Calendar",
+      "file": "src/calendar.ml",
+      "milestone": "M71",
+      "module": "Astryx.calendar"
     }
   ],
   "schema": 1,

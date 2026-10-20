@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **87 of 103** components.
+Ported: **88 of 103** components.
 
 ## Milestones
 
@@ -142,9 +142,10 @@ Ported: **87 of 103** components.
 | `Pagination` | `Astryx.pagination` | `src/pagination.ml` | M68 | C |
 | `TopNav` | `Astryx.top_nav` | `src/top_nav.ml` | M69 | C |
 | `CodeBlock` | `Astryx.code_block` | `src/code_block.ml` | M70 | C |
+| `Calendar` | `Astryx.calendar` | `src/calendar.ml` | M71 | C |
 
-## Not ported yet (16)
+## Not ported yet (15)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`AppShell`, `BottomSheet`, `Calendar`, `Chat`, `CommandPalette`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Markdown`, `PowerSearch`, `Selector`, `SideNav`, `Table`, `TimeInput`, `Typeahead`
+`AppShell`, `BottomSheet`, `Chat`, `CommandPalette`, `ContextMenu`, `DateInput`, `DateRangeInput`, `DateTimeInput`, `Markdown`, `PowerSearch`, `Selector`, `SideNav`, `Table`, `TimeInput`, `Typeahead`

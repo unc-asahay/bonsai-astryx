@@ -5693,6 +5693,7 @@ let nav_items =
   ; "pagination", "Pagination"
   ; "top-nav", "TopNav"
   ; "code-block", "CodeBlock"
+  ; "calendar", "Calendar"
   ]
 ;;
 
@@ -6504,6 +6505,7 @@ let page (graph : Bonsai.graph) =
   let pagination_section = Sec_pagination.demo graph in
   let top_nav_section = Sec_top_nav.demo graph in
   let code_block_section = Sec_code_block.demo graph in
+  let calendar_section = Sec_calendar.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6529,6 +6531,7 @@ let page (graph : Bonsai.graph) =
     ; pagination_section
     ; top_nav_section
     ; code_block_section
+    ; calendar_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in

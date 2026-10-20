@@ -4402,3 +4402,42 @@ let () =
   mount "code-block-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
 
+
+(* The Calendar - the month grid. These cases render the grid in the states
+   it supports: one month, a range, two months side by side, and a month
+   with the week numbers. The grid's role, its name, the days it draws and
+   the days it refuses are all asserted from the rendered markup. *)
+let calendar_component graph =
+  let on_change = Bonsai.return (fun (_ : Astryx.Calendar.selection) -> Effect.return ()) in
+  let value = Bonsai.return (None : Astryx.Calendar.selection option) in
+  let trees =
+    [ Astryx.Calendar.view ~id:"rt-cal" ~value ~on_change graph
+    ; Astryx.Calendar.view
+        ~id:"rt-cal-range"
+        ~mode:Astryx.Calendar.Range
+        ~value
+        ~on_change
+        graph
+    ; Astryx.Calendar.view ~id:"rt-cal-two" ~number_of_months:2 ~value ~on_change graph
+    ; Astryx.Calendar.view ~id:"rt-cal-week" ~has_week_numbers:true ~value ~on_change graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "calendar-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      calendar_component
+  in
+  mount "calendar-all" (Bonsai_web_test.Handle.last_result handle)
+;;
