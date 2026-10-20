@@ -4390,3 +4390,27 @@ Three bugs, and two of them were in the house rather than the port:
   demands the space, and the duplicate is gone.
 
 Full record: `docs/verification/commit-m66.txt`.
+
+### Gate 80 — M67: Stepper (coverage 83 → 84)
+
+**825/825 component checks · 617/617 browser checks · 66/66 responsive · SWEEP GREEN**
+
+The multi-step flow control. Upstream splits it into a `Stepper` and a
+`Step` that register through React context; Bonsai has no context, so
+the port is data-driven — the steps are a list, and the current step is
+a value the caller owns. The stepper never moves itself; it reports a
+click.
+
+The markup emitted three classes the stylesheet never styled: a
+completed step, an optional step, and the collapsed root. The first
+two now have rules. The third deliberately does not — a collapsed
+stepper hides its steps *visually*, and the steps stay in the DOM for
+the accessible list, so `display: none` on the list would take them out
+of the accessibility tree too. The browser gate now checks that the
+collapsed stepper still has all four of its steps in the DOM.
+
+One assertion of ours was wrong rather than the port: the collapsed
+summary was expected to carry a "Previous step" control, but the
+current step *is* the first one, so there is nothing to go back to.
+
+Full record: `docs/verification/commit-m67.txt`.

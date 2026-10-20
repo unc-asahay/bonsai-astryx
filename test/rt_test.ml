@@ -4147,6 +4147,82 @@ let multi_selector_component graph =
     nodes
 ;;
 
+(* ----------------------------------------------------------------- Stepper *)
+(* The multi-step flow control. The current step is a value the caller owns;
+   the stepper reports a click and never moves itself. *)
+let stepper_component graph =
+  let active, set_active = Bonsai.state 0 graph in
+  let on_step_click =
+    Bonsai.map set_active ~f:(fun set_active -> fun (i : int) -> set_active i)
+  in
+  let steps =
+    [ { Astryx.Stepper.label = "Account"
+      ; description = Some "Your name and email"
+      ; status = None
+      ; is_disabled = false
+      ; is_optional = false
+      ; end_content = None
+      ; indicator = None
+      ; density = None
+      ; content = []
+      }
+    ; { Astryx.Stepper.label = "Profile"
+      ; description = None
+      ; status = Some Astryx.Stepper.Success
+      ; is_disabled = false
+      ; is_optional = true
+      ; end_content = None
+      ; indicator = None
+      ; density = None
+      ; content = []
+      }
+    ; { Astryx.Stepper.label = "Unavailable"
+      ; description = None
+      ; status = None
+      ; is_disabled = true
+      ; is_optional = false
+      ; end_content = None
+      ; indicator = None
+      ; density = None
+      ; content = []
+      }
+    ]
+  in
+  let trees =
+    [ Astryx.Stepper.view
+        ~id:"rt-sp"
+        ~on_step_click
+        ~active_step:active
+        ~steps
+        graph
+    ; Astryx.Stepper.view
+        ~id:"rt-sp-vertical"
+        ~orientation:Astryx.Stepper.Vertical
+        ~active_step:(Bonsai.return 1)
+        ~steps
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "stepper-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      stepper_component
+  in
+  mount "stepper-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

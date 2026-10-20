@@ -1,0 +1,72 @@
+Gate 80 — M67: Stepper (coverage 83 → 84)
+
+The multi-step flow control. A stepper shows an ordered sequence of
+steps, marks the current one, and draws the connectors between them so
+the flow's progress is visible.
+
+Upstream splits it into a [Stepper] and a [Step], and the steps
+register themselves with their parent through React context. Bonsai has
+no context, so the port is data-driven: the steps are a list, and the
+current step is a value the caller owns. The stepper never moves
+itself; it reports a click and the caller moves it.
+
+What the port keeps
+  The indicator rules — a number until the step is complete, a tick
+  once it is, a ring for the current step, a custom indicator, or no
+  indicator at all. The connector fill for both the separated bar and
+  the on-track segment. The compact summary row, with its Previous and
+  Next controls. The measurement that decides to collapse: upstream
+  compares the root's width divided by the step count against a
+  minimum step width, and that decides WHAT renders, not just what is
+  hidden. The status words — "completed", "warning", "error" — and the
+  "Go to step N: Label" labels that carry them.
+
+What the gates found
+  The markup emitted three classes the stylesheet never styled: a
+  completed step, an optional step, and the collapsed root. The first
+  two now have rules. The third deliberately does NOT: a collapsed
+  stepper hides its steps visually — the steps stay in the DOM for the
+  accessible list, which is what the .mli promises — so hiding the
+  list with display:none would take them out of the accessibility tree
+  as well. The browser gate now checks that the collapsed stepper
+  still has all four of its steps in the DOM.
+
+  One assertion of ours was wrong, not the port: the collapsed
+  summary was expected to carry a "Previous step" control, but the
+  current step IS the first one, so there is no step to go back to and
+  the control is correctly absent.
+
+Gates
+  build                                    exit 0
+  component (test/run.mjs)                 825 / 0
+  DOM + accessibility                       25 / 0
+  real browser, showcase                  617 / 0
+  responsive + visual regression           66 / 0
+  MCP layer                                 ok
+  port.json attribution                     ok
+  coverage                                 84 / 19 / 103
+  showcase                                 86 sections, 563 examples
+
+New in this milestone
+  src/stepper.ml            the flow: the measurement, the indicators,
+                            the connectors, the summary row, the
+                            accessible list
+  src/stepper.mli           the public surface, with the divergences
+                            written out
+  assets/parts/stepper.css  the styles, and the two rules the markup
+                            was missing
+  examples/showcase/sec_stepper.ml
+                            seven examples: horizontal, vertical, the
+                            indicator on the track, the densities, the
+                            statuses with an optional and a disabled
+                            step, a custom indicator, and a narrow
+                            stepper that collapses into its summary
+
+Divergences from upstream (also in the .mli)
+  Upstream's [Stepper] and [Step] and the React context that joins
+  them are one data-driven list here. Upstream's summary row is a
+  portal target the active step writes into; there is no portal in
+  Bonsai, so the stepper renders the summary from the same step data.
+  Upstream's strings come from the @astryx.stepper.* and @astryx.step.*
+  translation namespaces; this library has no translation layer, so
+  they are spelled out in English.

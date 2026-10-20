@@ -1,0 +1,417 @@
+/* Stepper — the multi-step flow control, and the track it draws.
+
+   Ported from upstream's Stepper.styles (the frame) and Step.styles (the
+   step: the bar, the indicator, the label, the description, the density
+   spacing). The values are the design tokens, not literals.
+
+   The one thing upstream draws that has no token and no registry entry is the
+   current step's ring: a 16px circle with a 2px stroke and a filled dot in
+   the middle. It is drawn here, in CSS, the way upstream draws it in SVG. */
+
+.astryx-stepper {
+  /* The frame. A column, so the track and the summary row stack. */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.astryx-stepper__list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.astryx-stepper__step {
+  position: relative;
+  min-width: 0;
+}
+
+/* The body holds the label row and the step's content. */
+.astryx-stepper__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The label row: the indicator, the label, the optional tag and any trailing
+   content, side by side. */
+.astryx-stepper__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+/* The click target. It carries the label row, so a step narrow enough to
+   lose its label is narrow enough that all that would be left to press is a
+   4px bar. */
+.astryx-stepper__button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: var(--radius-element);
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.astryx-stepper__button:is(:disabled, [aria-disabled="true"]) {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-stepper__button {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ======= INDICATOR ======= */
+
+/* Every indicator — a number, a check, a ring, a custom glyph — occupies the
+   same 16px box, so the track stays straight whichever it holds. */
+.astryx-stepper__indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+/* The number badge: a filled circle with the step's number in it. The digit
+   has to read at the same optical weight as the check glyph it alternates
+   with inside a 16px circle, which the supporting size overfills. */
+.astryx-stepper__indicator--number {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  background-color: var(--color-background-muted);
+  color: var(--color-text-secondary);
+}
+
+/* The completed mark: a filled accent circle with the registry's check
+   glyph in it, painted in the circle's own surface colour. */
+.astryx-stepper__indicator--check {
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent);
+  color: var(--color-background-surface);
+}
+
+/* The current step's ring: a 16px circle with a 2px stroke and a filled dot
+   in the middle. Upstream draws it in SVG; there is no ring in the icon
+   registry, so it is drawn here. */
+.astryx-stepper__ring {
+  display: block;
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-full);
+  box-sizing: border-box;
+  position: relative;
+}
+
+.astryx-stepper__ring::after {
+  content: "";
+  position: absolute;
+  inset: 25%;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent);
+}
+
+/* A status glyph stands alone in its 16px box, in the status's own colour. */
+.astryx-stepper__indicator--icon {
+  color: var(--color-icon-secondary);
+}
+
+/* ======= LABEL ======= */
+
+.astryx-stepper__label {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  min-width: 0;
+  /* A horizontal stepper divides the track evenly, so a label can end up with
+     less room than it wants. It stays on one line and ellipsizes rather than
+     wrapping, so every step in a row keeps the same height. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The active step's label is the one the eye goes to. */
+.astryx-stepper__step--active .astryx-stepper__label {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A step that has not been reached yet says so quietly. */
+.astryx-stepper__step--not-started .astryx-stepper__label {
+  color: var(--color-text-secondary);
+}
+
+/* A completed step keeps the full-contrast label but takes the success
+   colour on its indicator, which the ring and the bar below carry. */
+.astryx-stepper__step--completed .astryx-stepper__label {
+  color: var(--color-text-primary);
+}
+
+.astryx-stepper__step--disabled .astryx-stepper__label {
+  color: var(--color-text-disabled);
+}
+
+/* An optional step is announced as one, next to its label. */
+.astryx-stepper__step--optional .astryx-stepper__label {
+  font-style: italic;
+}
+
+.astryx-stepper__optional {
+  font-size: var(--text-body-size);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.astryx-stepper__description {
+  /* Block, not inline. An inline span is laid out in a line box belonging to
+     its parent, and that box is floored by the parent's strut — the invisible
+     box every block container reserves from its own font and line-height. */
+  display: block;
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+  min-width: 0;
+}
+
+/* ======= CONNECTOR ======= */
+
+/* The connector: the unfilled track, and over it the accent fill covering
+   the progress made. The fill is an absolutely placed ::before scaled along
+   the track axis, so advancing a step grows the fill rather than swapping
+   the bar's colour. */
+.astryx-stepper__bar,
+.astryx-stepper__segment {
+  position: relative;
+  background-color: var(--color-border);
+}
+
+.astryx-stepper__bar::before,
+.astryx-stepper__segment::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Follows whatever the segment itself rounds to. */
+  border-radius: inherit;
+  background-color: var(--color-accent);
+  transition-property: transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryx-stepper__bar::before,
+  .astryx-stepper__segment::before {
+    transition-duration: 0.01ms;
+  }
+}
+
+.astryx-stepper__bar--filled::before,
+.astryx-stepper__segment--filled::before {
+  transform: scaleY(1);
+  transform-origin: center top;
+}
+
+.astryx-stepper__bar:not(.astryx-stepper__bar--filled)::before,
+.astryx-stepper__segment:not(.astryx-stepper__segment--filled)::before {
+  transform: scaleY(0);
+  transform-origin: center top;
+}
+
+/* ======= HORIZONTAL ======= */
+
+/* The horizontal track: a row of steps, each holding its own bar segment
+   above its label. */
+.astryx-stepper--horizontal .astryx-stepper__list {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.astryx-stepper--horizontal .astryx-stepper__step {
+  display: flex;
+  flex-direction: column;
+  /* Stretch, not flex-start: a flex-start child is sized to fit-content,
+     which is floored at its own min-content and would spill the label past
+     the step's slice of the track and into the next step. */
+  align-items: stretch;
+  /* `flex: 1` alone does not make the steps equal: a flex item's default
+     `min-width: auto` floors it at its own min-content width, so a step
+     labelled "Integrations" claims a wider slice of the track than one
+     labelled "Team". Zeroing the floor lets the even distribution actually
+     apply, which is what keeps every progress segment the same width. */
+  flex: 1;
+  min-width: 0;
+}
+
+/* The 4px bar segment this step owns. */
+.astryx-stepper--horizontal .astryx-stepper__bar {
+  width: 100%;
+  height: var(--spacing-1);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  margin-block-end: var(--spacing-0-5);
+}
+
+/* The horizontal track row, for the on-track layout: the segment, the
+   indicator, and the segment after it, in a line. */
+.astryx-stepper--horizontal .astryx-stepper__track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.astryx-stepper--horizontal .astryx-stepper__segment {
+  height: var(--spacing-1);
+  flex: 1;
+  min-width: var(--spacing-2);
+  /* Square ends, so the segments read as one continuous line. */
+  border-radius: 0;
+}
+
+/* The on-track indicator sits on the rail, and the label hangs off it
+   below, centred under the node. */
+.astryx-stepper--horizontal.astryx-stepper--on-track .astryx-stepper__row {
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+}
+
+/* ======= VERTICAL ======= */
+
+/* The vertical track: a column of steps, each holding a 4px bar beside its
+   body. */
+.astryx-stepper--vertical .astryx-stepper__list {
+  flex-direction: column;
+}
+
+.astryx-stepper--vertical .astryx-stepper__step {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--spacing-0-5);
+}
+
+.astryx-stepper--vertical .astryx-stepper__bar {
+  width: var(--spacing-1);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* The vertical body sits beside the bar and takes the rest of the width. */
+.astryx-stepper--vertical .astryx-stepper__body {
+  flex: 1;
+  gap: var(--spacing-0-5);
+}
+
+/* The description sits under the label, indented past the indicator so it
+   reads under the label and not under the number. */
+.astryx-stepper--vertical .astryx-stepper__description {
+  padding-inline-start: calc(var(--spacing-4) + var(--spacing-2));
+}
+
+/* The on-track vertical layout draws its connector in the row holding the
+   indicator and the label, so the line stops at the label and the track
+   breaks open wherever a step carries content. */
+.astryx-stepper--vertical.astryx-stepper--on-track .astryx-stepper__track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+.astryx-stepper--vertical.astryx-stepper--on-track .astryx-stepper__segment {
+  width: var(--spacing-1);
+  flex: 1;
+  min-height: var(--spacing-2);
+  border-radius: 0;
+}
+
+/* ======= DENSITY ======= */
+
+/* Density is block padding on the step's click target. The inline half is
+   applied by the step's own rule below, so the content slot outside the
+   click target gets the same value. */
+.astryx-stepper__button,
+.astryx-stepper__row {
+  padding-block: var(--spacing-2);
+}
+
+.astryx-stepper--compact .astryx-stepper__button,
+.astryx-stepper--compact .astryx-stepper__row {
+  padding-block: var(--spacing-1);
+}
+
+.astryx-stepper--spacious .astryx-stepper__button,
+.astryx-stepper--spacious .astryx-stepper__row {
+  padding-block: var(--spacing-3);
+}
+
+/* A step's own density overrides the stepper's. */
+.astryx-stepper__step--compact .astryx-stepper__button,
+.astryx-stepper__step--compact .astryx-stepper__row {
+  padding-block: var(--spacing-1);
+}
+
+.astryx-stepper__step--balanced .astryx-stepper__button,
+.astryx-stepper__step--balanced .astryx-stepper__row {
+  padding-block: var(--spacing-2);
+}
+
+.astryx-stepper__step--spacious .astryx-stepper__button,
+.astryx-stepper__step--spacious .astryx-stepper__row {
+  padding-block: var(--spacing-3);
+}
+
+/* ======= STEP CONTENT ======= */
+
+.astryx-stepper__content {
+  /* The content slot sits below the label row, clear of the indicator. */
+  padding-block-start: var(--spacing-2);
+}
+
+/* ======= COMPACT SUMMARY ======= */
+
+/* The compact summary row: the controls bracket the step, because they
+   belong at the edges the flow moves between, and the name reads between
+   them. */
+.astryx-stepper__summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-2);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+/* Centred, so the name sits under the middle of the track rather than
+   drifting toward whichever control happens to be enabled. */
+.astryx-stepper__summary-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  text-align: center;
+}

@@ -3773,6 +3773,56 @@ check("a disabled group says so once, on the box", (() => {
       controls: searchInput?.getAttribute("aria-controls"),
     }));
 }
+{
+  const host = document.querySelector('[data-case="stepper-all"]');
+  const root = host?.querySelector("#rt-sp");
+  const list = root?.querySelector(".astryx-stepper__list");
+  const steps = [...(root?.querySelectorAll(".astryx-stepper__step") ?? [])];
+
+  check("the stepper is an ordered list of steps, named for what it is",
+    root?.getAttribute("data-astryx-component") === "Stepper"
+      && root?.getAttribute("data-astryx-orientation") === "horizontal"
+      && list?.tagName === "OL"
+      && list?.getAttribute("aria-label") === "Progress"
+      && steps.length === 3,
+    JSON.stringify({
+      component: root?.getAttribute("data-astryx-component"),
+      tag: list?.tagName,
+      label: list?.getAttribute("aria-label"),
+      steps: steps.length,
+    }));
+
+  check("the current step is the one the caller named, and the others are not current",
+    steps[0]?.getAttribute("aria-current") === "step"
+      && (steps[0]?.getAttribute("class") ?? "").includes("astryx-stepper__step--active")
+      && steps.slice(1).every((s) => s.getAttribute("aria-current") === null),
+    JSON.stringify(steps.map((s) => s.getAttribute("aria-current"))));
+
+  check("a step you can go to is a button that says which step it is",
+    steps[0]?.querySelector("button")?.getAttribute("aria-label") === "Go to step 1: Account"
+      && steps[1]?.querySelector("button")?.getAttribute("aria-label") === "Go to step 2: Profile, completed",
+    JSON.stringify([
+      steps[0]?.querySelector("button")?.getAttribute("aria-label"),
+      steps[1]?.querySelector("button")?.getAttribute("aria-label"),
+    ]));
+
+  check("a disabled step is not a button, and it says it is disabled",
+    steps[2]?.querySelector("button") === null
+      && (steps[2]?.getAttribute("class") ?? "").includes("astryx-stepper__step--disabled"),
+    JSON.stringify({
+      button: steps[2]?.querySelector("button") === null ? null : "there is one",
+      cls: steps[2]?.getAttribute("class"),
+    }));
+
+  const vertical = host?.querySelector("#rt-sp-vertical");
+  check("the vertical stepper runs vertically",
+    vertical?.getAttribute("data-astryx-orientation") === "vertical"
+      && (vertical?.getAttribute("class") ?? "").includes("astryx-stepper--vertical"),
+    JSON.stringify({
+      orientation: vertical?.getAttribute("data-astryx-orientation"),
+      cls: vertical?.getAttribute("class"),
+    }));
+}
 
 
 

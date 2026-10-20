@@ -281,6 +281,7 @@ if (mode === "showcase") {
     "MobileNav",
     "Tokenizer",
     "MultiSelector",
+    "Stepper",
 
   ];
 
@@ -644,7 +645,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("85 sections", sections.length === 85, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("86 sections", sections.length === 86, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -737,13 +738,14 @@ if (mode === "showcase") {
     MobileNav: 6,
     Tokenizer: 9,
     MultiSelector: 8,
+    Stepper: 7,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("556 examples across the page", totalExamples === 556, `got ${totalExamples}`);
+  check("563 examples across the page", totalExamples === 563, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -757,7 +759,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("85 nav links", nav.length === 85, `got ${nav.length}`);
+  check("86 nav links", nav.length === 86, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4152,11 +4154,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 83 ported / 20 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["83", "20", "103"]),
+    "coverage stats are 84 ported / 19 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["84", "19", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 20 entries", cov.unported === 20, `got ${cov.unported}`);
+  check("unported list rendered 19 entries", cov.unported === 19, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5778,6 +5780,120 @@ check(
       check("Escape closes the list",
         closed?.expanded === "false" && closed?.box === 0,
         JSON.stringify(closed));
+    }
+  }
+
+  // ------------------------------------------------------------------ Stepper
+  {
+    const spSection = await page.$("section[data-showcase-component='Stepper']");
+    check("the Stepper section renders", spSection !== null,
+      spSection ? "found" : "missing");
+    if (spSection) {
+      const root = await page.evaluate(() => {
+        const el = document.getElementById("showcase-stepper-horizontal");
+        if (!el) return null;
+        const list = el.querySelector(".astryx-stepper__list");
+        return {
+          component: el.getAttribute("data-astryx-component"),
+          orientation: el.getAttribute("data-astryx-orientation"),
+          density: el.getAttribute("data-astryx-density"),
+          position: el.getAttribute("data-astryx-indicator-position"),
+          listLabel: list?.getAttribute("aria-label") ?? null,
+          steps: el.querySelectorAll(".astryx-stepper__step").length,
+          bars: el.querySelectorAll(".astryx-stepper__bar").length,
+          rings: el.querySelectorAll(".astryx-stepper__ring").length,
+        };
+      });
+      check("the stepper names its orientation, its density and its indicator position",
+        root?.component === "Stepper"
+          && root?.orientation === "horizontal"
+          && root?.density === "balanced"
+          && root?.position === "separated"
+          && root?.listLabel === "Progress",
+        JSON.stringify(root));
+
+      check("the flow draws a step and a connector for each of the four steps",
+        root?.steps === 4 && root?.bars === 4 && root?.rings === 1,
+        JSON.stringify({ steps: root?.steps, bars: root?.bars, rings: root?.rings }));
+
+      const current = await page.evaluate(() =>
+        [...document.querySelectorAll("#showcase-stepper-horizontal .astryx-stepper__step")]
+          .map((s) => ({
+            current: s.getAttribute("aria-current"),
+            cls: s.getAttribute("class") ?? "",
+          })));
+      check("the current step is marked, and the ones after it say they have not started",
+        current[0]?.current === "step"
+          && (current[0]?.cls ?? "").includes("astryx-stepper__step--active")
+          && current.slice(1).every((s) => s.current === null
+            && (s.cls ?? "").includes("astryx-stepper__step--not-started")),
+        JSON.stringify(current));
+
+      // The claim that matters: clicking a step moves the current one.
+      await page.click('#showcase-stepper-horizontal button[aria-label^="Go to step 3"]');
+      await page.waitForTimeout(200);
+      const afterClick = await page.evaluate(() => {
+        const steps = [...document.querySelectorAll("#showcase-stepper-horizontal .astryx-stepper__step")];
+        return {
+          current: steps.findIndex((s) => s.getAttribute("aria-current") === "step"),
+          cls: steps.map((s) => s.getAttribute("class") ?? ""),
+        };
+      });
+      check("clicking a step moves the current step to it",
+        afterClick?.current === 2
+          && (afterClick?.cls?.[2] ?? "").includes("astryx-stepper__step--active"),
+        JSON.stringify(afterClick));
+
+      const statuses = await page.evaluate(() =>
+        [...document.querySelectorAll("#showcase-stepper-statuses .astryx-stepper__step")]
+          .map((s) => s.getAttribute("class") ?? ""));
+      check("a step's status, its optional flag and its disabled flag reach the markup",
+        statuses.some((c) => c.includes("astryx-stepper__step--success"))
+          && statuses.some((c) => c.includes("astryx-stepper__step--warning"))
+          && statuses.some((c) => c.includes("astryx-stepper__step--error"))
+          && statuses.some((c) => c.includes("astryx-stepper__step--optional"))
+          && statuses.some((c) => c.includes("astryx-stepper__step--disabled")),
+        JSON.stringify(statuses));
+
+      const vertical = await page.evaluate(() => {
+        const el = document.getElementById("showcase-stepper-vertical");
+        return {
+          orientation: el?.getAttribute("data-astryx-orientation") ?? null,
+          cls: el?.getAttribute("class") ?? "",
+        };
+      });
+      check("the vertical stepper says so",
+        vertical?.orientation === "vertical"
+          && (vertical?.cls ?? "").includes("astryx-stepper--vertical"),
+        JSON.stringify(vertical));
+
+      const collapsed = await page.evaluate(() => {
+        const el = document.getElementById("showcase-stepper-collapsed");
+        return {
+          collapsed: (el?.getAttribute("class") ?? "").includes("astryx-stepper--collapsed"),
+          summary: el?.querySelector(".astryx-stepper__summary") !== null,
+          summaryText: el?.querySelector(".astryx-stepper__summary")?.textContent.trim() ?? null,
+          buttons: [...(el?.querySelectorAll(".astryx-stepper__summary button") ?? [])]
+            .map((b) => b.getAttribute("aria-label")),
+          // A collapsed stepper hides its steps VISUALLY: they stay in the
+          // DOM for the accessible list, which is the contract the .mli
+          // states and the reason the list is not display:none.
+          stepsInDom: el?.querySelectorAll(".astryx-stepper__step").length ?? 0,
+        };
+      });
+      check("a narrow stepper collapses into a summary row, with its own controls",
+        collapsed?.collapsed === true
+          && collapsed?.summary === true
+          // The current step is the FIRST one, so there is a step to go
+          // forward to and none to go back to: the Previous control is
+          // only there when there is a previous step.
+          && collapsed?.buttons?.includes("Next step")
+          && !collapsed?.buttons?.includes("Previous step"),
+        JSON.stringify(collapsed));
+
+      check("and the collapsed stepper keeps its steps for the accessible list",
+        collapsed?.stepsInDom === 4,
+        JSON.stringify({ stepsInDom: collapsed?.stepsInDom }));
     }
   }
 
