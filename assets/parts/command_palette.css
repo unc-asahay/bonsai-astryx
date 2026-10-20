@@ -1,0 +1,212 @@
+/* CommandPalette — the modal command list.
+
+   Ported from upstream's CommandPalette styles: the search field (Input), the
+   results list (List), a command row (Item), a section (Group + its heading),
+   the empty state (Empty) and the keyboard hints (Footer).
+
+   The values are the design tokens. The two exceptions are upstream's own
+   constants with no token of their own: the surface's width (640px) and its
+   maximum height (480px) — which the markup writes as
+   --astryx-command-palette-width / --astryx-command-palette-max-height, so
+   an instance can set them.
+
+   The house has no portal, so the surface is drawn in place as a native
+   [popover]: the platform promotes it to the top layer, dismisses it on an
+   outside pointer press and on Escape, and anchors it to the trigger. */
+
+.astryx-command-palette {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  inline-size: var(--astryx-command-palette-width, 640px);
+  max-inline-size: calc(100vw - var(--spacing-8));
+  max-block-size: var(--astryx-command-palette-max-height, 480px);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-container);
+  background-color: var(--color-background-popover);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-high);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  overflow: hidden;
+}
+
+/* A closed inline palette is hidden by the class the markup writes; the modal
+   one is hidden by the platform, which keeps it out of the top layer. */
+.astryx-command-palette--closed {
+  display: none;
+}
+
+/* The inline variant is drawn in the flow rather than as a layer: no top
+   layer, no anchor positioning, no light dismiss. */
+.astryx-command-palette--inline {
+  position: relative;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ the field */
+
+.astryx-command-palette__header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.astryx-command-palette__input {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  inline-size: 100%;
+  padding-inline: var(--spacing-4);
+  padding-block: var(--spacing-3);
+}
+
+.astryx-command-palette__input-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-icon-secondary);
+}
+
+.astryx-command-palette__input input {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+}
+
+.astryx-command-palette__input input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.astryx-command-palette__input-end {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.astryx-command-palette__spinner {
+  display: flex;
+  align-items: center;
+}
+
+/* ------------------------------------------------------------------- the list */
+
+.astryx-command-palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  flex: 1;
+  min-block-size: 0;
+  padding: var(--spacing-1);
+  overflow-y: auto;
+  max-block-size: 100%;
+}
+
+/* -------------------------------------------------------------------- a group */
+
+.astryx-command-palette__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  padding-block: var(--spacing-1);
+}
+
+.astryx-command-palette__group-heading {
+  padding-inline: var(--spacing-3);
+  padding-block: var(--spacing-1);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------- an item */
+
+.astryx-command-palette__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  inline-size: 100%;
+  padding-inline: var(--spacing-3);
+  padding-block: var(--spacing-2);
+  border: 0;
+  border-radius: var(--radius-inner);
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-label-size);
+  text-align: start;
+  outline: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.astryx-command-palette__item:hover {
+  background-color: var(--color-overlay-hover);
+}
+
+.astryx-command-palette__item--highlighted {
+  background-color: var(--color-overlay-hover);
+}
+
+.astryx-command-palette__item--selected {
+  background-color: var(--color-accent-muted);
+}
+
+.astryx-command-palette__item--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------- empty state */
+
+.astryx-command-palette__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--spacing-8);
+  padding-inline: var(--spacing-4);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------- footer */
+
+.astryx-command-palette__footer-wrap {
+  flex-shrink: 0;
+  border-block-start: 1px solid var(--color-border);
+}
+
+.astryx-command-palette__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding-inline: var(--spacing-4);
+  padding-block: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-command-palette__hint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}

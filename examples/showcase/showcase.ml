@@ -6505,6 +6505,7 @@ let page (graph : Bonsai.graph) =
   let mobile_nav_section = Sec_mobile_nav.demo graph in
   let tokenizer_section = Sec_tokenizer.demo graph in
   let multi_selector_section = Sec_multi_selector.demo graph in
+  let command_palette_section = Sec_command_palette.demo graph in
   let stepper_section = Sec_stepper.demo graph in
   let pagination_section = Sec_pagination.demo graph in
   let top_nav_section = Sec_top_nav.demo graph in
@@ -6534,6 +6535,7 @@ let page (graph : Bonsai.graph) =
     ; mobile_nav_section
     ; tokenizer_section
     ; multi_selector_section
+    ; command_palette_section
     ; stepper_section
     ; pagination_section
     ; top_nav_section
