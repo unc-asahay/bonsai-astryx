@@ -6,6 +6,7 @@
    machine-readable docs). `Divergence` sections in each component file record
    where the port deliberately differs. *)
 
+module Calendar = Calendar
 module Avatar = Avatar
 module Avatar_group = Avatar_group
 module Avatar_group_overflow = Avatar_group_overflow
