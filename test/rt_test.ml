@@ -4441,3 +4441,79 @@ let () =
   in
   mount "calendar-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* The Chat - the thread and the composer. These cases render a thread with
+   a message from each kind of sender, an empty thread, a loading thread and
+   a failed one, and assert the shape of what is drawn: the log region, the
+   bubbles, the authors, and the composer with its input and its send. *)
+let chat_component graph =
+  let on_change = Bonsai.return (fun (_ : string) -> Effect.return ()) in
+  let on_submit = Bonsai.return (fun (_ : string) -> Effect.return ()) in
+  let on_stop = Bonsai.return (fun () -> Effect.return ()) in
+  let message ~sender ~author ~text =
+    { Astryx.Chat.sender
+    ; content = [ Vdom.Node.text text ]
+    ; author = Some author
+    ; avatar = None
+    ; timestamp = None
+    ; status = None
+    ; group = None
+    ; variant = Astryx.Chat.Filled
+    ; footer = None
+    ; edit = None
+    ; density = None
+    }
+  in
+  let messages =
+    [ message ~sender:Astryx.Chat.Assistant ~author:"Ada" ~text:"the release is cut"
+    ; message ~sender:Astryx.Chat.User ~author:"Navi" ~text:"did the notes go out"
+    ; message ~sender:Astryx.Chat.System ~author:"System" ~text:"the assistant was reconnected"
+    ]
+  in
+  let composer =
+    Some
+      { Astryx.Chat.value = Bonsai.return ""
+      ; on_change
+      ; on_submit
+      ; on_stop
+      ; is_stop_shown = false
+      ; is_disabled = false
+      ; is_sending = false
+      ; placeholder = "Ask about the release"
+      ; density = Astryx.Chat.Balanced
+      ; elevation = Astryx.Chat.Low
+      ; status = None
+      ; status_position = Astryx.Chat.Top
+      ; input = None
+      }
+  in
+  let trees =
+    [ Astryx.Chat.view ~id:"rt-chat" ~messages ~composer graph ()
+    ; Astryx.Chat.view ~id:"rt-chat-empty" ~thread:Astryx.Chat.Empty ~messages:[] graph ()
+    ; Astryx.Chat.view ~id:"rt-chat-loading" ~thread:Astryx.Chat.Loading ~messages:[] graph ()
+    ; Astryx.Chat.view
+        ~id:"rt-chat-error"
+        ~thread:(Astryx.Chat.Error "the thread could not be fetched")
+        ~messages:[]
+        graph
+        ()
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "chat-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      chat_component
+  in
+  mount "chat-all" (Bonsai_web_test.Handle.last_result handle)
+;;

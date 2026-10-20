@@ -1,0 +1,50 @@
+Gate 83 — M72 Chat (coverage 88 → 89)
+
+The Chat is the thread and the composer: the messages above, the input
+below, and the states a thread can be in.
+
+The port carries upstream's shape. The transcript is a log region
+(`role="log"`, `aria-live="polite"`), so a screen reader announces the
+messages as they arrive. Every message is a bubble that names its
+author, and a run of messages from one author reads as one block — the
+first, the middle and the last of the run are marked, so the avatar and
+the name are drawn once rather than on every message. A message can be
+a ghost (no fill, same alignment), and a message being edited opens an
+editor in place of the bubble.
+
+The composer is the caller's: the text is a value the application owns
+and sending is the application's decision, so the port takes the value
+and the three callbacks (change, submit, stop) and draws the input, the
+send button and the stop button. An empty composer cannot send.
+
+## The gate found
+
+- The composer and the message editor are the application's state, not
+  the component's, and `Bonsai.state'` hands back an update-style
+  setter — `set (fun _ -> next)`.
+- The message record carries more than the obvious fields: the group
+  position, the variant, the footer, the edit state and the density.
+- The composer's record likewise: the sending flag, the placeholder,
+  the density, the elevation, the status line and its position, and the
+  caller's own input node.
+
+## The gate changed
+
+- An empty composer cannot send — the send button is disabled — which is
+  what upstream does and what the first version of the check denied.
+- A system message carries no author name: the message speaks for
+  itself, and the assertion now says so.
+- The loading state is a spinner, not a sentence — there is nothing to
+  read while the thread is being fetched.
+- The edited-message editor had `min-width: 280px` hard-coded, which
+  pushed the chat to 347px on a 320px phone. The minimum is gone and the
+  textarea takes `min-width: 0` and `box-sizing: border-box`, so the
+  editor follows the column it sits in.
+
+## Gates
+
+- build: exit 0
+- component checks: 853 / 0
+- browser checks: 671 / 0
+- responsive: 66 / 0
+- full sweep: SWEEP GREEN

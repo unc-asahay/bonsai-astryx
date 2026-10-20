@@ -3707,6 +3707,48 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 {
+  const host = document.querySelector('[data-case="chat-all"]');
+  const chat = host?.querySelector("#rt-chat");
+  const bubbles = [...(chat?.querySelectorAll(".astryx-chat__bubble") ?? [])];
+  const authors = [...(chat?.querySelectorAll(".astryx-chat__author") ?? [])];
+  const input = chat?.querySelector(".astryx-chat__composer textarea, .astryx-chat__composer input");
+  const send = chat?.querySelector(".astryx-chat__composer button[aria-label='Send']");
+
+  check("a chat draws a log region",
+    chat?.querySelector("[role='log']")?.getAttribute("aria-live") === "polite"
+      && chat?.getAttribute("data-astryx-component") === "Chat",
+    JSON.stringify({ live: chat?.querySelector("[role='log']")?.getAttribute("aria-live") }));
+
+  check("each message is a bubble with a body",
+    bubbles.length === 3 && bubbles.every((b) => (b.textContent ?? "").trim().length > 0),
+    JSON.stringify(bubbles.map((b) => (b.textContent ?? "").trim())));
+
+  check("a message names its author, and the system's speaks for itself",
+    authors.map((a) => (a.textContent ?? "").trim()).join(",") === "Ada,Navi"
+      && bubbles.length === 3,
+    JSON.stringify(authors.map((a) => (a.textContent ?? "").trim())));
+
+  check("the composer takes the message, and an empty one cannot send",
+    input?.tagName === "TEXTAREA"
+      && input?.getAttribute("aria-label") === "Message input"
+      && send !== null
+      && send?.hasAttribute("disabled") === true,
+    JSON.stringify({ tag: input?.tagName, disabled: send?.hasAttribute("disabled") }));
+
+  check("an empty thread says so",
+    (host?.querySelector("#rt-chat-empty .astryx-chat__empty")?.textContent ?? "").trim().length > 0,
+    host?.querySelector("#rt-chat-empty")?.textContent?.trim().slice(0, 40) ?? null);
+
+  check("a loading thread shows a spinner",
+    host?.querySelector("#rt-chat-loading .astryx-chat__loading") !== null,
+    host?.querySelector("#rt-chat-loading")?.innerHTML?.slice(0, 60) ?? null);
+
+  check("a failed thread says why",
+    (host?.querySelector("#rt-chat-error .astryx-chat__error")?.textContent ?? "").includes("could not be fetched"),
+    host?.querySelector("#rt-chat-error")?.textContent?.trim().slice(0, 60) ?? null);
+}
+
+{
   const host = document.querySelector('[data-case="calendar-all"]');
   const single = host?.querySelector("#rt-cal");
   const grid = single?.querySelector("[role='grid']");

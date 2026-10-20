@@ -852,6 +852,13 @@
       "file": "src/calendar.ml",
       "milestone": "M71",
       "module": "Astryx.calendar"
+    },
+    {
+      "class": "C",
+      "component": "Chat",
+      "file": "src/chat.ml",
+      "milestone": "M72",
+      "module": "Astryx.chat"
     }
   ],
   "schema": 1,

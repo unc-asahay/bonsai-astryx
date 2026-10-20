@@ -971,6 +971,13 @@ DialogHeader
   ok   the selected values live in a labelled group, and the field's label points at the input
   ok   the menu announces its results in a polite live region
   ok   a disabled tokenizer says so, on the group and on the field's label
+  ok   a chat draws a log region
+  ok   each message is a bubble with a body
+  ok   a message names its author, and the system's speaks for itself
+  ok   the composer takes the message, and an empty one cannot send
+  ok   an empty thread says so
+  ok   a loading thread shows a spinner
+  ok   a failed thread says why
   ok   a calendar draws a grid that names its month
   ok   the month has a cell for each of its days
   ok   a day names its full date
@@ -1004,5 +1011,5 @@ DialogHeader
   ok   a disabled step is not a button, and it says it is disabled
   ok   the vertical stepper runs vertically
 
-846 checks, 0 failure(s)
+853 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

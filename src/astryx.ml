@@ -142,3 +142,4 @@ module Multi_selector = Multi_selector
 module Stepper = Stepper
 module Top_nav = Top_nav
 module Code_block = Code_block
+module Chat = Chat

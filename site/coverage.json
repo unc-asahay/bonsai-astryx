@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 88,
-    "unported": 15,
+    "ported": 89,
+    "unported": 14,
     "total": 103,
     "documented": 103
   },
@@ -94,6 +94,12 @@
       "module": "Astryx.Center",
       "file": "src/center.ml",
       "milestone": "M2"
+    },
+    {
+      "name": "Chat",
+      "module": "Astryx.chat",
+      "file": "src/chat.ml",
+      "milestone": "M72"
     },
     {
       "name": "CheckboxInput",
@@ -543,7 +549,6 @@
   "unported": [
     "AppShell",
     "BottomSheet",
-    "Chat",
     "CommandPalette",
     "ContextMenu",
     "DateInput",

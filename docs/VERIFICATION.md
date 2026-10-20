@@ -4440,3 +4440,11 @@ whether the menu is open or not.
 The Calendar is the month grid: one month or two, the days and their states, the range pick, the keyboard walk over the grid, and the live announcement of what a pick did. The grid is a `role="grid"` named for its month, every day is a `role="gridcell"` holding a button that names its full date, a range grid is `aria-multiselectable`, and a day that cannot be picked says so with `aria-disabled` instead of leaving the keyboard order. Upstream's `PlainDate` came with it, as `src/plain_date.ml` — the ISO dates, the month arithmetic, the day and week numbers — and it is the foundation the date inputs build on.
 
 The worker's file needed a fair amount of repair before it would parse: `external` is a reserved word in OCaml, the `and render` sat after a `;;` and orphaned from its `let`, the month grid was missing a `]`, `node##focus` needs a preprocessor the library does not use, and the `model` record type was never written at all — the worker's own uses said what it had to hold. A day that cannot be picked is marked `aria-disabled` rather than natively disabled, so it keeps its place in the keyboard order; upstream draws that distinction and the house's `day_state` does not, so the port takes the gentler of the two and says so in the interface.
+
+### Gate 83 — M72 Chat (coverage 88 → 89)
+
+**853/853 component checks · 671/671 browser checks · responsive 66/66 · SWEEP GREEN**
+
+The Chat is the thread and the composer: the messages above, the input below, and the states a thread can be in. The transcript is a log region (`role="log"`, `aria-live="polite"`), every message is a bubble that names its author, and a run of messages from one author reads as one block — the first, the middle and the last of the run are marked, so the avatar and the name are drawn once rather than on every message. The composer is the caller's: the text is a value the application owns and sending is the application's decision, so the port takes the value and the three callbacks and draws the input, the send button and the stop button.
+
+The responsive gate caught a real bug: the edited-message editor had `min-width: 280px` hard-coded, which pushed the chat to 347px on a 320px phone. The minimum is gone and the textarea takes `min-width: 0` and `box-sizing: border-box`, so the editor follows the column it sits in.

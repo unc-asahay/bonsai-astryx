@@ -286,6 +286,7 @@ if (mode === "showcase") {
     "TopNav",
     "CodeBlock",
     "Calendar",
+    "Chat",
 
   ];
 
@@ -649,7 +650,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("90 sections", sections.length === 90, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("91 sections", sections.length === 91, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -739,6 +740,7 @@ if (mode === "showcase") {
     HoverCard: 7,
     Resizable: 7,
     Toast: 6,
+    Chat: 19,
     MobileNav: 6,
     Tokenizer: 9,
     MultiSelector: 8,
@@ -753,7 +755,7 @@ if (mode === "showcase") {
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("590 examples across the page", totalExamples === 590, `got ${totalExamples}`);
+  check("609 examples across the page", totalExamples === 609, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -767,7 +769,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("90 nav links", nav.length === 90, `got ${nav.length}`);
+  check("91 nav links", nav.length === 91, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4162,11 +4164,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 88 ported / 15 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["88", "15", "103"]),
+    "coverage stats are 89 ported / 14 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["89", "14", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 15 entries", cov.unported === 15, `got ${cov.unported}`);
+  check("unported list rendered 14 entries", cov.unported === 14, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5913,6 +5915,66 @@ check(
         collapsed?.stepsInDom === 4,
         JSON.stringify({ stepsInDom: collapsed?.stepsInDom }));
     }
+  }
+
+  // -------------------------------------------------------------------- Chat
+  {
+    const chatSection = await page.$("section[data-showcase-component='Chat']");
+    check("the Chat section renders", chatSection !== null);
+    const chatState = await page.evaluate(() => {
+      const sec = document.querySelector("section[data-showcase-component='Chat']");
+      const root_ = sec?.querySelector("[data-astryx-component='Chat']");
+      const log = sec?.querySelector("[role='log']");
+      const bubbles = [...(sec?.querySelectorAll(".astryx-chat__bubble") ?? [])];
+      const authors = [...(sec?.querySelectorAll(".astryx-chat__author") ?? [])];
+      const composer = sec?.querySelector(".astryx-chat__composer");
+      const input = composer?.querySelector("textarea, input");
+      const send = composer?.querySelector("button[aria-label='Send']");
+      const firstExample = sec?.querySelector("[data-example]");
+      return {
+        examples: sec?.querySelectorAll("[data-example]").length ?? 0,
+        component: root_?.getAttribute("data-astryx-component") ?? null,
+        logRole: log?.getAttribute("role") ?? null,
+        logLive: log?.getAttribute("aria-live") ?? null,
+        bubbles: bubbles.length,
+        bubbleText: bubbles[0]?.textContent?.trim().slice(0, 30) ?? null,
+        authors: authors.map((a) => (a.textContent ?? "").trim()).slice(0, 4),
+        inputLabel: input?.getAttribute("aria-label") ?? null,
+        inputTag: input?.tagName?.toLowerCase() ?? null,
+        sendDisabled: send?.hasAttribute("disabled") ?? null,
+        sendLabel: send?.getAttribute("aria-label") ?? null,
+        ghost: sec?.querySelectorAll(".astryx-chat__bubble--ghost").length ?? 0,
+        grouped: sec?.querySelectorAll(".astryx-chat__bubble--group-first").length ?? 0,
+        loading: sec?.querySelectorAll(".astryx-chat__loading").length ?? 0,
+        empty: sec?.querySelectorAll(".astryx-chat__empty").length ?? 0,
+        error: sec?.querySelectorAll(".astryx-chat__error").length ?? 0,
+        firstExampleId: firstExample?.getAttribute("data-example") ?? null,
+      };
+    });
+    check("the chat is marked as the chat", chatState.component === "Chat", JSON.stringify(chatState));
+    check("the transcript is a log region", chatState.logRole === "log" && chatState.logLive === "polite", JSON.stringify(chatState));
+    check("the messages are drawn as bubbles", chatState.bubbles > 0 && (chatState.bubbleText ?? "").length > 0, JSON.stringify(chatState));
+    check("a message names its author", chatState.authors.length > 0 && chatState.authors.every((a) => a.length > 0), JSON.stringify(chatState));
+    check("the composer takes the message", chatState.inputTag === "textarea" && chatState.inputLabel === "Message input", JSON.stringify(chatState));
+    check("an empty composer cannot send", chatState.sendDisabled === true && chatState.sendLabel === "Send", JSON.stringify(chatState));
+    check("a run of messages reads as one block", chatState.grouped > 0, JSON.stringify(chatState));
+    check("a ghost bubble is marked as one", chatState.ghost > 0, JSON.stringify(chatState));
+    check("the thread knows its three states", chatState.loading > 0 && chatState.empty > 0 && chatState.error > 0, JSON.stringify(chatState));
+
+    // a real interaction: typing enables the send
+    const typed = await page.evaluate(async () => {
+      const composer = document.querySelector(".astryx-chat__composer");
+      const input = composer?.querySelector("textarea, input");
+      const send = composer?.querySelector("button[aria-label='Send']");
+      if (!input) return { ok: false };
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype, "value")?.set;
+      setter?.call(input, "the release notes are out");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 300));
+      return { ok: true, disabled: send?.hasAttribute("disabled") ?? null, value: input.value };
+    });
+    check("typing enables the send button", typed.ok && typed.disabled === false, JSON.stringify(typed));
   }
 
   // ---------------------------------------------------------------- Calendar
