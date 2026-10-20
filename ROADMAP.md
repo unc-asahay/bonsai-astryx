@@ -1098,7 +1098,8 @@ CodeBlock is ~2,417 (local `highlightRanges`/`highlightStyles`/`tokenizer` count
 
 ## Status after the parallel batch (2026-10-19, 82/103)
 
-Landed in this batch: **M59 Toast**, **M61 Resizable**, **M64 MobileNav**.
+Landed in this batch: **M59 Toast**, **M61 Resizable**, **M64 MobileNav**,
+**M65 Tokenizer**.
 The batch runs ten workers in parallel, each in its own git worktree
 (`/home/noor/.hermes/worktrees/bonsai-<name>`, branch `wip-<name>`); a worker
 owns only `src/<name>.ml`, `src/<name>.mli`, `assets/parts/<name>.css`,
@@ -1107,7 +1108,7 @@ single integrator owns the shared files. `docs/PORTING-BRIEF.md` is the
 contract; `tools/integrate-port.py` and `tools/sync-counts.py` do the
 integrator's mechanical half.
 
-The 22 still unported, with the honest size of each upstream directory and
+The 21 still unported, with the honest size of each upstream directory and
 what unblocks it:
 
 | Component | LOC | files | unblocked by |
@@ -1125,9 +1126,9 @@ what unblocks it:
 | Table | 11,302 | 49 | Selector |
 | Markdown | 16,271 | 55 | CodeBlock + Table |
 
-In flight in this batch: Toast (landed), CodeBlock, Resizable (landed),
-Typeahead, Tokenizer, Stepper, AppShell, MultiSelector, Selector, MobileNav
-(landed), Calendar, BottomSheet, Chat.
+In flight: CodeBlock, Typeahead, Stepper, AppShell, TopNav, MultiSelector,
+Selector, Calendar, BottomSheet, Chat. Landed: Toast, Resizable, MobileNav,
+Tokenizer.
 
 Two lessons from this batch, both now written into the tooling:
 
@@ -1140,3 +1141,12 @@ Two lessons from this batch, both now written into the tooling:
    and so is the coverage panel, which is generated from `port.json` and has to
    be regenerated before the gate compares the page against it.
    `tools/sync-counts.py` moves both halves and regenerates the panel.
+3. **A worker's ceiling is iterations, not minutes.** A Stepper port died at
+   84 minutes with a `.mli` on disk and no implementation, and an `.mli` with no
+   `.ml` does not compile — so a port that dies between the two files leaves a
+   worktree that cannot build. The brief now says to batch the research into one
+   `execute_code` call, to write the `.mli` and the `.ml` in the same breath,
+   and to commit as soon as it compiles; and `tools/integrate-port.py` refuses a
+   branch that carries only a `.mli`, with the reason. Note that `execute_code`
+   is blocked in cron mode, so the heartbeat batches through one compound
+   `terminal` call instead.
