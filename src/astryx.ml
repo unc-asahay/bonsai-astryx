@@ -18,6 +18,7 @@ module List_item = List_item
 
 module More_menu = More_menu
 
+module Pagination = Pagination
 module Popover = Popover
 module Complex_selector = Complex_selector
 module Outline = Outline
