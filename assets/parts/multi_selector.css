@@ -1,0 +1,240 @@
+/* MultiSelector — the multi-select field: the trigger, its summary, and the
+   options list.
+
+   Ported from upstream's MultiSelector.styles (the trigger container, the
+   option rows, the section heading, the empty state) and its PanelSearchInput
+   chrome (the search row). The values are the design tokens, not literals. */
+
+/* The control box: the trigger, its adornments and the indicator. It is the
+   anchor the options list is positioned against. */
+.astryx-multi-selector {
+  anchor-name: --astryx-multi-selector-anchor;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-element);
+  background-color: var(--color-background-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  cursor: pointer;
+}
+
+.astryx-multi-selector[data-astryx-size="sm"] { min-block-size: var(--size-element-sm); padding-inline: var(--spacing-2); }
+.astryx-multi-selector[data-astryx-size="md"] { min-block-size: var(--size-element-md); padding-inline: var(--spacing-3); }
+.astryx-multi-selector[data-astryx-size="lg"] { min-block-size: var(--size-element-lg); padding-inline: var(--spacing-3); }
+
+.astryx-multi-selector:hover { border-color: var(--color-border-emphasized); }
+
+.astryx-multi-selector:focus-within {
+  border-color: var(--color-accent);
+  outline: var(--border-width) solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.astryx-multi-selector--warning { border-color: var(--color-warning); }
+.astryx-multi-selector--error { border-color: var(--color-error); }
+.astryx-multi-selector--success { border-color: var(--color-success); }
+
+/* The secondary and ghost looks: no fill, no border of their own. */
+.astryx-multi-selector--secondary {
+  background-color: var(--color-background-muted);
+  border-color: transparent;
+}
+
+.astryx-multi-selector--ghost {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.astryx-multi-selector--disabled {
+  cursor: default;
+  background-color: var(--color-background-muted);
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+}
+
+.astryx-multi-selector--disabled:hover { border-color: var(--color-border); }
+
+.astryx-multi-selector__start-icon,
+.astryx-multi-selector__spinner,
+.astryx-multi-selector__clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The trigger button: the combobox. It holds the summary of the selection and
+   nothing else, so it can be as wide as the summary needs. */
+.astryx-multi-selector__trigger {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: inherit;
+}
+
+.astryx-multi-selector__trigger:focus-visible {
+  outline: var(--border-width) solid var(--color-accent);
+  outline-offset: var(--spacing-1);
+}
+
+.astryx-multi-selector__trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-multi-selector--placeholder .astryx-multi-selector__trigger-text,
+.astryx-multi-selector__placeholder { color: var(--color-text-secondary); }
+
+/* The badge summary: a badge per chosen label. */
+.astryx-multi-selector__trigger-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.astryx-multi-selector__trigger-overflow {
+  color: var(--color-text-secondary);
+  font-size: var(--text-label-size);
+}
+
+.astryx-multi-selector__indicator {
+  flex-shrink: 0;
+  color: var(--color-icon-secondary);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.astryx-multi-selector__indicator--open { transform: rotate(180deg); }
+
+/* The options list. A native popover surface: the platform owns the top
+   layer, the outside-pointer dismissal and the anchor positioning. */
+.astryx-multi-selector__popover {
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background-color: var(--color-background-popover);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-med);
+  position-anchor: --astryx-multi-selector-anchor;
+  position-area: block-end;
+  min-inline-size: anchor-size(--astryx-multi-selector-anchor width);
+  max-inline-size: 100%;
+  overflow: hidden auto;
+  max-block-size: 60vh;
+}
+
+.astryx-multi-selector__popover:not(:popover-open) { display: none; }
+
+/* The search row: the header of the list. A magnifier, a borderless input
+   and the clear button. */
+.astryx-multi-selector__search {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.astryx-multi-selector__search-icon {
+  flex-shrink: 0;
+  color: var(--color-icon-secondary);
+}
+
+.astryx-multi-selector__search-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.astryx-multi-selector__search-input::placeholder { color: var(--color-text-secondary); }
+
+/* The listbox itself. */
+.astryx-multi-selector__listbox {
+  margin: 0;
+  padding: var(--spacing-1) 0;
+  list-style: none;
+  outline: none;
+}
+
+/* An option row: the indicator and the text. */
+.astryx-multi-selector__option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.astryx-multi-selector__option:hover { background-color: var(--color-overlay-hover); }
+
+.astryx-multi-selector__option--highlighted { background-color: var(--color-overlay-hover); }
+
+.astryx-multi-selector__option--disabled {
+  cursor: default;
+  color: var(--color-text-disabled);
+}
+
+.astryx-multi-selector__option--disabled:hover { background-color: transparent; }
+
+/* The indicator is decorative: the row carries the selection state. */
+.astryx-multi-selector__option-checkbox {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.astryx-multi-selector__option-text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.astryx-multi-selector__option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.astryx-multi-selector__option-description {
+  color: var(--color-text-secondary);
+  font-size: var(--text-label-size);
+}
+
+/* A group of options under a heading. The heading is aria-hidden: the group
+   already carries the title as its accessible name. */
+.astryx-multi-selector__section-heading {
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-1);
+  color: var(--color-text-secondary);
+  font-size: var(--text-label-size);
+  font-weight: var(--font-weight-semibold);
+}
+
+.astryx-multi-selector__divider {
+  margin-block: var(--spacing-1);
+}
+
+/* The empty state: no options at all, or none matching the query. */
+.astryx-multi-selector__empty {
+  padding: var(--spacing-3);
+  color: var(--color-text-secondary);
+}

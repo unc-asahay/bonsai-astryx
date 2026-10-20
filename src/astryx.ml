@@ -136,3 +136,4 @@ module Resizable = Resizable
 module Toast = Toast
 module Mobile_nav = Mobile_nav
 module Tokenizer = Tokenizer
+module Multi_selector = Multi_selector

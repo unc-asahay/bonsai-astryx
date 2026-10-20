@@ -3706,6 +3706,74 @@ check("a disabled group says so once, on the box", (() => {
     }));
 }
 
+{
+  const host = document.querySelector('[data-case="multi-selector-all"]');
+  const trigger = host?.querySelector("#rt-ms");
+  const listbox = host?.querySelector("#rt-ms-listbox");
+  const options = [...(listbox?.querySelectorAll('[role="option"]') ?? [])];
+  const group = host?.querySelector('[role="group"][aria-label="Advanced"]');
+
+  check("the trigger is a button that names the listbox it controls, and says it is closed",
+    trigger?.tagName === "BUTTON"
+      && trigger?.getAttribute("aria-haspopup") === "listbox"
+      && trigger?.getAttribute("aria-expanded") === "false"
+      && trigger?.getAttribute("aria-controls") === "rt-ms-listbox"
+      && trigger?.getAttribute("aria-labelledby") === "rt-ms-label",
+    JSON.stringify({
+      tag: trigger?.tagName,
+      haspopup: trigger?.getAttribute("aria-haspopup"),
+      expanded: trigger?.getAttribute("aria-expanded"),
+      controls: trigger?.getAttribute("aria-controls"),
+    }));
+
+  check("the count display says how many are chosen",
+    trigger?.querySelector(".astryx-multi-selector__trigger-text")?.textContent === "1 selected",
+    trigger?.querySelector(".astryx-multi-selector__trigger-text")?.textContent ?? null);
+
+  check("the list is a multi-select listbox, and the chosen value is the selected one",
+    listbox?.getAttribute("role") === "listbox"
+      && listbox?.getAttribute("aria-multiselectable") === "true"
+      && options.length === 3
+      && options.filter((o) => o.getAttribute("aria-selected") === "true").length === 1
+      && options[1]?.getAttribute("aria-selected") === "true",
+    JSON.stringify({
+      role: listbox?.getAttribute("role"),
+      options: options.map((o) => ({
+        text: o.textContent.trim().slice(0, 20),
+        selected: o.getAttribute("aria-selected"),
+      })),
+    }));
+
+  check("a disabled option is listed and announced, but not choosable",
+    options[2]?.getAttribute("aria-disabled") === "true"
+      && (options[2]?.getAttribute("class") ?? "").includes("astryx-multi-selector__option--disabled"),
+    JSON.stringify({ disabled: options[2]?.getAttribute("aria-disabled") }));
+
+  check("the section's options sit in a group that carries the section's name",
+    group !== null
+      && group?.querySelectorAll('[role="option"]').length === 1
+      && group?.querySelector(".astryx-multi-selector__section-heading")?.textContent === "Advanced",
+    JSON.stringify({
+      group: group?.getAttribute("aria-label"),
+      options: group?.querySelectorAll('[role="option"]').length,
+    }));
+
+  const searchTrigger = host?.querySelector("#rt-ms-search");
+  const searchInput = host?.querySelector("#rt-ms-search-search");
+  check("with a search field, the search input takes the combobox role and the trigger shows the chosen label",
+    searchTrigger?.getAttribute("role") === null
+      && searchTrigger?.querySelector(".astryx-multi-selector__trigger-text")?.textContent === "Email"
+      && searchInput?.getAttribute("role") === "combobox"
+      && searchInput?.getAttribute("aria-controls") === "rt-ms-search-listbox"
+      && searchInput?.getAttribute("aria-autocomplete") === "list",
+    JSON.stringify({
+      triggerRole: searchTrigger?.getAttribute("role"),
+      triggerText: searchTrigger?.querySelector(".astryx-multi-selector__trigger-text")?.textContent,
+      inputRole: searchInput?.getAttribute("role"),
+      controls: searchInput?.getAttribute("aria-controls"),
+    }));
+}
+
 
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);

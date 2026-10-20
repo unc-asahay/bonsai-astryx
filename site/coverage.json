@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 82,
-    "unported": 21,
+    "ported": 83,
+    "unported": 20,
     "total": 103,
     "documented": 103
   },
@@ -288,6 +288,12 @@
       "milestone": "M23"
     },
     {
+      "name": "MultiSelector",
+      "module": "Astryx.multi_selector",
+      "file": "src/multi_selector.ml",
+      "milestone": "M66"
+    },
+    {
       "name": "NavHeadingMenu",
       "module": "Astryx.Nav_heading_menu",
       "file": "src/nav_heading_menu.ml",
@@ -516,7 +522,6 @@
     "DateRangeInput",
     "DateTimeInput",
     "Markdown",
-    "MultiSelector",
     "Pagination",
     "PowerSearch",
     "Selector",

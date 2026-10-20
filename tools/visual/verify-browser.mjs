@@ -280,6 +280,7 @@ if (mode === "showcase") {
     "Toast",
     "MobileNav",
     "Tokenizer",
+    "MultiSelector",
 
   ];
 
@@ -643,7 +644,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("84 sections", sections.length === 84, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("85 sections", sections.length === 85, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -735,13 +736,14 @@ if (mode === "showcase") {
     Toast: 6,
     MobileNav: 6,
     Tokenizer: 9,
+    MultiSelector: 8,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("548 examples across the page", totalExamples === 548, `got ${totalExamples}`);
+  check("556 examples across the page", totalExamples === 556, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -755,7 +757,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("84 nav links", nav.length === 84, `got ${nav.length}`);
+  check("85 nav links", nav.length === 85, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -1325,12 +1327,21 @@ if (mode === "showcase") {
     // Inside <svg> an HTML element is a no-op: it compiles, renders, and paints nothing, with no
     // error anywhere. A namespace check would catch the mistake; measuring what the engine
     // actually painted catches it *and* catches a mark that exists but is invisible.
+    // A mark inside a closed surface is not painted because nothing is
+    // painted there: the MultiSelector's option indicators live in a popover
+    // that is closed until the field opens, and a closed popover is
+    // display:none, so its marks have no box. Asking whether the mark
+    // renders at all is the same question the responsive probe asks about a
+    // closed dialog - a mark that exists but is invisible is the bug, and a
+    // mark nobody can see yet is not.
     const paths = await page.evaluate(() =>
-      [...document.querySelectorAll(".astryx-indicator__check path")].map((p) => ({
-        ns: p.namespaceURI,
-        w: Math.round(p.getBBox().width * 100) / 100,
-        h: Math.round(p.getBBox().height * 100) / 100,
-      })),
+      [...document.querySelectorAll(".astryx-indicator__check path")]
+        .filter((p) => p.checkVisibility?.() !== false)
+        .map((p) => ({
+          ns: p.namespaceURI,
+          w: Math.round(p.getBBox().width * 100) / 100,
+          h: Math.round(p.getBBox().height * 100) / 100,
+        })),
     );
     check(
       "every check mark is a real SVG path in the SVG namespace",
@@ -4141,11 +4152,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 82 ported / 21 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["82", "21", "103"]),
+    "coverage stats are 83 ported / 20 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["83", "20", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 21 entries", cov.unported === 21, `got ${cov.unported}`);
+  check("unported list rendered 20 entries", cov.unported === 20, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -5659,6 +5670,115 @@ check(
       Array.isArray(tkHtmlName) && tkHtmlName.length === 2
         && tkHtmlName.every((h) => h.name === "reviewers" && h.value && h.value.length > 0),
       JSON.stringify(tkHtmlName));
+  }
+
+  // -------------------------------------------------------------- MultiSelector
+  {
+    const msSection = await page.$("section[data-showcase-component='MultiSelector']");
+    check("the MultiSelector section renders", msSection !== null,
+      msSection ? "found" : "missing");
+    if (msSection) {
+      const instances = await page.evaluate(() =>
+        document.querySelectorAll('section[data-showcase-component="MultiSelector"] [data-astryx-component="MultiSelector"]').length);
+      check("all eight MultiSelector instances render", instances === 8, `got ${instances}`);
+
+      const trigger = await page.evaluate(() => {
+        const el = document.querySelector('section[data-showcase-component="MultiSelector"] [role="combobox"]');
+        if (!el) return null;
+        return {
+          tag: el.tagName,
+          role: el.getAttribute("role"),
+          haspopup: el.getAttribute("aria-haspopup"),
+          expanded: el.getAttribute("aria-expanded"),
+          controls: el.getAttribute("aria-controls"),
+          label: el.getAttribute("aria-labelledby"),
+        };
+      });
+      check("the trigger is a combobox that names the listbox it controls",
+        trigger?.tag === "BUTTON"
+          && trigger?.role === "combobox"
+          && trigger?.haspopup === "listbox"
+          && trigger?.expanded === "false"
+          && trigger?.controls === "astryx-multi-selector-listbox"
+          && trigger?.label === "astryx-multi-selector-label",
+        JSON.stringify(trigger));
+
+      const before = await page.evaluate(() => {
+        const pop = document.getElementById("astryx-multi-selector-popover");
+        const lb = document.getElementById("astryx-multi-selector-listbox");
+        return {
+          popover: pop?.getAttribute("popover") ?? null,
+          // The popover is what hides: a closed one is display:none, and the
+          // listbox inside it is display:block the whole time. What matters is
+          // whether the thing RENDERS, so ask for its box.
+          popDisplay: pop ? getComputedStyle(pop).display : null,
+          box: lb ? Math.round(lb.getBoundingClientRect().height) : 0,
+        };
+      });
+      check("the list is a native popover, and it is closed until the field is opened",
+        before?.popover === "auto" && before?.popDisplay === "none" && before?.box === 0,
+        JSON.stringify(before));
+
+      await page.click('section[data-showcase-component="MultiSelector"] [role="combobox"]');
+      await page.waitForTimeout(250);
+
+      const opened = await page.evaluate(() => {
+        const lb = document.getElementById("astryx-multi-selector-listbox");
+        const trig = document.querySelector('section[data-showcase-component="MultiSelector"] [role="combobox"]');
+        return {
+          expanded: trig?.getAttribute("aria-expanded"),
+          box: lb ? Math.round(lb.getBoundingClientRect().height) : 0,
+          role: lb?.getAttribute("role"),
+          multi: lb?.getAttribute("aria-multiselectable"),
+          options: lb?.querySelectorAll('[role="option"]').length ?? 0,
+          active: lb?.getAttribute("aria-activedescendant") ?? null,
+        };
+      });
+      check("opening the field shows a multi-select listbox with its options",
+        opened?.expanded === "true"
+          && opened?.box > 0
+          && opened?.role === "listbox"
+          && opened?.multi === "true"
+          && opened?.options > 0
+          && typeof opened?.active === "string",
+        JSON.stringify(opened));
+
+      const activeBefore = opened?.active;
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(150);
+      const activeAfter = await page.evaluate(() => {
+        const lb = document.getElementById("astryx-multi-selector-listbox");
+        return { active: lb?.getAttribute("aria-activedescendant") ?? null };
+      });
+      check("the arrow keys move the active option, and the listbox says which one it is",
+        activeAfter?.active !== activeBefore && typeof activeAfter?.active === "string",
+        JSON.stringify({ before: activeBefore, after: activeAfter?.active }));
+
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(200);
+      const toggled = await page.evaluate(() => {
+        const lb = document.getElementById("astryx-multi-selector-listbox");
+        const selected = [...(lb?.querySelectorAll('[role="option"][aria-selected="true"]') ?? [])];
+        return { selected: selected.length, first: selected[0]?.textContent.trim() ?? null };
+      });
+      check("Enter toggles the option, and the row says it is selected",
+        toggled?.selected > 0 && typeof toggled?.first === "string",
+        JSON.stringify(toggled));
+
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(250);
+      const closed = await page.evaluate(() => {
+        const trig = document.querySelector('section[data-showcase-component="MultiSelector"] [role="combobox"]');
+        const lb = document.getElementById("astryx-multi-selector-listbox");
+        return {
+          expanded: trig?.getAttribute("aria-expanded"),
+          box: lb ? Math.round(lb.getBoundingClientRect().height) : 0,
+        };
+      });
+      check("Escape closes the list",
+        closed?.expanded === "false" && closed?.box === 0,
+        JSON.stringify(closed));
+    }
   }
 
   // ------------------------------------------------------------------ Toast

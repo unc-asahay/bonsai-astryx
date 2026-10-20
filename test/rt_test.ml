@@ -4097,6 +4097,65 @@ let tokenizer_component (graph : Bonsai.graph) =
     nodes
 ;;
 
+(* ------------------------------------------------------------- MultiSelector *)
+(* The multi-select field: the chosen set comes in as a value and goes out
+   through on_change, and the options may carry dividers and grouped
+   sections. *)
+let multi_selector_component graph =
+  let on_change = Bonsai.return (fun (_ : string list) -> Effect.return ()) in
+  let value = Bonsai.return [ "email" ] in
+  let options =
+    [ Astryx.Multi_selector.Option
+        { value = "name"; label = Some "Name"; description = None; is_disabled = false }
+    ; Astryx.Multi_selector.Option
+        { value = "email"; label = Some "Email"; description = None; is_disabled = false }
+    ; Astryx.Multi_selector.Divider
+    ; Astryx.Multi_selector.Section
+        { title = Some "Advanced"
+        ; options =
+            [ { value = "role"; label = Some "Role"; description = None; is_disabled = true } ]
+        }
+    ]
+  in
+  let trees =
+    [ Astryx.Multi_selector.view
+        ~id:"rt-ms"
+        ~label:"Fields"
+        ~options
+        ~value
+        ~on_change
+        graph
+    ; Astryx.Multi_selector.view
+        ~id:"rt-ms-search"
+        ~label:"Fields, searchable"
+        ~has_search:true
+        ~trigger_display:Astryx.Multi_selector.Labels
+        ~options
+        ~value
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes ->
+      Vdom.Node.div ~attrs:[ Vdom.Attr.id "multi-selector-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      multi_selector_component
+  in
+  mount "multi-selector-all" (Bonsai_web_test.Handle.last_result handle)
+;;
+
 let () =
   let handle =
     Bonsai_web_test.Handle.create

@@ -810,6 +810,13 @@
       "file": "src/tokenizer.ml",
       "milestone": "M65",
       "module": "Astryx.tokenizer"
+    },
+    {
+      "class": "C",
+      "component": "MultiSelector",
+      "file": "src/multi_selector.ml",
+      "milestone": "M66",
+      "module": "Astryx.multi_selector"
     }
   ],
   "schema": 1,
