@@ -89,6 +89,9 @@ jobs:
       - name: Build the showcase bundle in release mode
         run: opam exec -- dune build --profile release --build-dir _build_release examples/showcase/showcase.bc.js
 
+      - name: Install the Chromium that playwright drives
+        run: opam exec -- pnpm exec playwright install --with-deps chromium
+
       - name: Put the release bundle where the page asks for it, and serve the repository
         run: |
           # The published bundle is the release build, so the release build is
