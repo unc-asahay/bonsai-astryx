@@ -56,6 +56,12 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       ~id:"showcase-date-time-24h"
       ~label:"On the twenty-four hour clock"
       ~hour_format:Date_time_input.H24
+      ~value:
+        (Bonsai.return
+           (Some
+              { Date_time_input.date = Plain_date.create ~year:2026 ~month:3 ~day:18
+              ; time = { Date_time_input.hour = 14; minute = 30; second = 0 }
+              }))
       ~on_change
       graph
   in

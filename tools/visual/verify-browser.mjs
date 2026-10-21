@@ -294,6 +294,7 @@ if (mode === "showcase") {
     "AppShell",
     "Typeahead",
     "DateRangeInput",
+    "DateTimeInput",
 
   ];
 
@@ -657,7 +658,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("98 sections", sections.length === 98, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("99 sections", sections.length === 99, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -763,13 +764,14 @@ if (mode === "showcase") {
     AppShell: 10,
     Typeahead: 5,
     DateRangeInput: 5,
+    DateTimeInput: 5,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("649 examples across the page", totalExamples === 649, `got ${totalExamples}`);
+  check("654 examples across the page", totalExamples === 654, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -783,7 +785,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("98 nav links", nav.length === 98, `got ${nav.length}`);
+  check("99 nav links", nav.length === 99, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4178,11 +4180,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 96 ported / 7 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["96", "7", "103"]),
+    "coverage stats are 97 ported / 6 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["97", "6", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 7 entries", cov.unported === 7, `got ${cov.unported}`);
+  check("unported list rendered 6 entries", cov.unported === 6, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7178,6 +7180,87 @@ if (mode === "showcase") {
     check("the trigger opens the calendar, and it is the house calendar",
       calendar?.open === true && calendar?.calendar === true && calendar?.grid > 0,
       JSON.stringify(calendar));
+  }
+}
+
+
+// ----------------------------------------------------------- DateTimeInput (M80)
+if (mode === "showcase") {
+  const dtSection = await page.$("section[data-showcase-component='DateTimeInput']");
+  check("the DateTimeInput section renders", dtSection !== null,
+    dtSection === null ? "not found" : "found");
+
+  if (dtSection) {
+    const shape = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateTimeInput']")];
+      const first = fields[0];
+      const segments = [...(first?.querySelectorAll(".astryx-date-time-input__segment") ?? [])];
+      const inputs = [...(first?.querySelectorAll("input") ?? [])];
+      const calendarButton = first?.querySelector(".astryx-date-time-input__calendar-button");
+      return {
+        fields: fields.length,
+        marker: first?.getAttribute("data-astryx-component") ?? null,
+        segments: segments.map((s) => s.className),
+        ids: inputs.map((i) => i.getAttribute("id")),
+        calendarLabel: calendarButton?.getAttribute("aria-label") ?? null,
+      };
+    });
+
+    check("every example renders its own field, and the root carries the house's marker",
+      shape?.fields >= 5 && shape?.marker === "DateTimeInput",
+      JSON.stringify(shape));
+
+    check("the reading is a date segment and a time segment",
+      shape?.segments.length === 2
+        && shape.segments[0].includes("--date")
+        && shape.segments[1].includes("--time"),
+      JSON.stringify(shape));
+
+    check("each part has its own field, and the calendar opens from a named button",
+      shape?.ids.length === 2 && shape.ids[0] !== shape.ids[1]
+        && shape?.calendarLabel === "Open calendar",
+      JSON.stringify(shape));
+
+    // The committed reading shows in the two parts.
+    const committed = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateTimeInput']")];
+      const withValue = fields[1];
+      return [...(withValue?.querySelectorAll("input") ?? [])].map((i) => i.value);
+    });
+    check("a committed reading is shown in the two parts",
+      committed.length === 2 && committed[0] !== "" && committed[1] !== "",
+      JSON.stringify({ committed }));
+
+    // The twenty-four hour clock shows an afternoon reading without a meridiem.
+    const twentyFour = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateTimeInput']")];
+      const clock = fields[2];
+      const inputs = [...(clock?.querySelectorAll("input") ?? [])];
+      return { time: inputs[1]?.value ?? "" };
+    });
+    check("the twenty-four hour clock shows an afternoon reading without a meridiem",
+      twentyFour?.time !== "" && !/[ap]m/i.test(twentyFour.time),
+      JSON.stringify(twentyFour));
+
+    // The calendar opens from the trigger and is the house calendar.
+    await page.locator("button[aria-label='Open calendar']").first().click();
+    await page.waitForTimeout(300);
+    const calendar = await page.evaluate(() => {
+      const pop = document.querySelector("#showcase-date-time-plain-calendar-surface");
+      const cal = pop?.querySelector("[data-astryx-component='Calendar']");
+      return {
+        open: pop !== null,
+        calendar: cal !== null && cal !== undefined,
+        grid: pop?.querySelectorAll("[role='gridcell']").length ?? 0,
+      };
+    });
+    check("the trigger opens the calendar, and it is the house calendar",
+      calendar?.open === true && calendar?.calendar === true && calendar?.grid > 0,
+      JSON.stringify(calendar));
+
+    // The calendar closes again, so it does not intercept later checks.
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
   }
 }
 

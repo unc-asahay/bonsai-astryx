@@ -4543,3 +4543,11 @@ The worker's 484-line implementation needed four repairs: attribute lists that m
 The house's field renders a group label as a `<span>` that names the group with `aria-labelledby`, not as a `<label>` that labels one control. Both gates were asserting a `<label>` and failing.
 
 Gates: component **890/890**, browser **734/734**, responsive **66/66**, full sweep green.
+
+### Gate 91 — M80 DateTimeInput
+
+The date time input is a date field, a time field, and a calendar to pick the date from. The field owns the draft text of each part and whether the calendar is open; the application owns the committed reading. The reading carries no zone and no offset.
+
+The worker's 813-line implementation compiled against the house without repair — the first time that has happened. It needed a CSS part and a showcase section, and one fix: the example showing the twenty-four hour clock had no reading, so the clock had nothing to show.
+
+Gates: component **896/896**, browser **741/741**, responsive **66/66**, full sweep green.

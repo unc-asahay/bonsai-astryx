@@ -908,6 +908,13 @@
       "file": "src/date_range_input.ml",
       "milestone": "M79",
       "module": "Astryx.date_range_input"
+    },
+    {
+      "class": "C",
+      "component": "DateTimeInput",
+      "file": "src/date_time_input.ml",
+      "milestone": "M80",
+      "module": "Astryx.date_time_input"
     }
   ],
   "schema": 1,

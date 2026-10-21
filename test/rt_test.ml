@@ -4913,3 +4913,60 @@ let () =
   in
   mount "date-range-input-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ----------------------------------------------------------- DateTimeInput *)
+(* A date, a time, and a calendar to pick the date from. The field owns
+   the draft text of each part; the application owns the reading. *)
+let date_time_input_component graph =
+  let on_change =
+    Bonsai.return (fun (_ : Astryx.Date_time_input.date_time option) -> Effect.Ignore)
+  in
+  let trees =
+    [ Astryx.Date_time_input.view
+        ~id:"rt-date-time"
+        ~label:"Date and time"
+        ~on_change
+        graph
+    ; Astryx.Date_time_input.view
+        ~id:"rt-date-time-value"
+        ~label:"A committed reading"
+        ~value:
+          (Bonsai.return
+             (Some
+                { Astryx.Date_time_input.date = Astryx.Plain_date.create ~year:2026 ~month:3 ~day:18
+                ; time = { Astryx.Date_time_input.hour = 14; minute = 30; second = 0 }
+                }))
+        ~on_change
+        graph
+    ; Astryx.Date_time_input.view
+        ~id:"rt-date-time-24h"
+        ~label:"On the twenty-four hour clock"
+        ~hour_format:Astryx.Date_time_input.H24
+        ~value:
+          (Bonsai.return
+             (Some
+                { Astryx.Date_time_input.date = Astryx.Plain_date.create ~year:2026 ~month:3 ~day:18
+                ; time = { Astryx.Date_time_input.hour = 14; minute = 30; second = 0 }
+                }))
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "date-time-input-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      date_time_input_component
+  in
+  mount "date-time-input-all" (Bonsai_web_test.Handle.last_result handle)
+;;

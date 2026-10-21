@@ -4346,6 +4346,47 @@ check("a disabled group says so once, on the box", (() => {
     }));
 }
 
+{
+  const host = document.querySelector('[data-case="date-time-input-all"]');
+  const fields = [...(host?.querySelectorAll("[data-astryx-component='DateTimeInput']") ?? [])];
+  const field = fields[0];
+  const segments = [...(field?.querySelectorAll(".astryx-date-time-input__segment") ?? [])];
+  const inputs = [...(field?.querySelectorAll("input") ?? [])];
+  const calendarButton = field?.querySelector(".astryx-date-time-input__calendar-button");
+
+  check("the date time input carries the house's component marker",
+    field?.getAttribute("data-astryx-component") === "DateTimeInput",
+    JSON.stringify({ component: field?.getAttribute("data-astryx-component") }));
+
+  check("the reading is a date segment and a time segment",
+    segments.length === 2
+      && segments[0]?.classList.contains("astryx-date-time-input__segment--date")
+      && segments[1]?.classList.contains("astryx-date-time-input__segment--time"),
+    JSON.stringify({ segments: segments.map((s) => s.className) }));
+
+  check("each part has its own field",
+    inputs.length === 2 && inputs[0]?.getAttribute("id") !== inputs[1]?.getAttribute("id"),
+    JSON.stringify({ ids: inputs.map((i) => i.getAttribute("id")) }));
+
+  check("the calendar is opened from a named button",
+    calendarButton?.getAttribute("aria-label") === "Open calendar",
+    JSON.stringify({ label: calendarButton?.getAttribute("aria-label") }));
+
+  const withValue = fields[1];
+  const committed = [...(withValue?.querySelectorAll("input") ?? [])].map((i) => i.value);
+  check("a committed reading is shown in the two parts",
+    committed.length === 2 && committed[0] !== "" && committed[1] !== "",
+    JSON.stringify({ committed }));
+
+  const twentyFour = fields[2];
+  const timeValue = [...(twentyFour?.querySelectorAll("input") ?? [])][1];
+  check("the twenty-four hour clock shows a reading without a meridiem",
+    timeValue !== undefined
+      && timeValue.value !== ""
+      && !/[ap]m/i.test(timeValue.value),
+    JSON.stringify({ value: timeValue?.value }));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 
