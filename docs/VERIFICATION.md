@@ -4786,3 +4786,48 @@ rather than a broken layout.
   sweep          SWEEP GREEN
 
 The full account is in docs/verification/commit-fix3.txt.
+
+---
+
+## Gate 101 — the About section, the README's claims, and a published showcase
+
+Not a component gate. A gate about the repository telling the truth: a
+number that was true when it was written and stopped being true is
+still a wrong number to anyone reading it later.
+
+The About description said "25 of 103 ported". It is 103 of 103, and
+it is the first line anyone reads. The repository also had no topics at
+all, which costs it all of its discovery. Both are fixed.
+
+Four README rows and a paragraph were stale: the browser gate's count
+said 810 and was 813; the milestone list stopped at M65 while the
+campaign ran to M86, and sat under a work-in-progress marker on a
+finished port; "why this exists" promised a parity test the status
+table says is not yet done; the layout section said `test/` was
+reserved when it carries 952 component checks; and the coverage panel
+was described as reporting what is not ported, when nothing is.
+
+The counts are now read out of the transcripts rather than typed, and
+the sweep runs the sync itself. A hand-written count goes stale the
+moment a gate is added, and this repository has been bitten by that
+twice already — a stale number should be a failed gate, not something
+a visitor notices.
+
+The showcase is published to GitHub Pages. The published tree mirrors
+the repository root rather than being a rewritten copy of the site, so
+what the browser gate tested is what the site serves. The bundle is
+built in release mode: 1.9 MB instead of 51 MB. The release bundle
+passed 813/813 in a mirrored tree and again in the assembled publish
+tree.
+
+The first CI run published nothing: the workflow ran the browser gate
+without installing the Chromium that playwright drives. The gate failed
+loudly instead of publishing an untested page, which is the behaviour
+to keep.
+
+  component      952 checks, 0 failures
+  browser        showcase 813/813, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN
+
+The full account is in docs/verification/commit-fix4.txt.

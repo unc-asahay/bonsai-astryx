@@ -1,0 +1,105 @@
+Gate 101 — the About section, the README's claims, and a published showcase
+
+This gate is not about a component. It is about the repository telling
+the truth, which is a different kind of defect and just as much a
+defect: a number that was true when it was written and stopped being
+true is still a wrong number to anyone reading it later.
+
+The About section said "25 of 103 ported"
+
+  The description on the repository was:
+
+    "OCaml/Bonsai port of facebook/astryx, component by component —
+     25 of 103 ported, each with generated reference text and real
+     gates (compile, jsdom, Chromium, responsive, MCP)"
+
+  It is 103 of 103. It is the first line anyone reads, and it made a
+  finished project look like a fragment. The repository also had no
+  topics at all, which costs it all of its discovery.
+
+  Both are fixed. The description now says 103 of 103, and the
+  repository carries thirteen topics.
+
+Four README rows and a paragraph were stale
+
+  The browser gate's count said 810; it was 813.
+
+  The component-library row said "🚧 103 of 103 ported (M1 + M2 + M5–M15
+  + M17–M39 + M41–M58 + M59 + M61 + M64 + M65)" — the milestone list
+  stopped at M65 while the campaign ran to M86, and a work-in-progress
+  marker sat on a finished port.
+
+  "Why this exists" promised that "every component must also pass a
+  parity test against the real thing", while the status table two
+  sections down said "Upstream-vs-port pixel parity ⏳ not yet". The
+  README promised something the repository does not do.
+
+  The layout section said "test/  dune-level parity tests (reserved;
+  see the DOM harness below)". test/ carries 952 in-process component
+  checks, each of which builds a component in OCaml, drives a real
+  event into its Bonsai graph and asserts on the resulting DOM. The
+  capture layer it was waiting for still is not done, so the sentence
+  was wrong in both directions at once.
+
+  And "the coverage panel that reports what is *not* ported yet" — the
+  panel reports 0 of 103 outstanding.
+
+The counts are read out of the transcripts, not typed
+
+  A hand-written count goes stale the moment a gate is added, and this
+  repository has now been bitten by that twice: the browser gate's
+  count, and the milestone list. Both are now derived —
+  sync-counts.py reads the browser transcript for the count, and the
+  milestone span from the history — and the sweep runs the sync
+  itself, so a stale number is a failed gate rather than something
+  nobody notices until a visitor reads it.
+
+  The milestone span comes out as "M1–M86". The numbering has real
+  gaps: some numbers were never used. So it is a span, not a set, and
+  the set would have been a list of lies about which numbers exist.
+
+The showcase is published, and what is published is what was tested
+
+  GitHub Pages is enabled, and the workflow builds the bundle in
+  RELEASE mode: 1.9 MB instead of 51 MB. Fifty-one megabytes is a
+  51 MB download for every visitor and a waste of a Pages site's
+  monthly bandwidth.
+
+  The published tree MIRRORS THE REPOSITORY ROOT rather than being a
+  rewritten copy of the site. The page asks for
+  "../assets/components.css" and "../_build/default/...", so those
+  paths have to resolve; rewriting them would mean the browser gate
+  tested one page and the site served another. The principle the
+  README already states — the page people look at is the page that is
+  tested — would be false if the published copy were edited on the
+  way out.
+
+  The tree is assembled by tools/publish-tree.sh, which fails if the
+  tree does not contain every file the page asks for, and if the page
+  asks for anything the tree does not have.
+
+  The release bundle was run against the browser gate locally, in a
+  mirrored tree, and then in the assembled publish tree. Both passed
+  813/813, the same as the development bundle.
+
+  The first CI run failed and published nothing: the workflow ran the
+  browser gate without installing the Chromium that playwright drives,
+  and the gate said "no playwright browser cache at
+  /home/runner/.cache/ms-playwright". The gate failing rather than
+  publishing an untested page is the behaviour that should be kept.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            952 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  813/813 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  counts         README and gate counts synchronized
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is still finished.

@@ -662,8 +662,15 @@ let s_citation () =
                 ~url:"https://example.com"
                 (* A local asset on purpose: the showcase must not reach out to the
                    network to render its own examples, and a remote favicon produced a
-                   console error (ERR_NAME_NOT_RESOLVED) in the browser gate. *)
-                ~src:"/site/favicon.svg"
+                   console error (ERR_NAME_NOT_RESOLVED) in the browser gate.
+
+                   The path is RELATIVE to the page, not absolute. The showcase is
+                   served from the repository root locally, so "/site/favicon.svg"
+                   worked there — and 404ed on GitHub Pages, where the site lives
+                   under /bonsai-astryx/ and the root of the domain is somebody
+                   else's. A relative path resolves the same way in both places,
+                   and the browser gate on the published site is what noticed. *)
+                ~src:"favicon.svg"
                 ())
            ~number:3
            ())
@@ -4434,7 +4441,7 @@ let avatar_demo (graph : Bonsai.graph) =
              (* Paths that genuinely 404. A data URI is the wrong tool here: it always loads, and a
                 malformed payload merely fails to parse - which fires no error event at all, as the first
                 version of this example discovered by never falling back. *)
-             ~src:"/site/this-source-does-not-exist.png"
+             ~src:"this-source-does-not-exist.png"
              ~fallback_src:"/site/neither-does-this-one.png"
              ~name:"Grace Hopper"
              graph
@@ -4888,7 +4895,7 @@ let thumbnail_demo (graph : Bonsai.graph) =
       ; Bonsai.map
           (Astryx.Thumbnail.view
              ~id:"thumbnail-skeleton"
-             ~src:"/site/this-source-does-not-exist.png"
+             ~src:"this-source-does-not-exist.png"
              ~is_loading:true
              ~label:"uploading.pdf"
              graph
@@ -4939,7 +4946,7 @@ let thumbnail_demo (graph : Bonsai.graph) =
       ; Bonsai.map
           (Astryx.Thumbnail.view
              ~id:"thumbnail-error"
-             ~src:"/site/this-source-does-not-exist.png"
+             ~src:"this-source-does-not-exist.png"
              ~alt:"Anything"
              ~label:"broken.png"
              graph
