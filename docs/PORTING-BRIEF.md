@@ -397,3 +397,30 @@ reads like a comparison-order bug rather than a missing equality. Use
 A parameterised type is instantiated argument-first: `string
 Typeahead.item`, never `Typeahead.item string`. The house's own code
 agrees — `bool Bonsai.t`.
+
+## The traps this port found (M83, M84)
+
+  * **An optional argument in an `.ml` is written bare: `?icon`.** The body
+    then sees `icon : string option`, and the `.mli` declares it
+    `?icon:string`. Annotating it as `?(icon : string)` makes the body see
+    the unwrapped `string` — so `Option.value` stops working — and it no
+    longer matches the interface.
+
+  * **`<` and `>` are for integers too**, like `=` and `<>`. Compare floats
+    with `Float.compare`.
+
+  * **Core's `Float.round` returns a float**, not an integer. `Printf`'s
+    `%d` wants an integer: use `%.0f`, or `int_of_float`.
+
+  * **`Effect.map` takes an effect**, and the label is `~f:`. A state
+    setter is a tree, not an effect, so it cannot be passed to `Effect.map`
+    — call the setter and put the effect it returns in the list.
+
+  * **A sibling module is referenced bare**: `module Icon = Icon`. Writing
+    `Astryx.Icon` inside a library module is a dependency cycle, and dune
+    says so: "Module X depends on Astryx."
+
+  * **`Item.view`'s `~start_content` and `~end_content` are nodes**, not
+    lists of nodes, and `~on_click` is a plain function rather than a
+    graph. A component whose callback is a graph builds its row inside a
+    `Bonsai.map` over that graph.
