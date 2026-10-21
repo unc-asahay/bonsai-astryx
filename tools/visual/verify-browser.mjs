@@ -297,6 +297,7 @@ if (mode === "showcase") {
     "DateTimeInput",
     "DateInput",
     "Table",
+    "TimeInput",
 
   ];
 
@@ -660,7 +661,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("101 sections", sections.length === 101, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("102 sections", sections.length === 102, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -769,13 +770,14 @@ if (mode === "showcase") {
     DateTimeInput: 5,
     DateInput: 6,
     Table: 7,
+    TimeInput: 7,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("667 examples across the page", totalExamples === 667, `got ${totalExamples}`);
+  check("674 examples across the page", totalExamples === 674, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -789,7 +791,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("101 nav links", nav.length === 101, `got ${nav.length}`);
+  check("102 nav links", nav.length === 102, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4184,11 +4186,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 99 ported / 4 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["99", "4", "103"]),
+    "coverage stats are 100 ported / 3 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["100", "3", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 4 entries", cov.unported === 4, `got ${cov.unported}`);
+  check("unported list rendered 3 entries", cov.unported === 3, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7467,7 +7469,7 @@ if (mode === "showcase") {
       JSON.stringify(shape));
 
     check("a committed time is shown in the field, on a twelve hour clock",
-      shape?.formats?.[0] === "12h" && shape?.values?.[1] === "2:30 PM",
+      shape?.formats?.[2] === "12h" && shape?.values?.[2] === "2:30 PM",
       JSON.stringify(shape));
 
     check("the twenty-four hour example is on a twenty-four hour clock",

@@ -1115,6 +1115,15 @@ DialogHeader
   ok   the sortable table says which column is sorted, and which way
   ok   the controlled selection shows in the rows
   ok   a selectable table has a select-all control and a control per row
+  ok   the field carries the house's component marker
+  ok   every example renders its own field
+  ok   the field is an input
+  ok   a committed time is shown in the field
+  ok   the twenty-four hour clock shows the time on the twenty-four hour clock
+  ok   a field with seconds shows them
+  ok   a disabled field says so, and says why
+  ok   a bounded field still shows the time it was given
+  ok   the field announces the time it is showing, politely
 
-911 checks, 0 failure(s)
+920 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

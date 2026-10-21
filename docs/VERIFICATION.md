@@ -4579,3 +4579,23 @@ and the sweep fails when it is stale.
   browser        showcase 755/755, demo 25/25
   responsive     66/66
   sweep          SWEEP GREEN
+
+### Gate 94 — M83 TimeInput
+
+The time input is a typed time field: the field owns the text being typed
+and the application owns the committed time.
+
+The parser dropped the last character of every entry that had no meridiem,
+so "14:30" was committed as 14:03 — and an entry with a meridiem happened
+to survive, because the space before it was cut instead of the digit. The
+meridiem is now found by one match that gives both where it starts and
+which kind it is.
+
+`test/probe/time_input_probe.ml` checks the parser, the formatter, the
+stepping and the range check against known values; the sweep now runs it
+alongside the plain-date probe.
+
+  component      920 checks, 0 failures
+  browser        showcase 762/762, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN

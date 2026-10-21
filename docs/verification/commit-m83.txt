@@ -1,0 +1,57 @@
+Gate 94 — M83 TimeInput (coverage 99 → 100)
+
+The time input is a typed time field. The field owns the text being typed;
+the application owns the committed time. A time that can be read is
+committed as it is typed; text that cannot be read stays in the field until
+it is left, and the field falls back to what was committed.
+
+The port is upstream's typed-field surface over upstream's timeParser, with
+the house's own time record: a twenty-four hour time, and conversions at the
+boundary, exactly as Plain_date does for a date.
+
+The bugs this milestone fixed
+
+  * The parser dropped the last character of every entry that had no
+    meridiem. `strip_meridiem` took the substring up to the index of the
+    last non-space character without including that index, so "14:30" was
+    read as "14:3" and committed as 14:03. An entry WITH a meridiem
+    happened to survive, because the space before the meridiem was cut
+    instead of the digit — which is why "2:30 PM" worked and "14:30" did
+    not. The meridiem is now found by one match that gives both where it
+    starts and which kind it is, so the two can never disagree, and an
+    entry with no meridiem is only trimmed.
+
+  * The meridiem spellings are now matched longest first, so "2:30 p.m."
+    does not keep a stray "p." behind and "2:30 p" does not keep a stray
+    "p".
+
+  * The controlled value is a tree, as upstream's is, and the interface
+    pins `?min` and `?max` as times rather than options of times — the
+    house's own convention, and the DateInput's.
+
+  * The worker's implementation used `String.split_on_char` (the house's is
+    `String.split_on_chars`), reached for `Js` without opening
+    `Js_of_ocaml`, built a JavaScript string with `js_string` (the house
+    uses `Js.Unsafe.inject (Js.string …)`), and dropped the unfocus effect
+    on blur: `set_focused_fn false;` as a statement discards the effect the
+    setter returns, so the field never told the application it had lost
+    focus.
+
+The probe
+
+  test/probe/time_input_probe.ml checks the parser, the formatter, the
+  stepping and the range check against known values — thirty checks. The
+  plain-date probe has been run by hand since M-whatever; the sweep now
+  runs both, and fails if either does.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            920 checks, 0 failures
+  probes         plain_date_probe, time_input_probe — all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  762/762 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN

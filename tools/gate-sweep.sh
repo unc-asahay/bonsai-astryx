@@ -60,6 +60,21 @@ echo "=== 2. component tests (OCaml builds each component, node asserts on the D
 rc_component=$?
 tail -3 docs/verification/ocaml-tests.txt
 
+echo "=== 2b. the numeric probes (the parsers and the arithmetic) ==="
+{
+  echo "# Numeric probes — transcripts"
+  echo "# command: node _build/default/test/probe/<probe>.bc.js"
+  echo
+} > docs/verification/probes.txt
+rc_probes=0
+for probe in plain_date_probe time_input_probe; do
+  echo "## $probe" >> docs/verification/probes.txt
+  timeout 120 node "_build/default/test/probe/$probe.bc.js" >> docs/verification/probes.txt 2>&1
+  rc=$?
+  if [ "$rc" -ne 0 ]; then rc_probes=$rc; fi
+done
+grep -E "FAIL|all .* checks passed" docs/verification/probes.txt || true
+
 echo "=== 3. DOM + accessibility (jsdom, real js_of_ocaml bundle) ==="
 {
   echo "# jsdom gate — transcript"
@@ -181,6 +196,7 @@ tail -3 docs/verification/mcp-stdio.txt
 echo
 echo "=== sweep result ==="
 note "$rc_component" "component tests (test/run.mjs)"
+note "$rc_probes" "numeric probes (plain_date, time_input)"
 note "$rc_dom" "DOM + accessibility (verify-dom.mjs)"
 note "$rc_showcase" "real browser, showcase (verify-browser.mjs)"
 note "$rc_demo" "real browser, demo (verify-browser.mjs)"
@@ -191,7 +207,7 @@ note "$rc_mcp_attr" "port.json (every entry names its own file and module)"
 
 echo
 echo "=== transcript line counts ==="
-wc -l docs/verification/ocaml-tests.txt docs/verification/verify-dom.txt \
+wc -l docs/verification/ocaml-tests.txt docs/verification/probes.txt docs/verification/verify-dom.txt \
       docs/verification/browser-verify.txt docs/verification/responsive.txt || true
 
 echo

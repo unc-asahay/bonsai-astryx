@@ -1,0 +1,73 @@
+# Numeric probes — transcripts
+# command: node _build/default/test/probe/<probe>.bc.js
+
+## plain_date_probe
+of_iso/to_iso                                  got=2026-03-21     want=2026-03-21     ok
+day_of_week 2026-03-21                         got=6              want=6              ok
+days_in_month 2024-02                          got=29             want=29             ok
+days_in_month 2026-02                          got=28             want=28             ok
+days_in_month 1900-02                          got=28             want=28             ok
+days_in_month 2000-02                          got=29             want=29             ok
+add_months Jan31 +1                            got=2026-02-28     want=2026-02-28     ok
+add_months Jan31 +1 (leap)                     got=2024-02-29     want=2024-02-29     ok
+add_months Jan31 -1                            got=2025-12-31     want=2025-12-31     ok
+add_months Dec +1                              got=2027-01-15     want=2027-01-15     ok
+add_days 2026-12-31 +1                         got=2027-01-01     want=2027-01-01     ok
+add_days 2026-01-01 -1                         got=2025-12-31     want=2025-12-31     ok
+add_days 2024-02-28 +1 (leap)                  got=2024-02-29     want=2024-02-29     ok
+diff_days 2026-03-21 -> 2026-03-22             got=1              want=1              ok
+diff_days 2026-03-22 -> 2026-03-21             got=-1             want=-1             ok
+diff_days across a year                        got=1              want=1              ok
+diff_days 2024 leap span                       got=2              want=2              ok
+is_before                                      got=true           want=true           ok
+is_in_range                                    got=true           want=true           ok
+is_in_range outside                            got=false          want=false          ok
+set_start_of_week (Sun)                        got=2026-03-15     want=2026-03-15     ok
+set_start_of_week (Mon)                        got=2026-03-16     want=2026-03-16     ok
+set_end_of_week_exclusive                      got=2026-03-22     want=2026-03-22     ok
+week_number 2026-01-01                         got=1              want=1              ok
+week_number 2026-03-21                         got=12             want=12             ok
+week_number 2027-01-01 (Friday, 2026-W53)      got=53             want=53             ok
+format_long                                    got=March 21, 2026 want=March 21, 2026 ok
+format_with_weekday                            got=Saturday, March 21, 2026 want=Saturday, March 21, 2026 ok
+format_short_with_year                         got=Mar 21, 2026   want=Mar 21, 2026   ok
+format_month_year                              got=March 2026     want=March 2026     ok
+format_shared System_date                      got=2026-03-21     want=2026-03-21     ok
+week_field_name                                got=week           want=week           ok
+today = 2026-10-20 (dow 2)
+## time_input_probe
+parse 14:30                                    got=14:30          want=14:30          ok
+parse 1430                                     got=14:30          want=14:30          ok
+parse 9:15                                     got=09:15          want=09:15          ok
+parse 09:15                                    got=09:15          want=09:15          ok
+parse 23:59                                    got=23:59          want=23:59          ok
+parse 14:30:45                                 got=14:30          want=14:30          ok
+parse 143000 (no seconds wanted)               got=14:30          want=14:30          ok
+parse 14:30:45 (seconds wanted)                got=14:30:45       want=14:30:45       ok
+parse 2:30 PM                                  got=14:30          want=14:30          ok
+parse 2:30pm                                   got=14:30          want=14:30          ok
+parse 2:30 p.m.                                got=14:30          want=14:30          ok
+parse 2:30 p.m                                 got=14:30          want=14:30          ok
+parse 9:15 AM                                  got=09:15          want=09:15          ok
+parse 12:00 AM                                 got=00:00          want=00:00          ok
+parse 12:00 PM                                 got=12:00          want=12:00          ok
+parse 12:30 AM                                 got=00:30          want=00:30          ok
+parse 2 PM (2 in the afternoon)                got=14:00          want=14:00          ok
+parse 2pm                                      got=14:00          want=14:00          ok
+parse 25:00                                    got=None           want=None           ok
+parse 12:60                                    got=None           want=None           ok
+parse 13:00 PM                                 got=None           want=None           ok
+parse empty                                    got=None           want=None           ok
+parse nonsense                                 got=None           want=None           ok
+format 12h 14:30                               got=2:30 PM        want=2:30 PM        ok
+format 12h 00:30                               got=12:30 AM       want=12:30 AM       ok
+format 12h 12:00                               got=12:00 PM       want=12:00 PM       ok
+format 24h 14:30                               got=14:30          want=14:30          ok
+adjust 14:30 +60                               got=15:30          want=15:30          ok
+adjust 23:30 +60 (wraps midnight)              got=00:30          want=00:30          ok
+adjust 00:30 -60 (wraps back)                  got=23:30          want=23:30          ok
+in range 12:00                                 got=true           want=true           ok
+out of range 08:00                             got=false          want=false          ok
+in range, no bounds                            got=true           want=true           ok
+
+all time input checks passed
