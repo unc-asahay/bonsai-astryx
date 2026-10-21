@@ -20,7 +20,7 @@ showcase @ 320x568
   ok   [320x568] the button is hit-testable at its centre
   ok   [320x568] a real mouse click increments the counter (0 -> 1)
   ok   [320x568] no console errors
-  ok   [320x568] pixels match the baseline (0.01% differ)
+  ok   [320x568] pixels match the baseline (0.00% differ)
 
 showcase @ 375x667
   ok   [375x667] the page does not overflow horizontally
@@ -32,7 +32,7 @@ showcase @ 375x667
   ok   [375x667] the button is hit-testable at its centre
   ok   [375x667] a real mouse click increments the counter (0 -> 1)
   ok   [375x667] no console errors
-  ok   [375x667] pixels match the baseline (0.01% differ)
+  ok   [375x667] pixels match the baseline (0.00% differ)
 
 showcase @ 768x1024
   ok   [768x1024] the page does not overflow horizontally
@@ -44,7 +44,7 @@ showcase @ 768x1024
   ok   [768x1024] the button is hit-testable at its centre
   ok   [768x1024] a real mouse click increments the counter (0 -> 1)
   ok   [768x1024] no console errors
-  ok   [768x1024] pixels match the baseline (0.01% differ)
+  ok   [768x1024] pixels match the baseline (0.00% differ)
 
 showcase @ 1440x900
   ok   [1440x900] the page does not overflow horizontally

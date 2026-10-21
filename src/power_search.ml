@@ -152,6 +152,20 @@ type change_type =
   | Edit
   | Remove
 
+type size = Tokenizer.size = Sm | Md | Lg
+
+type status = Input_types.status =
+  { type_ : Field_status.type_
+  ; message : string option
+  }
+
+type status_variant = Tokenizer.status_variant = Attached | Detached | Tooltip
+
+type token_overflow_behavior = Tokenizer.overflow_behavior =
+  | Wrap
+  | Unfocused_inline
+  | Unfocused_layer
+
 (* ------------------------------------------------------------------ the helpers *)
 
 let get_field config key =
@@ -626,13 +640,18 @@ let view
     ~on_change
     ?label
     ?(is_label_hidden = true)
-    ?(placeholder = "Search...")
+    ?(placeholder = "Search…")
     ?(has_auto_focus = false)
     ?(has_clear = true)
     ?(is_read_only = false)
     ?(is_disabled = false)
     ?disabled_message
     ?start_icon
+    ?(size = Md)
+    ?status
+    ?(status_variant = Attached)
+    ?token_overflow_behavior
+    ?menu_width
     ?(max_token_length = 40)
     ?(max_search_results = 10)
     ?(popover_save_button_label = "Apply")
@@ -1035,6 +1054,11 @@ let view
       ?disabled_message
       ?start_icon
       ?end_content
+      ~size
+      ?status
+      ~status_variant
+      ?token_overflow_behavior
+      ?menu_width
       ~max_menu_items:max_search_results
       ~has_entries_on_focus:true
       ~value:items

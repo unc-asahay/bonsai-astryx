@@ -60,8 +60,16 @@
 
     Upstream's tables of results, its i18n catalog, its per-type component overrides (the
     consumer's own token and editor) and its measurement of the menu's width are not part
-    of this port's contract. The port covers the field, the chips, the typeahead over the
-    fields, the editor, and the reporting of every change. *)
+    of this port's contract.
+
+    Two of upstream's own knobs have no house equivalent. Upstream caps the operator
+    menu in the editor at [max_operator_menu_items]; the house selector that lists the
+    operators has no cap of its own, and the port's editor shows them all. Upstream
+    reports the field's focus and blur through [on_focus] and [on_blur]; the house
+    tokenizer has no such callbacks, and the port's field does not report them.
+
+    The port covers the field, the chips, the typeahead over the fields, the editor, and
+    the reporting of every change. *)
 
 open! Core
 open! Bonsai_web
@@ -250,6 +258,26 @@ type change_type =
   | Edit
   | Remove
 
+(** The size of the field, matching the house [Tokenizer]'s and upstream's
+    PowerSearch, whose sizes are the same three. *)
+type size = Tokenizer.size = Sm | Md | Lg
+
+(** The status of the field, matching the house [Tokenizer]. *)
+type status = Input_types.status =
+  { type_ : Field_status.type_
+  ; message : string option
+  }
+
+(** Where a status message is placed, matching the house [Tokenizer]. *)
+type status_variant = Tokenizer.status_variant = Attached | Detached | Tooltip
+
+(** How the chips behave when there are more of them than fit, matching the
+    house [Tokenizer]. *)
+type token_overflow_behavior = Tokenizer.overflow_behavior =
+  | Wrap
+  | Unfocused_inline
+  | Unfocused_layer
+
 (** The field with this key, if there is one. *)
 val get_field : config -> string -> field option
 
@@ -326,6 +354,11 @@ val view
   -> ?is_disabled:bool
   -> ?disabled_message:string
   -> ?start_icon:string
+  -> ?size:size
+  -> ?status:status
+  -> ?status_variant:status_variant
+  -> ?token_overflow_behavior:token_overflow_behavior
+  -> ?menu_width:int
   -> ?max_token_length:int
   -> ?max_search_results:int
   -> ?popover_save_button_label:string

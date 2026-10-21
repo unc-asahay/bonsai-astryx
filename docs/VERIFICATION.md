@@ -4744,3 +4744,45 @@ sibling Date_time_input behaves the same way.
   sweep          SWEEP GREEN
 
 The full account is in docs/verification/commit-fix2.txt.
+
+---
+
+## Gate 100 — the PowerSearch's own knobs, and its placeholder
+
+The contract-distillation task that was dispatched alongside the
+PowerSearch port arrived after the port was already written and pushed.
+It is worth reading: it lists upstream's props with their defaults, and
+checking the shipped port against that list turned up two things.
+
+Upstream's placeholder default is one word and one ellipsis character
+— its own catalogue says "trailing `…` is one character" — and the
+house port had three dots.
+
+And four of upstream's knobs were not ported at all: the size, the
+status and its variant, the menu's width, and how the chips behave when
+they do not fit. The house Tokenizer, which is what the port's field
+is, takes all four, and the port simply did not pass them on. The port
+now takes them and passes them on. Two upstream knobs that genuinely
+have no house equivalent — the operator menu's cap, and the field's
+focus and blur callbacks — are now written down in the interface
+rather than left silent.
+
+The showcase gained a fifth example, a small field with a warning and a
+menu of its own width, so the new knobs are exercised rather than
+merely present. The gate checks the placeholder character for
+character, that the size reaches the field measured rather than read
+off a class — the small field's tokenizer row is 30px and the ordinary
+one 32px — and that the status is shown with the field and is the kind
+that was asked for.
+
+The page grew by an example, so the responsive pixel baseline was 138px
+out of date and the gate said so. The baseline was regenerated; the one
+red sweep in between was red for the right reason, a moved baseline
+rather than a broken layout.
+
+  component      952 checks, 0 failures
+  browser        showcase 813/813, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN
+
+The full account is in docs/verification/commit-fix3.txt.

@@ -1,0 +1,91 @@
+Gate 100 — the PowerSearch's own knobs, and its placeholder
+
+This one was not a stale batch. It was the contract-distillation task
+dispatched alongside the PowerSearch port, and the port was written
+without waiting for it — from upstream directly. The contract arrived
+afterwards, and it is worth reading: it lists upstream's props with
+their defaults, and checking the shipped port against that list turned
+up two things.
+
+The placeholder was the wrong string
+
+  Upstream's placeholder default is one word and one ellipsis
+  character:
+
+    "@astryx.powersearch.placeholder": {
+      "defaultMessage": "Search…",
+      "description": "Grey placeholder text inside the empty PowerSearch
+                       input. Imperative verb; trailing `…` is one
+                       character."
+    }
+
+  The house port had "Search..." — three dots. Upstream's own catalogue
+  says the trailing character is one character. It is a small thing, and
+  it is the sort of thing that is only wrong if you look.
+
+Four of upstream's knobs were not ported at all
+
+  Upstream's PowerSearch takes a size (sm/md/lg, default md), a status
+  and a status variant (default attached), a width for the menu, and a
+  behaviour for the chips when they do not fit. The house Tokenizer —
+  which is what the port's field *is* — takes all four, and the port
+  simply did not pass them on.
+
+  So the port was not upstream's API. It was upstream's API with four
+  arguments removed, silently.
+
+  The port now takes them, and passes them to the house tokenizer. The
+  size is the house tokenizer's own size type, which is the same three
+  values upstream has.
+
+Two knobs that genuinely have no house equivalent, and are now written
+down rather than left silent
+
+  Upstream caps the operator menu in the editor at
+  max_operator_menu_items. The house Selector that lists the operators
+  has no cap of its own, so the port shows them all.
+
+  Upstream reports the field's focus and blur through on_focus and
+  on_blur. The house tokenizer has no such callbacks, so the port's
+  field does not report them.
+
+Both are in the interface's "What is not ported" list, with the reason.
+
+The gate, and what it measures
+
+  The new knobs are plumbing, and plumbing that is never exercised is
+  plumbing that breaks silently — which is how the DateInput shipped
+  without a combobox. So the showcase gained a fifth example: a small
+  field, with a warning and a message, and a menu of its own width.
+
+  The gate checks the placeholder is upstream's, character for
+  character; that the size reaches the field, MEASURED rather than read
+  off a class — the small field's tokenizer row is 30px and the
+  ordinary one is 32px; and that the status is shown with the field and
+  is the kind that was asked for.
+
+  The size took a little finding: the height that changes is the
+  tokenizer's row, not the bare input, which is 20px either way.
+
+The responsive baseline moved, as it should
+
+  The page grew by an example, so the pixel baseline was 138px out of
+  date and the responsive gate said so — "dimensions differ: 321x159045
+  vs 321x159183". The baseline was regenerated and the gate is green
+  again. The first sweep after the change was the only red one, and it
+  was red for the right reason: a moved baseline, not a broken layout.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            952 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  813/813 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is still finished.

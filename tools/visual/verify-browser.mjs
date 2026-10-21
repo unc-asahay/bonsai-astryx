@@ -776,14 +776,14 @@ if (mode === "showcase") {
     TimeInput: 7,
     SideNav: 4,
     Markdown: 6,
-    PowerSearch: 4,
+    PowerSearch: 5,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("688 examples across the page", totalExamples === 688, `got ${totalExamples}`);
+  check("689 examples across the page", totalExamples === 689, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -7888,8 +7888,46 @@ if (mode === "showcase") {
         setHasRemove: set?.querySelector("[aria-label^='Remove']") !== null,
       };
     });
-    check("there are four fields, and the first is the empty one",
-      shape.count === 4, JSON.stringify({ count: shape.count }));
+    check("there are five fields, and the first is the empty one",
+      shape.count === 5, JSON.stringify({ count: shape.count }));
+
+    // The placeholder is upstream's own string, and it ends in one ellipsis
+    // character rather than three dots — upstream's own catalogue says so.
+    const psPlaceholder = await page.evaluate(() => {
+      const empty = document.querySelector("[data-astryx-component='PowerSearch']");
+      const input = empty?.querySelector("input[role='combobox']");
+      return { value: input?.getAttribute("placeholder") ?? null };
+    });
+    check("the placeholder is upstream's, with one ellipsis character",
+      psPlaceholder?.value === "Search\u2026",
+      JSON.stringify(psPlaceholder));
+
+    // The size reaches the field, measured rather than read off a class, and
+    // the status is shown with it.
+    const psSizes = await page.evaluate(() => {
+      // The house tokenizer's id is on its combobox input.
+      const small = document.getElementById("showcase-power-search-small-field");
+      const plain = document.getElementById("showcase-power-search-field");
+      // The size reaches the house tokenizer's row, not the bare input.
+      const heightOf = (input) => {
+        const row = input?.closest(".astryx-field")?.querySelector(".astryx-tokenizer");
+        return row ? Math.round(row.getBoundingClientRect().height) : null;
+      };
+      const status = small?.closest(".astryx-field")?.querySelector(".astryx-field-status");
+      return {
+        small: heightOf(small),
+        plain: heightOf(plain),
+        statusText: status?.textContent?.trim() ?? null,
+        statusKind: status?.getAttribute("class") ?? null,
+      };
+    });
+    check("the size reaches the field, measured rather than read off a class",
+      psSizes?.small !== null && psSizes?.plain !== null && psSizes.small < psSizes.plain,
+      JSON.stringify(psSizes));
+    check("the status is shown with the field, and it is the kind that was asked for",
+      (psSizes?.statusText ?? "").includes("Two filters cannot both hold")
+        && (psSizes?.statusKind ?? "").includes("astryx-field-status--warning"),
+      JSON.stringify(psSizes));
     check("the field carries the house's component marker",
       shape.marker === "PowerSearch", JSON.stringify({ marker: shape.marker }));
     check("the box is a combobox",

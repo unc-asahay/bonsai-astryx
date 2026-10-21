@@ -199,11 +199,29 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
       ~is_read_only:true
       graph
   in
+  (* A small field carrying a status, and a menu of its own width. These are
+     upstream's own knobs, passed through to the house field. *)
+  let small_with_status =
+    Power_search.view
+      ~id:"showcase-power-search-small"
+      ~config
+      ~filters
+      ~on_change
+      ~size:Power_search.Sm
+      ~status:
+        { Astryx.Input_types.type_ = Astryx.Input_types.Warning
+        ; message = Some "Two filters cannot both hold."
+        }
+      ~status_variant:Attached
+      ~menu_width:320
+      graph
+  in
   let examples =
     [ ("the field on its own", plain)
     ; ("the field with filters already set", with_filters)
     ; ("the field with a count of results", with_count)
     ; ("the field read only", read_only)
+    ; ("the field small, with a status", small_with_status)
     ]
   in
   let rendered =
