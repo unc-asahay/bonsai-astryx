@@ -85,18 +85,19 @@ let add a b = a + b
            "A link the policy rejects: [click me](javascript:alert(1)). It renders as plain text.\n"
          ())
   in
+  (* The link that reports where it goes. The document is built inside the
+     map over the setter, so the click handler closes over the setter
+     itself rather than over a tree. *)
   let link_click =
     let clicked, set_clicked = Bonsai.state' ("" : string) graph in
     let document =
-      Bonsai.return
-        (Markdown.view
-           ~on_link_click:(fun destination ->
-              Markdown.Follow
-                (Bonsai.map set_clicked ~f:(fun set_clicked -> fun () ->
-                     set_clicked (fun _ -> destination))))
-           ~source:
-             "A link that reports where it goes: [the repository](https://github.com/unc-asahay/bonsai-astryx).\n"
-           ())
+      Bonsai.map set_clicked ~f:(fun set_clicked ->
+          Markdown.view
+            ~on_link_click:(fun destination ->
+              Markdown.Follow (set_clicked (fun _ -> destination)))
+            ~source:
+              "A link that reports where it goes: [the repository](https://github.com/unc-asahay/bonsai-astryx).\n"
+            ())
     in
     let readout =
       Bonsai.map clicked ~f:(fun destination ->
