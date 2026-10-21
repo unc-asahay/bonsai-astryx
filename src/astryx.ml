@@ -153,3 +153,4 @@ module Chat = Chat
 module Bottom_sheet = Bottom_sheet
 module Date_input = Date_input
 module Table = Table
+module Time_input = Time_input
