@@ -1,0 +1,65 @@
+Gate 93 — M82 Table (coverage 98 → 99)
+
+The table is a header row, body rows, sorting and selection.
+
+The interface is the upstream one: columns carry a key, a label and a width;
+rows carry a key and a record of cells. The table sorts by a column key and a
+direction, it selects rows by key, and both of those can be either controlled
+by the application or left to the table.
+
+What the worker's implementation got wrong, and what this port changed:
+
+  * The controlled state was a plain value, not a tree. Upstream's `sort` and
+    `selected` arrive as trees, because in Bonsai the application's state is
+    a graph, not a value. The implementation now takes `?sort` and
+    `?selected` as trees, merges them with the table's own state when the
+    application is not driving them, and reports every change to the
+    application through the callback trees. This is the Selector's and the
+    MultiSelector's pattern, and the interface had already been written for
+    it — only the implementation disagreed.
+
+  * The `aria-sort` attribute was never set. The worker wrote a match whose
+    branches returned a string in one arm and `None` in the other, so the
+    whole expression had no type and the attribute was dropped. Each branch
+    now returns an option, and the attribute says which column is sorted and
+    which way, as a sorted column must.
+
+  * Three helpers were dead code (`same_keys`, `same_sort`, `is_sorted`),
+    and the build treats warnings as errors.
+
+  * The table had no scrollable wrapper, so a table of real content was
+    wider than a narrow viewport and the page scrolled sideways. The table
+    now sits in a wrapper that scrolls, and the wrapper is allowed to shrink
+    inside the showcase's flex row.
+
+The stylesheet build was also wrong in a way worth recording: the parts in
+assets/parts/ are the source of truth, and assets/components.css is the build
+the site serves. The command palette's part had been appended to the build
+twice, and the pagination, top nav and selector parts were older than their
+builds — the build was using token names that do not exist. `tools/sync-css.py`
+now rebuilds the stylesheet from the parts, and the sweep fails if it is
+stale. The Table's part had never been merged into the build at all.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            911 checks, 0 failures
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  755/755 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The Table's own checks, added with this milestone:
+
+  * the component marker is on the root
+  * the header has a cell for each column, and every body row has a cell for
+    each column
+  * the row-header column heads its row, rather than belonging to a column
+  * a sortable column's header is a real button
+  * before anything is clicked, nothing is sorted
+  * clicking a header sorts by that column, and says so
+  * clicking the same header again turns the sort around
+  * the controlled selection shows in the rows
+  * a selectable table has a select-all control and a control per row

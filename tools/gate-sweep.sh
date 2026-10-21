@@ -38,6 +38,18 @@ else
   exit 1
 fi
 
+# The stylesheet the site serves is built from assets/parts/*.css. A part that
+# was edited without the build being regenerated leaves the page styled by the
+# old rules, and the responsive gate then fails on a layout that no longer
+# exists in the source. This check is here so that cannot pass unnoticed.
+echo "=== 1b. the stylesheet build is current ==="
+if python3 tools/sync-css.py --check; then
+  echo "stylesheet build: current"
+else
+  echo "stylesheet build: STALE"
+  failures+=("stylesheet build is stale (run: python3 tools/sync-css.py)")
+fi
+
 echo "=== 2. component tests (OCaml builds each component, node asserts on the DOM) ==="
 {
   echo "# Component test gate — transcript"

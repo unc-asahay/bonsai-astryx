@@ -4435,6 +4435,65 @@ check("a disabled group says so once, on the box", (() => {
     }));
 }
 
+{
+  const host = document.querySelector('[data-case="table-all"]');
+  const tables = [...(host?.querySelectorAll("[data-astryx-component='Table']") ?? [])];
+  const table = tables[0];
+
+  check("the table carries the house's component marker",
+    table?.getAttribute("data-astryx-component") === "Table",
+    JSON.stringify({ component: table?.getAttribute("data-astryx-component") }));
+
+  const headers = [...(table?.querySelectorAll("thead th") ?? [])];
+  const bodyRows = [...(table?.querySelectorAll("tbody tr") ?? [])];
+
+  check("the header has a cell for each column",
+    headers.length === 2,
+    JSON.stringify({ headers: headers.length }));
+
+  check("the body has a row for each row",
+    bodyRows.length === 3,
+    JSON.stringify({ rows: bodyRows.length }));
+
+  check("the row-header column heads its row rather than belonging to a column",
+    headers[0]?.getAttribute("scope") === null
+      && bodyRows[0]?.querySelector("th[scope='row']") !== null,
+    JSON.stringify({
+      headerScope: headers[0]?.getAttribute("scope"),
+      bodyScope: bodyRows[0]?.querySelector("th[scope='row']")?.getAttribute("scope") ?? null,
+    }));
+
+  check("a sortable column's header is a real button",
+    headers[0]?.querySelector("button") !== null,
+    JSON.stringify({ html: (headers[0]?.innerHTML ?? "").slice(0, 80) }));
+
+  const sortable = tables[1];
+  const sortableHeaders = [...(sortable?.querySelectorAll("thead th") ?? [])];
+  check("the sortable table says which column is sorted, and which way",
+    (sortable?.getAttribute("data-astryx-sort-column") ?? "") === ""
+      && sortable?.getAttribute("data-astryx-sort-direction") === "none"
+      && sortableHeaders.every((h) => h.getAttribute("aria-sort") === null),
+    JSON.stringify({
+      column: sortable?.getAttribute("data-astryx-sort-column"),
+      direction: sortable?.getAttribute("data-astryx-sort-direction"),
+    }));
+
+  const selectable = tables[2];
+  const selectedRows = [...(selectable?.querySelectorAll("tbody tr[aria-selected='true']") ?? [])];
+  check("the controlled selection shows in the rows",
+    selectedRows.length === 1
+      && selectedRows[0]?.getAttribute("data-astryx-row") === "ada",
+    JSON.stringify({ selected: selectedRows.map((r) => r.getAttribute("data-astryx-row")) }));
+
+  check("a selectable table has a select-all control and a control per row",
+    selectable?.querySelector("thead input[type='checkbox']") !== null
+      && selectable?.querySelectorAll("tbody input[type='checkbox']").length === 3,
+    JSON.stringify({
+      selectAll: selectable?.querySelector("thead input[type='checkbox']") !== null,
+      perRow: selectable?.querySelectorAll("tbody input[type='checkbox']").length,
+    }));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

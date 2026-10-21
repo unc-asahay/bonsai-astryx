@@ -4,6 +4,15 @@
    TableRow.tsx, TableHeaderCell.tsx). The values are the design tokens, not
    literals. */
 
+/* The table sits in a scrollable wrapper: a table of real content is wider
+   than a narrow viewport, and the table should scroll rather than the
+   page. */
+.astryx-table__wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .astryx-table {
   width: 100%;
   border-collapse: collapse;

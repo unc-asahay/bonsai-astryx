@@ -189,6 +189,7 @@ code {
 .ex-render > .astryx-stack[data-astryx-direction="vertical"],
 .ex-render > .astryx-grid,
 .ex-render > .astryx-item,
+.ex-render > .astryx-table__wrapper,
 .ex-render > .showcase-col {
   flex: 1 1 100%;
   min-width: 0;

@@ -922,6 +922,13 @@
       "file": "src/date_input.ml",
       "milestone": "M81",
       "module": "Astryx.date_input"
+    },
+    {
+      "class": "C",
+      "component": "Table",
+      "file": "src/table.ml",
+      "milestone": "M82",
+      "module": "Astryx.table"
     }
   ],
   "schema": 1,

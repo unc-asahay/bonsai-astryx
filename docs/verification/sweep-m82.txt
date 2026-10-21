@@ -1,0 +1,45 @@
+=== 1. compile ===
+dune build: exit 0
+=== 1b. the stylesheet build is current ===
+the stylesheet build is current
+stylesheet build: current
+=== 2. component tests (OCaml builds each component, node asserts on the DOM) ===
+
+911 checks, 0 failure(s)
+COMPONENT CHECKS PASSED
+=== 3. DOM + accessibility (jsdom, real js_of_ocaml bundle) ===
+  ok   badges carry variant classes
+
+ALL CHECKS PASSED
+=== 4. real browser (Chromium over HTTP) ===
+755/755 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+25/25 checks passed, 0 failure(s)
+BROWSER CHECKS PASSED
+=== 5. responsive + visual regression (mobile / tablet / desktop) ===
+
+66 checks passed, 0 failure(s)
+RESPONSIVE CHECKS PASSED
+=== 6. agent-facing tool layer ===
+
+ported entries: 99; correctly attributed: 99
+ok    every ported entry names its own file and module
+
+=== sweep result ===
+  ok      component tests (test/run.mjs)
+  ok      DOM + accessibility (verify-dom.mjs)
+  ok      real browser, showcase (verify-browser.mjs)
+  ok      real browser, demo (verify-browser.mjs)
+  ok      responsive + visual regression (verify-responsive.mjs)
+  ok      MCP layer (--cli status)
+  ok      MCP layer (every ported component truthfully reachable)
+  ok      port.json (every entry names its own file and module)
+
+=== transcript line counts ===
+  1120 docs/verification/ocaml-tests.txt
+    92 docs/verification/verify-dom.txt
+   906 docs/verification/browser-verify.txt
+   110 docs/verification/responsive.txt
+  2228 total
+
+SWEEP GREEN: every gate passed

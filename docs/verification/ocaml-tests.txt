@@ -1107,6 +1107,14 @@ DialogHeader
   ok   the system form shows the date in the system's own form
   ok   the long form spells the month out
   ok   a disabled date field is read-only and says why
+  ok   the table carries the house's component marker
+  ok   the header has a cell for each column
+  ok   the body has a row for each row
+  ok   the row-header column heads its row rather than belonging to a column
+  ok   a sortable column's header is a real button
+  ok   the sortable table says which column is sorted, and which way
+  ok   the controlled selection shows in the rows
+  ok   a selectable table has a select-all control and a control per row
 
-903 checks, 0 failure(s)
+911 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

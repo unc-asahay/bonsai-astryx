@@ -125,7 +125,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
   in
   let sorting =
     Bonsai.map2 (T.view ~id:"showcase-table-sorting" ~sort ~on_sort_change ~columns ~rows:data graph) sort_readout
-      ~f:(fun table readout -> Vdom.Node.div ~attrs:[] [ table; readout ])
+      ~f:(fun table readout -> Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-col" ] [ table; readout ])
   in
   (* Selection, also controlled: the showcase owns the selected row keys, so
      the count is visible beside the table. The header carries the select-all
@@ -151,7 +151,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
          ~rows:data
          graph)
       selection_readout
-      ~f:(fun table readout -> Vdom.Node.div ~attrs:[] [ table; readout ])
+      ~f:(fun table readout -> Vdom.Node.div ~attrs:[ Vdom.Attr.class_ "showcase-col" ] [ table; readout ])
   in
   let examples =
     [ ex_tree "a header row and body rows" basic

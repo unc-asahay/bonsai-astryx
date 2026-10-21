@@ -4561,3 +4561,21 @@ The parsing follows upstream's rules: an ISO date first, then a month written ou
 The worker had written the interface and no implementation. The interface's note that the calendar had to be rendered inline, because the house Popover "does not fit a controlled text field with a trailing button", was wrong — the Popover takes any trigger, which is how DateRangeInput and DateTimeInput already open their calendars. The calendar now opens from a trailing button into a popover, as upstream opens it.
 
 Gates: component **903/903**, browser **748/748**, responsive **66/66**, full sweep green.
+
+### Gate 93 — M82 Table
+
+The table is a header row, body rows, sorting and selection. The controlled
+state is a tree, as upstream's is; the `aria-sort` attribute was missing
+altogether, because the worker's match had a string in one arm and `None` in
+the other; and the table had no scrollable wrapper, so a table of real
+content was wider than a narrow viewport and the page scrolled sideways.
+
+The stylesheet build was wrong too: the command palette's part had been
+appended to `assets/components.css` twice, and four parts were older than
+their build. `tools/sync-css.py` now rebuilds the stylesheet from the parts,
+and the sweep fails when it is stale.
+
+  component      911 checks, 0 failures
+  browser        showcase 755/755, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN

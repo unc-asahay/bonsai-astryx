@@ -5030,3 +5030,64 @@ let () =
   in
   mount "date-input-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ------------------------------------------------------------------- Table *)
+(* A header row, body rows, sorting and selection. The controlled sort and
+   the controlled selection are trees. *)
+let table_component graph =
+  let columns =
+    [ { Astryx.Table.key = "name"; header = "Name"; align = Astryx.Table.Start
+      ; is_row_header = true; is_sortable = true }
+    ; { Astryx.Table.key = "team"; header = "Team"; align = Astryx.Table.Start
+      ; is_row_header = false; is_sortable = true }
+    ]
+  in
+  let cell content sort_value =
+    { Astryx.Table.content = [ Vdom.Node.text content ]; sort_value }
+  in
+  let rows =
+    [ { Astryx.Table.key = "ada"; cells = [ cell "Ada" (Some "Ada"); cell "Compilers" (Some "Compilers") ] }
+    ; { Astryx.Table.key = "grace"; cells = [ cell "Grace" (Some "Grace"); cell "Compilers" (Some "Compilers") ] }
+    ; { Astryx.Table.key = "alan"; cells = [ cell "Alan" (Some "Alan"); cell "Logic" (Some "Logic") ] }
+    ]
+  in
+  let sort, set_sort = Bonsai.state' (None : Astryx.Table.sort option) graph in
+  let on_sort_change =
+    Bonsai.map set_sort ~f:(fun set_sort -> fun next -> set_sort (fun _ -> next))
+  in
+  let trees =
+    [ Astryx.Table.view ~id:"rt-table" ~columns ~rows graph
+    ; Astryx.Table.view
+        ~id:"rt-table-sortable"
+        ~columns
+        ~rows
+        ~sort
+        ~on_sort_change
+        graph
+    ; Astryx.Table.view
+        ~id:"rt-table-selectable"
+        ~columns
+        ~rows
+        ~is_selectable:true
+        ~selected:(Bonsai.return [ "ada" ])
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "table-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      table_component
+  in
+  mount "table-all" (Bonsai_web_test.Handle.last_result handle)
+;;

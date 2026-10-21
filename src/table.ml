@@ -349,9 +349,14 @@ let view
         @ [ Vdom.Attr.create "id" id ]
         @ attrs
       in
-      Vdom.Node.table
-        ~attrs:root_attrs
-        [ Vdom.Node.thead ~attrs:[] [ header_row ]
-        ; Vdom.Node.tbody ~attrs:[] body_rows
-        ])
+      (* The table is in a scrollable wrapper: a table of real content is
+         wider than a narrow viewport, and the page should scroll the table
+         rather than the page. *)
+      Vdom.Node.div
+        ~attrs:(Attr.class_ [ "astryx-table__wrapper" ])
+        [ Vdom.Node.table
+            ~attrs:root_attrs
+            [ Vdom.Node.thead ~attrs:[] [ header_row ]
+            ; Vdom.Node.tbody ~attrs:[] body_rows
+            ] ])
 ;;

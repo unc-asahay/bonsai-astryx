@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 98,
-    "unported": 5,
+    "ported": 99,
+    "unported": 4,
     "total": 103,
     "documented": 103
   },
@@ -492,6 +492,12 @@
       "milestone": "M12"
     },
     {
+      "name": "Table",
+      "module": "Astryx.table",
+      "file": "src/table.ml",
+      "milestone": "M82"
+    },
+    {
       "name": "TabList",
       "module": "Astryx.Tab_list",
       "file": "src/tab_list.ml",
@@ -604,7 +610,6 @@
     "Markdown",
     "PowerSearch",
     "SideNav",
-    "Table",
     "TimeInput"
   ],
   "inconsistency": null

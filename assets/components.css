@@ -6920,7 +6920,6 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 
 /* pagination */
-
 /* Pagination — the controls for moving through pages of content.
 
    Upstream styles the pagination with Tailwind classes on the elements it
@@ -7058,7 +7057,6 @@ a.astryx-avatar, button.astryx-avatar { cursor: pointer; }
 }
 
 /* top_nav */
-
 /* TopNav — the bar, its items and its heading. The rules follow upstream's
    stylex blocks: the bar's slots, the nav item's hover/selected/disabled
    states, and the heading's type scale. */
@@ -8284,6 +8282,29 @@ button.astryx-code-block__header-control {
   max-width: 100%;
 }
 
+.astryx-selector__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-width: 12rem;
+  min-height: 2rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-background-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+}
+
+.astryx-selector__trigger:focus-visible {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 1px;
+}
+
 .astryx-selector__content {
   display: flex;
   align-items: center;
@@ -8333,7 +8354,7 @@ button.astryx-code-block__header-control {
   background: var(--color-background-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-element);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-med);
 }
 
 .astryx-selector__search-row {
@@ -8355,7 +8376,7 @@ button.astryx-code-block__header-control {
 .astryx-selector__group-title {
   padding: var(--spacing-1) var(--spacing-2);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-small);
+  font-size: var(--text-supporting-size);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -8391,7 +8412,7 @@ button.astryx-code-block__header-control {
 
 .astryx-selector__option-description {
   color: var(--color-text-secondary);
-  font-size: var(--font-size-small);
+  font-size: var(--text-supporting-size);
 }
 
 .astryx-selector__divider {
@@ -8411,7 +8432,7 @@ button.astryx-code-block__header-control {
 }
 
 .astryx-selector--error {
-  color: var(--color-text-danger);
+  color: var(--color-error);
 }
 
 .astryx-selector--ghost {
@@ -8718,170 +8739,6 @@ button.astryx-code-block__header-control {
   margin: 0;
 }
 
-/* ------------------------------------------------------------------ the field */
-
-.astryx-command-palette__header {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  border-block-end: 1px solid var(--color-border);
-}
-
-.astryx-command-palette__input {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  inline-size: 100%;
-  padding-inline: var(--spacing-4);
-  padding-block: var(--spacing-3);
-}
-
-.astryx-command-palette__input-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  color: var(--color-icon-secondary);
-}
-
-.astryx-command-palette__input input {
-  flex: 1;
-  min-inline-size: 0;
-  padding: 0;
-  border: 0;
-  outline: none;
-  background-color: transparent;
-  color: var(--color-text-primary);
-  font-family: var(--font-family-body);
-  font-size: var(--text-body-size);
-  line-height: var(--text-body-leading);
-}
-
-.astryx-command-palette__input input::placeholder {
-  color: var(--color-text-secondary);
-}
-
-.astryx-command-palette__input-end {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  flex-shrink: 0;
-}
-
-.astryx-command-palette__spinner {
-  display: flex;
-  align-items: center;
-}
-
-/* ------------------------------------------------------------------- the list */
-
-.astryx-command-palette__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-0-5);
-  flex: 1;
-  min-block-size: 0;
-  padding: var(--spacing-1);
-  overflow-y: auto;
-  max-block-size: 100%;
-}
-
-/* -------------------------------------------------------------------- a group */
-
-.astryx-command-palette__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-0-5);
-  padding-block: var(--spacing-1);
-}
-
-.astryx-command-palette__group-heading {
-  padding-inline: var(--spacing-3);
-  padding-block: var(--spacing-1);
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-body);
-  font-size: var(--text-supporting-size);
-  line-height: var(--text-supporting-leading);
-  user-select: none;
-}
-
-/* --------------------------------------------------------------------- an item */
-
-.astryx-command-palette__item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  inline-size: 100%;
-  padding-inline: var(--spacing-3);
-  padding-block: var(--spacing-2);
-  border: 0;
-  border-radius: var(--radius-inner);
-  background-color: transparent;
-  color: var(--color-text-primary);
-  font-family: var(--font-family-body);
-  font-size: var(--text-label-size);
-  text-align: start;
-  outline: none;
-  user-select: none;
-  cursor: pointer;
-}
-
-.astryx-command-palette__item:hover {
-  background-color: var(--color-overlay-hover);
-}
-
-.astryx-command-palette__item--highlighted {
-  background-color: var(--color-overlay-hover);
-}
-
-.astryx-command-palette__item--selected {
-  background-color: var(--color-accent-muted);
-}
-
-.astryx-command-palette__item--disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* --------------------------------------------------------------- empty state */
-
-.astryx-command-palette__empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-block: var(--spacing-8);
-  padding-inline: var(--spacing-4);
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-body);
-  font-size: var(--text-supporting-size);
-  line-height: var(--text-supporting-leading);
-  text-align: center;
-}
-
-/* -------------------------------------------------------------------- footer */
-
-.astryx-command-palette__footer-wrap {
-  flex-shrink: 0;
-  border-block-start: 1px solid var(--color-border);
-}
-
-.astryx-command-palette__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding-inline: var(--spacing-4);
-  padding-block: var(--spacing-2);
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-body);
-  font-size: var(--text-supporting-size);
-  line-height: var(--text-supporting-leading);
-}
-
-.astryx-command-palette__hint {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-}
 /* ------------------------------------------------------------------ the field */
 
 .astryx-command-palette__header {
@@ -9560,3 +9417,143 @@ button.astryx-code-block__header-control {
 .astryx-date-input .astryx-field__input-status button {
   flex: 0 0 auto;
 }
+/* table */
+/* Table — a semantic data table: a header row, body rows, and the densities.
+
+   Ported from upstream's Table styles (table.stylex.ts, TableCell.tsx,
+   TableRow.tsx, TableHeaderCell.tsx). The values are the design tokens, not
+   literals. */
+
+/* The table sits in a scrollable wrapper: a table of real content is wider
+   than a narrow viewport, and the table should scroll rather than the
+   page. */
+.astryx-table__wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.astryx-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: var(--color-background-surface);
+  text-align: start;
+}
+
+/* The header row: a quiet surface, a hairline under it, and the label
+   typography. */
+.astryx-table__header-cell {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: var(--text-label-weight);
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-muted);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.astryx-table__cell {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* The last row's cells drop their hairline, so the table ends on the
+   surface rather than on a rule. */
+.astryx-table__row:last-child .astryx-table__cell,
+.astryx-table__row:last-child .astryx-table__header-cell {
+  border-block-end: 0;
+}
+
+.astryx-table__cell--start {
+  text-align: start;
+}
+
+.astryx-table__cell--center {
+  text-align: center;
+}
+
+.astryx-table__cell--end {
+  text-align: end;
+}
+
+/* The row header heads its row rather than belonging to a column, so it
+   reads as a label and not as data. */
+.astryx-table__cell--row-header {
+  font-weight: var(--text-body-weight);
+  color: var(--color-text-primary);
+}
+
+/* The selection column is a narrow strip of controls: it is sized by its
+   content and never shares the column widths with the data. */
+.astryx-table__cell--selection {
+  width: 1%;
+  white-space: nowrap;
+  padding-inline: var(--spacing-3);
+}
+
+.astryx-table__row--selected .astryx-table__cell {
+  background-color: var(--color-background-muted);
+}
+
+/* The sort control is a real button, so it needs the button reset: the
+   header cell already carries the typography. */
+.astryx-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.astryx-table__sort:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ---------------------------------------------------------------- density */
+
+.astryx-table--compact .astryx-table__cell,
+.astryx-table--compact .astryx-table__header-cell {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-table--balanced .astryx-table__cell,
+.astryx-table--balanced .astryx-table__header-cell {
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.astryx-table--spacious .astryx-table__cell,
+.astryx-table--spacious .astryx-table__header-cell {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+/* -------------------------------------------------------- sticky header */
+
+/* The header row stays put inside the nearest scrolling ancestor. The
+   surface is painted on the cell, so the rows scrolling underneath do not
+   show through it. */
+.astryx-table--sticky-header .astryx-table__header-cell {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+}
+

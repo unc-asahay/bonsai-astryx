@@ -5704,6 +5704,7 @@ let nav_items =
   ; "date-range-input", "DateRangeInput"
   ; "date-time-input", "DateTimeInput"
   ; "date-input", "DateInput"
+  ; "table", "Table"
   ]
 ;;
 
@@ -6526,6 +6527,7 @@ let page (graph : Bonsai.graph) =
   let date_range_input_section = Sec_date_range_input.demo graph in
   let date_time_input_section = Sec_date_time_input.demo graph in
   let date_input_section = Sec_date_input.demo graph in
+  let table_section = Sec_table.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6562,6 +6564,7 @@ let page (graph : Bonsai.graph) =
     ; date_range_input_section
     ; date_time_input_section
     ; date_input_section
+    ; table_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in

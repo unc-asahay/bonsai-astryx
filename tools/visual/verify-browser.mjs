@@ -296,6 +296,7 @@ if (mode === "showcase") {
     "DateRangeInput",
     "DateTimeInput",
     "DateInput",
+    "Table",
 
   ];
 
@@ -659,7 +660,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("100 sections", sections.length === 100, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("101 sections", sections.length === 101, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -767,13 +768,14 @@ if (mode === "showcase") {
     DateRangeInput: 5,
     DateTimeInput: 5,
     DateInput: 6,
+    Table: 7,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("660 examples across the page", totalExamples === 660, `got ${totalExamples}`);
+  check("667 examples across the page", totalExamples === 667, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -787,7 +789,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("100 nav links", nav.length === 100, `got ${nav.length}`);
+  check("101 nav links", nav.length === 101, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4182,11 +4184,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 98 ported / 5 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["98", "5", "103"]),
+    "coverage stats are 99 ported / 4 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["99", "4", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 5 entries", cov.unported === 5, `got ${cov.unported}`);
+  check("unported list rendered 4 entries", cov.unported === 4, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7337,6 +7339,98 @@ if (mode === "showcase") {
     // The calendar closes again, so it does not intercept later checks.
     await page.keyboard.press("Escape");
     await page.waitForTimeout(300);
+  }
+}
+
+
+// ------------------------------------------------------------------ Table (M82)
+if (mode === "showcase") {
+  const tableSection = await page.$("section[data-showcase-component='Table']");
+  check("the Table section renders", tableSection !== null,
+    tableSection === null ? "not found" : "found");
+
+  if (tableSection) {
+    const shape = await page.evaluate(() => {
+      const tables = [...document.querySelectorAll("[data-astryx-component='Table']")];
+      const first = tables[0];
+      const headers = [...(first?.querySelectorAll("thead th") ?? [])];
+      const bodyRows = [...(first?.querySelectorAll("tbody tr") ?? [])];
+      return {
+        tables: tables.length,
+        marker: first?.getAttribute("data-astryx-component") ?? null,
+        headers: headers.length,
+        rows: bodyRows.length,
+        cellsPerRow: bodyRows.map((r) => r.querySelectorAll("th, td").length),
+        sortButtons: headers.filter((h) => h.querySelector("button")).length,
+        rowHeader: bodyRows[0]?.querySelector("th[scope='row']") !== null,
+      };
+    });
+
+    check("every example renders its own table, and the root carries the house's marker",
+      shape?.tables >= 7 && shape?.marker === "Table",
+      JSON.stringify(shape));
+
+    check("the header has a cell for each column, and every body row has a cell for each column",
+      shape?.headers > 0 && shape?.rows >= 3
+        && shape?.cellsPerRow.every((n) => n === shape.headers),
+      JSON.stringify(shape));
+
+    check("a sortable column's header is a real button, and a row-header column heads its row",
+      shape?.sortButtons >= 1 && shape?.rowHeader === true,
+      JSON.stringify(shape));
+
+    // Clicking a header sorts, and the table says so.
+    const sorted = await page.evaluate(() => {
+      const tables = [...document.querySelectorAll("[data-astryx-component='Table']")];
+      const table = tables.find((t) => t.querySelector("thead th button"));
+      const header = table?.querySelector("thead th");
+      return {
+        column: table?.getAttribute("data-astryx-sort-column") ?? null,
+        direction: table?.getAttribute("data-astryx-sort-direction") ?? null,
+        ariaSort: header?.getAttribute("aria-sort") ?? null,
+        firstRow: table?.querySelector("tbody tr")?.getAttribute("data-astryx-row") ?? null,
+      };
+    });
+    check("before anything is clicked, nothing is sorted",
+      (sorted?.column ?? "") === "" && sorted?.direction === "none"
+        && sorted?.ariaSort === null,
+      JSON.stringify(sorted));
+
+    await page.locator("[data-astryx-component='Table'] thead th button").first().click();
+    await page.waitForTimeout(300);
+    const afterSort = await page.evaluate(() => {
+      const tables = [...document.querySelectorAll("[data-astryx-component='Table']")];
+      const table = tables.find((t) => t.querySelector("thead th button"));
+      const header = table?.querySelector("thead th");
+      return {
+        column: table?.getAttribute("data-astryx-sort-column") ?? null,
+        direction: table?.getAttribute("data-astryx-sort-direction") ?? null,
+        ariaSort: header?.getAttribute("aria-sort") ?? null,
+        firstRow: table?.querySelector("tbody tr")?.getAttribute("data-astryx-row") ?? null,
+      };
+    });
+    check("clicking a header sorts by that column, and says so",
+      afterSort?.column !== null && (afterSort?.column ?? "") !== ""
+        && afterSort?.direction === "ascending"
+        && afterSort?.ariaSort === "ascending",
+      JSON.stringify(afterSort));
+
+    // Clicking again turns the sort around.
+    await page.locator("[data-astryx-component='Table'] thead th button").first().click();
+    await page.waitForTimeout(300);
+    const afterSecond = await page.evaluate(() => {
+      const tables = [...document.querySelectorAll("[data-astryx-component='Table']")];
+      const table = tables.find((t) => t.querySelector("thead th button"));
+      const header = table?.querySelector("thead th");
+      return {
+        direction: table?.getAttribute("data-astryx-sort-direction") ?? null,
+        ariaSort: header?.getAttribute("aria-sort") ?? null,
+        firstRow: table?.querySelector("tbody tr")?.getAttribute("data-astryx-row") ?? null,
+      };
+    });
+    check("clicking the same header again turns the sort around",
+      afterSecond?.direction === "descending" && afterSecond?.ariaSort === "descending",
+      JSON.stringify(afterSecond));
   }
 }
 
