@@ -48,7 +48,7 @@ val view
   :  ?id:string
   -> ?attrs:Vdom.Attr.t list
   -> ?header:Vdom.Node.t list
-  -> ?top_content:Vdom.Node.t list
+  -> ?top_content:Vdom.Node.t Bonsai.t list
   -> ?footer:Vdom.Node.t list
   -> ?footer_icons:Vdom.Node.t list
   -> ?is_collapsible:bool
@@ -60,7 +60,7 @@ val view
   -> ?min_width:float
   -> ?max_width:float
   -> ?on_width_change:(float -> unit Effect.t) Bonsai.t
-  -> ?children:Vdom.Node.t list
+  -> ?children:Vdom.Node.t Bonsai.t list
   -> Bonsai.graph
   -> Vdom.Node.t Bonsai.t
 (** [view ~children graph] renders the column.
@@ -88,7 +88,7 @@ val heading
   -> ?icon:string
   -> ?children:Vdom.Node.t list
   -> Bonsai.graph
-  -> Vdom.Node.t Bonsai.t
+  -> Vdom.Node.t
 (** [heading ~heading graph] renders the heading area of the column.
 
     The superheading sits above the heading and the subheading below it;
@@ -122,7 +122,7 @@ val section
   -> ?subtitle:string
   -> ?is_header_hidden:bool
   -> ?end_content:Vdom.Node.t list
-  -> ?children:Vdom.Node.t list
+  -> ?children:Vdom.Node.t Bonsai.t list
   -> Bonsai.graph
   -> Vdom.Node.t Bonsai.t
 (** [section ~title ~children graph] renders a group of items under a title.

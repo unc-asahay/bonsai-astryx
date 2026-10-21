@@ -27,6 +27,15 @@ let clamp_width width ~min ~max =
   if Float.compare width min < 0 then min else if Float.compare width max > 0 then max else width
 ;;
 
+(* A list of trees into one tree of a list of nodes. The house's Bonsai has
+   no list combinator, so the trees are combined pairwise and read back by
+   position. *)
+let combine (trees : Vdom.Node.t Bonsai.t list) =
+  List.fold trees ~init:(Bonsai.return []) ~f:(fun acc tree ->
+    Bonsai.both acc tree |> Bonsai.map ~f:(fun (acc, tree) -> tree :: acc))
+  |> Bonsai.map ~f:List.rev
+;;
+
 (* The style the column's width is written into. Upstream writes the width
    into the root's inline style, and so does this. *)
 let width_style width =
@@ -82,10 +91,15 @@ let view
   let width_tree =
     Bonsai.map3 width_state report_width set_width ~f:(fun value report set -> (value, report, set))
   in
-  Bonsai.map2 collapsed_tree width_tree
+  (* The body and the pinned area hold items, which are graphs. *)
+  let parts_tree =
+    Bonsai.map2 (combine children) (combine top_content) ~f:(fun body top -> (body, top))
+  in
+  Bonsai.map3 collapsed_tree width_tree parts_tree
     ~f:(fun
           (collapsed, report_collapsed, set_collapsed)
-          (width, report_width, set_width) ->
+          (width, report_width, set_width)
+          (body_nodes, top_nodes) ->
         let width = clamp_width width ~min:min_width ~max:max_width in
         let collapsed = collapsed && is_collapsible in
         (* The collapse button, and the separator that resizes the column. *)
@@ -158,8 +172,8 @@ let view
         Vdom.Node.nav
           ~attrs:root_attrs
           (region "Heading" header
-           @ region "Pinned" top_content
-           @ [ Vdom.Node.div ~attrs:(Attr.class_ [ "astryx-side-nav__body" ]) children ]
+           @ (if List.is_empty top_nodes then [] else region "Pinned" top_nodes)
+           @ [ Vdom.Node.div ~attrs:(Attr.class_ [ "astryx-side-nav__body" ]) body_nodes ]
            @ region "Footer" footer
            @ region "Footer icons" footer_icons
            @ collapse_button
@@ -207,14 +221,13 @@ let heading
     | None -> []
     | Some name -> [ Vdom.Node.span ~attrs:(Attr.class_ [ "astryx-side-nav__heading-icon" ]) [ Icon.view ~name ~size:Icon.Sm () ] ]
   in
-  Bonsai.return
-    (Vdom.Node.div
-       ~attrs:
-         (Attr.class_ [ "astryx-side-nav__heading" ]
-          @ Attr.data "component" "SideNavHeading"
-          @ [ Vdom.Attr.id id ]
-          @ attrs)
-       (icon_nodes @ superheading_nodes @ heading_nodes @ subheading_nodes @ children))
+  Vdom.Node.div
+    ~attrs:
+      (Attr.class_ [ "astryx-side-nav__heading" ]
+       @ Attr.data "component" "SideNavHeading"
+       @ [ Vdom.Attr.id id ]
+       @ attrs)
+    (icon_nodes @ superheading_nodes @ heading_nodes @ subheading_nodes @ children)
 ;;
 
 let item
@@ -303,12 +316,13 @@ let section
          then []
          else [ Vdom.Node.div ~attrs:(Attr.class_ [ "astryx-side-nav__section-end" ]) end_content ])
   in
-  Bonsai.return
-    (Vdom.Node.div
-       ~attrs:
-         (Attr.class_ [ "astryx-side-nav__section" ]
-          @ Attr.data "component" "SideNavSection"
-          @ [ Vdom.Attr.id id ]
-          @ attrs)
-       (header @ children))
+  (* The group's items are graphs, so the group is a graph too. *)
+  Bonsai.map (combine children) ~f:(fun body ->
+      Vdom.Node.div
+        ~attrs:
+          (Attr.class_ [ "astryx-side-nav__section" ]
+           @ Attr.data "component" "SideNavSection"
+           @ [ Vdom.Attr.id id ]
+           @ attrs)
+        (header @ body))
 ;;
