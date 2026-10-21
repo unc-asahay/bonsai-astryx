@@ -184,11 +184,11 @@ let rec parse_blocks (lines : string list) : block list =
              in
              let rest = take rest in
              let language =
-               let info =
-                 String.strip
-                   (String.sub line ~pos:(fence_len + 1) ~len:(String.length line - fence_len - 1))
-               in
-               if String.equal info "" then None else Some info
+               let info_len = String.length line - fence_len - 1 in
+               if info_len <= 0 then None
+               else
+                 let info = String.strip (String.sub line ~pos:(fence_len + 1) ~len:info_len) in
+                 if String.equal info "" then None else Some info
              in
              go rest (Code (String.concat ~sep:"\n" (List.rev !body), language) :: acc)
            | None ->
@@ -204,14 +204,14 @@ let rec parse_blocks (lines : string list) : block list =
     let rec take = function
       | [] -> []
       | l :: ls ->
-        if is_blank l then []
+        if is_blank l then ls
         else if
           Option.is_some (atx_heading l)
           || is_break l
           || Option.is_some (list_marker l)
           || (String.length (String.strip l) > 0
               && Char.equal (String.strip l).[0] '>')
-        then []
+        then l :: ls
         else
           (taken := l :: !taken;
            take ls)
@@ -225,7 +225,7 @@ let rec parse_blocks (lines : string list) : block list =
       | [] -> []
       | l :: ls ->
         let stripped = String.strip l in
-        if String.length stripped = 0 || not (Char.equal stripped.[0] '>') then []
+        if String.length stripped = 0 || not (Char.equal stripped.[0] '>') then l :: ls
         else
           (taken :=
              (if String.length stripped > 1 && Char.equal stripped.[1] ' ' then
@@ -250,10 +250,10 @@ let rec parse_blocks (lines : string list) : block list =
              when (not (is_blank next))
                   && (Int.compare (indent_of next) 0 > 0 || Option.is_some (list_marker next))
            -> take_items rest
-           | _ -> [])
+           | _ -> rest)
         else
           match list_marker line with
-          | None -> []
+          | None -> line :: rest
           | Some (is_ordered, width) ->
             if Option.is_none !ordered then ordered := Some is_ordered;
             let first = String.sub line ~pos:width ~len:(String.length line - width) in
@@ -261,11 +261,11 @@ let rec parse_blocks (lines : string list) : block list =
             let rec take_continuation = function
               | [] -> []
               | l :: ls ->
-                if is_blank l then []
+                if is_blank l then l :: ls
                 else if Int.compare (indent_of l) 0 > 0 then
                   (item := { !item with rest = !item.rest @ [ drop_indent l width ] };
                    take_continuation ls)
-                else if Option.is_some (list_marker l) then []
+                else if Option.is_some (list_marker l) then l :: ls
                 else
                   (item := { !item with rest = !item.rest @ [ l ] };
                    take_continuation ls)
@@ -340,7 +340,8 @@ let link_text text =
         match c with
         | '[' -> incr depth
         | ']' ->
-          if !depth = 0 then close := i else decr depth
+          decr depth;
+          if !depth = 0 then close := i
         | _ -> ())
     text;
   if !close = -1 then None else Some !close
@@ -401,21 +402,23 @@ let rec parse_inline (text : string) : inline list =
             go (!close + 2) (Strike (parse_inline body) :: acc)
         else go (i + 1) (Text "~" :: acc)
       | '[' ->
-        (match link_text (String.sub text ~pos:i ~len:(len - i)) with
+        let rest = String.sub text ~pos:i ~len:(len - i) in
+        (match link_text rest with
          | None -> go (i + 1) (Text "[" :: acc)
          | Some close ->
-           let label = String.sub text ~pos:(i + 1) ~len:(close - i - 1) in
-           let after = String.sub text ~pos:(close + 1) ~len:(len - close - 1) in
+           let label = String.sub rest ~pos:1 ~len:(close - 1) in
+           let after = String.sub rest ~pos:(close + 1) ~len:(String.length rest - close - 1) in
            (match destination after with
             | None -> go (i + 1) (Text "[" :: acc)
-            | Some (dest, dest_len) -> go (close + 1 + dest_len) (Link (label, dest) :: acc)))
+            | Some (dest, dest_len) -> go (i + close + 1 + dest_len) (Link (label, dest) :: acc)))
       | '!' ->
         if i + 1 < len && Char.equal text.[i + 1] '[' then
-          (match link_text (String.sub text ~pos:(i + 1) ~len:(len - i - 1)) with
+          let rest = String.sub text ~pos:(i + 1) ~len:(len - i - 1) in
+          (match link_text rest with
            | None -> go (i + 1) (Text "!" :: acc)
            | Some close ->
-             let label = String.sub text ~pos:(i + 2) ~len:(close - i - 2) in
-             go (close + 1) (Image label :: acc))
+             let label = String.sub rest ~pos:1 ~len:(close - 1) in
+             go (i + close + 2) (Image label :: acc))
         else go (i + 1) (Text "!" :: acc)
       | _ ->
         (* A run of plain text up to the next marker. *)
