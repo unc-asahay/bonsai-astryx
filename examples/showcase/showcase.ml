@@ -6534,6 +6534,7 @@ let page (graph : Bonsai.graph) =
   let time_input_section = Sec_time_input.demo graph in
   let side_nav_section = Sec_side_nav.demo graph in
   let markdown_section = Sec_markdown.demo graph in
+  let power_search_section = Sec_power_search.demo graph in
   (* One entry per stateful section, in the order the page shows them. The
      sections are combined pairwise (Bonsai offers map2/both rather than a
      list combinator) and read back in order, so adding a component is one
@@ -6574,6 +6575,7 @@ let page (graph : Bonsai.graph) =
     ; time_input_section
     ; side_nav_section
     ; markdown_section
+    ; power_search_section
     ; timestamp_section; complex_selector_section; outline_section ]
   in
   let stateful = unwrap_all stateful_sections in
