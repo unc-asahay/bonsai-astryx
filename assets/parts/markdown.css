@@ -1,0 +1,108 @@
+/* Markdown — the markdown document.
+
+   The document is a column of blocks. The block spacing follows the
+   house's rhythm, and the inline pieces carry the house's typography. */
+
+.astryx-markdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--astryx-space-4, 16px);
+  color: var(--astryx-text-primary, inherit);
+  line-height: 1.6;
+}
+
+/* A heading is the house heading, inside its own wrapper. The wrapper
+   carries the level so the spacing can follow the scale. */
+.astryx-markdown__heading {
+  margin: 0;
+}
+
+.astryx-markdown__heading[data-level='1'] {
+  margin-top: var(--astryx-space-2, 8px);
+}
+
+.astryx-markdown__heading[data-level='2'] {
+  margin-top: var(--astryx-space-2, 8px);
+}
+
+.astryx-markdown__heading[data-level='3'],
+.astryx-markdown__heading[data-level='4'],
+.astryx-markdown__heading[data-level='5'],
+.astryx-markdown__heading[data-level='6'] {
+  margin-top: var(--astryx-space-1, 4px);
+}
+
+/* The first heading in a document has no space above it. */
+.astryx-markdown > .astryx-markdown__heading:first-child {
+  margin-top: 0;
+}
+
+/* A paragraph is a div with a role, so the spacing comes from the
+   document's own gap. */
+.astryx-markdown__paragraph {
+  margin: 0;
+}
+
+/* The code block: the house code style, in a preformatted block. */
+.astryx-markdown__pre {
+  margin: 0;
+  padding: var(--astryx-space-3, 12px);
+  overflow-x: auto;
+  border-radius: var(--astryx-radius-2, 8px);
+  background: var(--astryx-surface-secondary, rgba(0, 0, 0, 0.04));
+  font-family: var(--astryx-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.875em;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+.astryx-markdown__pre code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+/* A quote is the house blockquote. */
+.astryx-markdown__quote {
+  margin: 0;
+}
+
+/* The list: the house's list of plain items, without the row chrome a
+   list of interactive rows would carry. */
+.astryx-markdown__list {
+  margin: 0;
+  padding-left: var(--astryx-space-6, 24px);
+}
+
+.astryx-markdown__item {
+  margin: 0;
+}
+
+.astryx-markdown__item > .astryx-markdown__paragraph {
+  display: inline;
+}
+
+/* A thematic break. */
+.astryx-markdown__break {
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--astryx-border-subtle, rgba(0, 0, 0, 0.12));
+}
+
+/* The inline pieces. */
+
+/* Strikethrough: the house has no strikethrough element, so the strike
+   is drawn here. */
+.astryx-markdown__strike {
+  text-decoration: line-through;
+}
+
+/* An image renders as its alt text in brackets. */
+.astryx-markdown__image-alt {
+  color: var(--astryx-text-secondary, inherit);
+}
+
+/* A link inside a document. The house link carries its own states. */
+.astryx-markdown a {
+  color: inherit;
+}
