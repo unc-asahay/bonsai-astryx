@@ -849,6 +849,9 @@ Outline (live)
   ok   a committed reading is shown in the two parts
   ok   the twenty-four hour clock shows an afternoon reading without a meridiem
   ok   the trigger opens the calendar, and it is the house calendar
+  ok   the field is a combobox that opens a dialog, and says whether it is open
+  ok   ArrowDown opens the calendar from the field, and the field says it is open
+  ok   Escape closes the calendar, and the field says it is closed
   ok   the DateInput section renders
   ok   every example renders its own field, and the root carries the house's marker
   ok   the label names the field, and the calendar opens from a named button
@@ -913,7 +916,7 @@ screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.pn
   ok   the editor offers the field's operators
   ok   the editor's value is a choice, for an enum operator
 
-807/807 checks passed, 0 failure(s)
+810/810 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

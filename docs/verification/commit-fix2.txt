@@ -1,0 +1,101 @@
+Gate 99 — the DateInput was not the combobox upstream says it is
+
+Another batch of worker reports came in, and this one was stale in the
+way the others were: TimeInput, PowerSearch, SideNav, Markdown and
+DateInput had all shipped long before, and four of the five workers had
+produced nothing usable. But one of the reports contained a specific
+claim about the *shipped* DateInput, and it was checkable, so it was
+checked.
+
+It was right, and what it found was not a style difference. The house
+DateInput was not the combobox upstream defines it to be.
+
+What upstream does
+
+  Upstream's DateInput renders a text field and a trailing button. The
+  text field is the combobox:
+
+    role="combobox"
+    aria-expanded={popover.isOpen}
+    aria-haspopup="dialog"
+    aria-controls={popover.isOpen ? popover.id : undefined}
+    aria-autocomplete="none"
+    autoComplete="off"
+
+  and it is the field that opens the calendar: a click on the field
+  opens it, ArrowDown opens it with the focus kept in the field (the
+  APG's combobox pattern, forms-13), and Escape closes it. The trailing
+  button opens the same calendar, for the person who would rather not
+  type.
+
+What the house port did
+
+  The house DateInput had the text field as a plain text input, and the
+  calendar opened from the trailing button only. The field's keydown
+  handler knew one key: Enter, which commits. There was no ArrowDown,
+  no Escape, no click, and none of the five ARIA attributes.
+
+  So a screen reader was told nothing about the calendar: the field was
+  not a combobox, did not say it opened a dialog, and did not say
+  whether the calendar was open. And a keyboard user could not open
+  the calendar from the field at all.
+
+Why it shipped
+
+  The house's own sibling had it right. The house Date_time_input —
+  shipped four milestones earlier, from the same upstream family — puts
+  role=combobox, aria-haspopup="dialog", aria-expanded and
+  aria-autocomplete="none" on its input, opens the calendar on a click
+  and on ArrowDown, and closes it on Escape. It even documents the
+  contract in its own interface. DateInput was the odd one out in the
+  house's own date family.
+
+  And the browser gate had no check for any of it. It checked the
+  markup, the label, the committed date and the trailing button, and it
+  opened the calendar by clicking that button. It never pressed a key in
+  the field, so the field's whole keyboard contract was untested — and
+  so it shipped.
+
+What was changed
+
+  The field is now the combobox upstream describes. It carries
+  role=combobox, aria-haspopup="dialog", aria-autocomplete="none" and
+  autocomplete="off", and it carries aria-expanded that follows the
+  calendar. A click on the field opens the calendar, ArrowDown opens
+  it, Escape closes it, and Enter still commits what was typed. The
+  trailing button still opens the same calendar.
+
+  The gate now checks all of it: the five attributes on the field, the
+  field's aria-expanded before and after, ArrowDown opening the
+  calendar, and Escape closing it.
+
+The one thing that is still not upstream's
+
+  Upstream opens the calendar without taking the focus, so the person
+  can carry on typing. The house's surfaces take the focus when they
+  open — the house Popover does it everywhere, and so do the house
+  Selector and Complex_selector — so the focus goes into the calendar
+  here and comes back to the button when it closes.
+
+  This is a house-wide model, not a DateInput mistake: the house
+  Date_time_input behaves the same way. Changing it would mean changing
+  the house Popover, or rebuilding the DateInput's calendar surface the
+  way Complex_selector builds its own, and neither is a change worth
+  making inside a date field. So it is written down in the interface
+  instead of left silent — the field's own aria-expanded says which way
+  the calendar is, which is what a screen reader needs.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            952 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  810/810 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is still finished.

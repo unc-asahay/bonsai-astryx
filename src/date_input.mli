@@ -24,10 +24,26 @@
         graph
     ]}
 
+    {1 The field is a combobox}
+
+    The field is the combobox, the way upstream's is: it carries
+    [role=combobox], it says what it opens with [aria-haspopup="dialog"], it
+    says whether the calendar is open with [aria-expanded], and it says it
+    completes nothing with [aria-autocomplete="none"]. Clicking the field
+    opens the calendar, [ArrowDown] opens it, and [Escape] closes it. The
+    trailing button opens the same calendar, for the person who would rather
+    not type.
+
     {1 Divergences}
 
     - The calendar is opened from a trailing button into a house [Popover],
       as upstream opens it.
+    - Upstream's field is a combobox whose calendar opens without taking the
+      focus, so the person can carry on typing. The house's surfaces take
+      the focus when they open — the house [Popover] does it everywhere, and
+      so do the house [Selector] and [Complex_selector] — so the focus goes
+      into the calendar here, and comes back to the button when it closes.
+      The field's own [aria-expanded] says which way it is.
     - Upstream falls back to the browser's own date parser for spellings it
       does not recognise. This port accepts a documented subset only and
       rejects everything else, so a field never silently holds a date the

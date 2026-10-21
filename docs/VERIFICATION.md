@@ -4706,3 +4706,41 @@ all found the first one. Each example has its own id now.
   sweep          SWEEP GREEN
 
 The full account is in docs/verification/commit-fix1.txt.
+
+---
+
+## Gate 99 — the DateInput was not the combobox upstream says it is
+
+Upstream's DateInput renders a text field that is the combobox: it
+carries role=combobox, aria-haspopup="dialog", aria-autocomplete="none"
+and an aria-expanded that follows the calendar, and it is the field
+that opens the calendar — on a click, and on ArrowDown, with Escape to
+close it.
+
+The house DateInput had a plain text field whose keydown handler knew
+one key, Enter. No ArrowDown, no Escape, no click, and none of the
+ARIA. A screen reader was told nothing about the calendar, and a
+keyboard user could not open it from the field at all.
+
+The house's own Date_time_input — the sibling, shipped four milestones
+earlier — had it right, and documented the contract in its interface.
+DateInput was the odd one out, and the browser gate had no check for
+any of it: it opened the calendar by clicking the trailing button and
+never pressed a key in the field.
+
+The field is now the combobox upstream describes, and the gate checks
+the attributes, the aria-expanded in both directions, ArrowDown opening
+the calendar and Escape closing it.
+
+One thing is still not upstream's, and is written down in the interface
+rather than left silent: upstream opens the calendar without taking the
+focus, while the house's surfaces take it — the house Popover does it
+everywhere, and so do the house Selector and Complex_selector, and the
+sibling Date_time_input behaves the same way.
+
+  component      952 checks, 0 failures
+  browser        showcase 810/810, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN
+
+The full account is in docs/verification/commit-fix2.txt.

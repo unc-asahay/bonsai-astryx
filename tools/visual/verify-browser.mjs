@@ -7341,6 +7341,60 @@ if (mode === "showcase") {
     // The calendar closes again, so it does not intercept later checks.
     await page.keyboard.press("Escape");
     await page.waitForTimeout(300);
+
+    // The field is the combobox, the way upstream's is: it says what it
+    // opens and whether it is open, and the keyboard opens it without the
+    // focus leaving the field.
+    const diCombo = await page.evaluate(() => {
+      const input = document.getElementById("showcase-date-plain-input");
+      return {
+        role: input?.getAttribute("role") ?? null,
+        haspopup: input?.getAttribute("aria-haspopup") ?? null,
+        autocomplete: input?.getAttribute("aria-autocomplete") ?? null,
+        expanded: input?.getAttribute("aria-expanded") ?? null,
+        nativeAutoComplete: input?.getAttribute("autocomplete") ?? null,
+      };
+    });
+    check("the field is a combobox that opens a dialog, and says whether it is open",
+      diCombo?.role === "combobox" && diCombo?.haspopup === "dialog"
+        && diCombo?.autocomplete === "none" && diCombo?.expanded === "false"
+        && diCombo?.nativeAutoComplete === "off",
+      JSON.stringify(diCombo));
+
+    // ArrowDown opens the calendar from the field, and the field says it is
+    // open. The house's surfaces take the focus when they open, the way the
+    // house Popover does everywhere, so the focus is in the calendar here.
+    await page.focus("#showcase-date-plain-input");
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(400);
+    const diOpened = await page.evaluate(() => {
+      const input = document.getElementById("showcase-date-plain-input");
+      const pop = document.querySelector("#showcase-date-plain-calendar-popover-surface");
+      return {
+        expanded: input?.getAttribute("aria-expanded") ?? null,
+        calendar: pop?.querySelectorAll("[role='gridcell']").length ?? 0,
+        focusInCalendar: !!(pop && document.activeElement && pop.contains(document.activeElement)),
+      };
+    });
+    check("ArrowDown opens the calendar from the field, and the field says it is open",
+      diOpened?.expanded === "true" && diOpened?.calendar > 0
+        && diOpened?.focusInCalendar === true,
+      JSON.stringify(diOpened));
+
+    // Escape closes it again, and the field says so.
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(350);
+    const diClosed = await page.evaluate(() => {
+      const input = document.getElementById("showcase-date-plain-input");
+      const pop = document.querySelector("#showcase-date-plain-calendar-popover-surface");
+      return {
+        expanded: input?.getAttribute("aria-expanded") ?? null,
+        shown: pop ? getComputedStyle(pop).display !== "none" : false,
+      };
+    });
+    check("Escape closes the calendar, and the field says it is closed",
+      diClosed?.expanded === "false" && diClosed?.shown === false,
+      JSON.stringify(diClosed));
   }
 }
 

@@ -33,6 +33,10 @@ let js_property (ev : 'a) name : string =
   Js.to_string (Js.Unsafe.coerce (Js.Unsafe.get (Obj.magic ev : Js.Unsafe.any) name))
 ;;
 
+let js_prevent_default (ev : 'a) : unit =
+  ignore (Js.Unsafe.meth_call (Obj.magic ev : Js.Unsafe.any) "preventDefault" [||])
+;;
+
 let starts_with ~prefix text =
   let n = String.length prefix in
   let m = String.length text in
@@ -310,11 +314,37 @@ let view
         | Some date when acceptable date -> on_change (Some date)
         | _ -> Effect.Ignore
       in
+      (* The calendar opens from the field as well as from the button, so the
+         field is the combobox: it says what it opens, and whether it is
+         open. Upstream's DateInput does exactly this, and so does the house
+         Date_time_input. *)
+      let open_calendar () =
+        if is_disabled || model.is_open then Effect.Ignore
+        else
+          set (fun _model ->
+            { is_open = true
+            ; draft = None
+            ; epoch = _model.epoch + 1
+            })
+      in
+      let close_calendar () =
+        if not model.is_open then Effect.Ignore
+        else
+          set (fun _model ->
+            { is_open = false
+            ; draft = None
+            ; epoch = _model.epoch + 1
+            })
+      in
       let input_attrs =
         ([ Vdom.Attr.create "id" input_id
          ; Vdom.Attr.create "type" "text"
          ; Vdom.Attr.create "value" text
          ; Vdom.Attr.create "autocomplete" "off"
+         ; Vdom.Attr.role "combobox"
+         ; Vdom.Attr.create "aria-haspopup" "dialog"
+         ; Vdom.Attr.create "aria-expanded" (Bool.to_string model.is_open)
+         ; Vdom.Attr.create "aria-autocomplete" "none"
          ; Vdom.Attr.create "placeholder" (Option.value placeholder ~default:"")
          ; Vdom.Attr.on_input (fun (_ : Dom_html.event Js.t) typed ->
               Effect.Many
@@ -330,16 +360,25 @@ let view
                     })
                 ; commit_typed typed
                 ])
+         ; Vdom.Attr.on_click (fun (_ : Dom_html.mouseEvent Js.t) -> open_calendar ())
          ; Vdom.Attr.on_keydown (fun (ev : Dom_html.keyboardEvent Js.t) ->
-              if String.equal (js_property ev "key") "Enter" then
-                Effect.Many
-                  [ set (fun model ->
-                      { model with
-                        draft = None
-                      ; epoch = model.epoch + 1
-                      })
-                  ; commit_typed text
-                  ]
+              let key = js_property ev "key" in
+              if String.equal key "ArrowDown" then
+                (js_prevent_default ev;
+                 open_calendar ())
+              else if String.equal key "Escape" then
+                (js_prevent_default ev;
+                 close_calendar ())
+              else if String.equal key "Enter" then
+                (js_prevent_default ev;
+                 Effect.Many
+                   [ set (fun model ->
+                       { model with
+                         draft = None
+                       ; epoch = model.epoch + 1
+                       })
+                   ; commit_typed text
+                   ])
               else Effect.Ignore)
          ]
          @ (if is_disabled || is_loading then [ Vdom.Attr.create "readonly" "readonly" ] else [])
