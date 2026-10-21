@@ -232,6 +232,16 @@ advice about what to read:
   in a portal is drawn in place. Say so in the `.mli`, the way
   `src/layer.mli` documents the same divergence.
 - `data-astryx-component` is required on the component's root.
+- **`Js.Unsafe.meth_call` is `o[f].apply(o, args)`** — the js_of_ocaml
+  runtime says so. On a *property* (`value`, `checked`, `textContent`)
+  that is calling the value as a function, and it throws. Assign it
+  instead: `Js.Unsafe.set el "value" (Js.string "")`. Two ports shipped
+  this and one of them threw on the way to handing the focus back.
+- **An id is not decoration.** Several components find their own
+  trigger, their own search box and their own listbox by id, so two
+  instances on one page with the same id make the component's own
+  lookups find the *first* one. Give every showcase example its own
+  `~id:`.
 
 ## Final report
 
