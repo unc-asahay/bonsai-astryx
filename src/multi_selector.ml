@@ -454,8 +454,10 @@ let view
         Effect.of_thunk (fun () ->
             match by_id search_id with
             | Some el ->
-              ignore
-                (Js.Unsafe.meth_call el "value" [| Js.Unsafe.inject (Js.string "") |])
+              (* [value] is a property, not a method: setting it is an
+                 assignment. Calling it would be calling the string the person
+                 typed, and it would throw. *)
+              Js.Unsafe.set el "value" (Js.string "")
             | None -> ())
       in
       let open_effect =

@@ -1,0 +1,119 @@
+Gate 98 — three defects in shipped components, found by a worker's report
+           that was read rather than filed away
+
+The campaign was finished: 103 of 103 ported, pushed, every gate green.
+A late batch of worker reports came in describing work that had been
+superseded, and most of it was indeed stale. But one of those reports
+made a specific claim about the *shipped* code, and the claim was
+checkable, so it was checked instead of filed. It was right.
+
+Three defects, in two components, all of them in code that had been
+shipped and had passed every gate.
+
+The group order in the command palette was backwards
+
+  Upstream keeps the command groups in the order they first appear in.
+  Its groupOrder is an array it pushes onto as each group is seen, and
+  the flat list of results is then built by walking that array, so the
+  group order is the order the groups are seen in.
+
+  The port built its groups in first-appearance order — the helper
+  appends a new group at the end — and then reversed the list of groups
+  on the way out. The inner reversal was right: the items within a
+  group are pushed onto the front as they are seen, so they have to be
+  reversed back. The outer one was not. The result was that the groups
+  came out in the order they were last seen in.
+
+  It did not just look wrong. The comment in the port says it itself:
+  the order the groups are kept in "is the contract" and "the DOM order
+  is the index space the keyboard model walks and aria-activedescendant
+  names". So the keyboard's index space and the screen reader's
+  announcement were both off by the group order.
+
+  The browser gate had encoded the bug. It asserted the groups were
+  "Account|Navigation" when the showcase's commands put Navigation
+  first, so the gate was asserting the reversed order and passing.
+  The gate now asserts "Navigation|Account", and the fix is a removed
+  reversal.
+
+Two "clear the field" calls were calling a method that does not exist
+
+  Both the command palette and the multi-select field cleared their
+  input like this:
+
+    ignore (Js.Unsafe.meth_call el "value" [| Js.Unsafe.inject (Js.string "") |])
+
+  `value` on an input is a property, not a method. js_of_ocaml's
+  meth_call is `o[f].apply(o, args)` — the runtime source says so — so
+  this called the string the person had typed as a function. It throws
+  a TypeError: el.value is not a function.
+
+  The right call is an assignment, and the house already has it:
+
+    Js.Unsafe.set el "value" (Js.string "")
+
+  In the command palette the throw was masked: the palette is
+  controlled, so closing also cleared the query in the model, and the
+  re-render set the field's value on the way through. The throw was
+  real and it was in the close path, but the model got there first.
+
+  In the multi-select field it was not masked, and it was visible. The
+  close path runs its effects in order — close the list, report the
+  close, reset the panel, clear the box, and only then hand the focus
+  back to the trigger. The clear came before the focus restoration, so
+  the throw took the focus restoration with it: closing the list left
+  the focus nowhere instead of on the trigger, which is where the
+  keyboard has to be for the next thing.
+
+  This is the check that proves it. The browser gate now opens the
+  multi-select field with a search box, types a query, presses Escape,
+  and asserts that the focus is on the trigger when the list closes.
+  With the bug in place the gate reports:
+
+    FAIL closing hands the focus back to the trigger
+         {"value":"","focusIsTrigger":false,"active":"BUTTON"}
+
+  and with the fix it passes. The check was run against the broken
+  build as well as the fixed one, on purpose: a regression test that
+  has only ever been seen green is not a regression test.
+
+The showcase gave eight multi-select fields the same id
+
+  The component finds its own trigger, its own search box and its own
+  listbox by id, so that it can move the focus and clear the box. The
+  showcase had eight examples and none of them passed an id, so all
+  eight were called `astryx-multi-selector` and every lookup found the
+  first one. Two fields with the same id is invalid HTML, and it made
+  the component's own element lookups point at the wrong field.
+
+  Each example now has its own id. The first keeps the default, so the
+  gate's existing references still hold.
+
+The gate that was wrong
+
+  The browser gate's group-order check asserted the reversed order, so
+  it passed. That is the same shape of mistake the M86 record describes
+  for the popover's open attribute: the check was written against what
+  the code did, and what the code did was wrong. The check is now
+  written against what upstream does.
+
+What was not changed
+
+  The command palette's own "the field is controlled, so the model
+  clears the query anyway" behaviour is not what was wrong. The wrong
+  thing was a call that could not work, sitting in the close path.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            952 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  807/807 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is still finished.

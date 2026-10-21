@@ -141,7 +141,11 @@ let partition (items : item list) =
             if String.equal name group then (name, item :: group_items) :: rest else (name, group_items) :: add rest
         in
         groups := add !groups);
-  ( List.map (List.rev !groups) ~f:(fun (group, group_items) -> (group, List.rev group_items))
+  (* The groups are already in the order they first appeared in — [add] puts a
+     new group at the end — and the items within a group were pushed onto the
+     front, so they are reversed back here. Upstream keeps the groups in the
+     order they first appear in too, and that order is the index space. *)
+  ( List.map !groups ~f:(fun (group, group_items) -> (group, List.rev group_items))
   , List.rev !ungrouped )
 ;;
 
@@ -597,7 +601,10 @@ let view
         Effect.of_thunk (fun () ->
             match by_id input_id with
             | Some el ->
-              ignore (Js.Unsafe.meth_call el "value" [| Js.Unsafe.inject (Js.string "") |])
+              (* [value] is a property, not a method: setting it is an
+                 assignment. Calling it would be calling the string the person
+                 typed, and it would throw. *)
+              Js.Unsafe.set el "value" (Js.string "")
             | None -> ())
       in
       let close_effect =

@@ -719,6 +719,7 @@ Outline (live)
   ok   the commands are grouped, and the group names them
   ok   the highlighted row is named with aria-activedescendant
   ok   typing filters the commands
+  ok   closing clears the query from the field
   ok   the AppShell section renders
   ok   every example renders its own shell, and the root carries the house's marker
   ok   the content is the main landmark, with the id the skip link points at
@@ -748,6 +749,10 @@ Outline (live)
   ok   the arrow keys move the active option, and the listbox says which one it is
   ok   Enter toggles the option, and the row says it is selected
   ok   Escape closes the list
+  ok   the example with a search field opens its box
+  ok   the box holds the query the list filters on
+  ok   closing clears the query from the box
+  ok   closing hands the focus back to the trigger
   ok   the Stepper section renders
   ok   the stepper names its orientation, its density and its indicator position
   ok   the flow draws a step and a connector for each of the four steps
@@ -908,7 +913,7 @@ screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.pn
   ok   the editor offers the field's operators
   ok   the editor's value is a choice, for an enum operator
 
-802/802 checks passed, 0 failure(s)
+807/807 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

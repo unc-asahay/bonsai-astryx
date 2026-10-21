@@ -67,6 +67,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     [ ex_tree
         "Default"
         (Multi_selector.view
+           ~id:"astryx-multi-selector"
            ~label:"Columns"
            ~options:[ item "Name"; item "Email"; item "Role"; item "Status" ]
            ~value:default_value
@@ -75,6 +76,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "With search"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-searchable"
            ~label:"Permissions"
            ~has_search:true
            ~search_placeholder:"Search permissions..."
@@ -85,6 +87,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "Badges"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-badges"
            ~label:"Permissions"
            ~trigger_display:Multi_selector.Badges
            ~options:permissions
@@ -94,6 +97,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "Labels"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-labels"
            ~label:"Owner"
            ~trigger_display:Multi_selector.Labels
            ~options:people
@@ -103,6 +107,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "With clear button"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-clearable"
            ~label:"Permissions"
            ~has_clear:true
            ~options:permissions
@@ -112,6 +117,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "Disabled"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-disabled"
            ~label:"Permissions"
            ~is_disabled:true
            ~options:permissions
@@ -121,6 +127,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "Empty"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-empty"
            ~label:"Permissions"
            ~options:[]
            ~value:empty_value
@@ -129,6 +136,7 @@ let demo (graph : Bonsai.graph) : Vdom.Node.t Bonsai.t =
     ; ex_tree
         "Sections and dividers"
         (Multi_selector.view
+           ~id:"astryx-multi-selector-sections"
            ~label:"People"
            ~options:
              [ section_of ~title:"Pioneers" [ data "Ada Lovelace"; data "Grace Hopper" ]

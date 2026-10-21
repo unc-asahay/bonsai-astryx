@@ -4673,3 +4673,36 @@ same check, which is how it was found.
   sweep          SWEEP GREEN
 
 The coverage panel is 103 of 103, and the campaign is finished.
+
+---
+
+## Gate 98 — three defects in shipped components
+
+The campaign was finished when this batch came in, so most of what the
+worker reports said was stale. One of them claimed something specific
+about the shipped code, and that was worth checking rather than filing.
+
+The command palette's command groups were in the reverse of the order
+upstream keeps them in, and that order is the index space the keyboard
+walks and aria-activedescendant names. The browser gate had encoded the
+bug: it asserted the reversed order and passed.
+
+Two "clear the field" calls treated the input's `value` as a method.
+js_of_ocaml's meth_call is `o[f].apply(o, args)`, so it called the
+string the person had typed as a function and threw. The house's
+assignment is `Js.Unsafe.set`. In the multi-select field the throw came
+before the effect that hands the focus back to the trigger, so closing
+the list left the focus nowhere; the gate now asserts the focus is on
+the trigger, and the check was run against the broken build as well as
+the fixed one.
+
+The showcase gave eight multi-select fields the same id, so the
+component's own lookups — its trigger, its search box, its listbox —
+all found the first one. Each example has its own id now.
+
+  component      952 checks, 0 failures
+  browser        showcase 807/807, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN
+
+The full account is in docs/verification/commit-fix1.txt.

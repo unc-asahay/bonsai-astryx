@@ -5971,8 +5971,10 @@ check(
         JSON.stringify(shape));
       check("the field is expanded while the list is on the page",
         shape?.inputExpanded === "true", JSON.stringify(shape?.inputExpanded));
+      // The groups are in the order they first appeared in — upstream's
+      // groupOrder — and that order is the index space the keyboard walks.
       check("the commands are grouped, and the group names them",
-        shape?.groups?.join("|") === "Account|Navigation" && shape?.groupItems > 0,
+        shape?.groups?.join("|") === "Navigation|Account" && shape?.groupItems > 0,
         JSON.stringify({ groups: shape?.groups, groupItems: shape?.groupItems }));
       check("the highlighted row is named with aria-activedescendant",
         typeof shape?.active === "string" && shape.active.length > 0,
@@ -5991,6 +5993,21 @@ check(
       check("typing filters the commands",
         filtered?.items === 1 && filtered?.labels?.[0] === "Settings",
         JSON.stringify(filtered));
+
+      // The field is controlled, and closing has to clear the query with it:
+      // the palette would otherwise reopen showing the last query. Clearing
+      // the DOM's value is a property assignment, not a call — calling it
+      // would be calling the string the person typed.
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(250);
+      const cleared = await page.evaluate(() => {
+        const input = document.getElementById("showcase-command-palette-inline-input");
+        return { value: input?.value ?? null, expanded: input?.getAttribute("aria-expanded") ?? null };
+      });
+      // The inline palette is always open — the application says so — so the
+      // query is what Escape has to clear, not the open state.
+      check("closing clears the query from the field",
+        cleared?.value === "", JSON.stringify(cleared));
     }
   }
 
@@ -6347,6 +6364,56 @@ check(
       check("Escape closes the list",
         closed?.expanded === "false" && closed?.box === 0,
         JSON.stringify(closed));
+
+      // The list filters on what is in the box, so closing has to clear the
+      // box with it: a box that kept its text would filter on a query the
+      // person can no longer see. Clearing the DOM's value is a property
+      // assignment, not a call — calling it would be calling the string the
+      // person typed, and it would throw.
+      // The example with a search field: its box lives in the popover, so the
+      // trigger has to be found through the box rather than by position.
+      const msSearch = await page.evaluate(() => {
+        const input = document.getElementById("astryx-multi-selector-searchable-search");
+        const field = input?.closest(".astryx-field");
+        const trigger = field?.querySelector("button[aria-controls]");
+        trigger?.click();
+        return { id: input?.id ?? null, controls: trigger?.getAttribute("aria-controls") ?? null };
+      });
+      await page.waitForTimeout(400);
+      const msBox = await page.evaluate((id) => {
+        const el = id ? document.getElementById(id) : null;
+        return { visible: !!(el && (el.offsetParent || el.getClientRects().length)) };
+      }, msSearch.id);
+      check("the example with a search field opens its box",
+        msBox?.visible === true, JSON.stringify({ ...msSearch, ...msBox }));
+      if (msBox?.visible === true) {
+        await page.fill(`#${msSearch.id}`, "pro");
+        await page.waitForTimeout(250);
+        const typed = await page.evaluate((id) => ({
+          value: document.getElementById(id)?.value ?? null,
+        }), msSearch.id);
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(400);
+        const msCleared = await page.evaluate((id) => {
+          const el = id ? document.getElementById(id) : null;
+          const field = el?.closest(".astryx-field");
+          const trigger = field?.querySelector("button[aria-controls]");
+          return {
+            value: el?.value ?? null,
+            focusIsTrigger: document.activeElement === trigger,
+            active: document.activeElement?.tagName ?? null,
+          };
+        }, msSearch.id);
+        check("the box holds the query the list filters on",
+          typed?.value === "pro", JSON.stringify(typed));
+        check("closing clears the query from the box",
+          msCleared?.value === "", JSON.stringify(msCleared));
+        // Closing hands the focus back to the trigger, so the keyboard is
+        // where the person left it. The clearing of the box happens first,
+        // and it is the one that throws if it treats the value as a method.
+        check("closing hands the focus back to the trigger",
+          msCleared?.focusIsTrigger === true, JSON.stringify(msCleared));
+      }
     }
   }
 
