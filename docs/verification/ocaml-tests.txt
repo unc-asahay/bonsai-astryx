@@ -1124,6 +1124,17 @@ DialogHeader
   ok   a disabled field says so, and says why
   ok   a bounded field still shows the time it was given
   ok   the field announces the time it is showing, politely
+  ok   the document carries the house's component marker
+  ok   the document is a document landmark
+  ok   a heading is the house's heading
+  ok   a paragraph is a div with the paragraph role
+  ok   the inline pieces are the real elements
+  ok   the strike is drawn on its own span
+  ok   the lists are real lists
+  ok   the quote is a blockquote
+  ok   the link is an anchor with the destination
+  ok   the fenced code block records its language
+  ok   the house's code block override is used
   ok   the column carries the house's component marker
   ok   the column is a navigation landmark
   ok   the column has a body, and the section has a heading
@@ -1133,5 +1144,5 @@ DialogHeader
   ok   the column is collapsible, and says so
   ok   the column carries a separator with the value
 
-928 checks, 0 failure(s)
+939 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -13,3 +13,11 @@
  (libraries astryx bonsai bonsai_web)
  (preprocess
   (pps bonsai.ppx_bonsai js_of_ocaml-ppx)))
+
+(executable
+ (name markdown_probe)
+ (modules markdown_probe)
+ (modes js)
+ (libraries astryx bonsai bonsai_web virtual_dom js_of_ocaml)
+ (preprocess
+  (pps bonsai.ppx_bonsai js_of_ocaml-ppx)))

@@ -133,7 +133,7 @@ let add a b = a + b
   in
   Bonsai.map all ~f:(fun examples ->
       section
-        ~id:"showcase-markdown"
+        ~id:"markdown"
         ~title:"Markdown"
         ~note:
           "A markdown document: the block syntax, the inline syntax, the house's own heading, code and quote, and the house's link policy."

@@ -299,6 +299,7 @@ if (mode === "showcase") {
     "Table",
     "TimeInput",
     "SideNav",
+    "Markdown",
 
   ];
 
@@ -662,7 +663,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("103 sections", sections.length === 103, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("104 sections", sections.length === 104, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -773,13 +774,14 @@ if (mode === "showcase") {
     Table: 7,
     TimeInput: 7,
     SideNav: 4,
+    Markdown: 6,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("678 examples across the page", totalExamples === 678, `got ${totalExamples}`);
+  check("684 examples across the page", totalExamples === 684, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -793,7 +795,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("103 nav links", nav.length === 103, `got ${nav.length}`);
+  check("104 nav links", nav.length === 104, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4188,11 +4190,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 101 ported / 2 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["101", "2", "103"]),
+    "coverage stats are 102 ported / 1 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["102", "1", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 2 entries", cov.unported === 2, `got ${cov.unported}`);
+  check("unported list rendered 1 entries", cov.unported === 1, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7514,6 +7516,99 @@ if (mode === "showcase") {
   }
 }
 
+// ---------------------------------------------------------------- Markdown (M85)
+if (mode === "showcase") {
+  const mdSection = await page.$("section[data-showcase-component='Markdown']");
+  check("the Markdown section renders", mdSection !== null,
+    mdSection === null ? "not found" : "found");
+
+  if (mdSection) {
+    const shape = await page.evaluate(() => {
+      const docs = [...document.querySelectorAll("[data-astryx-component='Markdown']")];
+      const doc = docs[0];
+      const paragraphs = [...(doc?.querySelectorAll("[role='paragraph']") ?? [])];
+      const items = [...(doc?.querySelectorAll("li") ?? [])];
+      const anchors = [...(doc?.querySelectorAll("a") ?? [])];
+      const rejected = [...document.querySelectorAll("[data-astryx-component='Markdown']")]
+        .flatMap((d) => [...d.querySelectorAll("a")])
+        .filter((a) => (a.getAttribute("href") ?? "").startsWith("javascript:"));
+      const plainLink = anchors.find((a) => a.getAttribute("href")?.startsWith("https://"));
+      return {
+        docs: docs.length,
+        role: doc?.getAttribute("role") ?? null,
+        headings: [...(doc?.querySelectorAll("h1, h2, h3, h4, h5, h6") ?? [])].map((h) => h.tagName.toLowerCase()),
+        paragraphs: paragraphs.length,
+        strong: doc?.querySelectorAll("strong").length ?? 0,
+        emphasis: doc?.querySelectorAll("em").length ?? 0,
+        strike: doc?.querySelectorAll(".astryx-markdown__strike").length ?? 0,
+        inlineCode: doc?.querySelectorAll("code").length ?? 0,
+        unordered: doc?.querySelectorAll("ul").length ?? 0,
+        ordered: doc?.querySelectorAll("ol").length ?? 0,
+        items: items.length,
+        itemText: items.map((i) => i.textContent?.trim() ?? ""),
+        quote: doc?.querySelectorAll("blockquote").length ?? 0,
+        rule: doc?.querySelectorAll("hr").length ?? 0,
+        linkText: plainLink?.textContent?.trim() ?? null,
+        linkHref: plainLink?.getAttribute("href") ?? null,
+        linkTarget: plainLink?.getAttribute("target") ?? null,
+        linkRel: plainLink?.getAttribute("rel") ?? null,
+        rejectedLinks: rejected.length,
+        languages: [...document.querySelectorAll("[data-astryx-component='Markdown'] [data-astryx-language]")]
+          .map((e) => e.getAttribute("data-astryx-language")),
+        overrideUsed: document.querySelectorAll(".astryx-code-block").length,
+        classOnRoot: [...document.querySelectorAll("[data-astryx-component='Markdown']")]
+          .some((d) => d.className?.includes("astryx-markdown--narrow")),
+        imageAlt: [...document.querySelectorAll("[data-astryx-component='Markdown']")]
+          .flatMap((d) => [...d.querySelectorAll(".astryx-markdown__image-alt")])
+          .map((a) => a.textContent?.trim() ?? ""),
+      };
+    });
+
+    check("the document is a document landmark, and there is one of them",
+      shape?.docs >= 1 && shape?.role === "document", JSON.stringify(shape));
+    check("the headings are the house's headings, in order",
+      (shape?.headings ?? []).length >= 1 && (shape?.headings ?? [])[0] === "h1",
+      JSON.stringify(shape?.headings));
+    check("a paragraph is a div with the paragraph role",
+      (shape?.paragraphs ?? 0) >= 1, JSON.stringify(shape));
+    check("the inline pieces are the real elements",
+      (shape?.strong ?? 0) >= 1 && (shape?.emphasis ?? 0) >= 1
+        && (shape?.strike ?? 0) >= 1 && (shape?.inlineCode ?? 0) >= 1,
+      JSON.stringify(shape));
+    check("the lists are real lists, with their items",
+      (shape?.unordered ?? 0) >= 1 && (shape?.ordered ?? 0) >= 1
+        && (shape?.items ?? 0) >= 4, JSON.stringify(shape));
+    check("the quote is a blockquote, and the break is a rule",
+      (shape?.quote ?? 0) >= 1 && (shape?.rule ?? 0) >= 1, JSON.stringify(shape));
+    check("the link is an anchor, and an external one opens in a new tab",
+      (shape?.linkText ?? "").includes("link to the house")
+        && (shape?.linkHref ?? "").startsWith("https://")
+        && shape?.linkTarget === "_blank"
+        && (shape?.linkRel ?? "").includes("noopener"),
+      JSON.stringify(shape));
+    check("a destination the policy rejects never becomes a link",
+      (shape?.rejectedLinks ?? 0) === 0, JSON.stringify(shape));
+    check("the fenced code block records its language",
+      (shape?.languages ?? []).includes("ocaml"), JSON.stringify(shape?.languages));
+    check("the house's code block override is used",
+      (shape?.overrideUsed ?? 0) >= 1, JSON.stringify(shape));
+    check("the class the caller adds reaches the root",
+      shape?.classOnRoot === true, JSON.stringify(shape));
+
+    // The link that reports where it goes: a real click.
+    const readoutBefore = await page.evaluate(() =>
+      document.querySelector("#showcase-markdown-link-readout")?.textContent?.trim() ?? null);
+    await page.click("section#markdown .ex:has(#showcase-markdown-link-readout) a[href^='https://github.com']");
+    await page.waitForTimeout(300);
+    const readoutAfter = await page.evaluate(() =>
+      document.querySelector("#showcase-markdown-link-readout")?.textContent?.trim() ?? null);
+    check("the click handler is told where the link goes",
+      readoutBefore === "no link was activated"
+        && (readoutAfter ?? "").includes("github.com/unc-asahay/bonsai-astryx"),
+      JSON.stringify({ before: readoutBefore, after: readoutAfter }));
+  }
+}
+
 // ---------------------------------------------------------------- SideNav (M84)
 if (mode === "showcase") {
   const navSection = await page.$("section[data-showcase-component='SideNav']");
@@ -7608,7 +7703,19 @@ if (mode === "showcase") {
       separator.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
       return { before, after: separator.getAttribute("aria-valuenow") };
     });
-    await page.waitForTimeout(200);
+    // The value is applied by the effect, which lands after the key event, so
+    // wait for it rather than for a fixed span of time.
+    await page
+      .waitForFunction(
+        () => {
+          const separator = document.querySelector("#showcase-side-nav-resizable [role='separator']");
+          const value = separator?.getAttribute("aria-valuenow");
+          return value !== null && Number(value) > 240;
+        },
+        null,
+        { timeout: 3000 },
+      )
+      .catch(() => {});
     const resizedAfter = await page.evaluate(() => {
       const separator = document.querySelector("#showcase-side-nav-resizable [role='separator']");
       return separator?.getAttribute("aria-valuenow") ?? null;

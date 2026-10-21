@@ -67,7 +67,7 @@ echo "=== 2b. the numeric probes (the parsers and the arithmetic) ==="
   echo
 } > docs/verification/probes.txt
 rc_probes=0
-for probe in plain_date_probe time_input_probe; do
+for probe in plain_date_probe time_input_probe markdown_probe; do
   echo "## $probe" >> docs/verification/probes.txt
   timeout 120 node "_build/default/test/probe/$probe.bc.js" >> docs/verification/probes.txt 2>&1
   rc=$?
@@ -196,7 +196,7 @@ tail -3 docs/verification/mcp-stdio.txt
 echo
 echo "=== sweep result ==="
 note "$rc_component" "component tests (test/run.mjs)"
-note "$rc_probes" "numeric probes (plain_date, time_input)"
+note "$rc_probes" "numeric probes (plain_date, time_input, markdown)"
 note "$rc_dom" "DOM + accessibility (verify-dom.mjs)"
 note "$rc_showcase" "real browser, showcase (verify-browser.mjs)"
 note "$rc_demo" "real browser, demo (verify-browser.mjs)"

@@ -5224,3 +5224,68 @@ let () =
       side_nav_component
   in
   mount "side-nav-all" (Bonsai_web_test.Handle.last_result handle)
+
+(* ---------------------------------------------------------------- Markdown *)
+(* A markdown document: the block syntax, the inline syntax, and the house's
+   own heading, code and quote inside it. *)
+let markdown_component _graph =
+  let source =
+    {|
+# A heading
+
+A paragraph with **strong text**, *emphasis*, ~~strikethrough~~ and
+`inline code`. A [link](https://example.com/docs).
+
+- A first item
+- A second item
+
+1. The first step
+2. The second step
+
+> A block quote.
+
+```
+let add a b = a + b
+```
+|}
+  in
+  let trees =
+    [ Bonsai.return
+        (Astryx.Markdown.view
+           ~id:"rt-markdown"
+           ~source
+           ())
+    ; Bonsai.return
+        (Astryx.Markdown.view
+           ~id:"rt-markdown-with-code"
+           ~code_block:(fun { code; language } ->
+             Vdom.Node.div
+               ~attrs:
+                 [ Vdom.Attr.class_ "astryx-code-block"
+                 ; Vdom.Attr.create "data-astryx-language"
+                   (Option.value language ~default:"text")
+                 ]
+               [ Vdom.Node.pre
+                   ~attrs:[ Vdom.Attr.class_ "astryx-code-block__pre" ]
+                   [ Vdom.Node.code ~attrs:[] [ Vdom.Node.text code ] ] ])
+           ~source:"```ocaml\nlet add a b = a + b\n```\n"
+           ())
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "markdown-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      markdown_component
+  in
+  mount "markdown-all" (Bonsai_web_test.Handle.last_result handle)

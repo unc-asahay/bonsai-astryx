@@ -4614,3 +4614,29 @@ a console warning. The column's parts are graphs, because the items are.
   browser        showcase 774/774, demo 25/25
   responsive     66/66
   sweep          SWEEP GREEN
+
+### Gate 96 — M85 Markdown
+
+The markdown document renders a source string: ATX headings, paragraphs,
+fenced code, block quotes, ordered and unordered lists and thematic breaks;
+strong, emphasis, strikethrough, inline code, links and image alt text.
+The heading, the code, the quote and the link are the house's own, so the
+URL policy is the house's policy.
+
+The parser dropped every block after the first paragraph, because the
+block that stopped at the next block's first line returned nothing rather
+than the lines that belong to it. A link never closed, because the bracket
+matching tested the depth before it decremented it. The list parser hung:
+the indentation of a line kept taking the index of every later character
+that was not a space, and dropping the indent advanced neither counter when
+the line did not begin with whitespace. A bullet list and a numbered list
+were one list. A fence's info string was read one character too far, so
+"ocaml" said "caml".
+
+The parser now has a probe of its own, so a parser that loops fails the
+gate rather than hanging it.
+
+  component      939 checks, 0 failures
+  browser        showcase 787/787, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN

@@ -1,0 +1,57 @@
+Gate 96 — M85 Markdown (coverage 101 → 102)
+
+The markdown document renders a source string: the block syntax (ATX
+headings, paragraphs, fenced code, block quotes, ordered and unordered
+lists, thematic breaks) and the inline syntax (strong, emphasis,
+strikethrough, inline code, links and image alt text). The heading is the
+house's own heading, the inline code and the code block are the house's
+code, the quote is the house's quote, and a link is the house's link, so
+the URL policy — what may be followed, and how an external destination
+opens — is the house's policy and not a second one.
+
+The port is upstream's Markdown, scoped to what the interface says. The
+scope, and what is deliberately not ported (tables, images, task lists,
+character references, math, citations, the plugin pipeline, autolinking,
+streaming and heading permalinks), are in the interface.
+
+The bugs this milestone found
+
+  * The parser dropped every block after the first paragraph. The
+    paragraph, the quote and the list each stopped at the first line that
+    started another block, and returned nothing rather than the lines that
+    belong to that block, so the rest of the document was never read. The
+    browser gate found it: the document rendered a heading and a
+    paragraph and then stopped.
+
+  * A link never closed. The bracket matching decremented the depth
+    before it tested it, so the closing bracket never matched and every
+    link stayed as literal text.
+
+  * The list parser hung. The indentation of a line kept taking the
+    index of every later character that was not a space, so "- A second
+    item" measured two, and the parser took the next item for a
+    continuation of the first. Dropping the indent also spun when the
+    line did not begin with whitespace: it advanced neither counter, and
+    the parser never returned. The component test hung with it. The
+    parser is now exercised by a probe of its own, so a parser that
+    loops fails the gate instead of hanging it.
+
+  * A bullet list and a numbered list separated by a blank line were one
+    list, so the numbered list never appeared. The two kinds are told
+    apart now.
+
+  * The fence's info string was read one character too far, so a fence
+    that said "ocaml" said "caml".
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            939 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  787/787 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN

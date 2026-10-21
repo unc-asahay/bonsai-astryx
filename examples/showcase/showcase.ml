@@ -5707,6 +5707,7 @@ let nav_items =
   ; "table", "Table"
   ; "time-input", "TimeInput"
   ; "side-nav", "SideNav"
+  ; "markdown", "Markdown"
   ]
 ;;
 

@@ -71,3 +71,5 @@ out of range 08:00                             got=false          want=false    
 in range, no bounds                            got=true           want=true           ok
 
 all time input checks passed
+## markdown_probe
+17 checks, 0 failure(s)

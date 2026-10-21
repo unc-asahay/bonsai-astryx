@@ -943,6 +943,13 @@
       "file": "src/side_nav.ml",
       "milestone": "M84",
       "module": "Astryx.side_nav"
+    },
+    {
+      "class": "C",
+      "component": "Markdown",
+      "file": "src/markdown.ml",
+      "milestone": "M85",
+      "module": "Astryx.markdown"
     }
   ],
   "schema": 1,

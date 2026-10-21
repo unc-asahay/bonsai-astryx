@@ -4553,6 +4553,70 @@ check("a disabled group says so once, on the box", (() => {
   check("the field announces the time it is showing, politely",
     field?.querySelector("[role='status']") !== null,
     JSON.stringify({ live: field?.querySelector("[role='status']") !== null }));
+  // ---------------------------------------------------------------- Markdown
+  const mdHost = document.querySelector('[data-case="markdown-all"]');
+  const mdDocs = [...(mdHost?.querySelectorAll("[data-astryx-component='Markdown']") ?? [])];
+  const mdDoc = mdDocs[0];
+
+  check("the document carries the house's component marker",
+    mdDoc?.getAttribute("data-astryx-component") === "Markdown",
+    JSON.stringify({ component: mdDoc?.getAttribute("data-astryx-component") }));
+
+  check("the document is a document landmark",
+    mdDoc?.getAttribute("role") === "document",
+    JSON.stringify({ role: mdDoc?.getAttribute("role") }));
+
+  check("a heading is the house's heading",
+    (mdDoc?.querySelectorAll("h1, h2, h3, h4, h5, h6").length ?? 0) >= 1,
+    JSON.stringify({ headings: mdDoc?.querySelectorAll("h1, h2, h3, h4, h5, h6").length ?? 0 }));
+
+  check("a paragraph is a div with the paragraph role",
+    mdDoc?.querySelector("[role='paragraph']") !== null,
+    JSON.stringify({ paragraph: mdDoc?.querySelector("[role='paragraph']") !== null }));
+
+  check("the inline pieces are the real elements",
+    (mdDoc?.querySelectorAll("strong").length ?? 0) >= 1
+      && (mdDoc?.querySelectorAll("em").length ?? 0) >= 1
+      && (mdDoc?.querySelectorAll("code").length ?? 0) >= 1,
+    JSON.stringify({
+      strong: mdDoc?.querySelectorAll("strong").length ?? 0,
+      em: mdDoc?.querySelectorAll("em").length ?? 0,
+      code: mdDoc?.querySelectorAll("code").length ?? 0,
+    }));
+
+  check("the strike is drawn on its own span",
+    (mdDoc?.querySelectorAll(".astryx-markdown__strike").length ?? 0) >= 1,
+    JSON.stringify({ strike: mdDoc?.querySelectorAll(".astryx-markdown__strike").length ?? 0 }));
+
+  check("the lists are real lists",
+    (mdDoc?.querySelectorAll("ul").length ?? 0) >= 1
+      && (mdDoc?.querySelectorAll("ol").length ?? 0) >= 1
+      && (mdDoc?.querySelectorAll("ul li, ol li").length ?? 0) >= 3,
+    JSON.stringify({
+      ul: mdDoc?.querySelectorAll("ul").length ?? 0,
+      ol: mdDoc?.querySelectorAll("ol").length ?? 0,
+      items: mdDoc?.querySelectorAll("ul li, ol li").length ?? 0,
+    }));
+
+  check("the quote is a blockquote",
+    (mdDoc?.querySelectorAll("blockquote").length ?? 0) >= 1,
+    JSON.stringify({ quote: mdDoc?.querySelectorAll("blockquote").length ?? 0 }));
+
+  check("the link is an anchor with the destination",
+    mdDoc?.querySelector("a")?.getAttribute("href") === "https://example.com/docs",
+    JSON.stringify({ href: mdDoc?.querySelector("a")?.getAttribute("href") }));
+
+  check("the fenced code block records its language",
+    mdHost?.querySelector("[data-astryx-language='ocaml']") !== null,
+    JSON.stringify({
+      languages: [...(mdHost?.querySelectorAll("[data-astryx-language]") ?? [])]
+        .map((e) => e.getAttribute("data-astryx-language")),
+    }));
+
+  check("the house's code block override is used",
+    (mdHost?.querySelectorAll(".astryx-code-block").length ?? 0) >= 1,
+    JSON.stringify({ codeBlocks: mdHost?.querySelectorAll(".astryx-code-block").length ?? 0 }));
+
   // ---------------------------------------------------------------- SideNav
   const snHost = document.querySelector('[data-case="side-nav-all"]');
   const snColumns = [...(snHost?.querySelectorAll("[data-astryx-component='SideNav']") ?? [])];

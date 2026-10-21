@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 101,
-    "unported": 2,
+    "ported": 102,
+    "unported": 1,
     "total": 103,
     "documented": 103
   },
@@ -330,6 +330,12 @@
       "milestone": "M45"
     },
     {
+      "name": "Markdown",
+      "module": "Astryx.markdown",
+      "file": "src/markdown.ml",
+      "milestone": "M85"
+    },
+    {
       "name": "MetadataList",
       "module": "Astryx.MetadataList",
       "file": "src/metadata_list.ml",
@@ -619,7 +625,6 @@
     }
   ],
   "unported": [
-    "Markdown",
     "PowerSearch"
   ],
   "inconsistency": null
