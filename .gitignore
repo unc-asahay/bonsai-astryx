@@ -1,5 +1,9 @@
 # OCaml
 _build/
+# the release build of the showcase bundle, used by the Pages workflow
+_build_release/
+# the assembled publish tree
+_pages/
 *.install
 *.merlin
 .merlin

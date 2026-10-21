@@ -1,0 +1,14 @@
+parsed 105 sections, 689 examples
+  expectedExamples: 105 entries
+  examples total: 689
+  sections: 105
+  nav links: 105
+  coverage stats: 103 ported / 0 not / 103 total
+  regenerated site/coverage.json
+  README ported: ✅ 103 of 103 ported
+  README component checks: ✅ 952 checks, 0 failures | `node test/run.mjs`
+  README browser checks: ✅ 813 checks, 0 failures | `node tools/visual/verify-browser
+  README milestones: ✅ 103 of 103 ported (M1–M86)
+  README showcase row: all 103 ported components + DialogHeader + InputGroupText + 
+  README coverage row: ✅ 103 / 0 / 103 | `node tools/site/gen-coverage.mjs`
+  browser checks seen in transcript: 813

@@ -35,6 +35,34 @@ ALIASES = {
 }
 
 
+def milestones_in_history():
+    """The milestone span the history covers, e.g. "M1–M86".
+
+    A milestone is a commit whose subject names it. The subject may
+    lead with it ("M86 PowerSearch: ...") or carry a repository-name
+    prefix ("bonsai-astryx M7: ..."), and the numbering has gaps
+    because some numbers were never used, so the span is reported
+    rather than the set.
+
+    Hand-keeping this in the README was wrong twice: it stopped at M65
+    while the campaign ran to M86, and nothing caught it.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "log", "--pretty=%s", "master"],
+            cwd=ROOT, capture_output=True, text=True, timeout=30,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    numbers = []
+    for subject in out.splitlines():
+        for m in re.finditer(r"(?:^|[^A-Za-z0-9])M(\d+)\b", subject):
+            numbers.append(int(m.group(1)))
+    if not numbers:
+        return None
+    return f"M1–M{max(numbers)}"
+
+
 def parse_sections(text):
     """The gate prints one line of `Name:count` pairs for the whole page."""
     sections = {}
@@ -201,10 +229,26 @@ def main():
         print(f"  README {what}: {mm.group(0)[:60]}")
         return text_[: mm.start()] + repl + text_[mm.end() :]
 
-    r = sub(r"🚧 \d+ of \d+ ported", f"🚧 {ported_count} of {total_components} ported", "ported", r)
+    # A finished port is not a work in progress, and the marker was left
+    # behind by the last hand-edit that set the count to 103.
+    mark = "✅" if ported_count == total_components else "🚧"
+    r = sub(r"[🚧✅] \d+ of \d+ ported", f"{mark} {ported_count} of {total_components} ported", "ported", r)
     if component_checks:
         r = sub(r"✅ \d+ checks, 0 failures \| `node test/run\.mjs`",
                 f"✅ {component_checks} checks, 0 failures | `node test/run.mjs`", "component checks", r)
+    # The browser gate's count was hand-written once and went stale the moment a
+    # gate was added. It is read from the transcript like every other count.
+    if browser_checks:
+        r = sub(r"✅ \d+ checks, 0 failures \| `node tools/visual/verify-browser\.mjs",
+                f"✅ {browser_checks} checks, 0 failures | `node tools/visual/verify-browser.mjs",
+                "browser checks", r)
+    # The milestone list is the set of M-numbers in the history, written as
+    # ranges. Hand-keeping it was wrong twice: it stopped at M65 while the
+    # campaign ran to M86, and nothing caught it.
+    milestones = milestones_in_history()
+    if milestones:
+        r = sub(r"[🚧✅] \d+ of \d+ ported \([^)]*\)",
+                f"{mark} {ported_count} of {total_components} ported ({milestones})", "milestones", r)
     r = sub(r"all \d+ ported components \+ DialogHeader \+ InputGroupText \+ MetadataListItem \+ the layer mechanism, \d+ examples, \d+ sections",
             f"all {ported_count} ported components + DialogHeader + InputGroupText + MetadataListItem + the layer mechanism, {total_examples} examples, {len(sections)} sections",
             "showcase row", r)

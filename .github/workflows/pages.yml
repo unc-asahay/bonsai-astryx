@@ -1,0 +1,123 @@
+# Publish the showcase site to GitHub Pages.
+#
+# What this workflow had to get right, and why:
+#
+#   * The published page must be the page the browser gate tested. The page
+#     says "../assets/components.css" and "../_build/default/...", so the
+#     published tree mirrors the repository root rather than being a
+#     rewritten copy of the site. tools/publish-tree.sh assembles it and
+#     fails if the tree does not satisfy what the page asks for.
+#
+#   * The bundle is built in RELEASE mode. The development bundle is 51 MB,
+#     which is a 51 MB download for every visitor and a waste of a Pages
+#     site's monthly bandwidth; the release bundle is 1.9 MB. Both are the
+#     same program, and the browser gate is run against the release bundle
+#     before it is published, so the smaller one is not a different thing.
+#
+#   * The opam switch is ~200 preview packages and takes a long time to
+#     build from scratch, so the switch is cached. The Jane Street preview
+#     packages are not in opam.ocaml.org, so the opam repository has to be
+#     added explicitly and `opam show` asserted immediately — otherwise a
+#     repository problem surfaces three steps later as "no package named
+#     bonsai_web found". See CONTRIBUTING.md and the ci workflow.
+#
+#   * The responsive/visual-regression gate is NOT run here: its baseline is
+#     a set of PNGs captured on one machine, and font rasterisation differs
+#     between machines, so this runner would fail it for a reason that is
+#     not a regression. The gates that run here assert structure, ARIA,
+#     measured sizes and keyboard/focus behaviour, which do not depend on
+#     the machine.
+
+name: pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install JS dependencies (jsdom, playwright, the Temporal polyfill)
+        run: corepack enable && pnpm install --frozen-lockfile
+
+      - name: Set up OCaml 5.2.1
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.2.1"
+          opam-pin: false
+
+      - name: Cache the opam switch and repositories
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam
+          key: opam-${{ runner.os }}-ocaml-5.2.1-dune-3.23.1
+          restore-keys: opam-${{ runner.os }}-ocaml-5.2.1-
+
+      - name: Add Jane Street's opam repository
+        run: |
+          opam repo add janestreet https://github.com/janestreet/opam-repository.git --rank=1 --all-switches
+          opam update janestreet
+          # Fail here, at the repository, rather than later at "No package named bonsai_web".
+          opam show bonsai_web --field=version
+
+      - name: Install dependencies
+        run: |
+          opam install -y dune.3.23.1
+          opam install -y bonsai_web bonsai_web_components bonsai_web_test ppx_html js_of_ocaml
+
+      - name: Build the showcase bundle in release mode
+        run: opam exec -- dune build --profile release --build-dir _build_release examples/showcase/showcase.bc.js
+
+      - name: Put the release bundle where the page asks for it, and serve the repository
+        run: |
+          # The published bundle is the release build, so the release build is
+          # what gets tested. The page asks for ../_build/default/..., so the
+          # bundle is copied to that path before the gate runs.
+          mkdir -p _build/default/examples/showcase
+          cp _build_release/default/examples/showcase/showcase.bc.js \
+             _build/default/examples/showcase/showcase.bc.js
+          python3 -m http.server 8791 --bind 127.0.0.1 &
+          for _ in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8791/site/index.html && exit 0
+            sleep 1
+          done
+          echo "the static server never served /site/index.html" && exit 1
+
+      - name: "Browser gate (Chromium: ARIA, measured sizes, keyboard and focus)"
+        run: opam exec -- node tools/visual/verify-browser.mjs http://127.0.0.1:8791/site/index.html
+
+      - name: Assemble the publish tree
+        run: bash tools/publish-tree.sh
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

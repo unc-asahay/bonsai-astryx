@@ -194,6 +194,15 @@ rc_mcp_attr=$?
 tail -3 docs/verification/mcp-stdio.txt
 
 echo
+# The README's counts are read out of the transcripts this sweep just wrote,
+# so they are synced here rather than by hand. They were hand-written once
+# and went stale twice: the browser gate's count, and the milestone list.
+echo "=== the README's counts ==="
+python3 tools/sync-counts.py docs/verification/browser-verify.txt > docs/verification/sync-counts.txt 2>&1
+rc_sync=$?
+tail -4 docs/verification/sync-counts.txt
+
+echo
 echo "=== sweep result ==="
 note "$rc_component" "component tests (test/run.mjs)"
 note "$rc_probes" "numeric probes (plain_date, time_input, markdown)"
@@ -204,6 +213,7 @@ note "$rc_responsive" "responsive + visual regression (verify-responsive.mjs)"
 note "$rc_mcp_status" "MCP layer (--cli status)"
 note "$rc_mcp_truth" "MCP layer (every ported component truthfully reachable)"
 note "$rc_mcp_attr" "port.json (every entry names its own file and module)"
+note "$rc_sync" "README and gate counts synchronized"
 
 echo
 echo "=== transcript line counts ==="
