@@ -1,0 +1,129 @@
+/* Table — a semantic data table: a header row, body rows, and the densities.
+
+   Ported from upstream's Table styles (table.stylex.ts, TableCell.tsx,
+   TableRow.tsx, TableHeaderCell.tsx). The values are the design tokens, not
+   literals. */
+
+.astryx-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+  background-color: var(--color-background-surface);
+  text-align: start;
+}
+
+/* The header row: a quiet surface, a hairline under it, and the label
+   typography. */
+.astryx-table__header-cell {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: var(--text-label-weight);
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-muted);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.astryx-table__cell {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+/* The last row's cells drop their hairline, so the table ends on the
+   surface rather than on a rule. */
+.astryx-table__row:last-child .astryx-table__cell,
+.astryx-table__row:last-child .astryx-table__header-cell {
+  border-block-end: 0;
+}
+
+.astryx-table__cell--start {
+  text-align: start;
+}
+
+.astryx-table__cell--center {
+  text-align: center;
+}
+
+.astryx-table__cell--end {
+  text-align: end;
+}
+
+/* The row header heads its row rather than belonging to a column, so it
+   reads as a label and not as data. */
+.astryx-table__cell--row-header {
+  font-weight: var(--text-body-weight);
+  color: var(--color-text-primary);
+}
+
+/* The selection column is a narrow strip of controls: it is sized by its
+   content and never shares the column widths with the data. */
+.astryx-table__cell--selection {
+  width: 1%;
+  white-space: nowrap;
+  padding-inline: var(--spacing-3);
+}
+
+.astryx-table__row--selected .astryx-table__cell {
+  background-color: var(--color-background-muted);
+}
+
+/* The sort control is a real button, so it needs the button reset: the
+   header cell already carries the typography. */
+.astryx-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.astryx-table__sort:focus-visible {
+  outline-width: var(--focus-outline-width);
+  outline-style: var(--focus-outline-style);
+  outline-color: var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ---------------------------------------------------------------- density */
+
+.astryx-table--compact .astryx-table__cell,
+.astryx-table--compact .astryx-table__header-cell {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-table--balanced .astryx-table__cell,
+.astryx-table--balanced .astryx-table__header-cell {
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.astryx-table--spacious .astryx-table__cell,
+.astryx-table--spacious .astryx-table__header-cell {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+/* -------------------------------------------------------- sticky header */
+
+/* The header row stays put inside the nearest scrolling ancestor. The
+   surface is painted on the cell, so the rows scrolling underneath do not
+   show through it. */
+.astryx-table--sticky-header .astryx-table__header-cell {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+}

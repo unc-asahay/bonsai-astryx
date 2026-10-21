@@ -152,3 +152,4 @@ module Code_block = Code_block
 module Chat = Chat
 module Bottom_sheet = Bottom_sheet
 module Date_input = Date_input
+module Table = Table
