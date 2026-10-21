@@ -1,0 +1,90 @@
+Gate 97 — M86 PowerSearch (coverage 102 → 103, and the last one)
+
+The power search is one box that does two jobs: it takes the text you
+type, and it takes the filters that are set. The filters sit in the box
+as chips; the text goes into the same box. Typing a field's name opens
+the list of fields, and choosing one opens an editor for that filter's
+value, so a search ends up being a list of structured filters rather
+than a sentence.
+
+The component is controlled. The application holds the filters and hands
+them over; every change — a filter added, a filter removed, a value
+edited — is reported to the application, and the application decides what
+the new list is. Nothing is held privately.
+
+The port is upstream's PowerSearch, scoped to what the interface says.
+The scope, and what is deliberately not ported, are in the interface.
+
+The two house components it is built from
+
+  * The box is the house Tokenizer. Upstream composes the same three
+    pieces — a field, a typeahead and a token — and the house already
+    has a Tokenizer that is a token row and a combobox input in one
+    box, so the combobox contract is the house's and not a second one.
+
+  * The editor is a house Popover, and it is not a dialog. That is
+    upstream's own note: the popup's listbox is the exposed semantics,
+    and the focus stays on the input. The house Popover is the
+    platform's popover, so Escape and a click outside dismiss it and
+    report back to the application, and the surface is shown with
+    showPopover().
+
+The one house change this needed
+
+  * The house Tokenizer gained an optional click on a chip. Upstream
+    opens the editor from a token, and the house Tokenizer had no way to
+    say that a chip had been clicked — the house Token, underneath it,
+    already could, so the change is one optional argument forwarded
+    down. It is additive: nothing that used the Tokenizer before is
+    affected.
+
+What this milestone found
+
+  * The compiler does not use the .mli when it compiles the .ml. A
+    two-file experiment showed it: an implementation that contradicted
+    its own interface compiled without complaint, and the mismatch only
+    appeared when the interface was checked. Every public type is
+    therefore declared in both files, which is what the house does
+    anyway.
+
+  * The popover's trigger and its content are plain nodes, not trees, so
+    the trees have to be unwrapped before the popover is built. The
+    editor is the awkward part: its value depends on what is being
+    edited, and a state setter in this Bonsai is a tree rather than a
+    plain function, so the editor's contents, the operator's list and
+    the two buttons are three trees that have to be combined and read
+    back before a node can be built. Every one of them had to be
+    unwrapped in the right place, and the compiler's complaint each
+    time was a different one.
+
+  * The browser gate asserted that the editor's surface carries the
+    open attribute. The house's popover is the platform's, and the
+    platform does not set that attribute when it opens a popover: what
+    says it is open is the :popover-open pseudo-class, and the
+    stylesheet reads that, not the attribute. The check was wrong, not
+    the code — and the house's own popovers failed the same check, which
+    is how it was found.
+
+  * A record of the filters in the component test needed a type
+    ascription. The compiler cannot tell which record a bare
+    { field = ...; operator = ... } is until something says so.
+
+  * dune build @runtest does not build the test bundle, so it is not a
+    way to find out whether the component test compiles. A green
+    @runtest once hid an implementation that did not compile at all;
+    the test bundle is built by name now.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            952 checks, 0 failures
+  probes         plain_date_probe, time_input_probe, markdown_probe —
+                   all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  802/802 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is finished.

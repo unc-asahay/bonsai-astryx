@@ -664,7 +664,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("104 sections", sections.length === 104, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("105 sections", sections.length === 105, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -783,7 +783,7 @@ if (mode === "showcase") {
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("684 examples across the page", totalExamples === 684, `got ${totalExamples}`);
+  check("688 examples across the page", totalExamples === 688, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -797,7 +797,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("104 nav links", nav.length === 104, `got ${nav.length}`);
+  check("105 nav links", nav.length === 105, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4192,11 +4192,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 102 ported / 1 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["102", "1", "103"]),
+    "coverage stats are 103 ported / 0 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["103", "0", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 1 entries", cov.unported === 1, `got ${cov.unported}`);
+  check("unported list rendered 0 entries", cov.unported === 0, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7759,7 +7759,9 @@ if (mode === "showcase") {
         listboxHidden: listbox?.hasAttribute("hidden") ?? null,
         surfaceRole: surface?.getAttribute("role") ?? null,
         surfaceLabel: surface?.getAttribute("aria-label") ?? null,
-        surfaceOpen: surface?.hasAttribute("open") ?? null,
+        // The house's popover is the platform's: it is shown with showPopover(), so
+        // what says it is open is the :popover-open pseudo-class, not an attribute.
+        surfaceOpen: surface?.matches(":popover-open") ?? null,
         setChips: [...(set?.querySelectorAll(".astryx-token__label") ?? [])]
           .map((e) => e.textContent?.trim() ?? ""),
         setHasRemove: set?.querySelector("[aria-label^='Remove']") !== null,
@@ -7780,7 +7782,8 @@ if (mode === "showcase") {
     check("the editor is closed until a filter is being edited",
       shape.surfaceOpen === false, JSON.stringify({ open: shape.surfaceOpen }));
     check("the filters that are set are chips that name the field and the value",
-      shape.setChips.includes("Status: is Archived") && shape.setChips.includes("Name: is ada"),
+      shape.setChips.includes("Status: is Archived")
+        && shape.setChips.includes("Team: in Design, Support"),
       JSON.stringify({ chips: shape.setChips }));
     check("a chip can be taken off", shape.setHasRemove === true,
       JSON.stringify({ remove: shape.setHasRemove }));
@@ -7822,7 +7825,7 @@ if (mode === "showcase") {
       await page.waitForFunction(() => {
         const surface = document.querySelector(
           "section[data-showcase-component='PowerSearch'] [popover='auto']");
-        return surface !== null && surface.hasAttribute("open");
+        return surface !== null && surface.matches(":popover-open");
       }, null, { timeout: 5000 }).catch(() => {});
     }
 
@@ -7831,7 +7834,7 @@ if (mode === "showcase") {
         "section[data-showcase-component='PowerSearch'] [popover='auto']");
       const content = surface?.querySelector(".astryx-popover__content") ?? null;
       return {
-        open: surface?.hasAttribute("open") ?? null,
+        open: surface?.matches(":popover-open") ?? null,
         hasEditor: content?.querySelector(".astryx-power-search__editor") !== null,
         operator: [...(content?.querySelectorAll(
           ".astryx-power-search__editor-operator select option") ?? [])]

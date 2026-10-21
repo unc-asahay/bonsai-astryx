@@ -950,6 +950,13 @@
       "file": "src/markdown.ml",
       "milestone": "M85",
       "module": "Astryx.markdown"
+    },
+    {
+      "class": "C",
+      "component": "PowerSearch",
+      "file": "src/power_search.ml",
+      "milestone": "M86",
+      "module": "Astryx.power_search"
     }
   ],
   "schema": 1,

@@ -4640,3 +4640,36 @@ gate rather than hanging it.
   browser        showcase 787/787, demo 25/25
   responsive     66/66
   sweep          SWEEP GREEN
+
+## Gate 97 — M86 PowerSearch (coverage 102 → 103, and the last one)
+
+The power search is one box that does two jobs: it takes the text you
+type, and it takes the filters that are set. The filters sit in the box
+as chips; the text goes into the same box. Typing a field's name opens
+the list of fields, and choosing one opens an editor for that filter's
+value.
+
+The component is controlled: the application holds the filters and every
+change is reported to it.
+
+The box is the house Tokenizer and the editor is a house Popover that is
+not a dialog, which is upstream's own note. The house Tokenizer gained
+one optional argument — a click on a chip — because upstream opens the
+editor from a token and the house Tokenizer had no way to say so. The
+change is additive.
+
+The compiler does not use the .mli when it compiles the .ml, so every
+public type is declared in both files. The popover's trigger and content
+are plain nodes rather than trees, so the editor's three trees have to
+be unwrapped in the right places to build a node. The browser gate's
+assertion that the editor's surface carries the open attribute was
+wrong: the house's popover is the platform's, and what says it is open
+is the :popover-open pseudo-class. The house's own popovers failed the
+same check, which is how it was found.
+
+  component      952 checks, 0 failures
+  browser        showcase 802/802, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN
+
+The coverage panel is 103 of 103, and the campaign is finished.

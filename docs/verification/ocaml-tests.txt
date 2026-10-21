@@ -166,6 +166,12 @@ You attempted to schedule an [on_mount] task somewhere other than within a [with
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
+You attempted to schedule an [on_mount] task somewhere other than within a [with_on_mount_at_end] call, which is not allowed, so the task will not be scheduled. This is usually caused by running [Vdom.Node.to_dom] or [Vdom.Node.Patch.apply] outside of a widget or hook.
 
 the ported components render in isolation
   ok   every case mounted something
@@ -1143,6 +1149,19 @@ DialogHeader
   ok   the selected item and the disabled item are marked
   ok   the column is collapsible, and says so
   ok   the column carries a separator with the value
+  ok   the field carries the house's component marker
+  ok   the field is the house's tokenizer in a field
+  ok   the box is a combobox that owns its list
+  ok   the list of fields is a listbox, and it is closed while there is nothing in it
+  ok   the field's label is tied to the box
+  ok   a field with no filters has no chips
+  ok   the filters that are set are the chips in the box
+  ok   a chip names the field, the operator and the value
+  ok   a chip shows the value's label, not its value
+  ok   a chip can be taken off, and the button says which one
+  ok   the editor is a popover, and it is not a dialog
+  ok   the editor is closed until a filter is being edited
+  ok   the box is announced politely when it changes
 
-939 checks, 0 failure(s)
+952 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

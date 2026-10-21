@@ -9939,3 +9939,87 @@ button.astryx-code-block__header-control {
 .astryx-markdown a {
   color: inherit;
 }
+
+/* power_search */
+/* PowerSearch — the search field that also takes structured filters.
+
+   The field is the house tokenizer, so the chrome around it is the
+   house's. What this stylesheet owns is the editor: the popover's
+   contents, the list of the operator and the value, and the row of
+   buttons that commits or abandons the edit. */
+
+.astryx-power-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--astryx-space-2, 8px);
+  min-width: 0;
+}
+
+/* The anchor the editor is placed against. It is the field itself, so
+   the popover opens under the box and not under the page. */
+.astryx-power-search__anchor {
+  display: block;
+  min-width: 0;
+}
+
+/* The count of results, in the field's end lane. */
+.astryx-power-search__result-count {
+  color: var(--astryx-text-secondary, inherit);
+  font-size: var(--astryx-text-size-sm, 12px);
+  white-space: nowrap;
+}
+
+.astryx-power-search__end-lane {
+  display: flex;
+  align-items: center;
+  gap: var(--astryx-space-2, 8px);
+}
+
+/* The editor: the popover's contents. It is a narrow column, because it
+   holds a label, a list and a row of buttons. */
+.astryx-power-search__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--astryx-space-3, 12px);
+  min-width: 240px;
+  max-width: 320px;
+}
+
+/* The name of the field being filtered, at the top of the editor. */
+.astryx-power-search__editor-head {
+  color: var(--astryx-text-secondary, inherit);
+  font-size: var(--astryx-text-size-sm, 12px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* The operator's list and the value's field each get a row of their
+   own, so the editor reads as a short form. */
+.astryx-power-search__editor-operator,
+.astryx-power-search__editor-value {
+  display: flex;
+  flex-direction: column;
+  gap: var(--astryx-space-1, 4px);
+}
+
+.astryx-power-search__editor-operator select,
+.astryx-power-search__editor-value select,
+.astryx-power-search__editor-value input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  padding: var(--astryx-space-2, 8px);
+  border-radius: var(--astryx-radius-md, 6px);
+  border: 1px solid var(--astryx-border-primary, currentColor);
+  background: var(--astryx-bg-primary, transparent);
+}
+
+/* The buttons: cancel on the left, apply on the right. */
+.astryx-power-search__editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--astryx-space-2, 8px);
+}

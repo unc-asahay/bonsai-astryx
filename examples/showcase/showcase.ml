@@ -5708,6 +5708,7 @@ let nav_items =
   ; "time-input", "TimeInput"
   ; "side-nav", "SideNav"
   ; "markdown", "Markdown"
+  ; "power-search", "PowerSearch"
   ]
 ;;
 

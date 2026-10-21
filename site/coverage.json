@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 102,
-    "unported": 1,
+    "ported": 103,
+    "unported": 0,
     "total": 103,
     "documented": 103
   },
@@ -408,6 +408,12 @@
       "milestone": "M18"
     },
     {
+      "name": "PowerSearch",
+      "module": "Astryx.power_search",
+      "file": "src/power_search.ml",
+      "milestone": "M86"
+    },
+    {
       "name": "ProgressBar",
       "module": "Astryx.Progress_bar",
       "file": "src/progress_bar.ml",
@@ -624,8 +630,6 @@
       "milestone": "M5"
     }
   ],
-  "unported": [
-    "PowerSearch"
-  ],
+  "unported": [],
   "inconsistency": null
 }
