@@ -55,24 +55,26 @@ let is_blank line = String.equal (String.strip line) ""
 (* The indentation of a line, in spaces. A tab counts as four. *)
 let indent_of line =
   let n = ref 0 in
-  String.iteri
-    ~f:(fun i c ->
-      if i < !n then ()
-      else if Char.equal c ' ' then incr n
-      else if Char.equal c '\t' then n := !n + 4 - (!n mod 4)
-      else n := i)
-    line;
+  let len = String.length line in
+  let i = ref 0 in
+  while !i < len do
+    match line.[!i] with
+    | ' ' -> incr n; incr i
+    | '\t' -> n := !n + 4 - (!n mod 4); incr i
+    | _ -> i := len
+  done;
   !n
 ;;
 
 let drop_indent line amount =
   let n = ref 0 and i = ref 0 in
   let len = String.length line in
-  while !i < len && !n < amount do
+  let stop = ref false in
+  while !i < len && !n < amount && not !stop do
     match line.[!i] with
     | ' ' -> incr n; incr i
     | '\t' -> n := !n + 4 - (!n mod 4); incr i
-    | _ -> ()
+    | _ -> stop := true
   done;
   String.sub line ~pos:!i ~len:(len - !i)
 ;;
