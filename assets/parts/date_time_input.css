@@ -1,0 +1,63 @@
+/* DateTimeInput — a date field, a time field, and a calendar to pick the date
+   from. */
+
+.astryx-date-time-input {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.astryx-date-time-input__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.astryx-date-time-input__segment {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--surface-color);
+}
+
+.astryx-date-time-input__segment--warning {
+  border-color: var(--warning-color);
+}
+
+.astryx-date-time-input__segment--error {
+  border-color: var(--error-color);
+}
+
+.astryx-date-time-input__segment--success {
+  border-color: var(--success-color);
+}
+
+.astryx-date-time-input__segment--disabled {
+  background: var(--surface-subtle-color);
+  opacity: 0.6;
+}
+
+.astryx-date-time-input__icon {
+  color: var(--text-secondary);
+}
+
+.astryx-date-time-input__calendar-button,
+.astryx-date-time-input__clear-button {
+  flex: 0 0 auto;
+}
+
+.astryx-date-time-input__input {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  min-width: 0;
+}
+
+.astryx-date-time-input__input:focus {
+  outline: none;
+}

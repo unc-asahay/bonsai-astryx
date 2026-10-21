@@ -7,6 +7,7 @@
    where the port deliberately differs. *)
 
 module Date_range_input = Date_range_input
+module Date_time_input = Date_time_input
 module Calendar = Calendar
 module Avatar = Avatar
 module Avatar_group = Avatar_group
