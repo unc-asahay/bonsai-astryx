@@ -194,10 +194,10 @@ let rec parse_blocks (lines : string list) : block list =
              in
              let rest = take rest in
              let language =
-               let info_len = String.length line - fence_len - 1 in
+               let info_len = String.length line - fence_len in
                if info_len <= 0 then None
                else
-                 let info = String.strip (String.sub line ~pos:(fence_len + 1) ~len:info_len) in
+                 let info = String.strip (String.sub line ~pos:fence_len ~len:info_len) in
                  if String.equal info "" then None else Some info
              in
              go rest (Code (String.concat ~sep:"\n" (List.rev !body), language) :: acc)
