@@ -1,0 +1,47 @@
+Gate 95 — M84 SideNav (coverage 100 → 101)
+
+The side navigation is a column of navigation items: a heading area at the
+top, a pinned area under it, the scrollable body, the footer, and the icon
+bar at the bottom. It can collapse to an icon rail, and it can be resized
+with a separator that carries the value.
+
+The port is upstream's SideNav — the container, the heading, the item and
+the section — over the house's own Item row, with the divergences in the
+interface.
+
+The bugs this milestone found
+
+  * The item set the house's `data-astryx-component` attribute a second
+    time, on top of the one the Item row already sets. The browser gate
+    caught it as a console warning ("not combining attributes"), which is
+    exactly what that warning is for. The heading and the group now carry
+    their own attributes, the way the Table's rows do.
+
+  * The column's own parts are graphs, because the items are. The body and
+    the pinned area take lists of trees and combine them with the house's
+    pairwise fold; the heading and the group are nodes, and the group is a
+    graph because its items are.
+
+  * The width is bounded with `Float.compare`, not `<`: `<` is for
+    integers in this compiler, like `=` and `<>`. And Core's `Float.round`
+    returns a float, so the style is written with `%.0f` and the
+    accessible value with `int_of_float`.
+
+  * The separator is operable with the keyboard — the arrow keys, Home and
+    End — and it says so in its label. Upstream resizes with a pointer
+    drag; that is not implemented here, and the interface says so.
+
+  * The collapse button and the separator apply their effects in the same
+    list, so the column redraws once.
+
+Gates
+
+  build          dune build, exit 0
+  component      node test/run.mjs            928 checks, 0 failures
+  probes         plain_date_probe, time_input_probe — all checks passed
+  DOM            node tools/visual/verify-dom.mjs   all checks passed
+  browser        node tools/visual/verify-browser.mjs
+                   showcase  774/774 checks, 0 failures
+                   demo       25/25 checks, 0 failures
+  responsive     node tools/visual/verify-responsive.mjs  66/66
+  sweep          bash tools/gate-sweep.sh      SWEEP GREEN

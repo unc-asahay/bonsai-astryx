@@ -4553,6 +4553,48 @@ check("a disabled group says so once, on the box", (() => {
   check("the field announces the time it is showing, politely",
     field?.querySelector("[role='status']") !== null,
     JSON.stringify({ live: field?.querySelector("[role='status']") !== null }));
+  // ---------------------------------------------------------------- SideNav
+  const snHost = document.querySelector('[data-case="side-nav-all"]');
+  const snColumns = [...(snHost?.querySelectorAll("[data-astryx-component='SideNav']") ?? [])];
+  const snColumn = snColumns[0];
+  const snItems = [...(snHost?.querySelectorAll(".astryx-side-nav__item") ?? [])];
+
+  check("the column carries the house's component marker",
+    snColumn?.getAttribute("data-astryx-component") === "SideNav",
+    JSON.stringify({ component: snColumn?.getAttribute("data-astryx-component") }));
+
+  check("the column is a navigation landmark",
+    snColumn?.tagName?.toLowerCase() === "nav",
+    JSON.stringify({ tag: snColumn?.tagName }));
+
+  check("the column has a body, and the section has a heading",
+    snColumn?.querySelector(".astryx-side-nav__body") !== null
+      && snHost?.querySelector("[data-astryx-side-nav-heading]") !== null,
+    JSON.stringify({ body: snColumn?.querySelector(".astryx-side-nav__body") !== null }));
+
+  check("the group of items carries its title",
+    snHost?.querySelector(".astryx-side-nav__section-title")?.textContent?.trim() === "Workspace",
+    JSON.stringify({ title: snHost?.querySelector(".astryx-side-nav__section-title")?.textContent }));
+
+  check("every item is rendered, with its label",
+    snItems.length === 6 && snItems.some((i) => i.textContent?.includes("Search")),
+    JSON.stringify({ items: snItems.length }));
+
+  check("the selected item and the disabled item are marked",
+    snHost?.querySelector(".astryx-side-nav__item--selected") !== null
+      && snHost?.querySelector(".astryx-side-nav__item--disabled") !== null,
+    JSON.stringify({}));
+
+  check("the column is collapsible, and says so",
+    snColumn?.getAttribute("data-astryx-collapsed") === "false"
+      && snColumn?.querySelector(".astryx-side-nav__collapse") !== null,
+    JSON.stringify({ collapsed: snColumn?.getAttribute("data-astryx-collapsed") }));
+
+  check("the column carries a separator with the value",
+    snColumn?.getAttribute("data-astryx-resizable") === "true"
+      && (snColumn?.querySelector("[role='separator']")?.getAttribute("aria-valuenow") ?? "") === "240",
+    JSON.stringify({ value: snColumn?.querySelector("[role='separator']")?.getAttribute("aria-valuenow") }));
+
 }
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);

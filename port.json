@@ -936,6 +936,13 @@
       "file": "src/time_input.ml",
       "milestone": "M83",
       "module": "Astryx.time_input"
+    },
+    {
+      "class": "C",
+      "component": "SideNav",
+      "file": "src/side_nav.ml",
+      "milestone": "M84",
+      "module": "Astryx.side_nav"
     }
   ],
   "schema": 1,

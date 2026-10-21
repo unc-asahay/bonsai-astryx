@@ -224,7 +224,7 @@ let heading
   Vdom.Node.div
     ~attrs:
       (Attr.class_ [ "astryx-side-nav__heading" ]
-       @ Attr.data "component" "SideNavHeading"
+       @ Attr.data "side-nav-heading" "true"
        @ [ Vdom.Attr.id id ]
        @ attrs)
     (icon_nodes @ superheading_nodes @ heading_nodes @ subheading_nodes @ children)
@@ -270,7 +270,7 @@ let item
       ([ "astryx-side-nav__item" ]
        @ (if is_selected then [ "astryx-side-nav__item--selected" ] else [])
        @ (if is_disabled then [ "astryx-side-nav__item--disabled" ] else []))
-    @ Attr.data "component" "SideNavItem"
+    @ Attr.data "side-nav-item" "true"
     @ [ Vdom.Attr.id id ]
     @ attrs
   in
@@ -321,7 +321,7 @@ let section
       Vdom.Node.div
         ~attrs:
           (Attr.class_ [ "astryx-side-nav__section" ]
-           @ Attr.data "component" "SideNavSection"
+           @ Attr.data "side-nav-section" "true"
            @ [ Vdom.Attr.id id ]
            @ attrs)
         (header @ body))

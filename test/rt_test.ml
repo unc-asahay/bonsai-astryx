@@ -5159,3 +5159,68 @@ let () =
       time_input_component
   in
   mount "time-input-all" (Bonsai_web_test.Handle.last_result handle)
+
+(* ---------------------------------------------------------------- SideNav *)
+(* The side navigation: a column of items, with a heading, a group under a
+   title, and the column that collapses to an icon rail and is resized with
+   a separator. *)
+let side_nav_component graph =
+  let items =
+    [ Astryx.Side_nav.item ~id:"rt-side-nav-item" ~label:"Home" ~icon:"menu" graph
+    ; Astryx.Side_nav.item
+        ~id:"rt-side-nav-item-selected"
+        ~label:"Search"
+        ~icon:"search"
+        ~selected_icon:"funnel"
+        ~is_selected:true
+        graph
+    ; Astryx.Side_nav.item
+        ~id:"rt-side-nav-item-disabled"
+        ~label:"Reports"
+        ~icon:"copy"
+        ~is_disabled:true
+        graph
+    ]
+  in
+  let trees =
+    [ Bonsai.return
+        (Astryx.Side_nav.heading
+           ~id:"rt-side-nav-heading"
+           ~heading:"A product"
+           ~superheading:"Acme"
+           ~subheading:"The workspace"
+           graph)
+    ; Astryx.Side_nav.section
+        ~id:"rt-side-nav-section"
+        ~title:"Workspace"
+        ~subtitle:"Three places"
+        ~children:items
+        graph
+    ; Astryx.Side_nav.view
+        ~id:"rt-side-nav"
+        ~is_collapsible:true
+        ~is_resizable:true
+        ~default_width:240.
+        ~min_width:180.
+        ~max_width:400.
+        ~children:items
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "side-nav-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      side_nav_component
+  in
+  mount "side-nav-all" (Bonsai_web_test.Handle.last_result handle)

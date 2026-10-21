@@ -298,6 +298,7 @@ if (mode === "showcase") {
     "DateInput",
     "Table",
     "TimeInput",
+    "SideNav",
 
   ];
 
@@ -661,7 +662,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("102 sections", sections.length === 102, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("103 sections", sections.length === 103, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -771,13 +772,14 @@ if (mode === "showcase") {
     DateInput: 6,
     Table: 7,
     TimeInput: 7,
+    SideNav: 4,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("674 examples across the page", totalExamples === 674, `got ${totalExamples}`);
+  check("678 examples across the page", totalExamples === 678, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -791,7 +793,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("102 nav links", nav.length === 102, `got ${nav.length}`);
+  check("103 nav links", nav.length === 103, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4186,11 +4188,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 100 ported / 3 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["100", "3", "103"]),
+    "coverage stats are 101 ported / 2 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["101", "2", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 3 entries", cov.unported === 3, `got ${cov.unported}`);
+  check("unported list rendered 2 entries", cov.unported === 2, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -6318,7 +6320,8 @@ check(
 
       await page.keyboard.press("Enter");
       await page.waitForTimeout(200);
-      const toggled = await page.evaluate(() => {
+      await page.waitForTimeout(150);
+    const toggled = await page.evaluate(() => {
         const lb = document.getElementById("astryx-multi-selector-listbox");
         const selected = [...(lb?.querySelectorAll('[role="option"][aria-selected="true"]') ?? [])];
         return { selected: selected.length, first: selected[0]?.textContent.trim() ?? null };
@@ -7508,6 +7511,111 @@ if (mode === "showcase") {
       check("typing a time the field can read commits it", false,
         JSON.stringify(typed));
     }
+  }
+}
+
+// ---------------------------------------------------------------- SideNav (M84)
+if (mode === "showcase") {
+  const navSection = await page.$("section[data-showcase-component='SideNav']");
+  check("the SideNav section renders", navSection !== null,
+    navSection === null ? "not found" : "found");
+
+  if (navSection) {
+    const shape = await page.evaluate(() => {
+      const columns = [...document.querySelectorAll("[data-astryx-component='SideNav']")];
+      const plain = document.querySelector("#showcase-side-nav-plain");
+      const collapsed = document.querySelector("#showcase-side-nav-collapsed");
+      const resizable = document.querySelector("#showcase-side-nav-resizable");
+      const items = [...document.querySelectorAll(".astryx-side-nav__item")];
+      const selected = document.querySelector(".astryx-side-nav__item--selected");
+      const disabled = document.querySelector(".astryx-side-nav__item--disabled");
+      const separator = resizable?.querySelector("[role='separator']");
+      const heading = document.querySelector("[data-astryx-side-nav-heading]");
+      const group = document.querySelector("[data-astryx-side-nav-section]");
+      return {
+        columns: columns.length,
+        isNav: plain?.tagName?.toLowerCase() === "nav",
+        regions: plain?.querySelectorAll(".astryx-side-nav__region").length ?? 0,
+        body: plain?.querySelector(".astryx-side-nav__body") !== null,
+        footer: (plain?.textContent ?? "").includes("A footer"),
+        items: items.length,
+        labels: items.map((i) => i.textContent?.trim() ?? ""),
+        selected: selected !== null,
+        selectedIcon: selected?.querySelector("[data-astryx-icon]")?.getAttribute("data-astryx-icon") ?? null,
+        disabled: disabled !== null,
+        collapsed: collapsed?.getAttribute("data-astryx-collapsed") ?? null,
+        collapsedClass: collapsed?.className?.includes("astryx-side-nav--collapsed") ?? false,
+        resizable: resizable?.getAttribute("data-astryx-resizable") ?? null,
+        separator: separator !== null,
+        separatorValue: separator?.getAttribute("aria-valuenow") ?? null,
+        separatorLabel: separator?.getAttribute("aria-label") ?? null,
+        heading: heading !== null,
+        headingText: heading?.textContent?.trim() ?? null,
+        group: group !== null,
+        groupTitle: group?.querySelector(".astryx-side-nav__section-title")?.textContent?.trim() ?? null,
+        collapseButton: plain?.parentElement?.querySelector(".astryx-side-nav__collapse") !== null
+          || document.querySelector(".astryx-side-nav__collapse") !== null,
+      };
+    });
+
+    check("the column is a navigation landmark, with the house's marker",
+      shape?.columns >= 3 && shape?.isNav === true, JSON.stringify(shape));
+    check("the column keeps the heading area, the body and the footer",
+      shape?.regions >= 1 && shape?.body === true && shape?.footer === true,
+      JSON.stringify(shape));
+    check("the items are rendered, and their labels are readable",
+      shape?.items >= 4 && (shape?.labels ?? []).some((l) => l.includes("Search")),
+      JSON.stringify(shape?.labels));
+    check("the selected item is marked, and the disabled item too",
+      shape?.selected === true && shape?.disabled === true, JSON.stringify(shape));
+    check("the collapsed column says so, and says it in the class too",
+      shape?.collapsed === "true" && shape?.collapsedClass === true, JSON.stringify(shape));
+    check("the resizable column carries a separator with the value",
+      shape?.resizable === "true" && shape?.separator === true
+        && Number(shape?.separatorValue) > 0 && (shape?.separatorLabel ?? "").length > 0,
+      JSON.stringify(shape));
+    check("the heading carries its superheading and its subheading",
+      shape?.heading === true && (shape?.headingText ?? "").includes("Acme")
+        && (shape?.headingText ?? "").includes("A product"), JSON.stringify(shape));
+    check("the group of items carries its title",
+      shape?.group === true && shape?.groupTitle === "Workspace", JSON.stringify(shape));
+    check("the column has a collapse button", shape?.collapseButton === true, JSON.stringify(shape));
+
+    // The collapse button toggles the column, and the separator resizes it.
+    const toggled = await page.evaluate(() => {
+      const button = document.querySelector(".astryx-side-nav__collapse");
+      if (!button) return null;
+      const column = button.closest("[data-astryx-component='SideNav']");
+      const before = column?.getAttribute("data-astryx-collapsed") ?? null;
+      button.click();
+      return { before, after: column?.getAttribute("data-astryx-collapsed") ?? null };
+    });
+    await page.waitForTimeout(200);
+    const afterToggle = await page.evaluate(() => {
+      const column = document.querySelector("#showcase-side-nav-collapsed");
+      return column?.getAttribute("data-astryx-collapsed") ?? null;
+    });
+    check("the collapse button collapses the column",
+      toggled !== null && toggled?.before === "true" && afterToggle === "false",
+      JSON.stringify(toggled));
+
+    await page.waitForTimeout(200);
+    const resized = await page.evaluate(() => {
+      const separator = document.querySelector("#showcase-side-nav-resizable [role='separator']");
+      if (!separator) return null;
+      const before = separator.getAttribute("aria-valuenow");
+      separator.focus();
+      separator.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+      return { before, after: separator.getAttribute("aria-valuenow") };
+    });
+    await page.waitForTimeout(200);
+    const resizedAfter = await page.evaluate(() => {
+      const separator = document.querySelector("#showcase-side-nav-resizable [role='separator']");
+      return separator?.getAttribute("aria-valuenow") ?? null;
+    });
+    check("the separator resizes the column from the keyboard",
+      resized !== null && Number(resizedAfter) > Number(resized?.before),
+      JSON.stringify(resized));
   }
 }
 

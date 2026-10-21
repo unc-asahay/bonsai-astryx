@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 100,
-    "unported": 3,
+    "ported": 101,
+    "unported": 2,
     "total": 103,
     "documented": 103
   },
@@ -450,6 +450,12 @@
       "milestone": "M73"
     },
     {
+      "name": "SideNav",
+      "module": "Astryx.side_nav",
+      "file": "src/side_nav.ml",
+      "milestone": "M84"
+    },
+    {
       "name": "Skeleton",
       "module": "Astryx.Skeleton",
       "file": "src/skeleton.ml",
@@ -614,8 +620,7 @@
   ],
   "unported": [
     "Markdown",
-    "PowerSearch",
-    "SideNav"
+    "PowerSearch"
   ],
   "inconsistency": null
 }

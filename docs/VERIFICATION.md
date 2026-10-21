@@ -4599,3 +4599,18 @@ alongside the plain-date probe.
   browser        showcase 762/762, demo 25/25
   responsive     66/66
   sweep          SWEEP GREEN
+
+### Gate 95 — M84 SideNav
+
+The side navigation is a column of navigation items, with a heading area, a
+pinned area, the scrollable body, the footer and the icon bar. It collapses
+to an icon rail and is resized with a separator that carries the value.
+
+The item set the house's `data-astryx-component` attribute a second time,
+on top of the one the Item row already sets — the browser gate caught it as
+a console warning. The column's parts are graphs, because the items are.
+
+  component      928 checks, 0 failures
+  browser        showcase 774/774, demo 25/25
+  responsive     66/66
+  sweep          SWEEP GREEN

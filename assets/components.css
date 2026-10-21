@@ -9629,3 +9629,203 @@ button.astryx-code-block__header-control {
   line-height: var(--text-supporting-leading);
   color: var(--color-text-secondary);
 }
+
+/* side_nav */
+/* SideNav — the side navigation column.
+   The column is a column: the heading at the top, a pinned area under it,
+   the scrollable body, the footer, and the icon bar at the bottom. The
+   collapsed state shows the items' icons and hides their labels; the
+   labels stay in the DOM, so the items keep their accessible names. */
+
+.astryx-side-nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--astryx-bg-subtle, #f7f7f8);
+  border-right: 1px solid var(--astryx-border, #e3e3e6);
+  color: var(--astryx-fg, #1c1c1e);
+}
+
+.astryx-side-nav__region {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 12px 0;
+  flex: 0 0 auto;
+}
+
+.astryx-side-nav__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.astryx-side-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.astryx-side-nav__item:hover {
+  background: var(--astryx-bg-hover, rgba(0, 0, 0, 0.05));
+}
+
+.astryx-side-nav__item--selected {
+  background: var(--astryx-bg-selected, rgba(0, 0, 0, 0.08));
+  font-weight: 600;
+}
+
+.astryx-side-nav__item--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.astryx-side-nav__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+}
+
+.astryx-side-nav__item-end {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The collapsed column: the icons stay, the labels go. */
+.astryx-side-nav--collapsed {
+  width: 56px;
+}
+
+.astryx-side-nav--collapsed .astryx-side-nav__item-end,
+.astryx-side-nav--collapsed .astryx-side-nav__heading-text,
+.astryx-side-nav--collapsed .astryx-side-nav__superheading,
+.astryx-side-nav--collapsed .astryx-side-nav__subheading,
+.astryx-side-nav--collapsed .astryx-side-nav__section-header {
+  display: none;
+}
+
+.astryx-side-nav--collapsed .astryx-side-nav__item {
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.astryx-side-nav__collapse {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.astryx-side-nav__collapse:hover {
+  background: var(--astryx-bg-hover, rgba(0, 0, 0, 0.05));
+}
+
+/* The separator that resizes the column. It is a separator, so it carries
+   the value, and it is focusable, so it can be resized from the keyboard. */
+.astryx-side-nav__handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+.astryx-side-nav__handle:hover,
+.astryx-side-nav__handle:focus-visible {
+  background: var(--astryx-border, #e3e3e6);
+  outline: none;
+}
+
+.astryx-side-nav__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.astryx-side-nav__superheading {
+  font-size: 12px;
+  color: var(--astryx-fg-muted, #6b6b70);
+}
+
+.astryx-side-nav__heading-text {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-side-nav__subheading {
+  font-size: 12px;
+  color: var(--astryx-fg-muted, #6b6b70);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.astryx-side-nav__heading-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.astryx-side-nav__heading-link:hover {
+  text-decoration: underline;
+}
+
+.astryx-side-nav__section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.astryx-side-nav__section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 8px;
+}
+
+.astryx-side-nav__section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--astryx-fg-muted, #6b6b70);
+}
+
+.astryx-side-nav__section-subtitle {
+  font-size: 11px;
+  color: var(--astryx-fg-muted, #6b6b70);
+}
+
+.astryx-side-nav__section-end {
+  margin-left: auto;
+}

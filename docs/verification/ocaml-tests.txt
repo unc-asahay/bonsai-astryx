@@ -1124,6 +1124,14 @@ DialogHeader
   ok   a disabled field says so, and says why
   ok   a bounded field still shows the time it was given
   ok   the field announces the time it is showing, politely
+  ok   the column carries the house's component marker
+  ok   the column is a navigation landmark
+  ok   the column has a body, and the section has a heading
+  ok   the group of items carries its title
+  ok   every item is rendered, with its label
+  ok   the selected item and the disabled item are marked
+  ok   the column is collapsible, and says so
+  ok   the column carries a separator with the value
 
-920 checks, 0 failure(s)
+928 checks, 0 failure(s)
 COMPONENT CHECKS PASSED

@@ -4,7 +4,7 @@
 
 Upstream: `facebook/astryx` @ `b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e`
 
-Ported: **100 of 103** components.
+Ported: **101 of 103** components.
 
 ## Milestones
 
@@ -155,9 +155,10 @@ Ported: **100 of 103** components.
 | `DateInput` | `Astryx.date_input` | `src/date_input.ml` | M81 | C |
 | `Table` | `Astryx.table` | `src/table.ml` | M82 | C |
 | `TimeInput` | `Astryx.time_input` | `src/time_input.ml` | M83 | C |
+| `SideNav` | `Astryx.side_nav` | `src/side_nav.ml` | M84 | C |
 
-## Not ported yet (3)
+## Not ported yet (2)
 
 Listed in the order the inventory reports them. Each one has reference text in `docs/components/` describing the upstream contract it will have to match.
 
-`Markdown`, `PowerSearch`, `SideNav`
+`Markdown`, `PowerSearch`
