@@ -58,6 +58,12 @@ HTML
 # Everything the page asks for must be there. A missing file is a 404 on a
 # public site and a silent hole in the corpus, so it is checked rather than
 # assumed.
+#
+# The list has two kinds of entry. The page's own references are found by
+# parsing the page (below). The rest are assets the COMPILED BUNDLE asks
+# for, which the page never mentions: the showcase renders a video, so the
+# bundle reaches for ../media/sample.mp4, and a missing file there is a 404
+# that only the browser gate on the published site would ever see.
 missing=0
 for path in \
   "site/index.html" \
@@ -69,6 +75,7 @@ for path in \
   "assets/tokens.css" \
   "docs/PORT-STATUS.md" \
   "docs/verification/verify-dom.txt" \
+  "media/sample.mp4" \
   "_build/default/examples/showcase/showcase.bc.js"
 do
   if [ ! -f "$out/$path" ]; then
@@ -91,6 +98,23 @@ for ref in $(grep -oE '(src|href)="\.\./[^"]*"' "$out/site/index.html" | sed -E 
 done
 if [ "$missing" -ne 0 ]; then
   echo "the publish tree does not satisfy the page" >&2
+  exit 1
+fi
+
+# And the BUNDLE must not ask for anything by an absolute path. This is the
+# check that would have caught the favicon and the video before they were
+# published: the showcase is served from the repository root locally and from
+# /bonsai-astryx/ on Pages, so "/site/favicon.svg" is the right path in one
+# place and the wrong path in the other, and only the second one 404s.
+absolute=$(grep -oE '"/(assets|site|media|docs|_build)/[a-zA-Z0-9_./-]*"' \
+  "$out/_build/default/examples/showcase/showcase.bc.js" | sort -u || true)
+if [ -n "$absolute" ]; then
+  echo "  the bundle asks for absolute local paths, which break on Pages:" >&2
+  for a in $absolute; do echo "    $a" >&2; done
+  missing=$((missing + 1))
+fi
+if [ "$missing" -ne 0 ]; then
+  echo "the publish tree is not publishable" >&2
   exit 1
 fi
 

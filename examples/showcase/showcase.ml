@@ -2786,7 +2786,10 @@ let lightbox_demo (graph : Bonsai.graph) =
       ~has_auto_play:true
       ~is_open:video_open
       ~on_open_change:set_video_open
-      ~media:[ media ~video:true "/media/sample.mp4" "A short demo clip" ]
+      (* Relative to the page, like every other asset here: the showcase is
+         served from the repository root locally and from /bonsai-astryx/ on
+         Pages, and only a relative path resolves the same way in both. *)
+      ~media:[ media ~video:true "../media/sample.mp4" "A short demo clip" ]
       graph
   in
   [ ex_tree
@@ -4442,7 +4445,7 @@ let avatar_demo (graph : Bonsai.graph) =
                 malformed payload merely fails to parse - which fires no error event at all, as the first
                 version of this example discovered by never falling back. *)
              ~src:"this-source-does-not-exist.png"
-             ~fallback_src:"/site/neither-does-this-one.png"
+             ~fallback_src:"neither-does-this-one.png"
              ~name:"Grace Hopper"
              graph
              ())

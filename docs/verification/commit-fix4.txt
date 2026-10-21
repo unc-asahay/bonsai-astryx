@@ -88,6 +88,41 @@ The showcase is published, and what is published is what was tested
   /home/runner/.cache/ms-playwright". The gate failing rather than
   publishing an untested page is the behaviour that should be kept.
 
+What the LIVE site found, and the local gates could not
+
+  The first published run passed 812 of 813 against the live URL. The
+  failure was a 404 for
+
+    https://unc-asahay.github.io/site/favicon.svg
+
+  — a path at the ROOT of the domain, which is github.io's, not ours.
+
+  The showcase's Citation example pointed its favicon at
+  "/site/favicon.svg", which is correct only when the site is served
+  from the root of a server. Locally it is: the repository root is the
+  document root. On Pages the site lives under /bonsai-astryx/, so the
+  same path leaves the site entirely and asks somebody else's server
+  for a file that is ours.
+
+  This is the one class of bug the local gates structurally cannot
+  catch, because the local server puts the site at the root and the
+  published server does not. It took running the gate against the live
+  URL to find it, and the gate's "no unexpected 4xx/5xx responses"
+  check is what caught it.
+
+  The second live run found the same bug in the video example:
+  "/media/sample.mp4". Both are fixed by making the paths relative to
+  the page, so they resolve the same way in both places, and the
+  deliberately-unloadable sources the gate asserts 404 on are relative
+  for the same reason: a probe should ask inside the site it is
+  testing, not at the root of somebody else's domain.
+
+  And the class is now closed by a check rather than by a fix:
+  tools/publish-tree.sh refuses to publish a bundle that asks for an
+  absolute local path, and the tree's required-files list names the
+  assets the BUNDLE reaches for — the video — which the page's own
+  markup never mentions.
+
 Gates
 
   build          dune build, exit 0

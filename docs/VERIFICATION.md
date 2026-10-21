@@ -4831,3 +4831,25 @@ to keep.
   sweep          SWEEP GREEN
 
 The full account is in docs/verification/commit-fix4.txt.
+
+The live site found what the local gates could not
+
+The first published run passed 812 of 813 against the live URL: a 404
+for `https://unc-asahay.github.io/site/favicon.svg`, a path at the root
+of the domain, which is github.io's and not ours. The showcase pointed
+its favicon at "/site/favicon.svg", which is right only when the site is
+served from a server's root. Locally it is; on Pages the site lives
+under /bonsai-astryx/, so the path left the site and asked somebody
+else's server for a file that is ours.
+
+That is the one class of bug the local gates structurally cannot catch —
+the local server puts the site at the root and the published server
+does not — so it took the live URL to find it. The next live run found
+the same thing in the video example, "/media/sample.mp4". Both are
+relative now, and so are the deliberately-unloadable sources the gate
+asserts 404 on: a probe should ask inside the site it is testing.
+
+The class is closed by a check rather than by a fix:
+tools/publish-tree.sh refuses to publish a bundle that asks for an
+absolute local path, and it names the assets the bundle reaches for
+rather than the ones the page's markup mentions.
