@@ -1,0 +1,49 @@
+Gate 92 — M81 DateInput (coverage 97 → 98)
+
+The date input is a text field for a date, and a calendar to pick one from.
+
+The field owns the text being typed; the application owns the committed
+date. A date that can be read is committed as it is typed. Text that
+cannot be read stays in the field while it is typed, and the field falls
+back to the committed date when it is left or Enter is pressed — whether
+or not the text could be read, so the field never holds a date the
+caller did not accept.
+
+The parsing follows upstream's rules. An ISO date is tried first, because
+it is unambiguous. Then a month written out, with or without the day
+first: "March 21, 2026" and "21 March 2026". Then a numeric date, whose
+two fields are read day-first or month-first by what they can be: 3/21
+can only be month-first, 21/3 can only be day-first, and 3/21 is
+ambiguous, so the locale decides. Upstream asks Intl whether the locale
+puts the day first; the house keeps the list of locales that do and
+treats everything else, including plain "en", as month-first.
+
+The worker had written a 116-line interface and no implementation. The
+implementation is 414 lines, and the interface's note that the calendar
+is rendered inline because the house Popover "does not fit a controlled
+text field with a trailing button" was wrong: the house Popover takes
+any trigger, which is how DateRangeInput and DateTimeInput already open
+their calendars. The calendar is now opened from a trailing button into a
+popover, as upstream opens it.
+
+Three things about this tree's compiler cost a build cycle each, and all
+three are now in the porting brief.
+
+The compiler is a patched OCaml, and its polymorphic comparisons are
+int-only. `head = text` does not compile: the error says the left
+operand has type string where an int was expected, which reads like a
+comparison-order bug rather than a missing String.equal. The same goes
+for characters: `c >= '0'` needs Char.to_int first.
+
+A parameterised type is instantiated argument-first — `string
+Typeahead.item`, never `Typeahead.item string`. The house's own code
+agrees: `bool Bonsai.t`.
+
+And Core's String has no `split_on_char`; it is `split_on_chars
+~on:[ c ]`.
+
+Gates — component 903/903, browser 748/748, responsive 66/66, full sweep
+green.
+
+The six examples are the field alone, a committed date, the system's own
+form, the month spelled out, disabled, and a minimum date.

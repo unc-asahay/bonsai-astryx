@@ -9536,3 +9536,27 @@ button.astryx-code-block__header-control {
 .astryx-date-time-input__input:focus {
   outline: none;
 }
+
+/* date_input */
+/* DateInput — a text field for a date, with a calendar to pick one from. */
+
+.astryx-date-input {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.astryx-date-input .astryx-field__input-status {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.astryx-date-input .astryx-field__input-status input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.astryx-date-input .astryx-field__input-status button {
+  flex: 0 0 auto;
+}

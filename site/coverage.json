@@ -5,8 +5,8 @@
     "commit": "b69b2df3f837d7b7c0627811d00eeb58d8ef5d5e"
   },
   "counts": {
-    "ported": 97,
-    "unported": 6,
+    "ported": 98,
+    "unported": 5,
     "total": 103,
     "documented": 103
   },
@@ -172,6 +172,12 @@
       "module": "Astryx.context_menu",
       "file": "src/context_menu.ml",
       "milestone": "M76"
+    },
+    {
+      "name": "DateInput",
+      "module": "Astryx.date_input",
+      "file": "src/date_input.ml",
+      "milestone": "M81"
     },
     {
       "name": "DateRangeInput",
@@ -595,7 +601,6 @@
     }
   ],
   "unported": [
-    "DateInput",
     "Markdown",
     "PowerSearch",
     "SideNav",

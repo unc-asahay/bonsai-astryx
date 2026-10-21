@@ -4387,6 +4387,54 @@ check("a disabled group says so once, on the box", (() => {
     JSON.stringify({ value: timeValue?.value }));
 }
 
+{
+  const host = document.querySelector('[data-case="date-input-all"]');
+  const fields = [...(host?.querySelectorAll("[data-astryx-component='DateInput']") ?? [])];
+  const field = fields[0];
+  const input = field?.querySelector("input");
+  const label = field?.querySelector("label");
+  const trigger = field?.querySelector("button[aria-label]");
+
+  check("the date input carries the house's component marker",
+    field?.getAttribute("data-astryx-component") === "DateInput",
+    JSON.stringify({ component: field?.getAttribute("data-astryx-component") }));
+
+  check("the label names the field",
+    input !== null && input !== undefined
+      && label?.getAttribute("for") === input.getAttribute("id")
+      && (label?.textContent ?? "").trim() !== "",
+    JSON.stringify({ for: label?.getAttribute("for"), id: input?.getAttribute("id") }));
+
+  check("the calendar is opened from a named button",
+    trigger?.getAttribute("aria-label") === "Open calendar",
+    JSON.stringify({ label: trigger?.getAttribute("aria-label") }));
+
+  const committed = fields[1]?.querySelector("input")?.value ?? "";
+  check("a committed date is shown in the field",
+    committed !== "",
+    JSON.stringify({ committed }));
+
+  const iso = fields[2]?.querySelector("input")?.value ?? "";
+  check("the system form shows the date in the system's own form",
+    /^\d{4}-\d{2}-\d{2}$/.test(iso),
+    JSON.stringify({ iso }));
+
+  const long = fields[3]?.querySelector("input")?.value ?? "";
+  check("the long form spells the month out",
+    long.includes("March") && !long.includes("Mar "),
+    JSON.stringify({ long }));
+
+  const disabled = fields[4];
+  const disabledInput = disabled?.querySelector("input");
+  check("a disabled date field is read-only and says why",
+    disabledInput?.hasAttribute("readonly") === true
+      && (disabled?.textContent ?? "").includes("not available"),
+    JSON.stringify({
+      readonly: disabledInput?.hasAttribute("readonly") ?? false,
+      text: (disabled?.textContent ?? "").trim().slice(0, 60),
+    }));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

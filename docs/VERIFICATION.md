@@ -4551,3 +4551,13 @@ The date time input is a date field, a time field, and a calendar to pick the da
 The worker's 813-line implementation compiled against the house without repair — the first time that has happened. It needed a CSS part and a showcase section, and one fix: the example showing the twenty-four hour clock had no reading, so the clock had nothing to show.
 
 Gates: component **896/896**, browser **741/741**, responsive **66/66**, full sweep green.
+
+### Gate 92 — M81 DateInput
+
+The date input is a text field for a date, and a calendar to pick one from. The field owns the text being typed; the application owns the committed date. A date that can be read is committed as it is typed; text that cannot be read stays in the field until it is left, and the field falls back to the committed date.
+
+The parsing follows upstream's rules: an ISO date first, then a month written out with the day either way round, then a numeric date whose two fields are read day-first or month-first by what they can be, with the locale deciding when both are ambiguous.
+
+The worker had written the interface and no implementation. The interface's note that the calendar had to be rendered inline, because the house Popover "does not fit a controlled text field with a trailing button", was wrong — the Popover takes any trigger, which is how DateRangeInput and DateTimeInput already open their calendars. The calendar now opens from a trailing button into a popover, as upstream opens it.
+
+Gates: component **903/903**, browser **748/748**, responsive **66/66**, full sweep green.

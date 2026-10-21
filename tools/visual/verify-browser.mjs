@@ -295,6 +295,7 @@ if (mode === "showcase") {
     "Typeahead",
     "DateRangeInput",
     "DateTimeInput",
+    "DateInput",
 
   ];
 
@@ -658,7 +659,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("99 sections", sections.length === 99, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("100 sections", sections.length === 100, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -765,13 +766,14 @@ if (mode === "showcase") {
     Typeahead: 5,
     DateRangeInput: 5,
     DateTimeInput: 5,
+    DateInput: 6,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("654 examples across the page", totalExamples === 654, `got ${totalExamples}`);
+  check("660 examples across the page", totalExamples === 660, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -785,7 +787,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("99 nav links", nav.length === 99, `got ${nav.length}`);
+  check("100 nav links", nav.length === 100, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4180,11 +4182,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 97 ported / 6 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["97", "6", "103"]),
+    "coverage stats are 98 ported / 5 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["98", "5", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 6 entries", cov.unported === 6, `got ${cov.unported}`);
+  check("unported list rendered 5 entries", cov.unported === 5, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7247,6 +7249,80 @@ if (mode === "showcase") {
     await page.waitForTimeout(300);
     const calendar = await page.evaluate(() => {
       const pop = document.querySelector("#showcase-date-time-plain-calendar-surface");
+      const cal = pop?.querySelector("[data-astryx-component='Calendar']");
+      return {
+        open: pop !== null,
+        calendar: cal !== null && cal !== undefined,
+        grid: pop?.querySelectorAll("[role='gridcell']").length ?? 0,
+      };
+    });
+    check("the trigger opens the calendar, and it is the house calendar",
+      calendar?.open === true && calendar?.calendar === true && calendar?.grid > 0,
+      JSON.stringify(calendar));
+
+    // The calendar closes again, so it does not intercept later checks.
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+  }
+}
+
+
+// --------------------------------------------------------------- DateInput (M81)
+if (mode === "showcase") {
+  const diSection = await page.$("section[data-showcase-component='DateInput']");
+  check("the DateInput section renders", diSection !== null,
+    diSection === null ? "not found" : "found");
+
+  if (diSection) {
+    const shape = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateInput']")];
+      const first = fields[0];
+      const input = first?.querySelector("input");
+      const label = first?.querySelector("label");
+      const trigger = first?.querySelector("button[aria-label]");
+      return {
+        fields: fields.length,
+        marker: first?.getAttribute("data-astryx-component") ?? null,
+        inputId: input?.getAttribute("id") ?? null,
+        labelFor: label?.getAttribute("for") ?? null,
+        labelText: (label?.textContent ?? "").trim(),
+        trigger: trigger?.getAttribute("aria-label") ?? null,
+      };
+    });
+
+    check("every example renders its own field, and the root carries the house's marker",
+      shape?.fields >= 6 && shape?.marker === "DateInput",
+      JSON.stringify(shape));
+
+    check("the label names the field, and the calendar opens from a named button",
+      shape?.inputId !== null && shape?.labelFor === shape?.inputId
+        && shape?.labelText !== "" && shape?.trigger === "Open calendar",
+      JSON.stringify(shape));
+
+    // The committed date, and the two forms of writing it.
+    const shown = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateInput']")];
+      return {
+        committed: fields[1]?.querySelector("input")?.value ?? "",
+        iso: fields[2]?.querySelector("input")?.value ?? "",
+        long: fields[3]?.querySelector("input")?.value ?? "",
+      };
+    });
+    check("a committed date is shown in the field",
+      shown?.committed !== "",
+      JSON.stringify(shown));
+    check("the system form shows the date in the system's own form",
+      /^\d{4}-\d{2}-\d{2}$/.test(shown?.iso ?? ""),
+      JSON.stringify(shown));
+    check("the long form spells the month out",
+      (shown?.long ?? "").includes("March") && !(shown?.long ?? "").includes("Mar "),
+      JSON.stringify(shown));
+
+    // The calendar opens from the trailing button and is the house calendar.
+    await page.locator("button[aria-label='Open calendar']").first().click();
+    await page.waitForTimeout(300);
+    const calendar = await page.evaluate(() => {
+      const pop = document.querySelector("#showcase-date-plain-calendar-popover-surface");
       const cal = pop?.querySelector("[data-astryx-component='Calendar']");
       return {
         open: pop !== null,

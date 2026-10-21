@@ -4970,3 +4970,63 @@ let () =
   in
   mount "date-time-input-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- DateInput *)
+(* A text field for a date, with a calendar to pick one from. The field owns
+   the text being typed; the application owns the committed date. *)
+let date_input_component graph =
+  let on_change = Bonsai.return (fun (_ : Astryx.Plain_date.t option) -> Effect.Ignore) in
+  let day = Astryx.Plain_date.create ~year:2026 ~month:3 ~day:21 in
+  let trees =
+    [ Astryx.Date_input.view
+        ~id:"rt-date"
+        ~label:"Date"
+        ~on_change
+        graph
+    ; Astryx.Date_input.view
+        ~id:"rt-date-value"
+        ~label:"A committed date"
+        ~value:(Bonsai.return (Some day))
+        ~on_change
+        graph
+    ; Astryx.Date_input.view
+        ~id:"rt-date-iso"
+        ~label:"In the system form"
+        ~format:Astryx.Date_input.System_date
+        ~value:(Bonsai.return (Some day))
+        ~on_change
+        graph
+    ; Astryx.Date_input.view
+        ~id:"rt-date-long"
+        ~label:"With the month spelled out"
+        ~format:Astryx.Date_input.Date_long
+        ~value:(Bonsai.return (Some day))
+        ~on_change
+        graph
+    ; Astryx.Date_input.view
+        ~id:"rt-date-disabled"
+        ~label:"Disabled"
+        ~is_disabled:true
+        ~disabled_message:"Dates are not available for this account"
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "date-input-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      date_input_component
+  in
+  mount "date-input-all" (Bonsai_web_test.Handle.last_result handle)
+;;

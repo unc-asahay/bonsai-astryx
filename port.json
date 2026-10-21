@@ -915,6 +915,13 @@
       "file": "src/date_time_input.ml",
       "milestone": "M80",
       "module": "Astryx.date_time_input"
+    },
+    {
+      "class": "C",
+      "component": "DateInput",
+      "file": "src/date_input.ml",
+      "milestone": "M81",
+      "module": "Astryx.date_input"
     }
   ],
   "schema": 1,
