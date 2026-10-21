@@ -381,3 +381,19 @@ the wrong order is
 which does not name the real cause, so a worker that writes the
 constructor first will burn a build cycle discovering this. Write the
 argument first.
+
+## The compiler here is a patched OCaml, and its comparisons are int-only
+
+`=`, `<>`, `<`, `>`, `<=` and `>=` only work on ints. `head = text` does
+not compile, and the error says *"This expression has type string but an
+expression was expected of type int"* — it names the left operand, so it
+reads like a comparison-order bug rather than a missing equality. Use
+`String.equal`, `Char.equal`, `Int.equal`, `Bool.equal`, `Poly.equal`,
+`Float.compare` and the rest. For a character range, compare
+`Char.to_int c` against `Char.to_int '0'`.
+
+`Core.String` has no `split_on_char`; it is `String.split_on_chars ~on:[ c ]`.
+
+A parameterised type is instantiated argument-first: `string
+Typeahead.item`, never `Typeahead.item string`. The house's own code
+agrees — `bool Bonsai.t`.
