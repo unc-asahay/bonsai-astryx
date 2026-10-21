@@ -144,6 +144,7 @@ val view
   -> ?start_icon:string
   -> ?end_content:Vdom.Node.t
   -> ?has_clear:bool
+  -> ?on_item_click:(item -> unit Effect.t) Bonsai.t
   -> ?has_create:bool
   -> ?has_entries_on_focus:bool
   -> ?has_auto_focus:bool

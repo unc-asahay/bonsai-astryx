@@ -4659,6 +4659,88 @@ check("a disabled group says so once, on the box", (() => {
       && (snColumn?.querySelector("[role='separator']")?.getAttribute("aria-valuenow") ?? "") === "240",
     JSON.stringify({ value: snColumn?.querySelector("[role='separator']")?.getAttribute("aria-valuenow") }));
 
+  // ---------------------------------------------------------------- PowerSearch
+  const psHost = document.querySelector('[data-case="power-search-all"]');
+  const psRoots = [...(psHost?.querySelectorAll("[data-astryx-component='PowerSearch']") ?? [])];
+  const psEmpty = psRoots[0];
+  const psSet = psRoots[1];
+
+  check("the field carries the house's component marker",
+    psEmpty?.getAttribute("data-astryx-component") === "PowerSearch",
+    JSON.stringify({ component: psEmpty?.getAttribute("data-astryx-component") }));
+
+  check("the field is the house's tokenizer in a field",
+    psEmpty?.querySelector("[data-astryx-component='Tokenizer']") !== null
+      && psEmpty?.querySelector("[data-astryx-component='Field']") !== null,
+    JSON.stringify({
+      tokenizer: psEmpty?.querySelector("[data-astryx-component='Tokenizer']") !== null,
+      field: psEmpty?.querySelector("[data-astryx-component='Field']") !== null,
+    }));
+
+  check("the box is a combobox that owns its list",
+    psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-expanded") === "false"
+      && psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-controls")
+        === "rt-power-search-field-listbox"
+      && psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-autocomplete")
+        === "list",
+    JSON.stringify({
+      expanded: psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-expanded"),
+      controls: psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-controls"),
+      autocomplete: psEmpty?.querySelector("input[role='combobox']")?.getAttribute("aria-autocomplete"),
+    }));
+
+  check("the list of fields is a listbox, and it is closed while there is nothing in it",
+    psEmpty?.querySelector("[role='listbox']")?.hasAttribute("hidden") === true,
+    JSON.stringify({
+      listbox: psEmpty?.querySelector("[role='listbox']") !== null,
+      hidden: psEmpty?.querySelector("[role='listbox']")?.hasAttribute("hidden") ?? null,
+    }));
+
+  check("the field's label is tied to the box",
+    psEmpty?.querySelector("label[for='rt-power-search-field']") !== null,
+    JSON.stringify({ label: psEmpty?.querySelector("label[for='rt-power-search-field']") !== null }));
+
+  check("a field with no filters has no chips",
+    (psEmpty?.querySelectorAll(".astryx-tokenizer__token").length ?? 0) === 0,
+    JSON.stringify({ chips: psEmpty?.querySelectorAll(".astryx-tokenizer__token").length ?? 0 }));
+
+  check("the filters that are set are the chips in the box",
+    (psSet?.querySelectorAll(".astryx-tokenizer__token").length ?? 0) === 2,
+    JSON.stringify({ chips: psSet?.querySelectorAll(".astryx-tokenizer__token").length ?? 0 }));
+
+  const psChipLabels = [...(psSet?.querySelectorAll(".astryx-token__label") ?? [])]
+    .map((e) => e.textContent?.trim() ?? "");
+  check("a chip names the field, the operator and the value",
+    psChipLabels[0] === "Status: is Archived" && psChipLabels[1] === "Name: is ada",
+    JSON.stringify({ labels: psChipLabels }));
+
+  check("a chip shows the value's label, not its value",
+    psChipLabels.includes("Status: is Archived") && !psChipLabels.includes("archived"),
+    JSON.stringify({ labels: psChipLabels }));
+
+  check("a chip can be taken off, and the button says which one",
+    psSet?.querySelector("[aria-label='Remove Status: is Archived']") !== null,
+    JSON.stringify({
+      remove: psSet?.querySelector("[aria-label='Remove Status: is Archived']") !== null,
+    }));
+
+  check("the editor is a popover, and it is not a dialog",
+    psEmpty?.querySelector("[popover='auto']") !== null
+      && psEmpty?.querySelector("[popover='auto']")?.getAttribute("role") === null
+      && psEmpty?.querySelector("[popover='auto']")?.getAttribute("aria-label") === "Filter value",
+    JSON.stringify({
+      popover: psEmpty?.querySelector("[popover='auto']") !== null,
+      role: psEmpty?.querySelector("[popover='auto']")?.getAttribute("role") ?? null,
+      label: psEmpty?.querySelector("[popover='auto']")?.getAttribute("aria-label") ?? null,
+    }));
+
+  check("the editor is closed until a filter is being edited",
+    psEmpty?.querySelector("[popover='auto']")?.hasAttribute("open") === false,
+    JSON.stringify({ open: psEmpty?.querySelector("[popover='auto']")?.hasAttribute("open") ?? null }));
+
+  check("the box is announced politely when it changes",
+    psEmpty?.querySelector("[role='status']") !== null,
+    JSON.stringify({ live: psEmpty?.querySelector("[role='status']") !== null }));
 }
 
 console.log(`\n${checks} checks, ${failures} failure(s)`);

@@ -5289,3 +5289,110 @@ let () =
       markdown_component
   in
   mount "markdown-all" (Bonsai_web_test.Handle.last_result handle)
+(* A power search field: the box that holds the filters that are set, and the
+   typeahead that names the field to filter on. *)
+let power_search_config : Astryx.Power_search.config =
+  { name = "People"
+  ; fields =
+      [ { key = "name"
+        ; label = "Name"
+        ; operators =
+            [ { key = "is"
+              ; label = "is"
+              ; value =
+                  Astryx.Power_search.String
+                    { search_source = None
+                    ; is_arbitrary_string_allowed = true
+                    }
+              }
+            ]
+        ; default_operator = Some "is"
+        ; group = Some "Who"
+        ; description = Some "The name on the profile"
+        ; typeahead_aliases = [ "full name" ]
+        ; typeahead_min_query_length = None
+        ; is_value_match_allowed = true
+        }
+      ; { key = "status"
+        ; label = "Status"
+        ; operators =
+            [ { key = "is"
+              ; label = "is"
+              ; value =
+                  Astryx.Power_search.Enum
+                    [ { value = "active"; label = "Active" }
+                    ; { value = "archived"; label = "Archived" }
+                    ]
+              }
+            ]
+        ; default_operator = Some "is"
+        ; group = Some "Who"
+        ; description = None
+        ; typeahead_aliases = []
+        ; typeahead_min_query_length = None
+        ; is_value_match_allowed = true
+        }
+      ]
+  ; content_search_field_key = Some "name"
+  }
+
+let power_search_component (graph : Bonsai.graph) =
+  let filters, set_filters =
+    Bonsai.state' ([] : Astryx.Power_search.filter list) graph
+  in
+  let on_change =
+    Bonsai.map set_filters ~f:(fun set_filters ->
+        fun (filters : Astryx.Power_search.filter list) _change_type _index ->
+          set_filters (fun _ -> filters))
+  in
+  let empty =
+    Astryx.Power_search.view
+      ~id:"rt-power-search"
+      ~config:power_search_config
+      ~filters
+      ~on_change
+      graph
+  in
+  (* The same field with two filters already set, so the chips are there. *)
+  let with_filters, set_with_filters =
+    Bonsai.state'
+      ([ { field = "status"
+          ; operator = "is"
+          ; value = Astryx.Power_search.Value_enum "archived"
+          ; is_read_only = false
+          }
+        ; { field = "name"
+          ; operator = "is"
+          ; value = Astryx.Power_search.Value_string "ada"
+          ; is_read_only = false
+          }
+        ] : Astryx.Power_search.filter list)
+      graph
+  in
+  let with_filters_change =
+    Bonsai.map set_with_filters ~f:(fun set_with_filters ->
+        fun (filters : Astryx.Power_search.filter list) _change_type _index ->
+          set_with_filters (fun _ -> filters))
+  in
+  let set =
+    Astryx.Power_search.view
+      ~id:"rt-power-search-with-filters"
+      ~config:power_search_config
+      ~filters:with_filters
+      ~on_change:with_filters_change
+      graph
+  in
+  Bonsai.both empty set
+  |> Bonsai.map ~f:(fun (empty, set) ->
+         Vdom.Node.div
+           ~attrs:[ Vdom.Attr.id "power-search-all" ]
+           [ empty; set ])
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      power_search_component
+  in
+  mount "power-search-all" (Bonsai_web_test.Handle.last_result handle)

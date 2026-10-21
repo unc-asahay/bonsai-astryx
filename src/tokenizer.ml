@@ -207,6 +207,7 @@ let view
       ?start_icon
       ?end_content
       ?(has_clear = false)
+      ?on_item_click
       ?(has_create = false)
       ?(has_entries_on_focus = false)
       ?(has_auto_focus = false)
@@ -251,9 +252,21 @@ let view
   let visible_count, set_visible_count = Bonsai.state Int.max_value graph in
   let state = Bonsai.map2 local set_local ~f:(fun local set_local -> (local, set_local)) in
   let counts = Bonsai.map2 visible_count set_visible_count ~f:(fun c s -> (c, s)) in
-  let controlled = Bonsai.map2 value on_change ~f:(fun v c -> (v, c)) in
+  (* The chip's click, if the caller wants one. It is a tree like the other
+     callbacks, and it is unwrapped with the rest of them. *)
+  let item_click =
+    match on_item_click with
+    | None -> Bonsai.return None
+    | Some tree -> Bonsai.map tree ~f:(fun handler -> Some handler)
+  in
+  let controlled =
+    Bonsai.map2
+      (Bonsai.map2 value on_change ~f:(fun v c -> (v, c)))
+      item_click
+      ~f:(fun (v, c) ic -> (v, c, ic))
+  in
   Bonsai.map3 state counts controlled
-    ~f:(fun (local, set_local) (visible_count, set_visible_count) (value, on_change) ->
+    ~f:(fun (local, set_local) (visible_count, set_visible_count) (value, on_change, on_item_click) ->
       let group_id = id ^ "-group" in
       let listbox_id = id ^ "-listbox" in
       let reason_id = id ^ "-reason" in
@@ -588,6 +601,12 @@ let view
               ~size:(token_size size)
               ~is_disabled
               ?on_remove:(if is_disabled then None else Some (fun _ -> remove_item item))
+              ?on_click:
+                (if is_disabled then None
+                 else
+                   match on_item_click with
+                   | None -> None
+                   | Some handler -> Some (fun _ -> handler item))
               item.label ]
       in
       (* The collapsed row: the tokens that fit, and the indicator for the rest.
