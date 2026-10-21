@@ -7434,6 +7434,81 @@ if (mode === "showcase") {
   }
 }
 
+
+// ---------------------------------------------------------------- TimeInput (M83)
+if (mode === "showcase") {
+  const timeSection = await page.$("section[data-showcase-component='TimeInput']");
+  check("the TimeInput section renders", timeSection !== null,
+    timeSection === null ? "not found" : "found");
+
+  if (timeSection) {
+    const shape = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='TimeInput']")];
+      const first = fields[0];
+      const input = first?.querySelector("input");
+      return {
+        fields: fields.length,
+        marker: first?.getAttribute("data-astryx-component") ?? null,
+        hasInput: input !== null,
+        label: input?.getAttribute("aria-label") ?? null,
+        live: first?.querySelector("[role='status']") !== null,
+        formats: fields.map((f) => f.getAttribute("data-astryx-hour-format")),
+        values: fields.map((f) => f.querySelector("input")?.value ?? null),
+        disabled: fields.map((f) => f.getAttribute("data-astryx-disabled")),
+      };
+    });
+
+    check("every example renders its own field, with the house's marker",
+      shape?.fields >= 7 && shape?.marker === "TimeInput",
+      JSON.stringify(shape));
+
+    check("the field is an input, and announces the time politely",
+      shape?.hasInput === true && shape?.live === true,
+      JSON.stringify(shape));
+
+    check("a committed time is shown in the field, on a twelve hour clock",
+      shape?.formats?.[0] === "12h" && shape?.values?.[1] === "2:30 PM",
+      JSON.stringify(shape));
+
+    check("the twenty-four hour example is on a twenty-four hour clock",
+      shape?.formats?.includes("24h") === true
+        && shape?.values?.includes("14:30") === true,
+      JSON.stringify(shape));
+
+    check("the disabled example says so",
+      shape?.disabled?.includes("true") === true,
+      JSON.stringify(shape));
+
+    // Typing a time commits it: the field reports the new value.
+    const typed = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='TimeInput']")];
+      const field = fields[0];
+      const input = field?.querySelector("input");
+      return { id: input?.id ?? null, value: input?.value ?? null };
+    });
+
+    if (typed?.id) {
+      await page.fill("#" + typed.id, "9:15 AM");
+      await page.waitForTimeout(300);
+      const after = await page.evaluate(() => {
+        const fields = [...document.querySelectorAll("[data-astryx-component='TimeInput']")];
+        const input = fields[0]?.querySelector("input");
+        const readout = document.querySelector("#showcase-time-readout");
+        return {
+          value: input?.value ?? null,
+          readout: readout?.textContent ?? null,
+        };
+      });
+      check("typing a time the field can read commits it",
+        after?.value === "9:15 AM" && (after?.readout ?? "").includes("09:15"),
+        JSON.stringify(after));
+    } else {
+      check("typing a time the field can read commits it", false,
+        JSON.stringify(typed));
+    }
+  }
+}
+
 // ---------------------------------------------------------------- screenshot
 
 const outDir = resolve(root, "docs/verification");

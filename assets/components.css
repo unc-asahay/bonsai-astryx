@@ -9557,3 +9557,75 @@ button.astryx-code-block__header-control {
   z-index: 1;
 }
 
+/* time_input */
+/* TimeInput — the typed time field. */
+
+.astryx-time-input {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.astryx-time-input__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  font-family: var(--font-family-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--color-text-primary);
+}
+
+.astryx-time-input--sm .astryx-time-input__input {
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+}
+
+.astryx-time-input--lg .astryx-time-input__input {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-leading);
+}
+
+.astryx-time-input__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-icon-secondary);
+}
+
+.astryx-time-input__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-element);
+  background: transparent;
+  color: var(--color-icon-secondary);
+  cursor: pointer;
+}
+
+.astryx-time-input__clear:hover {
+  color: var(--color-icon-primary);
+}
+
+.astryx-time-input__clear:focus-visible {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 1px;
+}
+
+/* A disabled field with a reason is read-only rather than dead: the reason is
+   in the DOM and the control still says it is disabled. */
+.astryx-time-input--disabled .astryx-time-input__input {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.astryx-time-input__disabled-reason {
+  flex-basis: 100%;
+  font-size: var(--text-supporting-size);
+  line-height: var(--text-supporting-leading);
+  color: var(--color-text-secondary);
+}

@@ -4494,6 +4494,67 @@ check("a disabled group says so once, on the box", (() => {
     }));
 }
 
+{
+  const host = document.querySelector('[data-case="time-input-all"]');
+  const fields = [...(host?.querySelectorAll("[data-astryx-component='TimeInput']") ?? [])];
+  const field = fields[0];
+
+  check("the field carries the house's component marker",
+    field?.getAttribute("data-astryx-component") === "TimeInput",
+    JSON.stringify({ component: field?.getAttribute("data-astryx-component") }));
+
+  check("every example renders its own field",
+    fields.length === 6,
+    JSON.stringify({ fields: fields.length }));
+
+  check("the field is an input",
+    field?.querySelector("input") !== null,
+    JSON.stringify({ hasInput: field?.querySelector("input") !== null }));
+
+  const labelled = fields[1];
+  check("a committed time is shown in the field",
+    labelled?.querySelector("input")?.value === "2:30 PM",
+    JSON.stringify({ value: labelled?.querySelector("input")?.value }));
+
+  const twenty_four = fields[2];
+  check("the twenty-four hour clock shows the time on the twenty-four hour clock",
+    twenty_four?.getAttribute("data-astryx-hour-format") === "24h"
+      && twenty_four?.querySelector("input")?.value === "14:30",
+    JSON.stringify({
+      format: twenty_four?.getAttribute("data-astryx-hour-format"),
+      value: twenty_four?.querySelector("input")?.value,
+    }));
+
+  const with_seconds = fields[3];
+  check("a field with seconds shows them",
+    with_seconds?.getAttribute("data-astryx-seconds") === "true"
+      && with_seconds?.querySelector("input")?.value === "2:30:45 PM",
+    JSON.stringify({
+      seconds: with_seconds?.getAttribute("data-astryx-seconds"),
+      value: with_seconds?.querySelector("input")?.value,
+    }));
+
+  const disabled = fields[4];
+  check("a disabled field says so, and says why",
+    disabled?.getAttribute("data-astryx-disabled") === "true"
+      && disabled?.querySelector("input")?.getAttribute("aria-disabled") === "true"
+      && disabled?.querySelector(".astryx-time-input__disabled-reason")?.textContent
+        === "Times are set by the scheduler",
+    JSON.stringify({
+      disabled: disabled?.getAttribute("data-astryx-disabled"),
+      reason: disabled?.querySelector(".astryx-time-input__disabled-reason")?.textContent ?? null,
+    }));
+
+  const bounded = fields[5];
+  check("a bounded field still shows the time it was given",
+    bounded?.querySelector("input")?.value === "12:00 PM",
+    JSON.stringify({ value: bounded?.querySelector("input")?.value }));
+
+  check("the field announces the time it is showing, politely",
+    field?.querySelector("[role='status']") !== null,
+    JSON.stringify({ live: field?.querySelector("[role='status']") !== null }));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

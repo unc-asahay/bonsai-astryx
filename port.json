@@ -929,6 +929,13 @@
       "file": "src/table.ml",
       "milestone": "M82",
       "module": "Astryx.table"
+    },
+    {
+      "class": "C",
+      "component": "TimeInput",
+      "file": "src/time_input.ml",
+      "milestone": "M83",
+      "module": "Astryx.time_input"
     }
   ],
   "schema": 1,

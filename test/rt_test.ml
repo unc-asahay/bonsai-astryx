@@ -5091,3 +5091,71 @@ let () =
   in
   mount "table-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ---------------------------------------------------------------- TimeInput *)
+(* The typed time field. The field owns the text being typed; the
+   application owns the committed time. *)
+let time_input_component graph =
+  let on_change = Bonsai.return (fun (_ : Astryx.Time_input.time option) -> Effect.Ignore) in
+  let at time = Bonsai.return (Astryx.Time_input.of_iso time) in
+  let trees =
+    [ Astryx.Time_input.view
+        ~id:"rt-time"
+        ~label:"Time"
+        ~on_change
+        graph
+    ; Astryx.Time_input.view
+        ~id:"rt-time-value"
+        ~label:"A committed time"
+        ~value:(at "14:30")
+        ~on_change
+        graph
+    ; Astryx.Time_input.view
+        ~id:"rt-time-24"
+        ~label:"On a twenty-four hour clock"
+        ~hour_format:Astryx.Time_input.H24
+        ~value:(at "14:30")
+        ~on_change
+        graph
+    ; Astryx.Time_input.view
+        ~id:"rt-time-seconds"
+        ~label:"With seconds"
+        ~has_seconds:true
+        ~value:(at "14:30:45")
+        ~on_change
+        graph
+    ; Astryx.Time_input.view
+        ~id:"rt-time-disabled"
+        ~label:"Disabled"
+        ~is_disabled:true
+        ~disabled_message:"Times are set by the scheduler"
+        ~value:(at "09:00")
+        ~on_change
+        graph
+    ; Astryx.Time_input.view
+        ~id:"rt-time-bounded"
+        ~label:"Bounded"
+        ~min:(Option.value_exn (Astryx.Time_input.of_iso "09:00"))
+        ~max:(Option.value_exn (Astryx.Time_input.of_iso "17:00"))
+        ~value:(at "12:00")
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "time-input-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      time_input_component
+  in
+  mount "time-input-all" (Bonsai_web_test.Handle.last_result handle)
