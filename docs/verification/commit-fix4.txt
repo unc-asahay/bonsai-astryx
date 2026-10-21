@@ -123,6 +123,48 @@ What the LIVE site found, and the local gates could not
   assets the BUNDLE reaches for — the video — which the page's own
   markup never mentions.
 
+What reading the published page found, and the local gates could not
+
+  A screenshot of the live site showed three Stack examples that all
+  looked the same. They were captioned "h_align start", "h_align center"
+  and "h_align end", so they should have looked different.
+
+  They were not different, and the reason was two bugs stacked.
+
+  The first: the examples passed the CROSS-axis alias. "h_align start"
+  and "h_align center" were passing ~align, which upstream resolves to
+  align-items, and ~h_align, which on a horizontal row is
+  justify-content. So the captions named an axis the examples were not
+  setting. The house Stack does have ~h_align and ~v_align — it matches
+  upstream's four props exactly — so this was the showcase using the
+  wrong one, not a missing feature.
+
+  The second, and the reason even the correctly-captioned "h_align end"
+  looked the same as the others: an example row is a flex ROW, so a
+  horizontal Stack is a shrink-to-fit flex item. All four rows measured
+  159px — exactly the width of their chips. The computed justify-content
+  was right in every case (flex-start, center, flex-end, space-between)
+  and the visible result was identical every time, because there was no
+  free space to align within. A Stack in a real page is a block-level
+  flex container that fills its parent, so this was the showcase's own
+  layout taking away the width, not the port.
+
+  Both are fixed. The examples pass ~h_align, and the Stack section's
+  horizontal rows get the width the example row already offers. The
+  other sections' rows are untouched, and the site.css rule says why in
+  a comment.
+
+  The gate measures it. Three new checks assert where the chips
+  actually sit — against the left edge, in the middle, against the
+  right edge — and not the computed justify-content, because the
+  computed value was right while the visible result was wrong, which is
+  exactly the kind of bug a class-name assertion cannot see.
+
+  The checks were proved against the broken code: with the CSS rule
+  removed they fail three of three, and with ~align put back in place
+  of ~h_align the centred one fails with {"left":0,"right":717} — the
+  row is 876px wide and the chips are still against the left edge.
+
 Gates
 
   build          dune build, exit 0

@@ -222,6 +222,45 @@ if (mode === "demo") {
 // ---------------------------------------------------------------- showcase mode
 
 if (mode === "showcase") {
+  // The Stack's alignment is MEASURED, not read off a class, and not taken
+  // from the caption. Three examples claim to show h_align on a horizontal
+  // row, and two of them used to pass the cross-axis alias instead — so
+  // "h_align center" centred nothing and the caption was the only thing
+  // saying otherwise. The chips' positions are what is asserted.
+  const stackAlign = await page.evaluate(() => {
+    const gaps = (name) => {
+      const ex = document.querySelector(`[data-example="${name}"]`);
+      const row = ex?.querySelector(".astryx-stack");
+      if (!row) return null;
+      const rr = row.getBoundingClientRect();
+      const kids = [...row.children];
+      if (!kids.length) return null;
+      const first = kids[0].getBoundingClientRect();
+      const last = kids[kids.length - 1].getBoundingClientRect();
+      return {
+        left: Math.round(first.left - rr.left),
+        right: Math.round(rr.right - last.right),
+        width: Math.round(rr.width),
+      };
+    };
+    return {
+      start: gaps("horizontal / h_align start"),
+      center: gaps("horizontal / h_align center"),
+      end: gaps("horizontal / h_align end"),
+    };
+  });
+  const near = (a, b) => Math.abs(a - b) <= 2;
+  check("h_align start puts the chips against the left edge",
+    stackAlign?.start && stackAlign.start.left <= 2 && stackAlign.start.right > 2,
+    JSON.stringify(stackAlign?.start));
+  check("h_align center puts the chips in the middle",
+    stackAlign?.center && near(stackAlign.center.left, stackAlign.center.right)
+      && stackAlign.center.left > 2,
+    JSON.stringify(stackAlign?.center));
+  check("h_align end puts the chips against the right edge",
+    stackAlign?.end && stackAlign.end.right <= 2 && stackAlign.end.left > 2,
+    JSON.stringify(stackAlign?.end));
+
   const sections = await page.evaluate(() => {
     const out = [];
     for (const sec of document.querySelectorAll("[data-showcase-component]")) {

@@ -43,21 +43,21 @@ let s_stack () =
         (Astryx.Stack.view
            ~direction:Astryx.Stack.Horizontal
            ~gap:S.S3
-           ~align:A.Start
+           ~h_align:A.Start
            [ chip "one"; chip "two"; chip "three" ])
     ; ex
         "horizontal / h_align center"
         (Astryx.Stack.view
            ~direction:Astryx.Stack.Horizontal
            ~gap:S.S3
-           ~align:A.Center
+           ~h_align:A.Center
            [ chip "one"; chip "two"; chip "three" ])
     ; ex
         "horizontal / h_align end"
         (Astryx.Stack.view
            ~direction:Astryx.Stack.Horizontal
            ~gap:S.S3
-           ~justify:A.End
+           ~h_align:A.End
            [ chip "one"; chip "two"; chip "three" ])
     ; ex
         "horizontal / justify between"

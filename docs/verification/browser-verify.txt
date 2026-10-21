@@ -15,6 +15,9 @@ page
   ok   no console errors
   ok   the app mounted in Chromium
   ok   every stylesheet parsed
+  ok   h_align start puts the chips against the left edge
+  ok   h_align center puts the chips in the middle
+  ok   h_align end puts the chips against the right edge
 
 RadioList (live)
   ok   the live group starts on the value the application holds
@@ -919,7 +922,7 @@ screenshot: /home/noor/src/bonsai-astryx/docs/verification/localhost-showcase.pn
   ok   the editor offers the field's operators
   ok   the editor's value is a choice, for an enum operator
 
-813/813 checks passed, 0 failure(s)
+816/816 checks passed, 0 failure(s)
 BROWSER CHECKS PASSED
 
 ## demo (examples/demo/index.html)

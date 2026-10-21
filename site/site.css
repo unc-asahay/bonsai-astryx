@@ -195,6 +195,28 @@ code {
   min-width: 0;
 }
 
+/* A horizontal Stack needs the width for a different reason, and the
+   reason is that it has nothing to show without it. The Stack's main-axis
+   alignment — h_align on a horizontal row — is only observable when the row
+   has more room than its content. A horizontal Stack is a shrink-to-fit
+   flex item in the example row above, so every alignment example rendered
+   at exactly the width of its chips: the computed justify-content was
+   right in each case (flex-start, center, flex-end, space-between) and the
+   visible result was identical every time. The Stack section's horizontal
+   rows get the width the row already offers.
+
+   Two of those examples were worse than invisible: they were captioned
+   "h_align start" and "h_align center" while passing the cross-axis alias,
+   so they were not only the same as each other, they were not the axis
+   their caption named. Both are fixed: the examples pass h_align, and
+   the gate measures where the chips actually sit. */
+.sec[data-showcase-component="Stack"]
+  .ex-render
+  > .astryx-stack[data-astryx-direction="horizontal"] {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
 .ex-name {
   margin-top: var(--spacing-2);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

@@ -4853,3 +4853,30 @@ The class is closed by a check rather than by a fix:
 tools/publish-tree.sh refuses to publish a bundle that asks for an
 absolute local path, and it names the assets the bundle reaches for
 rather than the ones the page's markup mentions.
+
+The published page showed three Stack examples that all looked the same
+
+They were captioned "h_align start", "h_align center" and "h_align end",
+so they should have looked different. Two bugs were stacked.
+
+The examples passed the CROSS-axis alias: "h_align start" and "h_align
+center" passed `~align` (upstream: align-items) where the caption named
+`~h_align` (upstream: justify-content on a horizontal row). The house
+Stack does have `~h_align` and `~v_align` — it matches upstream's four
+props exactly — so this was the showcase using the wrong one.
+
+And even the correctly-captioned "h_align end" looked the same as the
+others, because an example row is a flex ROW: a horizontal Stack is a
+shrink-to-fit flex item, and all four rows measured 159px — exactly the
+width of their chips. The computed justify-content was right in every
+case and the visible result was identical every time, because there was
+no free space to align within. A Stack in a real page fills its parent;
+this was the showcase's own layout taking the width away.
+
+Both are fixed, and the gate MEASURES it: three new checks assert where
+the chips actually sit, not the computed justify-content — because the
+computed value was right while the visible result was wrong, which is
+the kind of bug a class-name assertion cannot see. The checks were
+proved against the broken code: they fail with the CSS rule removed,
+and the centred one fails with {"left":0,"right":717} when the
+cross-axis alias is put back.
