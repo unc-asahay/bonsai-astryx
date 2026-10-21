@@ -4286,6 +4286,66 @@ check("a disabled group says so once, on the box", (() => {
 }
 
 
+{
+  const host = document.querySelector('[data-case="date-range-input-all"]');
+  const fields = [...(host?.querySelectorAll("[data-astryx-component='DateRangeInput']") ?? [])];
+  const field = fields[0];
+  const inputs = [...(field?.querySelectorAll("input") ?? [])];
+  const group = field?.querySelector("[role='group']");
+  // A group label is a <span>, not a <label>: it names the group with
+  // aria-labelledby rather than labelling one control.
+  const labelId = group?.getAttribute("aria-labelledby") ?? "";
+  const label = labelId === "" ? null : field?.querySelector("[id=" + JSON.stringify(labelId) + "]");
+
+  check("the date range carries the house's component marker",
+    field?.getAttribute("data-astryx-component") === "DateRangeInput",
+    JSON.stringify({ component: field?.getAttribute("data-astryx-component") }));
+
+  check("there are two fields, one for each end of the range",
+    inputs.length === 2,
+    JSON.stringify({ inputs: inputs.length }));
+
+  check("the two ends are told apart, and the group is named",
+    group?.getAttribute("role") === "group"
+      && (group?.getAttribute("aria-labelledby") ?? "") !== ""
+      && inputs[0]?.getAttribute("id") !== inputs[1]?.getAttribute("id"),
+    JSON.stringify({
+      role: group?.getAttribute("role"),
+      labelledby: group?.getAttribute("aria-labelledby"),
+      ids: inputs.map((i) => i.getAttribute("id")),
+    }));
+
+  check("each end is named for a screen reader",
+    inputs.every((i) => (i.getAttribute("aria-label") ?? "") !== ""),
+    JSON.stringify({ labels: inputs.map((i) => i.getAttribute("aria-label")) }));
+
+  check("the label names the group of fields",
+    label?.getAttribute("id") === group?.getAttribute("aria-labelledby")
+      && (label?.textContent ?? "").trim() !== "",
+    JSON.stringify({
+      labelId: label?.getAttribute("id"),
+      text: (label?.textContent ?? "").trim(),
+      html: (field?.outerHTML ?? "").slice(0, 700),
+    }));
+
+  const withValue = fields[1];
+  const committed = [...(withValue?.querySelectorAll("input") ?? [])].map((i) => i.value);
+  check("a committed range is shown in the two fields",
+    committed.length === 2 && committed[0] !== "" && committed[0] !== committed[1],
+    JSON.stringify({ committed }));
+
+  const disabled = fields[2];
+  const disabledInput = disabled?.querySelector("input");
+  check("a disabled range disables its fields and says why",
+    disabledInput?.hasAttribute("readonly") === true
+      && disabled?.querySelector("[aria-disabled='true']") !== null
+      && (disabled?.textContent ?? "").includes("not available"),
+    JSON.stringify({
+      readonly: disabledInput?.hasAttribute("readonly") ?? false,
+      text: (disabled?.textContent ?? "").trim().slice(0, 60),
+    }));
+}
+
 console.log(`\n${checks} checks, ${failures} failure(s)`);
 console.log(failures === 0 ? "COMPONENT CHECKS PASSED" : "COMPONENT CHECKS FAILED");
 

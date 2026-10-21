@@ -9423,3 +9423,51 @@ button.astryx-code-block__header-control {
   font-size: var(--text-title-size);
   padding: var(--spacing-3) var(--spacing-4);
 }
+
+/* date_range_input */
+/* DateRangeInput — a pair of text fields for the ends of a date range, with a
+   calendar to pick them. */
+
+.astryx-date-range-input {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.astryx-date-range-input__group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.astryx-date-range-input__input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.astryx-date-range-input__separator {
+  color: var(--text-secondary);
+  flex: 0 0 auto;
+}
+
+.astryx-date-range-input__calendar {
+  width: max-content;
+}
+
+/* The sizes mirror the house's input sizes. */
+
+.astryx-date-range-input--sm .astryx-date-range-input__input {
+  font-size: var(--text-body-size);
+  padding: var(--spacing-1) var(--spacing-2);
+}
+
+.astryx-date-range-input--md .astryx-date-range-input__input {
+  font-size: var(--text-body-size);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.astryx-date-range-input--lg .astryx-date-range-input__input {
+  font-size: var(--text-title-size);
+  padding: var(--spacing-3) var(--spacing-4);
+}

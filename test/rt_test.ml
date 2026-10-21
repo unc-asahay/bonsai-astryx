@@ -4858,3 +4858,58 @@ let () =
   in
   mount "typeahead-all" (Bonsai_web_test.Handle.last_result handle)
 ;;
+
+(* ----------------------------------------------------------- DateRangeInput *)
+(* Two fields for the ends of a range, with a calendar to pick them. The
+   field owns the draft text of each end; the application owns the range. *)
+let date_range_input_component graph =
+  let day n = Astryx.Plain_date.create ~year:2026 ~month:3 ~day:n in
+  let on_change =
+    Bonsai.return (fun (_ : Astryx.Calendar.date_range option) -> Effect.Ignore)
+  in
+  let trees =
+    [ Astryx.Date_range_input.view
+        ~id:"rt-date-range"
+        ~label:"Date range"
+        ~value:(Bonsai.return None)
+        ~on_change
+        graph
+    ; Astryx.Date_range_input.view
+        ~id:"rt-date-range-value"
+        ~label:"A committed range"
+        ~value:
+          (Bonsai.return
+             (Some
+                { Astryx.Calendar.start_date = day 3
+                ; end_date = day 11
+                }))
+        ~on_change
+        graph
+    ; Astryx.Date_range_input.view
+        ~id:"rt-date-range-disabled"
+        ~label:"Disabled"
+        ~is_disabled:true
+        ~disabled_message:"Ranges are not available for this account"
+        ~value:(Bonsai.return None)
+        ~on_change
+        graph
+    ]
+  in
+  let nodes =
+    List.fold trees ~init:(Bonsai.return []) ~f:(fun acc node ->
+      Bonsai.both acc node |> Bonsai.map ~f:(fun (acc, node) -> node :: acc))
+    |> Bonsai.map ~f:List.rev
+  in
+  Bonsai.map
+    ~f:(fun nodes -> Vdom.Node.div ~attrs:[ Vdom.Attr.id "date-range-input-all" ] nodes)
+    nodes
+;;
+
+let () =
+  let handle =
+    Bonsai_web_test.Handle.create
+      (Bonsai_web_test.Result_spec.vdom Fn.id)
+      date_range_input_component
+  in
+  mount "date-range-input-all" (Bonsai_web_test.Handle.last_result handle)
+;;

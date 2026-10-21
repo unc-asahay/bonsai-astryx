@@ -293,6 +293,7 @@ if (mode === "showcase") {
     "ContextMenu",
     "AppShell",
     "Typeahead",
+    "DateRangeInput",
 
   ];
 
@@ -656,7 +657,7 @@ if (mode === "showcase") {
     !afterClose.open && /closed$/.test(afterClose.readout ?? ""), JSON.stringify(afterClose));
 
   console.log("\nshowcase sections");
-  check("97 sections", sections.length === 97, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
+  check("98 sections", sections.length === 98, `got ${sections.length}: ${sections.map((s) => s.name).join(",")}`);
   const names = sections.map((s) => s.name);
   const missing = EXPECTED.filter((n) => !names.includes(n));
   check("every expected component has a section", missing.length === 0, `missing: ${missing.join(", ")}`);
@@ -761,13 +762,14 @@ if (mode === "showcase") {
     ContextMenu: 3,
     AppShell: 10,
     Typeahead: 5,
+    DateRangeInput: 5,
     Timestamp: 10,
     ComplexSelector: 11,
     Outline: 9,
 
   };
   const totalExamples = sections.reduce((a, s) => a + s.examples, 0);
-  check("644 examples across the page", totalExamples === 644, `got ${totalExamples}`);
+  check("649 examples across the page", totalExamples === 649, `got ${totalExamples}`);
 
   const wrongExamples = sections.filter((s) => expectedExamples[s.name] !== s.examples);
   check(
@@ -781,7 +783,7 @@ if (mode === "showcase") {
   const nav = await page.evaluate(() =>
     [...document.querySelectorAll(".nav-list a")].map((a) => a.getAttribute("href")),
   );
-  check("97 nav links", nav.length === 97, `got ${nav.length}`);
+  check("98 nav links", nav.length === 98, `got ${nav.length}`);
   const ids = new Set(sections.filter((s) => s.id).map((s) => `#${s.id}`));
   const dangling = nav.filter((h) => !ids.has(h));
   check("no dangling nav link", dangling.length === 0, dangling.join(", "));
@@ -4176,11 +4178,11 @@ check(
     foot: (document.getElementById("build-line") || {}).textContent || "",
   }));
   check(
-    "coverage stats are 95 ported / 8 not / 103 total",
-    JSON.stringify(cov.stats) === JSON.stringify(["95", "8", "103"]),
+    "coverage stats are 96 ported / 7 not / 103 total",
+    JSON.stringify(cov.stats) === JSON.stringify(["96", "7", "103"]),
     cov.stats.join(" | "),
   );
-  check("unported list rendered 8 entries", cov.unported === 8, `got ${cov.unported}`);
+  check("unported list rendered 7 entries", cov.unported === 7, `got ${cov.unported}`);
   check("upstream commit shown", /astryx@[0-9a-f]{6,}/.test(cov.upstream), cov.upstream);
   check("coverage.json reported no inconsistency", !/WARNING/.test(cov.foot), cov.foot);
 
@@ -7100,6 +7102,82 @@ if (mode === "showcase") {
     check("Enter takes the highlighted option and closes the list",
       chosen?.value === "Banana" && chosen?.expanded === "false",
       JSON.stringify(chosen));
+  }
+}
+
+
+// ---------------------------------------------------------- DateRangeInput (M79)
+if (mode === "showcase") {
+  const drSection = await page.$("section[data-showcase-component='DateRangeInput']");
+  check("the DateRangeInput section renders", drSection !== null,
+    drSection === null ? "not found" : "found");
+
+  if (drSection) {
+    const shape = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateRangeInput']")];
+      const first = fields[0];
+      const inputs = [...(first?.querySelectorAll("input") ?? [])];
+      const group = first?.querySelector("[role='group']");
+      const labelId = group?.getAttribute("aria-labelledby") ?? "";
+      // A group label is a <span>, not a <label>: it names the group with
+      // aria-labelledby rather than labelling one control.
+      const label = labelId === "" ? null : first?.querySelector("[id=" + JSON.stringify(labelId) + "]");
+      return {
+        fields: fields.length,
+        inputs: inputs.length,
+        ids: inputs.map((i) => i.getAttribute("id")),
+        labels: inputs.map((i) => i.getAttribute("aria-label")),
+        groupRole: group?.getAttribute("role") ?? null,
+        labelledby: labelId,
+        labelId: label?.getAttribute("id") ?? null,
+        labelText: (label?.textContent ?? "").trim(),
+        marker: first?.getAttribute("data-astryx-component") ?? null,
+      };
+    });
+
+    check("every example renders its own field, and the root carries the house's marker",
+      shape?.fields >= 4 && shape?.marker === "DateRangeInput",
+      JSON.stringify(shape));
+
+    check("there are two fields, one for each end of the range",
+      shape?.inputs === 2 && shape.ids[0] !== shape.ids[1],
+      JSON.stringify(shape));
+
+    check("the two ends are a named group, and the label names the group",
+      shape?.groupRole === "group" && shape?.labelledby === shape?.labelId
+        && shape?.labelText !== "",
+      JSON.stringify(shape));
+
+    check("each end is named for a screen reader",
+      shape?.labels.every((l) => l !== null && l !== ""),
+      JSON.stringify(shape));
+
+    // The committed range is shown in the two fields.
+    const committed = await page.evaluate(() => {
+      const fields = [...document.querySelectorAll("[data-astryx-component='DateRangeInput']")];
+      const withValue = fields[1];
+      return [...(withValue?.querySelectorAll("input") ?? [])].map((i) => i.value);
+    });
+    check("a committed range is shown in the two fields",
+      committed.length === 2 && committed[0] !== "" && committed[0] !== committed[1],
+      JSON.stringify({ committed }));
+
+    // The calendar opens from the trigger, which is an icon-only button named
+    // "Choose dates", and it is the house calendar.
+    await page.locator("button[aria-label='Choose dates']").first().click();
+    await page.waitForTimeout(300);
+    const calendar = await page.evaluate(() => {
+      const pop = document.querySelector("#showcase-date-range-plain-popover-surface");
+      const cal = pop?.querySelector("[data-astryx-component='Calendar']");
+      return {
+        open: pop !== null,
+        calendar: cal !== null && cal !== undefined,
+        grid: pop?.querySelectorAll("[role='gridcell']").length ?? 0,
+      };
+    });
+    check("the trigger opens the calendar, and it is the house calendar",
+      calendar?.open === true && calendar?.calendar === true && calendar?.grid > 0,
+      JSON.stringify(calendar));
   }
 }
 

@@ -4534,3 +4534,12 @@ compile here, and the error it gives does not name the real cause.
 
 Component 883/883, browser 727/727, responsive 66/66, sweep SWEEP GREEN.
 
+### Gate 90 — M79 DateRangeInput
+
+The date range input is two text fields for the ends of a range, and a calendar to pick them. The field owns the draft text of each end and whether the calendar is open; the application owns the committed range. A range picked in the calendar is the whole range, so the fields go back to showing what was committed and the surface closes.
+
+The worker's 484-line implementation needed four repairs: attribute lists that mixed `;` and `@` inside one literal; a commit path handed the formatted text where it needed the date; a `with` clause that listed every field of the model; and the library's own `Field` shadowed by `open! Core`.
+
+The house's field renders a group label as a `<span>` that names the group with `aria-labelledby`, not as a `<label>` that labels one control. Both gates were asserting a `<label>` and failing.
+
+Gates: component **890/890**, browser **734/734**, responsive **66/66**, full sweep green.

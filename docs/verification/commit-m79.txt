@@ -1,0 +1,48 @@
+Gate 90 — M79 DateRangeInput (coverage 95 → 96)
+
+The date range input is two text fields for the ends of a range, and a
+calendar to pick them.
+
+The field owns the draft text of each end and whether the calendar is
+open. The application owns the committed range. A range picked in the
+calendar is the whole range, so the fields go back to showing what was
+committed and the surface closes. A single end typed into a field is
+parsed, and the other end is then committed with it.
+
+The implementation is a Bonsai graph: the two draft strings and the
+open flag live in one model, and the committed range travels in and out
+as a tree, which is the house's convention for a controlled component.
+
+The worker branch carried a 484-line implementation written against
+another Core and another js_of_ocaml. Four things had to be repaired
+before it could be trusted.
+
+The attribute lists mixed `;` and `@` inside one list literal, which
+does not parse. Common.Attr.class_, .aria and .data each return a list,
+so they have to be spliced, and the splice has to happen after the
+bracket rather than inside it.
+
+The commit logic was handed the formatted text where it needed the
+date. `committed_start` was the range's start date rendered for the
+field to show, but the commit path compares it against a parsed date,
+so the two are now separate: the text for the field, the date for the
+logic.
+
+The model was updated with a `with` clause that listed every field, so
+the clause was useless and the build refused it.
+
+And the field's own module was shadowed: `open! Core` brings Core's
+Field into scope ahead of this library's, so the library's Field is
+bound under another name before the opens.
+
+The house's field renders a group label as a <span> that names the
+group with aria-labelledby, not as a <label> that labels one control.
+Both the component gate and the browser gate were asserting a <label>
+and failing; the assertion now looks the span up by the id the group
+names.
+
+Gates — component 890/890, browser 734/734, responsive 66/66, full
+sweep green.
+
+The five examples are the field alone, a committed range, disabled, the
+calendar loading, and a minimum date.
