@@ -161,6 +161,14 @@ let code_fence line =
 (* The parser. The lines are consumed in order, and a block that continues
    over several lines — a quote, a list, a fence — takes the lines that
    belong to it. *)
+(* Whether a line's marker is of the same kind as a list's: both bullets,
+   or both numbers. *)
+let same_kind marker ordered =
+  match (marker, ordered) with
+  | Some (is_ordered, _), Some list_ordered -> Bool.equal is_ordered list_ordered
+  | _ -> false
+;;
+
 let rec parse_blocks (lines : string list) : block list =
   let rec go lines acc =
     match lines with
@@ -246,11 +254,16 @@ let rec parse_blocks (lines : string list) : block list =
       | [] -> []
       | line :: rest ->
         if is_blank line then
-          (* A blank line ends the list unless the next line continues it. *)
+          (* A blank line ends the list unless the next line continues it.
+             A line that is indented continues the item it follows, and a
+             line that is an item of the same kind continues the list. A
+             bullet and a number are two lists, even with nothing between
+             them. *)
           (match rest with
            | next :: _
              when (not (is_blank next))
-                  && (Int.compare (indent_of next) 0 > 0 || Option.is_some (list_marker next))
+                  && (Int.compare (indent_of next) 0 > 0
+                      || same_kind (list_marker next) !ordered)
            -> take_items rest
            | _ -> rest)
         else
