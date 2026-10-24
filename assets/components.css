@@ -8274,32 +8274,46 @@ button.astryx-code-block__header-control {
 /* The Selector — the control box, the panel and the rows. */
 
 .astryx-selector {
+  /* One row: the trigger, then its adornments, the chevron last. The box owns
+     the border, the padding and the anchor; the trigger is the transparent
+     stretchy middle. Laid out as the column it used to be, every adornment
+     fell below the trigger — outside the visible box. */
   position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  min-width: 0;
-  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-background-body);
+  color: inherit;
+  cursor: pointer;
   /* The panel is a popover in the top layer; this is the box it hangs from. */
   anchor-name: --astryx-selector-anchor;
 }
 
+.astryx-selector[data-astryx-size="sm"] { min-block-size: var(--size-element-sm); padding-inline: var(--spacing-2); }
+.astryx-selector[data-astryx-size="md"] { min-block-size: var(--size-element-md); padding-inline: var(--spacing-3); }
+.astryx-selector[data-astryx-size="lg"] { min-block-size: var(--size-element-lg); padding-inline: var(--spacing-3); }
+
 .astryx-selector__trigger {
+  flex: 1 1 auto;
+  min-inline-size: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-2);
-  width: 100%;
-  min-width: 12rem;
   min-height: 2rem;
-  padding: var(--spacing-1) var(--spacing-2);
+  margin: 0;
+  padding: 0;
   font: inherit;
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  background: var(--color-background-body);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
+  cursor: inherit;
+  background: none;
+  border: 0;
 }
 
 .astryx-selector__trigger:focus-visible {
