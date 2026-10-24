@@ -8280,6 +8280,8 @@ button.astryx-code-block__header-control {
   gap: var(--spacing-1);
   min-width: 0;
   max-width: 100%;
+  /* The panel is a popover in the top layer; this is the box it hangs from. */
+  anchor-name: --astryx-selector-anchor;
 }
 
 .astryx-selector__trigger {
@@ -8305,11 +8307,17 @@ button.astryx-code-block__header-control {
   outline-offset: 1px;
 }
 
+/* The panel's column: the optional search row, then the list. It carries the
+   surface, so a search row and the options share one border and one shadow. */
 .astryx-selector__content {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
+  flex-direction: column;
   min-width: 0;
+  overflow: hidden;
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  box-shadow: var(--shadow-med);
 }
 
 .astryx-selector__indicator {
@@ -8338,23 +8346,46 @@ button.astryx-code-block__header-control {
   display: inline-flex;
 }
 
+/* The panel. A native popover surface the platform positions against the
+   control box, the same arrangement Multi_selector uses. Without these rules
+   the panel gets the UA's default popover placement — centred in the viewport
+   and shrunk to its content — which is not a dropdown anyone can use. */
+.astryx-selector__panel {
+  /* A native popover: the platform owns the top layer and the outside-pointer
+     dismissal. The placement is set here rather than with `position-area`,
+     which spans the anchor's inline space; the panel has to hang off the
+     control box's own left edge, exactly as wide as it. */
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  position-anchor: --astryx-selector-anchor;
+  left: anchor(left);
+  top: anchor(bottom);
+  margin-block-start: var(--spacing-1);
+  inline-size: anchor-size(width);
+  max-inline-size: min(32rem, calc(100vw - 2rem));
+  max-block-size: 60vh;
+}
+
+.astryx-selector__panel:not(:popover-open) {
+  display: none;
+}
+
+/* The options. The surface above draws the border and the shadow; the list
+   only scrolls, so the rounded corners stay put while the rows move. */
 .astryx-selector__list {
-  position: absolute;
-  z-index: 10;
-  top: calc(100% + var(--spacing-1));
-  left: 0;
-  min-width: 100%;
-  max-height: 320px;
-  overflow-y: auto;
+  position: static;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-height: 60vh;
+  overflow-y: auto;
   padding: var(--spacing-1);
   margin: 0;
   list-style: none;
-  background: var(--color-background-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
-  box-shadow: var(--shadow-med);
 }
 
 .astryx-selector__search-row {

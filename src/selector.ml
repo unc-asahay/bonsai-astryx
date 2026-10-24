@@ -271,6 +271,17 @@ let view
   let trigger_id = id in
   let listbox_id = id ^ "-listbox" in
   let panel_id = id ^ "-panel" in
+  (* The anchor the panel hangs from. Per instance: a page can hold several
+     selectors, and a shared anchor name points every panel at whichever one
+     the browser resolved last. Anchor names are dashed-idents, so anything an
+     id cannot carry collapses to a hyphen. *)
+  let anchor_name =
+    "--astryx-selector-anchor-"
+    ^ String.map id ~f:(fun ch ->
+      if Char.is_alphanum ch || Char.equal ch '-' || Char.equal ch '_'
+      then ch
+      else '-')
+  in
   let label_id = id ^ "-label" in
   let description_id = id ^ "-desc" in
   let disabled_message_id = id ^ "-disabled-message" in
@@ -744,6 +755,7 @@ let view
             ]))
       @ Attr.data "component" "Selector"
       @ [ Vdom.Attr.create "data-astryx-size" (size_name size) ]
+      @ Attr.style [ "anchor-name", anchor_name ]
       @ attrs
     in
     let control_box = Vdom.Node.div ~attrs:control_box_attrs control_box_children in
@@ -920,6 +932,7 @@ let view
            ; Vdom.Attr.create "popover" "auto"
            ]
           @ Attr.class_ [ "astryx-selector__panel" ]
+          @ Attr.style [ "position-anchor", anchor_name ]
           @ [ Common.Layer_hook.attr ~is_open:model.is_open ~on_platform_close:(platform_close ()) ])
         [ Vdom.Node.div
             ~attrs:(Attr.class_ [ "astryx-selector__content" ])
